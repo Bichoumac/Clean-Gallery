@@ -39,9 +39,59 @@ final class AndroidPlatformBridge implements PlatformBridge {
     return sizes ?? const {};
   }
 
+  /// Raw RGBA pixels of MediaStore item [id], fitting in [width] × [height],
+  /// read from MediaStore's thumbnail cache.
+  ///
+  /// Android-only helper used by the thumbnail and preview providers.
+  /// Throws a [PlatformException] with code `not_found` or `dropped` (the
+  /// request waited too long behind newer ones).
+  Future<RawImageData> thumbnail(
+    String id, {
+    required bool isVideo,
+    required int width,
+    required int height,
+  }) async {
+    final reply = await _channel.invokeMapMethod<String, Object>('thumbnail', {
+      'id': id,
+      'video': isVideo,
+      'width': width,
+      'height': height,
+    });
+    if (reply == null) throw StateError('No thumbnail for $id');
+    return RawImageData(
+      width: reply['width']! as int,
+      height: reply['height']! as int,
+      rowBytes: reply['rowBytes']! as int,
+      pixels: reply['pixels']! as Uint8List,
+    );
+  }
+
   @override
   Future<int> sdkVersion() async {
     final version = await _channel.invokeMethod<int>('sdkVersion');
     return version ?? 0;
   }
+}
+
+/// Uncompressed RGBA 8888 image returned by the native side.
+final class RawImageData {
+  /// Creates the image data.
+  const RawImageData({
+    required this.width,
+    required this.height,
+    required this.rowBytes,
+    required this.pixels,
+  });
+
+  /// Width in pixels.
+  final int width;
+
+  /// Height in pixels.
+  final int height;
+
+  /// Bytes per row, at least `width * 4`.
+  final int rowBytes;
+
+  /// Pixels, row by row.
+  final Uint8List pixels;
 }

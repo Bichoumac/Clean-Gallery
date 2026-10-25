@@ -22,12 +22,16 @@ Packages checked on pub.dev on 2026-10-25:
 
 - **`MediaSource`** ([media_source.dart](../../lib/platform/media_source.dart)) is the only way to reach media. `AndroidMediaSource` implements it with `photo_manager`.
 - **Own `ImageProvider`s** ([media_image_providers.dart](../../lib/platform/android/media_image_providers.dart)):
-  - `AssetThumbnailProvider`: thumbnail rendered by Android at 256 or 512 px, keyed by id, modification date and size so Flutter's image cache reuses it.
-  - `AssetFullImageProvider`: reads the file and decodes it at most 4,096 px on the longest side.
+  - `NativeThumbnailProvider`: grid thumbnails and viewer previews from MediaStore's thumbnail cache through the app's own `thumbnail` channel method, as raw pixels ([platform-android.md](../platform-android.md#native-channel-clean_galleryplatform)); keyed by id, modification date and size so Flutter's image cache reuses it.
+  - `AssetFullImageProvider`: reads the file and decodes it at most 4,096 px on the longest side, only when zooming.
 - **Permissions stay in `PermissionService`**: `photo_manager`'s own permission check is turned off (`setIgnorePermissionCheck(true)`), so there is a single place that asks.
 - **Favorites** use a MediaStore SQL filter on `IS_FAVORITE` (Android 11+), so the Favorites album matches Google Photos and other galleries.
 - **Chunked loading**: lists load 1,000 items per call; the first chunk is shown at once.
 - **Shared media code in `lib/core/media/`**: the media list providers, thumbnail widget and formatting are used by both the library and the viewer, and features must not import each other ([architecture.md](../architecture.md#dependency-rules)).
+
+### Amendment (M1, after the first device test)
+
+The first version rendered thumbnails with `photo_manager`'s `thumbnailDataWithSize` (Glide, JPEG, first-in-first-out queue). It was too slow on a real library, especially after scrolling far. Thumbnails and previews now use the native loader; `photo_manager` is still used for listing, filtering, files and video URIs.
 
 ## Alternatives considered
 

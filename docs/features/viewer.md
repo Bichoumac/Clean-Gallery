@@ -14,7 +14,7 @@ Show one item at a time, full screen, with swiping between the items of the grid
 2. Swipe left or right to move between items, in the grid's order, including its sort and date filter.
 3. Pinch, or double-tap, to zoom a photo; double-tap again to fit. Swiping is disabled while zoomed.
 4. Tap once to hide or show the controls and the system bars.
-5. Videos start playing when they become the current page and pause when swiped away. Controls: play/pause/replay, progress bar with seeking, mute, rotate.
+5. Videos start playing when they become the current page and pause when swiped away. Controls: play/pause/replay, progress bar with seeking, mute, rotate. The progress bar follows the finger and the video seeks when it is lifted.
 6. Back returns to the grid.
 
 ## Screens and widgets
@@ -30,7 +30,7 @@ Route: `/viewer`, above the tabs, with `ViewerArgs(selection, initialIndex)` as 
 ## State and data
 
 - Items come from `mediaListProvider(selection)`, the same list as the grid, so nothing is loaded twice and indexes match.
-- Photos: the grid thumbnail is shown instantly, then a **screen-sized preview** (`MediaSource.preview`, at most 2,560 px, rendered by Android's thumbnail pipeline). The full-resolution image (`MediaSource.fullImage`, at most 4,096 px) is only loaded once the user zooms past 1.3×.
+- Photos: the grid thumbnail is shown instantly, then a **screen-sized preview** (`MediaSource.preview`, at most 2,560 px, from MediaStore's thumbnail cache as raw pixels). The full-resolution image (`MediaSource.fullImage`, at most 4,096 px) is only loaded once the user zooms past 1.3×.
 - Previews of the next, previous and second-next photos are precached when a page is shown, so swiping lands on a ready image.
 - Videos: `MediaSource.videoUri` (a `content://` URI) played by `video_player` ([ADR 0011](../decisions/0011-video-playback.md)).
 - Zoom: own gesture handling ([ADR 0010](../decisions/0010-photo-zoom.md)): one finger swipes between pages at fit scale and pans once zoomed; two fingers zoom.
@@ -48,6 +48,7 @@ Route: `/viewer`, above the tabs, with `ViewerArgs(selection, initialIndex)` as 
 
 - [library_test.dart](../../test/features/library/library_test.dart): opening the viewer on the tapped item, showing its file name, closing with back.
 - [viewer_test.dart](../../test/features/viewer/viewer_test.dart): swipe left and right (fling and slow drag), pinch then pan without changing page, double-tap back to fit, top bar height.
+- [video_controls_test.dart](../../test/features/viewer/video_controls_test.dart): progress bar at the bottom and play button centered, in portrait and landscape (the bar was in the middle of the screen because `Slider` takes all the height it is given).
 - Video playback, zoom gestures and Hero transitions are checked on a device ([testing.md](../testing.md#m1--to-verify-on-a-device)).
 
 ## Known limitations / future work

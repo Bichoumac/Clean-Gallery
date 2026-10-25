@@ -1,29 +1,42 @@
 import 'dart:ui' as ui;
 
+import 'package:clean_gallery/platform/android/android_platform_bridge.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/painting.dart';
 import 'package:photo_manager/photo_manager.dart';
 
-/// Image of a MediaStore asset rendered by Android's thumbnail pipeline at
-/// [width] × [height] pixels: square grid thumbnails, or screen-sized
-/// previews with the asset's proportions.
+/// Image of a MediaStore item from MediaStore's own thumbnail cache, at
+/// about [width] × [height] pixels: square-ish grid thumbnails or
+/// screen-sized previews.
 ///
-/// Two providers are equal when they show the same version of the same
-/// asset at the same size, so Flutter's image cache reuses decoded images
-/// while scrolling.
+/// The native side returns raw RGBA pixels, so nothing is encoded or
+/// decoded as JPEG on the way. Two providers are equal when they show the
+/// same version of the same item at the same size, so Flutter's image cache
+/// reuses them while scrolling.
 @immutable
-final class AssetThumbnailProvider
-    extends ImageProvider<AssetThumbnailProvider> {
-  /// Creates a provider for [asset] at [width] × [height] pixels.
-  const AssetThumbnailProvider(
-    this.asset, {
+final class NativeThumbnailProvider
+    extends ImageProvider<NativeThumbnailProvider> {
+  /// Creates a provider for the item [id] modified at [modifiedSecond].
+  const NativeThumbnailProvider(
+    this.bridge, {
+    required this.id,
+    required this.isVideo,
+    required this.modifiedSecond,
     required this.width,
     required this.height,
-    this.quality = 80,
   });
 
-  /// Asset to render.
-  final AssetEntity asset;
+  /// Channel to the native loader. Not part of equality.
+  final AndroidPlatformBridge bridge;
+
+  /// MediaStore id.
+  final String id;
+
+  /// Whether the item is a video (it lives in another MediaStore table).
+  final bool isVideo;
+
+  /// Modification time, so an edited item gets a new image.
+  final int modifiedSecond;
 
   /// Requested width in pixels.
   final int width;
@@ -31,50 +44,50 @@ final class AssetThumbnailProvider
   /// Requested height in pixels.
   final int height;
 
-  /// JPEG quality of the rendered image, 0–100.
-  final int quality;
-
   @override
-  Future<AssetThumbnailProvider> obtainKey(ImageConfiguration configuration) =>
+  Future<NativeThumbnailProvider> obtainKey(ImageConfiguration configuration) =>
       SynchronousFuture(this);
 
   @override
   ImageStreamCompleter loadImage(
-    AssetThumbnailProvider key,
+    NativeThumbnailProvider key,
     ImageDecoderCallback decode,
   ) {
-    return OneFrameImageStreamCompleter(_load(key, decode));
+    return OneFrameImageStreamCompleter(_load(key));
   }
 
-  Future<ImageInfo> _load(
-    AssetThumbnailProvider key,
-    ImageDecoderCallback decode,
-  ) async {
-    final bytes = await key.asset.thumbnailDataWithSize(
-      ThumbnailSize(key.width, key.height),
-      quality: key.quality,
+  Future<ImageInfo> _load(NativeThumbnailProvider key) async {
+    final data = await key.bridge.thumbnail(
+      key.id,
+      isVideo: key.isVideo,
+      width: key.width,
+      height: key.height,
     );
-    if (bytes == null || bytes.isEmpty) {
-      throw StateError('No thumbnail for asset ${key.asset.id}');
-    }
-    final buffer = await ui.ImmutableBuffer.fromUint8List(bytes);
-    final codec = await decode(buffer);
+    final buffer = await ui.ImmutableBuffer.fromUint8List(data.pixels);
+    final descriptor = ui.ImageDescriptor.raw(
+      buffer,
+      width: data.width,
+      height: data.height,
+      rowBytes: data.rowBytes,
+      pixelFormat: ui.PixelFormat.rgba8888,
+    );
+    final codec = await descriptor.instantiateCodec();
     final frame = await codec.getNextFrame();
+    descriptor.dispose();
+    buffer.dispose();
     return ImageInfo(image: frame.image);
   }
 
   @override
   bool operator ==(Object other) =>
-      other is AssetThumbnailProvider &&
-      other.asset.id == asset.id &&
-      other.asset.modifiedDateSecond == asset.modifiedDateSecond &&
+      other is NativeThumbnailProvider &&
+      other.id == id &&
+      other.modifiedSecond == modifiedSecond &&
       other.width == width &&
-      other.height == height &&
-      other.quality == quality;
+      other.height == height;
 
   @override
-  int get hashCode =>
-      Object.hash(asset.id, asset.modifiedDateSecond, width, height, quality);
+  int get hashCode => Object.hash(id, modifiedSecond, width, height);
 }
 
 /// Full-resolution image of a MediaStore asset, read from its file and

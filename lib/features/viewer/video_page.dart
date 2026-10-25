@@ -124,7 +124,7 @@ class _VideoPageState extends ConsumerState<VideoPage> {
               child: AnimatedOpacity(
                 opacity: widget.controlsVisible ? 1 : 0,
                 duration: const Duration(milliseconds: 200),
-                child: _VideoControls(controller: controller),
+                child: VideoControls(controller: controller),
               ),
             ),
         ],
@@ -134,10 +134,23 @@ class _VideoPageState extends ConsumerState<VideoPage> {
 }
 
 /// Play/pause button in the middle, progress bar and toggles at the bottom.
-class _VideoControls extends StatelessWidget {
-  const _VideoControls({required this.controller});
+class VideoControls extends StatefulWidget {
+  /// Creates the controls of [controller].
+  const VideoControls({required this.controller, super.key});
 
+  /// Player the controls drive.
   final VideoPlayerController controller;
+
+  @override
+  State<VideoControls> createState() => _VideoControlsState();
+}
+
+class _VideoControlsState extends State<VideoControls> {
+  /// Slider position while the user drags it, in milliseconds. The video
+  /// only seeks when the finger is lifted, so dragging stays smooth.
+  double? _dragMs;
+
+  VideoPlayerController get controller => widget.controller;
 
   Future<void> _togglePlay(VideoPlayerValue value) async {
     if (value.isCompleted) {
@@ -172,6 +185,11 @@ class _VideoControls extends StatelessWidget {
       builder: (context, value, _) {
         final duration = value.duration;
         final position = value.position > duration ? duration : value.position;
+        final maxMs = duration.inMilliseconds.clamp(1, 1 << 31).toDouble();
+        final sliderMs = (_dragMs ?? position.inMilliseconds.toDouble()).clamp(
+          0.0,
+          maxMs,
+        );
         final (icon, label) = value.isCompleted
             ? (Icons.replay_rounded, l10n.videoReplay)
             : value.isPlaying
@@ -206,47 +224,58 @@ class _VideoControls extends StatelessWidget {
                 child: SafeArea(
                   top: false,
                   minimum: const EdgeInsets.fromLTRB(16, 0, 8, 12),
-                  child: Row(
-                    children: [
-                      Text(
-                        formatDuration(position),
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      Expanded(
-                        child: Slider(
-                          value: position.inMilliseconds.toDouble(),
-                          max: duration.inMilliseconds
-                              .clamp(1, 1 << 31)
-                              .toDouble(),
-                          onChanged: (ms) => controller.seekTo(
-                            Duration(milliseconds: ms.round()),
+                  // Fixed height: the Slider otherwise takes all the height
+                  // it is given, which put the bar in the middle of the
+                  // screen.
+                  child: SizedBox(
+                    height: 56,
+                    child: Row(
+                      children: [
+                        Text(
+                          formatDuration(
+                            Duration(milliseconds: sliderMs.round()),
+                          ),
+                          style: const TextStyle(color: Colors.white),
+                        ),
+                        Expanded(
+                          child: Slider(
+                            value: sliderMs,
+                            max: maxMs,
+                            onChangeStart: (ms) => setState(() => _dragMs = ms),
+                            onChanged: (ms) => setState(() => _dragMs = ms),
+                            onChangeEnd: (ms) async {
+                              await controller.seekTo(
+                                Duration(milliseconds: ms.round()),
+                              );
+                              if (mounted) setState(() => _dragMs = null);
+                            },
                           ),
                         ),
-                      ),
-                      Text(
-                        formatDuration(duration),
-                        style: const TextStyle(color: Colors.white),
-                      ),
-                      IconButton(
-                        tooltip: value.volume == 0
-                            ? l10n.videoUnmute
-                            : l10n.videoMute,
-                        color: Colors.white,
-                        onPressed: () =>
-                            controller.setVolume(value.volume == 0 ? 1 : 0),
-                        icon: Icon(
-                          value.volume == 0
-                              ? Icons.volume_off_rounded
-                              : Icons.volume_up_rounded,
+                        Text(
+                          formatDuration(duration),
+                          style: const TextStyle(color: Colors.white),
                         ),
-                      ),
-                      IconButton(
-                        tooltip: l10n.videoRotate,
-                        color: Colors.white,
-                        onPressed: () => _rotate(context),
-                        icon: const Icon(Icons.screen_rotation_rounded),
-                      ),
-                    ],
+                        IconButton(
+                          tooltip: value.volume == 0
+                              ? l10n.videoUnmute
+                              : l10n.videoMute,
+                          color: Colors.white,
+                          onPressed: () =>
+                              controller.setVolume(value.volume == 0 ? 1 : 0),
+                          icon: Icon(
+                            value.volume == 0
+                                ? Icons.volume_off_rounded
+                                : Icons.volume_up_rounded,
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: l10n.videoRotate,
+                          color: Colors.white,
+                          onPressed: () => _rotate(context),
+                          icon: const Icon(Icons.screen_rotation_rounded),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

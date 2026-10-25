@@ -55,6 +55,7 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [sort_filter_test.dart](../test/features/library/sort_filter_test.dart) | Date ranges and presets, plain rows, sort by name, date preset and chip removal, empty period, viewer order, per-tab state. |
 | [fast_scroller_test.dart](../test/features/library/fast_scroller_test.dart) | Thumb visibility, drag jump with month bubble, size bubble, short lists, size formatting. |
 | [viewer_test.dart](../test/features/viewer/viewer_test.dart) | Swipe both ways, pinch then pan without page change, double-tap back, top bar height. |
+| [video_controls_test.dart](../test/features/viewer/video_controls_test.dart) | Video progress bar at the bottom, play button centered, portrait and landscape. |
 
 App-level widget tests use `pumpTestApp` ([pump_app.dart](../test/helpers/pump_app.dart)): the whole app on a phone-sized screen (1080 × 2400 px at 3×) with all fakes, so tests see what a user would.
 
@@ -122,7 +123,11 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 21 | Viewer: open, zoom | The photo shows sharp quickly; zooming loads full detail without a pause. |
 | 22 | Video controls | Play/pause, seek, mute and rotate respond on the first tap. |
 
-First device test on the Galaxy A54 (2026-10-25): items 1–2, 4–7, 14–17 OK, Favorites match the system gallery. Problems found and fixed since: viewer swipe (items 7, 20), video controls (item 22), slow viewer display (item 21), grid latency (item 19, to re-check).
+Device tests on the Galaxy A54 (2026-10-25):
+
+1. Items 1–2, 4–7, 14–17 OK; Favorites match the system gallery. Broken: viewer swipe, video controls; slow: viewer display, grid after a far scroll.
+2. After fixes: fast-scroll thumb (18) and viewer swipe (20) OK. Still broken: video progress bar in the middle of the screen; still slow: grid and viewer display.
+3. Fixed since: progress bar height (22), native thumbnail and preview loader (19, 21). To re-check.
 
 ### Already checked on a Samsung Galaxy A54, Android 16 (2026-10-25)
 

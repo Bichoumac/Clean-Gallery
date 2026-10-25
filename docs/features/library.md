@@ -35,7 +35,7 @@ Widget: [fast_scroller.dart](../../lib/features/library/fast_scroller.dart).
 - Every row has a known height (date headers a fixed height growing with the text size, item rows one cell), so the grid is a `SliverVariedExtentList`: jumping far with the thumb never lays out the rows in between.
 - Thumbnails one screen above and below are prefetched (`scrollCacheExtent`).
 - Flutter's image cache holds up to 2,000 images / 200 MB, so scrolling back does not reload thumbnails.
-- Thumbnails are rendered by Android at 256 px (512 px at 2–3 columns), JPEG quality 80.
+- Thumbnails come from MediaStore's own thumbnail cache through a native loader, as raw pixels, newest request first, so the screen you land on after a far jump loads before the rows scrolled past ([platform-android.md](../platform-android.md#why-not-photo_manager-thumbnails)).
 
 ## Sorting and date filter
 
@@ -127,4 +127,4 @@ No database table is used yet: the index (`assets`) is filled from M3.
 - The column count, sort and date filter are not saved across launches yet (settings in M2).
 - Multi-select, favorites and trash actions come in M2; trashed items will then be hidden here.
 - The "Duplicates" tile at the top of grids comes in M3; the "Trash" album in M2.
-- On the first device test, new thumbnails appeared with a small delay after scrolling far; prefetching, a larger image cache and fixed row heights were added. To be measured again on a device (M9 target: 60 fps).
+- On the first device tests, new thumbnails appeared slowly after scrolling far. Prefetching, a larger image cache, fixed row heights and then the native thumbnail loader were added. To be measured again on a device (M9 target: 60 fps).

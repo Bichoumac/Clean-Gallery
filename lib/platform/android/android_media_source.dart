@@ -121,23 +121,35 @@ final class AndroidMediaSource implements MediaSource {
   }
 
   @override
-  ImageProvider thumbnail(MediaItem item, {required int size}) =>
-      AssetThumbnailProvider(_entity(item), width: size, height: size);
+  ImageProvider thumbnail(MediaItem item, {required int size}) {
+    // Grid cells crop to a square: make the short side [size] so the
+    // cropped image is never upscaled.
+    final ratio = item.aspectRatio;
+    final (width, height) = ratio >= 1
+        ? ((size * ratio).round(), size)
+        : (size, (size / ratio).round());
+    return _native(item, width, height);
+  }
 
   @override
   ImageProvider preview(MediaItem item, {required int longestSide}) {
-    // Keep the proportions so Android neither crops nor pads the image.
+    // Keep the proportions so the whole image fits the requested size.
     final ratio = item.aspectRatio;
     final (width, height) = ratio >= 1
         ? (longestSide, (longestSide / ratio).round())
         : ((longestSide * ratio).round(), longestSide);
-    return AssetThumbnailProvider(
-      _entity(item),
-      width: width,
-      height: height,
-      quality: 90,
-    );
+    return _native(item, width, height);
   }
+
+  NativeThumbnailProvider _native(MediaItem item, int width, int height) =>
+      NativeThumbnailProvider(
+        _bridge,
+        id: item.id,
+        isVideo: item.isVideo,
+        modifiedSecond: item.modifiedAt.millisecondsSinceEpoch ~/ 1000,
+        width: width,
+        height: height,
+      );
 
   @override
   ImageProvider fullImage(MediaItem item, {int maxDimension = 4096}) =>

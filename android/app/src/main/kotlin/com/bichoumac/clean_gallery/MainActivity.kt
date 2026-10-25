@@ -28,6 +28,9 @@ class MainActivity : FlutterActivity() {
     /** Delivers results back on the main thread, as Flutter requires. */
     private val mainHandler = Handler(Looper.getMainLooper())
 
+    /** Thumbnails and previews from MediaStore's thumbnail cache. */
+    private val thumbnails by lazy { ThumbnailLoader(contentResolver, mainHandler) }
+
     /** Registers the platform channel once the engine is ready. */
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
@@ -53,6 +56,17 @@ class MainActivity : FlutterActivity() {
                     } catch (e: SecurityException) {
                         mainHandler.post { result.error("permission", e.message, null) }
                     }
+                }
+            }
+            "thumbnail" -> {
+                val id = call.argument<String>("id")?.toLongOrNull()
+                val width = call.argument<Int>("width")
+                val height = call.argument<Int>("height")
+                if (id == null || width == null || height == null) {
+                    result.error("bad_arguments", "id, width and height are required", null)
+                } else {
+                    val isVideo = call.argument<Boolean>("video") == true
+                    thumbnails.load(id, isVideo, width, height, result)
                 }
             }
             else -> result.notImplemented()
@@ -112,6 +126,7 @@ class MainActivity : FlutterActivity() {
     /** Stops the worker thread with the activity. */
     override fun onDestroy() {
         worker.shutdown()
+        thumbnails.shutdown()
         super.onDestroy()
     }
 
