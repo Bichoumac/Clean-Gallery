@@ -1,6 +1,10 @@
+import 'dart:async';
+
+import 'package:clean_gallery/core/media/media_actions.dart';
 import 'package:clean_gallery/core/media/media_formatting.dart';
 import 'package:clean_gallery/core/media/media_providers.dart';
 import 'package:clean_gallery/core/media/media_thumbnail.dart';
+import 'package:clean_gallery/core/media/selection_bar.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/core/router/compact_nav_bar.dart';
@@ -14,6 +18,7 @@ import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -119,7 +124,7 @@ class MediaTimelineView extends ConsumerWidget {
 /// the list is a [SliverVariedExtentList]: jumping far with the thumb never
 /// lays out the rows in between, and thumbnails one screen ahead are
 /// prefetched through `cacheExtent`.
-class _Timeline extends StatefulWidget {
+class _Timeline extends ConsumerStatefulWidget {
   const _Timeline({
     required this.header,
     required this.banner,
@@ -135,21 +140,178 @@ class _Timeline extends StatefulWidget {
   final int columns;
 
   @override
-  State<_Timeline> createState() => _TimelineState();
+  ConsumerState<_Timeline> createState() => _TimelineState();
 }
 
-class _TimelineState extends State<_Timeline> {
+class _TimelineState extends ConsumerState<_Timeline> {
   final _scroll = ScrollController();
   final GlobalKey _headerKey = GlobalKey();
 
+  /// Ids of the selected items; selection mode while not empty.
+  Set<String> _picked = {};
+
+  /// Selection when the current long-press drag started.
+  Set<String> _pickedAtDragStart = {};
+  int? _dragAnchor;
+  bool _dragAdds = true;
+  Offset? _dragPosition;
+  Timer? _autoScroll;
+
+  /// Layout of the last build, used to find the item under a finger.
+  List<TimelineRow> _rows = const [];
+  List<double> _offsets = const [];
+  double _cell = 0;
+
+  late final SelectionMode _selectionMode = ref.read(
+    selectionModeProvider.notifier,
+  );
+
   @override
-  void dispose() {
-    _scroll.dispose();
-    super.dispose();
+  void didUpdateWidget(_Timeline oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Items trashed or reloaded: forget selected ids that are gone.
+    if (_picked.isNotEmpty && oldWidget.items != widget.items) {
+      final present = {for (final item in widget.items) item.id};
+      _picked = _picked.intersection(present);
+      _syncSelectionMode();
+    }
   }
 
   @override
+  void dispose() {
+    _autoScroll?.cancel();
+    _scroll.dispose();
+    if (_picked.isNotEmpty) {
+      // After the frame: providers cannot change while the tree builds.
+      final mode = _selectionMode;
+      unawaited(Future.microtask(() => mode.set(active: false)));
+    }
+    super.dispose();
+  }
+
+  void _syncSelectionMode() => _selectionMode.set(active: _picked.isNotEmpty);
+
+  void _setPicked(Set<String> picked) {
+    setState(() => _picked = picked);
+    _syncSelectionMode();
+  }
+
+  void _toggle(MediaItem item) {
+    final picked = {..._picked};
+    if (!picked.remove(item.id)) picked.add(item.id);
+    _setPicked(picked);
+  }
+
+  void _clearSelection() => _setPicked({});
+
+  /// Index of the row at [listY], a position inside the list of rows.
+  int _rowAt(double listY) {
+    var low = 0;
+    var high = _rows.length - 1;
+    while (low < high) {
+      final mid = (low + high + 1) ~/ 2;
+      if (_offsets[mid] <= listY) {
+        low = mid;
+      } else {
+        high = mid - 1;
+      }
+    }
+    return low;
+  }
+
+  /// Height of the page title, banner and chips above the rows.
+  double get _headerHeight {
+    final box = _headerKey.currentContext?.findRenderObject() as RenderBox?;
+    return box?.size.height ?? 0;
+  }
+
+  /// Index in the items of the thumbnail under [local], a position in the
+  /// scroll view, or `null` over a header or a gap.
+  int? _indexAt(Offset local) {
+    if (_rows.isEmpty) return null;
+    final y = local.dy + _scroll.offset - _headerHeight;
+    if (y < 0) return null;
+    final row = _rows[_rowAt(y)];
+    if (row is! TimelineItems) return null;
+    final column = (local.dx / (_cell + _gap)).floor();
+    if (column < 0 || column >= row.length) return null;
+    return row.start + column;
+  }
+
+  void _onLongPressStart(LongPressStartDetails details) {
+    final index = _indexAt(details.localPosition);
+    if (index == null) return;
+    unawaited(HapticFeedback.selectionClick());
+    _dragAnchor = index;
+    _pickedAtDragStart = {..._picked};
+    _dragAdds = !_picked.contains(widget.items[index].id);
+    _dragPosition = details.localPosition;
+    _selectRangeTo(index);
+  }
+
+  void _onLongPressMove(LongPressMoveUpdateDetails details) {
+    _dragPosition = details.localPosition;
+    final index = _indexAt(details.localPosition);
+    if (index != null) _selectRangeTo(index);
+    _autoScroll ??= Timer.periodic(
+      const Duration(milliseconds: 16),
+      (_) => _autoScrollStep(),
+    );
+  }
+
+  void _onLongPressEnd(LongPressEndDetails details) {
+    _autoScroll?.cancel();
+    _autoScroll = null;
+    _dragAnchor = null;
+    _dragPosition = null;
+  }
+
+  /// Selects (or deselects) every item between the drag anchor and [index].
+  void _selectRangeTo(int index) {
+    final anchor = _dragAnchor;
+    if (anchor == null) return;
+    final low = anchor < index ? anchor : index;
+    final high = anchor < index ? index : anchor;
+    final range = {for (var i = low; i <= high; i++) widget.items[i].id};
+    _setPicked(
+      _dragAdds
+          ? _pickedAtDragStart.union(range)
+          : _pickedAtDragStart.difference(range),
+    );
+  }
+
+  /// Scrolls while the dragging finger is near the top or bottom edge.
+  void _autoScrollStep() {
+    final position = _dragPosition;
+    if (position == null || !_scroll.hasClients) return;
+    final height = (context.findRenderObject()! as RenderBox).size.height;
+    const edge = 96.0;
+    const maxSpeed = 18.0;
+    final double delta;
+    if (position.dy < edge) {
+      delta = -maxSpeed * (1 - position.dy / edge);
+    } else if (position.dy > height - edge) {
+      delta = maxSpeed * (1 - (height - position.dy) / edge);
+    } else {
+      return;
+    }
+    final target = (_scroll.offset + delta).clamp(
+      0.0,
+      _scroll.position.maxScrollExtent,
+    );
+    _scroll.jumpTo(target);
+    final index = _indexAt(position);
+    if (index != null) _selectRangeTo(index);
+  }
+
+  List<MediaItem> get _pickedItems => [
+    for (final item in widget.items)
+      if (_picked.contains(item.id)) item,
+  ];
+
+  @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final columns = widget.columns;
     final items = widget.items;
     final selection = widget.selection;
@@ -165,31 +327,22 @@ class _TimelineState extends State<_Timeline> {
       for (final row in rows)
         if (row is TimelineHeader) headerExtent else cell + _gap,
     ];
-    // Top offset of each row inside the list, for the fast-scroll bubble.
+    // Top offset of each row inside the list, for the fast-scroll bubble
+    // and to find the item under a finger.
     final offsets = List<double>.filled(rows.length, 0);
     for (var i = 1; i < rows.length; i++) {
       offsets[i] = offsets[i - 1] + extents[i - 1];
     }
+    _rows = rows;
+    _offsets = offsets;
+    _cell = cell;
     // Two size buckets keep cache keys stable while pinching.
     final pixelSize = columns <= 3 ? 512 : 256;
+    final selecting = _picked.isNotEmpty;
 
     String? labelAt(double scrollOffset) {
       if (rows.isEmpty) return null;
-      final headerBox =
-          _headerKey.currentContext?.findRenderObject() as RenderBox?;
-      final y = scrollOffset - (headerBox?.size.height ?? 0);
-      // Last row starting at or above the top of the screen.
-      var low = 0;
-      var high = rows.length - 1;
-      while (low < high) {
-        final mid = (low + high + 1) ~/ 2;
-        if (offsets[mid] <= y) {
-          low = mid;
-        } else {
-          high = mid - 1;
-        }
-      }
-      final index = switch (rows[low]) {
+      final index = switch (rows[_rowAt(scrollOffset - _headerHeight)]) {
         TimelineHeader(:final section) => section.start,
         TimelineItems(:final start) => start,
       };
@@ -205,62 +358,181 @@ class _TimelineState extends State<_Timeline> {
       };
     }
 
-    return FastScroller(
-      controller: _scroll,
-      labelAt: labelAt,
-      topPadding: MediaQuery.paddingOf(context).top + 8,
-      bottomPadding: CompactNavBar.contentInset(context),
-      child: CustomScrollView(
+    Widget thumbnail(int index) {
+      final item = items[index];
+      return _Selectable(
+        selected: selecting ? _picked.contains(item.id) : null,
+        child: MediaThumbnail(
+          item: item,
+          pixelSize: pixelSize,
+          hero: !selecting,
+          onTap: selecting
+              ? () => _toggle(item)
+              : () => context.push(
+                  AppRoutes.viewer,
+                  extra: ViewerArgs(selection: selection, initialIndex: index),
+                ),
+        ),
+      );
+    }
+
+    final grid = GestureDetector(
+      onLongPressStart: _onLongPressStart,
+      onLongPressMoveUpdate: _onLongPressMove,
+      onLongPressEnd: _onLongPressEnd,
+      child: FastScroller(
         controller: _scroll,
-        physics: const AlwaysScrollableScrollPhysics(),
-        // Prefetch thumbnails one screen above and below.
-        scrollCacheExtent: ScrollCacheExtent.pixels(screen.height),
-        slivers: [
-          SliverToBoxAdapter(
-            child: Column(
-              key: _headerKey,
-              children: [widget.header, ?widget.banner],
+        labelAt: labelAt,
+        topPadding: MediaQuery.paddingOf(context).top + 8,
+        bottomPadding: CompactNavBar.contentInset(context),
+        child: CustomScrollView(
+          controller: _scroll,
+          physics: const AlwaysScrollableScrollPhysics(),
+          // Prefetch thumbnails one screen above and below.
+          scrollCacheExtent: ScrollCacheExtent.pixels(screen.height),
+          slivers: [
+            SliverToBoxAdapter(
+              child: Column(
+                key: _headerKey,
+                children: [widget.header, ?widget.banner],
+              ),
+            ),
+            SliverVariedExtentList.builder(
+              itemCount: rows.length,
+              itemExtentBuilder: (index, _) =>
+                  index < extents.length ? extents[index] : null,
+              itemBuilder: (context, index) => switch (rows[index]) {
+                TimelineHeader(:final section) => _SectionHeader(
+                  label: formatSectionDate(context, section.date, grouping),
+                ),
+                TimelineItems(:final start, :final length) => Padding(
+                  padding: const EdgeInsets.only(bottom: _gap),
+                  child: Row(
+                    children: [
+                      for (var i = 0; i < columns; i++) ...[
+                        if (i > 0) const SizedBox(width: _gap),
+                        SizedBox(
+                          width: cell,
+                          height: cell,
+                          child: i < length ? thumbnail(start + i) : null,
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+              },
+            ),
+            SliverToBoxAdapter(
+              child: SizedBox(height: CompactNavBar.contentInset(context)),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    final picked = _pickedItems;
+    return PopScope(
+      canPop: !selecting,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _clearSelection();
+      },
+      child: Stack(
+        children: [
+          grid,
+          if (selecting)
+            Align(
+              alignment: Alignment.bottomCenter,
+              child: SelectionBar(
+                count: picked.length,
+                onClose: _clearSelection,
+                actions: [
+                  SelectionAction(
+                    icon: Icons.share_rounded,
+                    label: l10n.actionShare,
+                    onPressed: () =>
+                        unawaited(shareWithOptions(context, ref, picked)),
+                  ),
+                  SelectionAction(
+                    icon: picked.every((i) => i.isFavorite)
+                        ? Icons.favorite_rounded
+                        : Icons.favorite_border_rounded,
+                    label: picked.every((i) => i.isFavorite)
+                        ? l10n.actionUnfavorite
+                        : l10n.actionFavorite,
+                    onPressed: () async {
+                      await toggleFavorite(context, ref, picked);
+                      if (mounted) _clearSelection();
+                    },
+                  ),
+                  SelectionAction(
+                    icon: Icons.delete_outline_rounded,
+                    label: l10n.actionTrash,
+                    onPressed: () async {
+                      await trashWithUndo(context, ref, picked);
+                      if (mounted) _clearSelection();
+                    },
+                  ),
+                ],
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Selection look of a grid cell: shrunk with rounded corners and a lime
+/// check when [selected], an empty ring when selectable, nothing when the
+/// grid is not selecting ([selected] is `null`).
+class _Selectable extends StatelessWidget {
+  const _Selectable({required this.selected, required this.child});
+
+  final bool? selected;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final selected = this.selected;
+    if (selected == null) return child;
+    final colors = Theme.of(context).colorScheme;
+    return Semantics(
+      selected: selected,
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          AnimatedPadding(
+            duration: const Duration(milliseconds: 150),
+            curve: Curves.easeOutCubic,
+            padding: EdgeInsets.all(selected ? 10 : 0),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(selected ? 14 : 0),
+              child: child,
             ),
           ),
-          SliverVariedExtentList.builder(
-            itemCount: rows.length,
-            itemExtentBuilder: (index, _) =>
-                index < extents.length ? extents[index] : null,
-            itemBuilder: (context, index) => switch (rows[index]) {
-              TimelineHeader(:final section) => _SectionHeader(
-                label: formatSectionDate(context, section.date, grouping),
-              ),
-              TimelineItems(:final start, :final length) => Padding(
-                padding: const EdgeInsets.only(bottom: _gap),
-                child: Row(
-                  children: [
-                    for (var i = 0; i < columns; i++) ...[
-                      if (i > 0) const SizedBox(width: _gap),
-                      SizedBox(
-                        width: cell,
-                        height: cell,
-                        child: i < length
-                            ? MediaThumbnail(
-                                item: items[start + i],
-                                pixelSize: pixelSize,
-                                onTap: () => context.push(
-                                  AppRoutes.viewer,
-                                  extra: ViewerArgs(
-                                    selection: selection,
-                                    initialIndex: start + i,
-                                  ),
-                                ),
-                              )
-                            : null,
+          Positioned(
+            top: 6,
+            left: 6,
+            child: IgnorePointer(
+              child: selected
+                  ? CircleAvatar(
+                      radius: 11,
+                      backgroundColor: colors.primaryContainer,
+                      child: Icon(
+                        Icons.check_rounded,
+                        size: 15,
+                        color: colors.onPrimaryContainer,
                       ),
-                    ],
-                  ],
-                ),
-              ),
-            },
-          ),
-          SliverToBoxAdapter(
-            child: SizedBox(height: CompactNavBar.contentInset(context)),
+                    )
+                  : Container(
+                      width: 22,
+                      height: 22,
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white, width: 2),
+                        color: Colors.black26,
+                      ),
+                    ),
+            ),
           ),
         ],
       ),

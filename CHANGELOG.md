@@ -2,9 +2,29 @@
 
 All notable changes to this project are documented here, one section per milestone. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-10-25 — Milestone M1
+Last updated: 2026-10-25 — Milestone M2
 
 ## [Unreleased]
+
+## [M2] — 2026-10-25 — Actions
+
+### Added
+
+- App trash: every delete goes through it with *Undo*; Trash page under Albums with days left, restore, delete for good, empty trash; expired items offered once a day at launch or resume, silently deleted with Media management ([docs/features/trash.md](docs/features/trash.md), [ADR 0013](docs/decisions/0013-trash-purge-without-background-job.md)).
+- Trashed items hidden from every list, count and cover, directly in the MediaStore queries.
+- System favorites (`createFavoriteRequest`) from the viewer and selections ([docs/features/favorites.md](docs/features/favorites.md)).
+- Sharing through native intents with MediaStore URIs; GPS removed from photo copies by default (ExifInterface, or JPEG re-encode for HEIC) ([docs/features/sharing.md](docs/features/sharing.md), [ADR 0014](docs/decisions/0014-native-sharing.md)).
+- Multi-select: long press, drag-to-select with auto-scroll, selection bar replacing the navigation bar.
+- Viewer actions: share, favorite, move to trash.
+- Settings tab: theme, language, default columns, trash retention, location on share, permission statuses ([docs/features/settings.md](docs/features/settings.md)).
+- Settings read before the first frame; sort of each timeline saved across launches.
+- Native channel methods `setFavorite`, `deleteMedia`, `share`; `albumSummaries` skips trashed items.
+- Android dependencies `androidx.exifinterface` 1.4.2 and `androidx.core` 1.19.1; `FileProvider` for shared copies.
+- Tests: trash repository, settings, trash flows, selection, settings screen; `testApp` helper that closes Drift streams (99 tests).
+
+### Fixed
+
+- Fast-scroll thumb now jumps under the finger at once (the grid's long press competes for the same pointer).
 
 ## [M1] — 2026-10-25 — Navigation
 

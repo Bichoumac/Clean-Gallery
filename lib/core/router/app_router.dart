@@ -4,7 +4,9 @@ import 'package:clean_gallery/features/library/albums_screen.dart';
 import 'package:clean_gallery/features/library/media_timeline_view.dart';
 import 'package:clean_gallery/features/onboarding/onboarding_controller.dart';
 import 'package:clean_gallery/features/onboarding/onboarding_screen.dart';
+import 'package:clean_gallery/features/settings/settings_screen.dart';
 import 'package:clean_gallery/features/stats/stats_screen.dart';
+import 'package:clean_gallery/features/trash/trash_screen.dart';
 import 'package:clean_gallery/features/viewer/viewer_screen.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/widgets.dart';
@@ -44,6 +46,9 @@ abstract final class AlbumRoutes {
 
   /// Key of the "Favorites" virtual album.
   static const favoritesKey = 'favorites';
+
+  /// Location of the app trash, a page of its own under Albums.
+  static const trash = '${AppRoutes.albums}/trash';
 
   /// Location of the album with [key] (a virtual key or a folder id).
   static String location(String key, String name) => Uri(
@@ -142,6 +147,11 @@ GoRouter appRouter(Ref ref) {
                 path: AppRoutes.albums,
                 builder: (context, state) => const AlbumsScreen(),
                 routes: [
+                  // Before ':key', which would otherwise match "trash".
+                  GoRoute(
+                    path: 'trash',
+                    builder: (context, state) => const TrashScreen(),
+                  ),
                   GoRoute(
                     path: ':key',
                     builder: (context, state) {
@@ -168,9 +178,13 @@ GoRouter appRouter(Ref ref) {
               ),
             ],
           ),
-          _branch(
-            AppRoutes.settings,
-            (context, l10n) => PlaceholderTab(title: l10n.navSettings),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.settings,
+                builder: (context, state) => const SettingsScreen(),
+              ),
+            ],
           ),
         ],
       ),

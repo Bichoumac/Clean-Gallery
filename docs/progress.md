@@ -2,15 +2,15 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-10-25 — Milestone M1
+Last updated: 2026-10-25 — Milestone M2
 
 ## Milestones
 
 | Milestone | Scope | Status |
 | --- | --- | --- |
 | M0 | Foundations | Merged into `main` (PR #1) |
-| M1 | Navigation: timelines, albums, grid, viewer, video, sorting, date filter | Done, tested on a phone, awaiting PR review |
-| M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Not started |
+| M1 | Navigation: timelines, albums, grid, viewer, video, sorting, date filter | Merged into `main` (PR #2) |
+| M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Done, awaiting device check and approval |
 | M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Not started |
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Not started |
 | M5 | Cleanup: Stats values, swipe mode, blurry, screenshots, large videos | Not started |
@@ -18,6 +18,39 @@ Last updated: 2026-10-25 — Milestone M1
 | M7 | Exploration: map, search | Not started |
 | M8 | Monetization | Not started |
 | M9 | Polish and release preparation | Not started |
+
+## M2 — Actions
+
+### Done
+
+- System favorites from the viewer and selections ([features/favorites.md](features/favorites.md)).
+- Sharing through the system share sheet, with GPS location removed from photos by default ([features/sharing.md](features/sharing.md), [ADR 0014](decisions/0014-native-sharing.md)).
+- Multi-select: long press, drag to select a range with auto-scroll, selection bar with share, favorite, trash ([features/library.md](features/library.md#selection-and-actions)).
+- App trash: every delete goes through it, *Undo*, Trash page with days left, restore, delete for good, daily expiry offer ([features/trash.md](features/trash.md)).
+- Settings tab: theme, language, default columns, trash retention, location on share, permissions; sort of each view saved ([features/settings.md](features/settings.md)).
+
+### Verified
+
+| Check | Result |
+| --- | --- |
+| `flutter analyze` | No issues |
+| `flutter test --timeout 60s` | 99 tests pass |
+| Device | Not yet; checklist in [testing.md](testing.md#m2--to-verify-on-a-device) |
+
+### Open question for the product owner
+
+- **Daily WorkManager purge**: not possible as specified, since deleting other apps' media needs a request launched from a visible screen. Purge at launch and resume implemented instead; a reminder notification is an option ([ADR 0013](decisions/0013-trash-purge-without-background-job.md)).
+
+### Known issues
+
+- Whether `createFavoriteRequest` skips the confirmation with Media management is to be checked on a device.
+- Video location is not removed when sharing (warned); HEIC copies lose all metadata.
+
+### Next steps
+
+1. Run the M2 device checks.
+2. Decide on ADR 0013.
+3. Approval of M2, then M3 (indexing, dates, exact duplicates, bursts).
 
 ## M1 — Navigation
 
@@ -44,7 +77,7 @@ Last updated: 2026-10-25 — Milestone M1
 ### Known issues
 
 - New photos only appear after pull-to-refresh (automatic updates come with indexing in M3).
-- The column count, sort and date filter reset at each launch (settings in M2).
+- The column count, sort and date filter reset at each launch. Solved in M2 for the column count and the sort; the date filter stays per session on purpose.
 - Scrolling performance with very large libraries is not measured yet.
 
 ### Not verified yet
@@ -52,11 +85,6 @@ Last updated: 2026-10-25 — Milestone M1
 - Video progress bar fix (covered by a layout test, not re-confirmed on the phone).
 - Zoom details, immersive mode, rotation, HEIC and very large photos, pull-to-refresh after a new photo, Android 14+ partial access, date filter on a folder.
 - CI on GitHub for this branch (the repository is private; its status cannot be read from the development machine).
-
-### Next steps
-
-1. Review and merge the M1 pull request.
-2. Approval of M1, then M2 (favorites, sharing, multi-select, trash, basic settings).
 
 ## M0 — Foundations
 

@@ -2,7 +2,7 @@
 
 Entry point for AI assistants working on Clean Gallery. Read this first, then follow the links to `docs/` for depth.
 
-Last updated: 2026-10-25 — Milestone M1
+Last updated: 2026-10-25 — Milestone M2
 
 ## Project summary
 
@@ -37,7 +37,8 @@ Generated files are not committed. After editing a class annotated with `@DriftD
 | `lib/analysis/` | Detection engine, pure Dart | adding an algorithm (dates, hashes, grouping). No Flutter imports. |
 | `lib/domain/` | Entities and enums shared by all layers | adding a business concept. No Flutter imports. |
 | `lib/core/` | Theme, database, router, providers, config | adding app-wide infrastructure. |
-| `lib/core/media/` | Media list providers, thumbnail widget, formatting | adding media code shared by several features. |
+| `lib/core/media/` | Media list providers, thumbnail widget, formatting, `MediaActions`, selection bar | adding media code shared by several features. |
+| `lib/core/settings/` | `AppSettings` and its controller | adding a user setting (also add a key in `SettingKeys`). |
 | `lib/platform/` | Interfaces (`MediaSource`, `PlatformBridge`, `PermissionService`, …) | adding a platform capability: interface here, implementation in `platform/android/`. |
 | `lib/platform/android/` | Android implementations | implementing an interface for Android. |
 | `lib/features/<feature>/` | Screens, controllers, feature logic | building a user-facing feature. |
@@ -54,6 +55,7 @@ Full details and diagrams: [docs/architecture.md](docs/architecture.md).
 - **Immutability**: state and entity classes use `freezed`.
 - **Database**: Drift tables in [lib/core/database/tables.dart](lib/core/database/tables.dart). Any schema change bumps `schemaVersion` and adds a migration step, see [docs/database.md](docs/database.md).
 - **Errors**: platform calls can throw `PlatformException`; catch them in the controller and expose a user-facing state, never crash the UI.
+- **Tests**: app-level widget tests use `pumpTestApp` inside `testApp` (not `testWidgets`), so Drift streams are closed; run with `flutter test --timeout 60s`.
 - **Localization**: no hard-coded user-visible strings. Add each string to both `app_en.arb` and `app_fr.arb`.
 - **Design**: colors from `Theme.of(context).colorScheme` only, one lime accent, no shadows, tab pages built on `TabPage`. See [docs/design.md](docs/design.md).
 - **Docs**: public Dart APIs get `///` comments; Kotlin channel methods get KDoc.
@@ -61,7 +63,7 @@ Full details and diagrams: [docs/architecture.md](docs/architecture.md).
 ## Non-negotiable rules
 
 1. Never use `MANAGE_EXTERNAL_STORAGE`. A test enforces it.
-2. Every delete in the app goes through the app trash first.
+2. Every delete in the app goes through the app trash first (`MediaActions.trash`); only the trash deletes for good (`MediaActions.deleteForever`).
 3. Ads appear only in the two allowed placements: a banner at the bottom of the Albums tab and one native card in the Stats tab ([ADR 0008](docs/decisions/0008-navigation-and-visual-identity.md)). No interstitial, rewarded, video or app-open ads.
 4. No media data or metadata is ever sent to any SDK, ads included.
 5. Platform code lives only behind interfaces in `lib/platform/`. Features never import `platform/android/` (a test enforces it).

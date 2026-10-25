@@ -2,7 +2,7 @@
 
 Browsing the device's photos and videos: the Photos and Videos timelines, the Albums tab and album pages.
 
-Last updated: 2026-10-25 — Milestone M1
+Last updated: 2026-10-25 — Milestone M2
 
 ## Purpose
 
@@ -16,6 +16,13 @@ Show every photo and video on the device, newest first, grouped by day or month,
 4. **Tap a thumbnail**: the viewer opens on that item ([viewer.md](viewer.md)).
 5. **Albums tab**: "All media" and "Favorites", then "Folders" sorted by size. Tapping one opens its timeline, with a back button.
 6. **Sort and filter**: the button next to the title opens a sheet (see below).
+
+## Selection and actions
+
+- **Long press** a thumbnail to start selecting; **drag** without lifting to select every item between the first one and the finger (if the first item was already selected, the drag deselects). Near the top or bottom edge the grid scrolls by itself.
+- **Tap** adds or removes an item; **back** or the close button leaves selection mode.
+- The selection bar offers **share** ([sharing.md](sharing.md)), **favorite** ([favorites.md](favorites.md)) and **move to trash** with *Undo* ([trash.md](trash.md)).
+- Trashed items disappear from every list at once.
 
 ## Fast scrolling
 
@@ -120,12 +127,12 @@ No database table is used yet: the index (`assets`) is filled from M3.
 - [media_providers_test.dart](../../test/core/media/media_providers_test.dart): chunked loading, column limits, duration formatting.
 - [library_test.dart](../../test/features/library/library_test.dart): headers, photo/video filters, empty, denied and limited states, albums and folder pages, opening the viewer, pinch gesture.
 - [sort_filter_test.dart](../../test/features/library/sort_filter_test.dart): date ranges and presets, plain rows, sorting by name, date preset and chip removal, empty period, viewer order, per-tab state.
+- [selection_test.dart](../../test/features/library/selection_test.dart): long press, tap, drag range, trash with undo, favorite, share, back.
 - [fast_scroller_test.dart](../../test/features/library/fast_scroller_test.dart): thumb shown on scroll and hidden after a pause, drag jumps with a month bubble, size bubble when sorted by size, no thumb on short lists, size formatting.
 
 ## Known limitations / future work
 
 - New photos appear after pull-to-refresh, not automatically (MediaStore change listening comes with indexing in M3).
-- The column count, sort and date filter are not saved across launches yet (settings in M2).
-- Multi-select, favorites and trash actions come in M2; trashed items will then be hidden here.
+- The date filter is not saved across launches (on purpose); the default column count and the sort of each view are ([settings.md](settings.md)).
 - The "Duplicates" tile at the top of grids comes in M3; the "Trash" album in M2.
 - On the first device tests, new thumbnails appeared slowly after scrolling far. Prefetching, a larger image cache, fixed row heights and then the native thumbnail loader were added. To be measured again on a device (M9 target: 60 fps).

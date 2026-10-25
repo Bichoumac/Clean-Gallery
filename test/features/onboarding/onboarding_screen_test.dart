@@ -21,12 +21,12 @@ void main() {
         bridge: bridge,
       );
 
-  testWidgets('first launch shows the privacy promise', (tester) async {
+  testApp('first launch shows the privacy promise', (tester) async {
     await pumpApp(tester, completed: false);
     expect(find.text('Your photos never leave your device.'), findsOneWidget);
   });
 
-  testWidgets('full flow: grant access, then land on the Photos tab', (
+  testApp('full flow: grant access, then land on the Photos tab', (
     tester,
   ) async {
     await pumpApp(tester, completed: false);
@@ -48,7 +48,7 @@ void main() {
     expect(find.byType(CompactNavBar), findsOneWidget);
   });
 
-  testWidgets('skip goes straight to the main shell', (tester) async {
+  testApp('skip goes straight to the main shell', (tester) async {
     await pumpApp(tester, completed: false);
     await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
@@ -56,7 +56,7 @@ void main() {
     expect(permissions.mediaRequests, 0);
   });
 
-  testWidgets('returning users skip onboarding', (tester) async {
+  testApp('returning users skip onboarding', (tester) async {
     await pumpApp(tester, completed: true);
     expect(find.byType(CompactNavBar), findsOneWidget);
     expect(find.byTooltip('Photos'), findsOneWidget);

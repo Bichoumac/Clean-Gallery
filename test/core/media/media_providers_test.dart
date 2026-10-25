@@ -28,9 +28,16 @@ void main() {
 
   test('MediaList shows the first chunk, then streams the rest', () async {
     final source = FakeMediaSource(items: List.generate(2500, testItem));
+    final db = inMemoryDatabase();
     final container = ProviderContainer(
-      overrides: [mediaSourceProvider.overrideWithValue(source)],
+      overrides: [
+        appDatabaseProvider.overrideWithValue(db),
+        mediaSourceProvider.overrideWithValue(source),
+        // Chunked loading only: an empty trash, without Drift streams.
+        trashedIdsProvider.overrideWith((ref) => Stream.value(<String>{})),
+      ],
     );
+    addTearDown(db.close);
     addTearDown(container.dispose);
     final sizes = <int>[];
     container.listen(
@@ -56,10 +63,19 @@ void main() {
 
   test('MediaList of a small library loads in one call', () async {
     final source = FakeMediaSource(items: [testItem(1), testItem(2)]);
+    final db = inMemoryDatabase();
     final container = ProviderContainer(
-      overrides: [mediaSourceProvider.overrideWithValue(source)],
+      overrides: [
+        appDatabaseProvider.overrideWithValue(db),
+        mediaSourceProvider.overrideWithValue(source),
+        // Chunked loading only: an empty trash, without Drift streams.
+        trashedIdsProvider.overrideWith((ref) => Stream.value(<String>{})),
+      ],
     );
+    addTearDown(db.close);
     addTearDown(container.dispose);
+    // Listen, so the auto-dispose list is not released while it loads.
+    container.listen(mediaListProvider(MediaSelection.photos), (_, _) {});
     final items = await container.read(
       mediaListProvider(MediaSelection.photos).future,
     );

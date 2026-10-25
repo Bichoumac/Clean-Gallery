@@ -1,5 +1,7 @@
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/core/database/settings_repository.dart';
+import 'package:clean_gallery/core/database/trash_repository.dart';
+import 'package:clean_gallery/domain/trashed_item.dart';
 import 'package:clean_gallery/platform/android/android_media_source.dart';
 import 'package:clean_gallery/platform/android/android_permission_service.dart';
 import 'package:clean_gallery/platform/android/android_platform_bridge.dart';
@@ -25,6 +27,21 @@ AppDatabase appDatabase(Ref ref) {
 SettingsRepository settingsRepository(Ref ref) {
   return SettingsRepository(ref.watch(appDatabaseProvider));
 }
+
+/// The app trash.
+@Riverpod(keepAlive: true)
+TrashRepository trashRepository(Ref ref) =>
+    TrashRepository(ref.watch(appDatabaseProvider));
+
+/// Ids of trashed items. Every media list hides them.
+@Riverpod(keepAlive: true)
+Stream<Set<String>> trashedIds(Ref ref) =>
+    ref.watch(trashRepositoryProvider).watchTrashedIds();
+
+/// Trashed items, most recently trashed first.
+@Riverpod(keepAlive: true)
+Stream<List<TrashedItem>> trashItems(Ref ref) =>
+    ref.watch(trashRepositoryProvider).watchItems();
 
 /// Platform-specific features. Overridden in tests with a fake.
 @Riverpod(keepAlive: true)

@@ -2,7 +2,7 @@
 
 Visual identity of Clean Gallery: palette, typography, shapes and navigation. The goal is an app that feels distinct from stock Google apps while staying calm and uncluttered.
 
-Last updated: 2026-10-25 — Milestone M1
+Last updated: 2026-10-25 — Milestone M2
 
 Source: [app_theme.dart](../lib/core/theme/app_theme.dart), [compact_nav_bar.dart](../lib/core/router/compact_nav_bar.dart). Why this direction was chosen: [ADR 0008](decisions/0008-navigation-and-visual-identity.md).
 
@@ -100,13 +100,27 @@ Tabs use `TabPage`: 20 dp side margins, a `displaySmall` title 24 dp below the s
 - Shown while scrolling, faded out 1.5 s after; only on lists of three screens or more.
 - Bubble left of the thumb while dragging: `inverseSurface` stadium, `titleSmall` text.
 
+## Selection
+
+- Long press a thumbnail to start; drag without lifting to select a range; tap to add or remove.
+- Selected cell: shrunk by 10 dp with 14 dp corners and a 22 dp lime check top left; other cells show a white ring.
+- The navigation bar is replaced by the **selection bar** at the same place and size: close, "N selected", then action icons (share, favorite, trash; restore and delete for good in the trash).
+
 ## Album tiles
 
 Two columns, 12 dp apart. Cover with 24 dp radius, then the name (`titleSmall`) and the count (`bodySmall`, secondary color). Virtual albums (Favorites) show a lime badge with their icon on the cover.
 
+## Settings
+
+Cards per section (Display, Trash, Sharing, Permissions), 20 dp padding, `titleMedium` section titles. Choices use full-width segmented buttons; the retention uses a slider with its value at the right; permissions show their status under the name with a *Change* text button.
+
+## Trash
+
+Three-column grid with a "N days" badge (black 60 % pill, bottom left) on each item; *Empty trash* at the top right; an explanation of the retention under the title.
+
 ## Viewer
 
 - Always dark, black background, whatever the app theme.
-- Top bar over a black-to-transparent gradient: back button, date (`titleMedium`), file name (`bodySmall`, 70 % white).
+- Top bar over a black-to-transparent gradient: back button, date (`titleMedium`), file name (`bodySmall`, 70 % white), then share, favorite and trash icons.
 - Tapping hides the bars and the system UI (immersive mode).
 - Video controls: 72 dp lime play button in the center; at the bottom, position, slider, duration, mute and rotate over a gradient.

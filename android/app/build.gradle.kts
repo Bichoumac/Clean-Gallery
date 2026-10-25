@@ -57,3 +57,10 @@ kotlin {
 flutter {
     source = "../.."
 }
+
+dependencies {
+    // Removing GPS data from shared copies.
+    implementation("androidx.exifinterface:exifinterface:1.4.2")
+    // FileProvider for shared copies.
+    implementation("androidx.core:core-ktx:1.19.1")
+}

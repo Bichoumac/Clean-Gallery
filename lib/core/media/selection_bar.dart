@@ -1,0 +1,127 @@
+import 'dart:ui' show ImageFilter;
+
+import 'package:clean_gallery/core/router/compact_nav_bar.dart';
+import 'package:clean_gallery/l10n/app_localizations.dart';
+import 'package:flutter/material.dart';
+import 'package:riverpod_annotation/riverpod_annotation.dart';
+
+part 'selection_bar.g.dart';
+
+/// Whether a screen of the tabs is selecting items. The shell hides its
+/// navigation bar meanwhile, and the screen shows a [SelectionBar] instead.
+@Riverpod(keepAlive: true)
+class SelectionMode extends _$SelectionMode {
+  @override
+  bool build() => false;
+
+  /// Enters or leaves selection mode.
+  ///
+  /// Ignored once the provider is gone: screens release selection mode just
+  /// after they are disposed, which can be after the whole app.
+  void set({required bool active}) {
+    if (!ref.mounted) return;
+    if (state != active) state = active;
+  }
+}
+
+/// One button of a [SelectionBar].
+class SelectionAction {
+  /// Creates an action. [label] is the tooltip and screen reader label.
+  const SelectionAction({
+    required this.icon,
+    required this.label,
+    required this.onPressed,
+  });
+
+  /// Icon of the button.
+  final IconData icon;
+
+  /// Name of the action.
+  final String label;
+
+  /// Runs the action.
+  final VoidCallback onPressed;
+}
+
+/// Floating pill replacing the navigation bar while items are selected:
+/// a close button, the selection count and the actions.
+///
+/// Same place, height and look as [CompactNavBar], so entering selection
+/// mode does not move anything.
+class SelectionBar extends StatelessWidget {
+  /// Creates the bar for [count] selected items.
+  const SelectionBar({
+    required this.count,
+    required this.actions,
+    required this.onClose,
+    super.key,
+  });
+
+  /// Number of selected items.
+  final int count;
+
+  /// Buttons, in display order.
+  final List<SelectionAction> actions;
+
+  /// Leaves selection mode.
+  final VoidCallback onClose;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    const height = CompactNavBar.height;
+    return SafeArea(
+      top: false,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(
+          12,
+          0,
+          12,
+          CompactNavBar.bottomMargin,
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(height / 2),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: colors.surfaceContainer.withValues(alpha: 0.92),
+                borderRadius: BorderRadius.circular(height / 2),
+                border: Border.all(color: colors.outlineVariant),
+              ),
+              child: SizedBox(
+                height: height,
+                child: Row(
+                  children: [
+                    IconButton(
+                      tooltip: l10n.selectionClose,
+                      onPressed: onClose,
+                      icon: const Icon(Icons.close_rounded),
+                    ),
+                    Expanded(
+                      child: Text(
+                        l10n.selectionCount(count),
+                        style: theme.textTheme.titleSmall,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    for (final action in actions)
+                      IconButton(
+                        tooltip: action.label,
+                        onPressed: count == 0 ? null : action.onPressed,
+                        icon: Icon(action.icon),
+                      ),
+                    const SizedBox(width: 4),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

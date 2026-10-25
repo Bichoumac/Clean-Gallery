@@ -27,6 +27,10 @@ final class AndroidPermissionService implements PermissionService {
   }
 
   @override
+  Future<bool> hasLocationAccess() =>
+      ph.Permission.accessMediaLocation.isGranted;
+
+  @override
   Future<bool> requestLocationAccess() async {
     final status = await ph.Permission.accessMediaLocation.request();
     return status.isGranted;

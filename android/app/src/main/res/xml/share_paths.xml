@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Only the folder of temporary shared copies is exposed. -->
+<paths>
+    <cache-path name="share" path="share/" />
+</paths>

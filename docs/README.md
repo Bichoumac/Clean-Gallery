@@ -2,7 +2,7 @@
 
 Every documentation file in the repository, with a one-line description. Start with [progress.md](progress.md) to see where the project stands.
 
-Last updated: 2026-10-25 — Milestone M1
+Last updated: 2026-10-25 — Milestone M2
 
 ## Project
 
@@ -32,6 +32,10 @@ Planned files: `analysis-engine.md` (M3), `monetization.md` (M8), `release.md` (
 | [features/onboarding.md](features/onboarding.md) | First-launch flow and permission requests. |
 | [features/library.md](features/library.md) | Photos and Videos timelines, Albums tab, grid. |
 | [features/viewer.md](features/viewer.md) | Full-screen viewer and video playback. |
+| [features/favorites.md](features/favorites.md) | System favorites. |
+| [features/sharing.md](features/sharing.md) | Share sheet and location removal. |
+| [features/trash.md](features/trash.md) | App trash, retention and purge. |
+| [features/settings.md](features/settings.md) | Settings tab. |
 
 One file per feature is added as each feature is built.
 
@@ -51,3 +55,5 @@ One file per feature is added as each feature is built.
 | [0010](decisions/0010-photo-zoom.md) | Own photo zoom instead of `photo_view` or `InteractiveViewer` |
 | [0011](decisions/0011-video-playback.md) | Video playback with `video_player` and own controls |
 | [0012](decisions/0012-sort-and-date-filter.md) | Sorting and date filter in every timeline |
+| [0013](decisions/0013-trash-purge-without-background-job.md) | Trash purge at launch and resume, without a background job (proposed) |
+| [0014](decisions/0014-native-sharing.md) | Sharing with native intents instead of `share_plus` |

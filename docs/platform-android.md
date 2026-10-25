@@ -2,7 +2,7 @@
 
 Android-specific configuration: SDK levels, permissions and the native Kotlin MethodChannel. Everything here is reached from Dart through interfaces in `lib/platform/`, so the rest of the app stays platform-agnostic.
 
-Last updated: 2026-10-25 — Milestone M1
+Last updated: 2026-10-25 — Milestone M2
 
 ## SDK levels
 
@@ -59,6 +59,7 @@ Every query is a custom SQL filter built from the `MediaSelection` ([ADR 0012](d
 | Favorites | `AND is_favorite = 1` (Android 11+ column) |
 | Capture date | `CASE WHEN datetaken > 0 THEN datetaken / 1000 ELSE date_added END` (seconds), as `photo_manager` computes `createDateTime` |
 | Date range | `AND <capture date> >= start AND <capture date> < end` |
+| Trash | `AND _id NOT IN (…)`, ids inlined (numbers) to stay clear of SQLite's 999-parameter limit on Android 11 |
 | Sort | `<capture date>`, `LOWER(_display_name)`, `_size` or `duration`, then capture date (newest first) and `_id` as tie-breakers |
 | Folder | The `photo_manager` path with that id (a MediaStore bucket), with the same filter. Folder paths are listed once per filter and cached until the Albums tab reloads. |
 
@@ -83,7 +84,10 @@ Kotlin side: [MainActivity.kt](../android/app/src/main/kotlin/com/bichoumac/clea
 | `openMediaManagementSettings` | none | `null` | none | Opens `Settings.ACTION_REQUEST_MANAGE_MEDIA` for this package. No-op below Android 12 or if no activity handles the intent. |
 | `sdkVersion` | none | `int` | none | `Build.VERSION.SDK_INT`. |
 | `thumbnail` | `id`: `String`, `video`: `bool`, `width`, `height`: `int` | `{width, height, rowBytes, pixels}`, `pixels` RGBA 8888 | `not_found` (unreadable item), `dropped` (waited behind 200 newer requests), `bad_arguments` | `ContentResolver.loadThumbnail` (MediaStore's thumbnail cache, shared with the system gallery), on 4 worker threads, **last in, first out**: what is on screen loads before what was scrolled past. Implemented in [ThumbnailLoader.kt](../android/app/src/main/kotlin/com/bichoumac/clean_gallery/ThumbnailLoader.kt). |
-| `albumSummaries` | none | `List` of `{id, name, count, coverId, coverIsVideo, coverWidth, coverHeight, coverModified}`, largest folder first | `permission` | One pass over MediaStore (images and videos, newest first) grouping by `BUCKET_ID`, the folder id `photo_manager` also uses. The first item met in each folder is its cover. Replaces one count call and one path listing per folder in the Albums tab. |
+| `albumSummaries` | `excluded`: `List<int>` (trashed ids) | `List` of `{id, name, count, coverId, coverIsVideo, coverWidth, coverHeight, coverModified}`, largest folder first | `permission` | One pass over MediaStore (images and videos, newest first) grouping by `BUCKET_ID`, the folder id `photo_manager` also uses. The first item met in each folder is its cover. Replaces one count call and one path listing per folder in the Albums tab. |
+| `setFavorite` | `items`: `List<{id, video, mimeType}>`, `favorite`: `bool` | `bool`: applied (`false` if declined) | `busy` (another request open), `request_failed` | `MediaStore.createFavoriteRequest` for the whole batch, launched with `startIntentSenderForResult`; the result arrives in `onActivityResult`. Implemented in [MediaActions.kt](../android/app/src/main/kotlin/com/bichoumac/clean_gallery/MediaActions.kt). |
+| `deleteMedia` | `items`: `List<{id, video, mimeType}>` | `bool`: deleted (`false` if declined) | `busy`, `request_failed` | `MediaStore.createDeleteRequest` for the whole batch: one system confirmation, none with "Media management". Only the trash calls it. |
+| `share` | `items`: `List<{id, video, mimeType}>`, `removeLocation`: `bool` | `null` once the share sheet is open | `share_failed` | MediaStore URIs, or copies without GPS for photos when `removeLocation` ([sharing.md](features/sharing.md)). |
 | `mediaSizes` | `ids`: `List<String>` | `Map<String, int>` (id → bytes) | `permission` if MediaStore refuses | `_SIZE` of each MediaStore item, queried off the main thread by chunks of 500 ids. Missing ids are left out. Used by `AndroidMediaSource` for each chunk of 1,000 items, since `photo_manager` has no file sizes. |
 
 Unknown methods return `notImplemented`, which Dart raises as `MissingPluginException`.
@@ -94,15 +98,16 @@ The manifest declares a `<queries>` entry for `android.settings.REQUEST_MANAGE_M
 
 Measured on the first device test as slow, especially after scrolling far. For each thumbnail, `photo_manager` runs a MediaStore query to find the item, decodes the original with Glide, re-encodes it as JPEG, and its 8-thread queue is first in, first out, so thumbnails scrolled past are served before those on screen. The `thumbnail` method reads MediaStore's existing thumbnail cache, skips the JPEG round trip and serves the newest requests first.
 
-### Planned methods
+### Manifest additions (M2)
 
-Added in the milestone that needs them, and documented here at that time:
+- A `FileProvider` (`${applicationId}.share`) exposing only `cache/share/`, for the copies shared without GPS ([share_paths.xml](../android/app/src/main/res/xml/share_paths.xml)).
 
-| Method | Milestone |
-| --- | --- |
-| Favorite write (`IS_FAVORITE`, `createFavoriteRequest`) | M2 |
-| Delete request (`createDeleteRequest`) | M2 |
-| Copy without GPS for sharing (`ExifInterface`) | M2 |
+### Android dependencies
+
+| Library | Version | Use |
+| --- | --- | --- |
+| `androidx.exifinterface:exifinterface` | 1.4.2 | Clearing GPS tags of shared copies |
+| `androidx.core:core-ktx` | 1.19.1 | `FileProvider` |
 
 ## Build configuration
 

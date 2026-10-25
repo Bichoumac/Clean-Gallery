@@ -2,7 +2,7 @@
 
 How Clean Gallery is tested: test layers, commands, fakes and fixtures. Every milestone adds tests for what it builds; a milestone is not done until the suite passes.
 
-Last updated: 2026-10-25 — Milestone M1
+Last updated: 2026-10-25 — Milestone M2
 
 ## Commands
 
@@ -56,8 +56,15 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [fast_scroller_test.dart](../test/features/library/fast_scroller_test.dart) | Thumb visibility, drag jump with month bubble, size bubble, short lists, size formatting. |
 | [viewer_test.dart](../test/features/viewer/viewer_test.dart) | Swipe both ways, pinch then pan without page change, double-tap back, top bar height. |
 | [video_controls_test.dart](../test/features/viewer/video_controls_test.dart) | Video progress bar at the bottom, play button centered, portrait and landscape. |
+| [trash_repository_test.dart](../test/core/database/trash_repository_test.dart) | Trash order and expiry, live ids, restore, forget, duplicates, days left. |
+| [app_settings_test.dart](../test/core/settings/app_settings_test.dart) | Default, stored and invalid settings; sort encoding; view keys. |
+| [trash_flow_test.dart](../test/features/trash/trash_flow_test.dart) | Trash from the viewer with undo, Trash page, restore, delete for good, declined prompt, expiry offer, silent purge, Trash album count. |
+| [selection_test.dart](../test/features/library/selection_test.dart) | Long press, tap, drag range, trash with undo, favorite, share, back. |
+| [settings_screen_test.dart](../test/features/settings/settings_screen_test.dart) | Theme, language, default columns, permission statuses, sort saved and restored. |
 
-App-level widget tests use `pumpTestApp` ([pump_app.dart](../test/helpers/pump_app.dart)): the whole app on a phone-sized screen (1080 × 2400 px at 3×) with all fakes, so tests see what a user would.
+App-level widget tests use `pumpTestApp` ([pump_app.dart](../test/helpers/pump_app.dart)): the whole app on a phone-sized screen (1080 × 2400 px at 3×) with all fakes, so tests see what a user would. They are declared with `testApp` instead of `testWidgets`: it unmounts the app at the end, even after a failure, and lets Drift close its stream queries (Drift closes them on a zero-length timer; without this step Flutter reports a pending timer and the run hangs).
+
+Run the suite with a per-test timeout so a hang fails fast: `flutter test --timeout 60s`.
 
 ## Fixtures
 
@@ -95,6 +102,26 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 12 | Kill the app mid-onboarding, relaunch | any | Onboarding restarts from the first page. |
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
+
+### M2 — to verify on a device
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 1 | Viewer: favorite a photo | System confirmation (none with Media management); heart filled; same favorite in Samsung Gallery. |
+| 2 | Selection: long press, drag across rows | The whole range is selected; the grid scrolls near the edges. |
+| 3 | Selection: favorite several items | One system confirmation for all. |
+| 4 | Move to trash from the viewer and from a selection, then Undo | Items disappear, then come back. |
+| 5 | Albums → Trash | Items with "30 days"; restore works. |
+| 6 | Delete for good from the Trash | Our confirmation, then one system confirmation; items gone from Samsung Gallery too. |
+| 7 | With Media management granted, repeat 1 and 6 | **No system confirmation** (checks the bypass for favorites in particular). |
+| 8 | Set retention to 1 day, trash an item, come back the next day | "1 item has expired" offered once. |
+| 9 | Share a JPEG with "Remove location" on, to an app that shows location (e.g. send to yourself and open in Google Photos) | No location on the received photo; the original still has it. |
+| 10 | Share a HEIC photo with location removed | Received as JPEG, without location. |
+| 11 | Share with "Remove location" off | Original sent, with location. |
+| 12 | Share a video with location removal on | Warning in the sheet; video sent as is. |
+| 13 | Settings: theme, language, default columns | Applied at once and after restarting the app. |
+| 14 | Sort a tab, restart the app | The sort is restored. |
+| 15 | Settings → Permissions: change one in the system settings, come back | Status refreshed. |
 
 ### M1 — to verify on a device
 

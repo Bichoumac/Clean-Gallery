@@ -20,6 +20,9 @@ abstract interface class PermissionService {
   /// Shows the system prompt for media access and returns the result.
   Future<MediaAccess> requestMediaAccess();
 
+  /// Whether `ACCESS_MEDIA_LOCATION` is granted, without prompting.
+  Future<bool> hasLocationAccess();
+
   /// Requests `ACCESS_MEDIA_LOCATION`, needed to read GPS data from EXIF.
   ///
   /// Returns `true` when granted.
