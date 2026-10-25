@@ -2,7 +2,7 @@
 
 Every documentation file in the repository, with a one-line description. Start with [progress.md](progress.md) to see where the project stands.
 
-Last updated: 2026-10-25 — Milestone M0
+Last updated: 2026-10-25 — Milestone M1
 
 ## Project
 
@@ -30,6 +30,8 @@ Planned files: `analysis-engine.md` (M3), `monetization.md` (M8), `release.md` (
 | File | Description |
 | --- | --- |
 | [features/onboarding.md](features/onboarding.md) | First-launch flow and permission requests. |
+| [features/library.md](features/library.md) | Photos and Videos timelines, Albums tab, grid. |
+| [features/viewer.md](features/viewer.md) | Full-screen viewer and video playback. |
 
 One file per feature is added as each feature is built.
 
@@ -45,3 +47,7 @@ One file per feature is added as each feature is built.
 | [0006](decisions/0006-permissions.md) | Permission handling and `minSdk 30` |
 | [0007](decisions/0007-android-toolchain.md) | Android toolchain: AGP 9.4.1, Gradle 9.6.0, `compileSdk 37` |
 | [0008](decisions/0008-navigation-and-visual-identity.md) | Five-tab navigation and own visual identity |
+| [0009](decisions/0009-media-access.md) | Media access with `photo_manager` and own image providers |
+| [0010](decisions/0010-photo-zoom.md) | Own photo zoom instead of `photo_view` or `InteractiveViewer` |
+| [0011](decisions/0011-video-playback.md) | Video playback with `video_player` and own controls |
+| [0012](decisions/0012-sort-and-date-filter.md) | Sorting and date filter in every timeline |

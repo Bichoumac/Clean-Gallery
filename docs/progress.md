@@ -2,70 +2,85 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-10-25 — Milestone M0
+Last updated: 2026-10-25 — Milestone M1
 
 ## Milestones
 
 | Milestone | Scope | Status |
 | --- | --- | --- |
-| M0 | Foundations | Done, awaiting device check and approval |
-| M1 | Navigation: folders, grid, timeline, viewer, video | Not started |
+| M0 | Foundations | Merged into `main` (PR #1) |
+| M1 | Navigation: timelines, albums, grid, viewer, video, sorting, date filter | Done, tested on a phone, awaiting PR review |
 | M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Not started |
 | M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Not started |
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Not started |
-| M5 | Cleanup: Clean tab, swipe mode, blurry, screenshots, large videos | Not started |
+| M5 | Cleanup: Stats values, swipe mode, blurry, screenshots, large videos | Not started |
 | M6 | Advanced viewer and editing | Not started |
 | M7 | Exploration: map, search | Not started |
 | M8 | Monetization | Not started |
 | M9 | Polish and release preparation | Not started |
 
-## M0 — Foundations
+## M1 — Navigation
 
 ### Done
 
-- Flutter project (Android only), `minSdk 30`, `targetSdk 36`, `compileSdk 37`, strict lints.
-- Folder structure from [architecture.md](architecture.md), with dependency rules enforced by tests.
-- Own visual identity: ink/paper palette, lime accent, Manrope, light and dark ([design.md](design.md)).
-- Router with onboarding redirect and five icon-only tabs in a floating bar: Photos, Videos, Albums, Stats, Settings ([ADR 0008](decisions/0008-navigation-and-visual-identity.md)). Stats has its final layout with "—" values; the other tabs are placeholders.
-- Drift database, schema v1, all tables, migration strategy ([database.md](database.md)).
-- Kotlin channel for "Media management" ([platform-android.md](platform-android.md)).
-- Onboarding with media, GPS and "Media management" permissions ([features/onboarding.md](features/onboarding.md)).
-- English and French strings.
-- Build configuration for ad IDs (test IDs in debug).
-- Android toolchain upgraded to AGP 9.4.1 and Gradle 9.6.0, required by `permission_handler` ([ADR 0007](decisions/0007-android-toolchain.md)).
-- CI workflow written.
+- Photos and Videos timelines with date headers, chunked loading and pull-to-refresh ([features/library.md](features/library.md)).
+- Pinch-to-zoom grid, 2–6 columns, with video durations and favorite hearts.
+- Albums tab: All media, Favorites, device folders, album pages.
+- Viewer: swipe, Hero transition, zoom, immersive mode; video playback with own controls ([features/viewer.md](features/viewer.md)).
+- Access, limited-access, empty, error and skeleton states.
+- Sorting and date filter in every timeline ([ADR 0012](decisions/0012-sort-and-date-filter.md)).
+- Fast-scroll thumb with month or size bubble; grid and viewer performance work after the first device test.
+- `MediaSource` on `photo_manager`, own image providers ([ADR 0009](decisions/0009-media-access.md)); `InteractiveViewer` for zoom ([ADR 0010](decisions/0010-photo-zoom.md)); `video_player` ([ADR 0011](decisions/0011-video-playback.md)).
 
 ### Verified
 
 | Check | Result |
 | --- | --- |
 | `flutter analyze` | No issues |
-| `dart format --set-exit-if-changed lib test` | Clean |
-| `flutter test` | 25 tests pass |
-| `flutter build apk --debug` | Builds (first build about 25 minutes, later builds a few minutes) |
-| Android 14 emulator | APK installs and starts; onboarding screen is built (seen in the widget tree, not on screen) |
-| Galaxy A54, Android 16 | First design: starts, French strings, tabs, onboarding flag persists. Permissions and new design not checked yet. |
-
-### Not verified yet
-
-- **Permission prompts and the new design have not been checked on a phone.** The full list of device checks is in [testing.md](testing.md#manual-verification-on-a-device).
-- **Android 14+ partial access**: relies on `permission_handler` reporting `limited`; the most uncertain item of the list.
-- **CI**: the workflow has not run yet; it runs on the first push to GitHub. The release AAB job and the docs lint have never run.
-- **Release build**: `flutter build appbundle --release` has not been run locally.
+| `flutter test` | 68 tests pass |
+| Galaxy A54 (Android 16) | Confirmed by the product owner: timelines, sorting, date filters, durations, Favorites, pinch, fast-scroll thumb, viewer swipe, and speed of Photos, Videos, Albums and the viewer. Details in [testing.md](testing.md#m1--to-verify-on-a-device). |
+| Device checklist | [testing.md](testing.md#m1--to-verify-on-a-device) |
 
 ### Known issues
 
-- The splash screen and launcher icon are Flutter's defaults (planned for M9).
-- Onboarding illustrations are Material icons in tinted circles (custom artwork in M9).
-- Release builds are signed with the debug key (planned for M9).
-- The debug APK is 180 MB, because it contains every CPU architecture and debug symbols. Release bundles are split per device by Google Play.
+- New photos only appear after pull-to-refresh (automatic updates come with indexing in M3).
+- The column count, sort and date filter reset at each launch (settings in M2).
+- Scrolling performance with very large libraries is not measured yet.
 
-### Open questions for later milestones
+### Not verified yet
 
-- **Google Play policy for `MANAGE_MEDIA`**: to confirm before the first release ([ADR 0006](decisions/0006-permissions.md)). The app already works without it.
+- Video progress bar fix (covered by a layout test, not re-confirmed on the phone).
+- Zoom details, immersive mode, rotation, HEIC and very large photos, pull-to-refresh after a new photo, Android 14+ partial access, date filter on a folder.
+- CI on GitHub for this branch (the repository is private; its status cannot be read from the development machine).
 
 ### Next steps
 
-1. Run the M0 device checks on a phone ([testing.md](testing.md#manual-verification-on-a-device)).
-2. Check that CI passes on GitHub.
-3. Approval of M0, then M1 (navigation and viewer).
+1. Review and merge the M1 pull request.
+2. Approval of M1, then M2 (favorites, sharing, multi-select, trash, basic settings).
+
+## M0 — Foundations
+
+Merged into `main`. Summary:
+
+- Flutter project (Android only), `minSdk 30`, `targetSdk 36`, `compileSdk 37`, strict lints, AGP 9.4.1 / Gradle 9.6.0 ([ADR 0007](decisions/0007-android-toolchain.md)).
+- Architecture with tested dependency rules ([architecture.md](architecture.md)); Drift schema v1 ([database.md](database.md)).
+- Own visual identity and five icon-only tabs ([design.md](design.md), [ADR 0008](decisions/0008-navigation-and-visual-identity.md)).
+- Kotlin channel for "Media management" ([platform-android.md](platform-android.md)); onboarding and permissions ([features/onboarding.md](features/onboarding.md)).
+- English and French; build configuration for ad IDs; CI workflow.
+
+### Still not verified from M0
+
+- **Permission prompts on a phone** (items 4 to 9 of the M0 checklist in [testing.md](testing.md#manual-verification-on-a-device)), including Android 14+ partial access, the most uncertain item.
+- **CI result on GitHub**: the repository is private, so its status cannot be read from the development machine.
+- **Release build**: `flutter build appbundle --release` has not been run locally.
+
+## Known issues (all milestones)
+
+- The splash screen and launcher icon are Flutter's defaults (planned for M9).
+- Onboarding illustrations are Material icons (custom artwork in M9).
+- Release builds are signed with the debug key (planned for M9).
+- The debug APK is about 200 MB (every CPU architecture and debug symbols); Google Play delivers split release bundles.
+
+## Open questions
+
+- **Google Play policy for `MANAGE_MEDIA`**: to confirm before the first release ([ADR 0006](decisions/0006-permissions.md)). The app already works without it.

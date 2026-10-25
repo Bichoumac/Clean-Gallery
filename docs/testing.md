@@ -2,7 +2,7 @@
 
 How Clean Gallery is tested: test layers, commands, fakes and fixtures. Every milestone adds tests for what it builds; a milestone is not done until the suite passes.
 
-Last updated: 2026-10-25 — Milestone M0
+Last updated: 2026-10-25 — Milestone M1
 
 ## Commands
 
@@ -35,6 +35,8 @@ Shared fakes live in [test/helpers/fakes.dart](../test/helpers/fakes.dart):
 | `inMemoryDatabase()` | `AppDatabase.open()` | Fresh SQLite database in memory per test. |
 | `FakePermissionService` | `PermissionService` | Returns a configurable `MediaAccess`; counts requests. |
 | `FakePlatformBridge` | `PlatformBridge` | Records calls; never touches Android. |
+| `FakeMediaSource` | `MediaSource` | In-memory items and folders; records loaded ranges; every image is a 1 × 1 PNG. |
+| `testItem(id, …)` | — | Builds a photo or video `MediaItem` with a given date. |
 
 Fakes are injected by overriding providers in a `ProviderScope` or `ProviderContainer`. Prefer hand-written fakes for interfaces that are used in many tests; use `mocktail` for one-off interactions.
 
@@ -47,6 +49,15 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [onboarding_screen_test.dart](../test/features/onboarding/onboarding_screen_test.dart) | Privacy promise shown, full flow, skip, returning users skip onboarding. |
 | [dependency_rules_test.dart](../test/architecture/dependency_rules_test.dart) | Pure-Dart engine and domain, no direct Android imports in features, no `MANAGE_EXTERNAL_STORAGE`. |
 | [navigation_test.dart](../test/core/router/navigation_test.dart) | Five icon-only tabs, switching tabs, Stats content, 48 dp touch targets. |
+| [timeline_test.dart](../test/domain/timeline_test.dart) | Day and month sections, grid rows, grouping by column count. |
+| [media_providers_test.dart](../test/core/media/media_providers_test.dart) | Chunked loading (first chunk, then the rest), column limits, duration format. |
+| [library_test.dart](../test/features/library/library_test.dart) | Timeline headers, photo/video filters, empty, denied and limited states, Albums and folder pages, opening the viewer, pinch gesture. |
+| [sort_filter_test.dart](../test/features/library/sort_filter_test.dart) | Date ranges and presets, plain rows, sort by name, date preset and chip removal, empty period, viewer order, per-tab state. |
+| [fast_scroller_test.dart](../test/features/library/fast_scroller_test.dart) | Thumb visibility, drag jump with month bubble, size bubble, short lists, size formatting. |
+| [viewer_test.dart](../test/features/viewer/viewer_test.dart) | Swipe both ways, pinch then pan without page change, double-tap back, top bar height. |
+| [video_controls_test.dart](../test/features/viewer/video_controls_test.dart) | Video progress bar at the bottom, play button centered, portrait and landscape. |
+
+App-level widget tests use `pumpTestApp` ([pump_app.dart](../test/helpers/pump_app.dart)): the whole app on a phone-sized screen (1080 × 2400 px at 3×) with all fakes, so tests see what a user would.
 
 ## Fixtures
 
@@ -84,6 +95,51 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 12 | Kill the app mid-onboarding, relaunch | any | Onboarding restarts from the first page. |
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
+
+### M1 — to verify on a device
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 1 | Photos tab with a real library | Newest first; "Today", "Yesterday", then dates; photos only. |
+| 2 | Videos tab | Videos only, with duration badges. |
+| 3 | Scroll quickly through thousands of items | Smooth, thumbnails fill in fast, no freeze; the end of the library appears as chunks load. |
+| 4 | Pinch out / in on a grid | 2 to 6 columns, one step per gesture; month headers from 5 columns. |
+| 5 | Albums tab | All media and Favorites counts match the system gallery; folders sorted by size. |
+| 6 | Favorites | Same items as the favorites in Google Photos / Samsung Gallery. |
+| 7 | Tap a photo | Flies to full screen; swipe between items; back returns to the same place. |
+| 8 | Pinch and double-tap in the viewer | Zooms; double-tap again fits; no page swipe while zoomed. |
+| 9 | Tap in the viewer | Bars and system UI hide and show. |
+| 10 | Open a video | Plays; pause, seek, mute, rotate work; swiping away pauses it. |
+| 11 | HEIC photo, panorama, very large photo | Displays; no crash or out-of-memory. |
+| 12 | Take a new photo, pull down on Photos | The new photo appears. |
+| 13 | Android 14+ partial access | Only the shared photos, with the "Allow all" banner. |
+| 14 | **Sort by date, name, size, duration**, both directions | Correct order; no crash (checks that MediaStore accepts the `CASE` and `LOWER` SQL). |
+| 15 | Date presets and a custom range | Only items of the period; counts plausible; headers match the period. |
+| 16 | Filter on a folder | Only that folder's items in the period. |
+| 17 | Open the viewer after sorting | Swipes in the sorted order. |
+| 18 | Fast-scroll thumb | Appears when scrolling; dragging jumps; bubble shows the month (date sort) or the size (size sort). |
+| 19 | Scroll far, then stop | Thumbnails appear quickly (compare with the first test). |
+| 20 | Viewer: swipe left and right | Next and previous photo or video. |
+| 21 | Viewer: open, zoom | The photo shows sharp quickly; zooming loads full detail without a pause. |
+| 22 | Video controls | Play/pause, seek, mute and rotate respond on the first tap. |
+
+Device tests on the Galaxy A54 (2026-10-25):
+
+1. Items 1–2, 4–7, 14–17 OK; Favorites match the system gallery. Broken: viewer swipe, video controls; slow: viewer display, grid after a far scroll.
+2. After fixes: fast-scroll thumb (18) and viewer swipe (20) OK. Still broken: video progress bar in the middle of the screen; still slow: grid and viewer display.
+3. Fixed since: progress bar height (22), native thumbnail and preview loader (19, 21).
+4. Photos and Videos became very fast; the Albums tab was still slow. Fixed since: one native query for all folders and cached folder paths.
+5. Albums tab fast as well.
+
+M1 status on the Galaxy A54 after these rounds:
+
+| Status | Items |
+| --- | --- |
+| Confirmed OK | 1 Photos timeline, 2 Videos tab, 3 and 19 scrolling speed, 4 pinch, 5 Albums (now fast), 6 Favorites match the system gallery, 7 and 20 viewer swipe, 14 sorting, 15 date filters, 17 viewer order after sorting, 18 fast-scroll thumb, 21 viewer display speed |
+| Fixed, not re-confirmed | 22 video progress bar position and seeking (layout test added) |
+| Not tested yet | 8 zoom gestures in detail, 9 immersive mode, 10 rotate, 11 HEIC / panorama / very large photo, 12 pull-to-refresh after a new photo, 13 partial access, 16 filter on a folder |
+
+These checks were done by the product owner on their own phone; the app was installed over adb and nothing on the phone was inspected remotely.
 
 ### Already checked on a Samsung Galaxy A54, Android 16 (2026-10-25)
 
