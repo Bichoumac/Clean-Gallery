@@ -3,8 +3,18 @@
   "appTitle": "Clean Gallery",
 
   "navPhotos": "Photos",
-  "navFolders": "Dossiers",
-  "navClean": "Nettoyer",
+  "navVideos": "Vidéos",
+  "navAlbums": "Albums",
+  "navStats": "Stats",
+  "navSettings": "Paramètres",
+
+  "statsReclaimableTitle": "Espace récupérable",
+  "statsReclaimablePending": "Calculé après la première analyse de votre bibliothèque.",
+  "statsDuplicates": "Doublons",
+  "statsBlurry": "Photos floues",
+  "statsScreenshots": "Anciennes captures d'écran",
+  "statsLargeVideos": "Grandes vidéos",
+  "statsValueUnknown": "—",
 
   "onboardingTitle": "Bienvenue dans Clean Gallery",
   "onboardingPrivacyHeadline": "Vos photos ne quittent jamais votre appareil.",

@@ -17,7 +17,8 @@ Last updated: 2026-10-25 — Milestone M0
 
 | File | Description |
 | --- | --- |
-| [architecture.md](architecture.md) | Layers, module map, data flow and dependency rules. |
+| [architecture.md](architecture.md) | Layers, module map, tabs, data flow and dependency rules. |
+| [design.md](design.md) | Design system: palette, typography, shapes, navigation bar. |
 | [database.md](database.md) | Drift schema, indexes and migration history. |
 | [platform-android.md](platform-android.md) | Permissions and the native Kotlin channel API. |
 | [testing.md](testing.md) | Test strategy, commands and fixtures. |
@@ -43,3 +44,4 @@ One file per feature is added as each feature is built.
 | [0005](decisions/0005-lints.md) | `very_good_analysis` lints and exceptions |
 | [0006](decisions/0006-permissions.md) | Permission handling and `minSdk 30` |
 | [0007](decisions/0007-android-toolchain.md) | Android toolchain: AGP 9.4.1, Gradle 9.6.0, `compileSdk 37` |
+| [0008](decisions/0008-navigation-and-visual-identity.md) | Five-tab navigation and own visual identity |

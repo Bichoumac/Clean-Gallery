@@ -8,21 +8,22 @@ The app is free with two small, unobtrusive ad placements, and a single "Remove 
 
 ## Status
 
-Milestone **M0 — Foundations** is built: project setup, architecture, database, native module, onboarding and permissions. The main tabs are placeholders. Tests and the debug build pass, but the app has not been checked on a real screen yet. See [docs/progress.md](docs/progress.md) for details and the device checklist.
+Milestone **M0 — Foundations** is built: project setup, architecture, database, native module, onboarding and permissions. The main tabs are placeholders. Tests and the debug build pass; on a phone, only startup and the first design have been checked so far. See [docs/progress.md](docs/progress.md) for details and the device checklist.
 
 ## Features
 
 | Area | Summary | Milestone |
 | --- | --- | --- |
 | Onboarding | Privacy promise, media and GPS permissions, optional "Media management" | M0 ✓ |
-| Library | Timeline, folders, zoomable grid, viewer, video playback | M1 |
+| Navigation | Five icon-only tabs: Photos, Videos, Albums, Stats, Settings | M0 ✓ (placeholder tabs) |
+| Library | Photo and video timelines, albums, zoomable grid, viewer, video playback | M1 |
 | Actions | System favorites, sharing without GPS, multi-select, trash | M2 |
 | Duplicates | Exact duplicates and bursts in a virtual folder | M3 |
 | Similar photos | Perceptual hashing, best-shot suggestion, storage dashboard | M4 |
-| Cleanup | Clean tab, swipe mode, blurry photos, screenshots, large videos | M5 |
+| Cleanup | Stats tab values, swipe mode, blurry photos, screenshots, large videos | M5 |
 | Editing | Translucent info panel, crop, adjustments, filters | M6 |
 | Exploration | Map, search | M7 |
-| Monetization | Banner, native card, consent, "Remove ads" purchase | M8 |
+| Monetization | Banner (Albums), native card (Stats), consent, "Remove ads" purchase | M8 |
 
 ## Requirements
 

@@ -131,7 +131,7 @@ class _IntroPage extends StatelessWidget {
               height: 140,
               decoration: BoxDecoration(
                 color: theme.colorScheme.primaryContainer,
-                shape: BoxShape.circle,
+                borderRadius: BorderRadius.circular(44),
               ),
               child: Icon(
                 icon,

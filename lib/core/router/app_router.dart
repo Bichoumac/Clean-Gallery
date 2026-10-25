@@ -1,7 +1,10 @@
 import 'package:clean_gallery/core/router/home_shell.dart';
 import 'package:clean_gallery/features/onboarding/onboarding_controller.dart';
 import 'package:clean_gallery/features/onboarding/onboarding_screen.dart';
+import 'package:clean_gallery/features/stats/stats_screen.dart';
+import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -12,14 +15,20 @@ abstract final class AppRoutes {
   /// First-launch onboarding.
   static const onboarding = '/onboarding';
 
-  /// Photos tab: timeline of all media.
+  /// Photos tab: timeline of photos.
   static const photos = '/photos';
 
-  /// Folders tab: grid of albums.
-  static const folders = '/folders';
+  /// Videos tab: timeline of videos.
+  static const videos = '/videos';
 
-  /// Clean tab: cleanup tools.
-  static const clean = '/clean';
+  /// Albums tab: folders, plus the Favorites and Trash virtual albums.
+  static const albums = '/albums';
+
+  /// Stats tab: space that cleaning could free, and entry to cleanup tools.
+  static const stats = '/stats';
+
+  /// Settings tab.
+  static const settings = '/settings';
 }
 
 /// The application router.
@@ -55,32 +64,37 @@ GoRouter appRouter(Ref ref) {
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             HomeShell(navigationShell: navigationShell),
+        // Order must match the destinations of HomeShell.
         branches: [
+          _tab(AppRoutes.photos, (l10n) => l10n.navPhotos),
+          _tab(AppRoutes.videos, (l10n) => l10n.navVideos),
+          _tab(AppRoutes.albums, (l10n) => l10n.navAlbums),
           StatefulShellBranch(
             routes: [
               GoRoute(
-                path: AppRoutes.photos,
-                builder: (context, state) => const PlaceholderTab(),
+                path: AppRoutes.stats,
+                builder: (context, state) => const StatsScreen(),
               ),
             ],
           ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.folders,
-                builder: (context, state) => const PlaceholderTab(),
-              ),
-            ],
-          ),
-          StatefulShellBranch(
-            routes: [
-              GoRoute(
-                path: AppRoutes.clean,
-                builder: (context, state) => const PlaceholderTab(),
-              ),
-            ],
-          ),
+          _tab(AppRoutes.settings, (l10n) => l10n.navSettings),
         ],
+      ),
+    ],
+  );
+}
+
+/// Branch for a tab that is still a placeholder.
+StatefulShellBranch _tab(
+  String path,
+  String Function(AppLocalizations l10n) title,
+) {
+  return StatefulShellBranch(
+    routes: [
+      GoRoute(
+        path: path,
+        builder: (context, state) =>
+            PlaceholderTab(title: title(AppLocalizations.of(context))),
       ),
     ],
   );

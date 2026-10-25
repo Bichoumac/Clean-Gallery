@@ -46,6 +46,7 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [onboarding_controller_test.dart](../test/features/onboarding/onboarding_controller_test.dart) | Permission flow for granted, limited and denied access; persistence of completion. |
 | [onboarding_screen_test.dart](../test/features/onboarding/onboarding_screen_test.dart) | Privacy promise shown, full flow, skip, returning users skip onboarding. |
 | [dependency_rules_test.dart](../test/architecture/dependency_rules_test.dart) | Pure-Dart engine and domain, no direct Android imports in features, no `MANAGE_EXTERNAL_STORAGE`. |
+| [navigation_test.dart](../test/core/router/navigation_test.dart) | Five icon-only tabs, switching tabs, Stats content, 48 dp touch targets. |
 
 ## Fixtures
 
@@ -69,7 +70,7 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | # | Check | Android | Expected |
 | --- | --- | --- | --- |
 | 1 | First launch shows the onboarding privacy page | any | "Your photos never leave your device." in the system language (EN or FR). |
-| 2 | Dynamic colors | 12+ | Colors follow the wallpaper; seed green below Android 12. |
+| 2 | Brand palette and Manrope | any | Ink/paper surfaces, lime accent, Manrope typeface at the right weights ([design.md](design.md)). |
 | 3 | Dark mode | any | Switching the system theme switches the app theme. |
 | 4 | *Allow access*, choose "Allow all" | 13+ | Photos and videos prompts, then the GPS metadata prompt. Page shows no warning. |
 | 5 | *Allow access* on Android 11–12 | 11, 12 | One storage prompt, then the GPS metadata prompt. |
@@ -77,11 +78,22 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 7 | *Allow access*, choose "Don't allow" | any | Denied message and *Open settings*; *Next* still works; no GPS prompt. |
 | 8 | *Allow media management* | 12+ | Opens the system "Media management" screen for Clean Gallery. |
 | 9 | *Allow media management* | 11 | Nothing happens, no crash. |
-| 10 | *Get started* / *Skip* | any | Opens the three-tab shell (Photos, Folders, Clean) with placeholder content. |
+| 10 | *Get started* / *Skip* | any | Opens the five-tab shell (Photos, Videos, Albums, Stats, Settings): small floating bar, icons only; Stats shows the reclaimable space card with "—". |
+| 15 | Navigation bar | any | Long-press shows each tab's name; content scrolls under the blurred bar; nothing hidden behind it. |
 | 11 | Relaunch the app | any | Goes straight to the tabs, onboarding is not shown again. |
 | 12 | Kill the app mid-onboarding, relaunch | any | Onboarding restarts from the first page. |
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
+
+### Already checked on a Samsung Galaxy A54, Android 16 (2026-10-25)
+
+With the first design (before [ADR 0008](decisions/0008-navigation-and-visual-identity.md)):
+
+- The debug APK installs and starts; Impeller runs on Vulkan; no crash.
+- The French translation is displayed (onboarding and tabs).
+- The onboarding flag persists: after onboarding, relaunching opens the tabs.
+
+Not checked yet on this phone: the permission prompts (items 4 to 9) and the new design. The phone turns its screen off after 30 seconds, faster than the remote test loop; keep the screen on while testing.
 
 ### Already checked on the Android 14 emulator (2026-10-25)
 

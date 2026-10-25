@@ -36,7 +36,7 @@ flowchart TD
 
 | Layer | Folder | Role |
 | --- | --- | --- |
-| Presentation | `lib/features/`, `lib/core/router/`, `lib/core/theme/` | Material 3 widgets, Riverpod controllers, routes. |
+| Presentation | `lib/features/`, `lib/core/router/`, `lib/core/theme/` | Widgets ([design system](design.md)), Riverpod controllers, routes. |
 | Domain | `lib/domain/` | Entities and enums shared by every layer. |
 | Data | `lib/core/database/`, `lib/platform/` | Drift database, platform interfaces and their Android implementations. |
 | Analysis engine | `lib/analysis/` | Detection algorithms, pure Dart, run in an isolate (from M3). |
@@ -52,13 +52,15 @@ The brief lists `core/`, `analysis/`, `platform/` and `features/` under `lib/`. 
 | [lib/core/providers.dart](../lib/core/providers.dart) | App-wide providers: database, settings, platform services. |
 | [lib/core/config/app_config.dart](../lib/core/config/app_config.dart) | Build-time configuration (ad unit IDs). |
 | [lib/core/database/](../lib/core/database/) | Tables, database class, settings repository. See [database.md](database.md). |
-| [lib/core/router/](../lib/core/router/) | Routes, redirect rules, three-tab shell. |
-| [lib/core/theme/app_theme.dart](../lib/core/theme/app_theme.dart) | Material 3 theme. |
+| [lib/core/router/](../lib/core/router/) | Routes, redirect rules, five-tab shell, `CompactNavBar`, `TabPage`. |
+| [lib/core/theme/app_theme.dart](../lib/core/theme/app_theme.dart) | Theme and brand palette. See [design.md](design.md). |
 | [lib/domain/enums.dart](../lib/domain/enums.dart) | `MediaKind`, `DateSource`, `DuplicateKind`, `SwipeAction`. |
 | [lib/analysis/](../lib/analysis/) | Analysis engine; currently only `analysisVersion`. |
 | [lib/platform/](../lib/platform/) | `PlatformBridge`, `PermissionService` interfaces. |
 | [lib/platform/android/](../lib/platform/android/) | Android implementations. See [platform-android.md](platform-android.md). |
 | [lib/features/onboarding/](../lib/features/onboarding/) | Onboarding. See [features/onboarding.md](features/onboarding.md). |
+| [lib/features/stats/](../lib/features/stats/) | Stats tab (layout only until M5). |
+| [assets/fonts/manrope/](../assets/fonts/manrope/) | Bundled Manrope variable font and its license. |
 | [lib/l10n/](../lib/l10n/) | ARB files for English and French. |
 
 ## Dependency rules
@@ -101,6 +103,29 @@ sequenceDiagram
 ```
 
 The flag is read before the first frame, so the router chooses the first screen synchronously, without a loading state. When onboarding completes, the router's `refreshListenable` re-runs the redirect.
+
+## Tabs
+
+| Tab | Route | Content | Milestone |
+| --- | --- | --- | --- |
+| Photos | `/photos` | Photo timeline | M1 |
+| Videos | `/videos` | Video timeline | M1 |
+| Albums | `/albums` | All media, Favorites, Trash, folders | M1–M2 |
+| Stats | `/stats` | Reclaimable space, entry to cleanup tools | Layout in M0, values in M5 |
+| Settings | `/settings` | Settings | M2 |
+
+Defined in [app_router.dart](../lib/core/router/app_router.dart) (`AppRoutes`); the order must match the destinations in [home_shell.dart](../lib/core/router/home_shell.dart). Why five tabs: [ADR 0008](decisions/0008-navigation-and-visual-identity.md).
+
+```mermaid
+flowchart LR
+    S[Stats tab] --> D[Duplicates]
+    S --> W[Swipe mode]
+    S --> B[Blurry photos]
+    S --> C[Screenshots]
+    S --> V[Large videos]
+```
+
+The cleanup tools have no tab of their own: the Stats tab is their entry point.
 
 ## Adding an iOS implementation later
 

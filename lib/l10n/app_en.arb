@@ -4,8 +4,18 @@
   "@appTitle": {"description": "Application name shown in the launcher and the task switcher."},
 
   "navPhotos": "Photos",
-  "navFolders": "Folders",
-  "navClean": "Clean",
+  "navVideos": "Videos",
+  "navAlbums": "Albums",
+  "navStats": "Stats",
+  "navSettings": "Settings",
+
+  "statsReclaimableTitle": "Space you could free",
+  "statsReclaimablePending": "Calculated after the first analysis of your library.",
+  "statsDuplicates": "Duplicates",
+  "statsBlurry": "Blurry photos",
+  "statsScreenshots": "Old screenshots",
+  "statsLargeVideos": "Large videos",
+  "statsValueUnknown": "—",
 
   "onboardingTitle": "Welcome to Clean Gallery",
   "onboardingPrivacyHeadline": "Your photos never leave your device.",

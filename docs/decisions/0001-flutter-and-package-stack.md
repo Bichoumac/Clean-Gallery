@@ -37,6 +37,8 @@ Packages for later milestones (`photo_manager`, `media_kit`, `flutter_map`, `goo
 
 ### `dynamic_color` stays on 1.x
 
+> **Superseded**: `dynamic_color` was removed when the app moved to its own palette ([ADR 0008](0008-navigation-and-visual-identity.md)). Kept for history.
+
 `dynamic_color` 2.x returns color schemes from the separate `material_ui` package, whose `ColorScheme` type is not the one Flutter's `ThemeData` accepts: the project failed to compile with it. Version 1.9.0 returns Flutter's own `ColorScheme`, is recent (August 2026) and does the same job. Revisit when Flutter's Material library and `material_ui` converge.
 
 ### `permission_handler` for runtime permissions

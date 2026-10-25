@@ -9,7 +9,6 @@ environment:
 dependencies:
   drift: ^2.35.3
   drift_flutter: ^0.3.1
-  dynamic_color: ^1.9.0
   flutter:
     sdk: flutter
   flutter_localizations:
@@ -34,3 +33,9 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+  fonts:
+    # Variable font (wght 200–800), bundled so nothing is fetched at runtime.
+    # License: assets/fonts/manrope/OFL.txt
+    - family: Manrope
+      fonts:
+        - asset: assets/fonts/manrope/Manrope-Variable.ttf

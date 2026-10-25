@@ -1,45 +1,91 @@
+import 'package:clean_gallery/core/router/compact_nav_bar.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-/// Scaffold with the bottom navigation bar for the three main tabs.
+/// Scaffold of the five main tabs, with the floating [CompactNavBar].
 ///
-/// Each tab keeps its own navigation stack through [navigationShell].
+/// Each tab keeps its own navigation stack through [navigationShell]. The
+/// content extends under the bar; tabs add [CompactNavBar.contentInset] at
+/// the bottom of their scrollable content.
 class HomeShell extends StatelessWidget {
   /// Creates the shell around the branch navigator provided by go_router.
   const HomeShell({required this.navigationShell, super.key});
 
-  /// Manages the three tab branches.
+  /// Manages the tab branches, in the order of `AppRoutes.tabs`.
   final StatefulNavigationShell navigationShell;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
+      extendBody: true,
       body: navigationShell,
-      bottomNavigationBar: NavigationBar(
+      bottomNavigationBar: CompactNavBar(
         selectedIndex: navigationShell.currentIndex,
-        onDestinationSelected: (index) => navigationShell.goBranch(
+        onSelected: (index) => navigationShell.goBranch(
           index,
           // Tapping the active tab again returns to its root.
           initialLocation: index == navigationShell.currentIndex,
         ),
         destinations: [
-          NavigationDestination(
-            icon: const Icon(Icons.photo_library_outlined),
-            selectedIcon: const Icon(Icons.photo_library),
+          CompactNavDestination(
+            icon: Icons.image_outlined,
+            selectedIcon: Icons.image_rounded,
             label: l10n.navPhotos,
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.folder_outlined),
-            selectedIcon: const Icon(Icons.folder),
-            label: l10n.navFolders,
+          CompactNavDestination(
+            icon: Icons.smart_display_outlined,
+            selectedIcon: Icons.smart_display_rounded,
+            label: l10n.navVideos,
           ),
-          NavigationDestination(
-            icon: const Icon(Icons.cleaning_services_outlined),
-            selectedIcon: const Icon(Icons.cleaning_services),
-            label: l10n.navClean,
+          CompactNavDestination(
+            icon: Icons.collections_bookmark_outlined,
+            selectedIcon: Icons.collections_bookmark_rounded,
+            label: l10n.navAlbums,
           ),
+          CompactNavDestination(
+            icon: Icons.donut_large_outlined,
+            selectedIcon: Icons.donut_large_rounded,
+            label: l10n.navStats,
+          ),
+          CompactNavDestination(
+            icon: Icons.tune_outlined,
+            selectedIcon: Icons.tune_rounded,
+            label: l10n.navSettings,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Page layout shared by the tabs: a large title, then [children].
+class TabPage extends StatelessWidget {
+  /// Creates a tab page titled [title].
+  const TabPage({required this.title, required this.children, super.key});
+
+  /// Large page title.
+  final String title;
+
+  /// Content below the title.
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    return SafeArea(
+      bottom: false,
+      child: ListView(
+        padding: EdgeInsets.fromLTRB(
+          20,
+          24,
+          20,
+          CompactNavBar.contentInset(context),
+        ),
+        children: [
+          Text(title, style: Theme.of(context).textTheme.displaySmall),
+          const SizedBox(height: 24),
+          ...children,
         ],
       ),
     );
@@ -48,35 +94,41 @@ class HomeShell extends StatelessWidget {
 
 /// Temporary content for tabs that are built in later milestones.
 class PlaceholderTab extends StatelessWidget {
-  /// Creates the placeholder.
-  const PlaceholderTab({super.key});
+  /// Creates the placeholder for the tab titled [title].
+  const PlaceholderTab({required this.title, super.key});
+
+  /// Title of the tab.
+  final String title;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.hourglass_empty,
-              size: 48,
-              color: theme.colorScheme.outline,
+    return TabPage(
+      title: title,
+      children: [
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.homePlaceholderTitle,
+                  style: theme.textTheme.titleMedium,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  l10n.homePlaceholderBody,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 16),
-            Text(l10n.homePlaceholderTitle, style: theme.textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text(
-              l10n.homePlaceholderBody,
-              textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium,
-            ),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
 }

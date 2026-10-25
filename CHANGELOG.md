@@ -6,6 +6,21 @@ Last updated: 2026-10-25 — Milestone M0
 
 ## [Unreleased]
 
+### Changed
+
+- Navigation: five icon-only tabs (Photos, Videos, Albums, Stats, Settings) in a small floating bar, replacing Photos · Folders · Clean ([ADR 0008](docs/decisions/0008-navigation-and-visual-identity.md)).
+- Visual identity: fixed ink/paper palette with a lime accent, bundled Manrope typeface, no shadows ([docs/design.md](docs/design.md)).
+- Ad placements moved to the Albums tab (banner) and the Stats tab (native card).
+
+### Added
+
+- Stats tab layout: reclaimable space and the four cleanup categories (values arrive in M5).
+- Navigation tests, including a 48 dp touch target check.
+
+### Removed
+
+- `dynamic_color` (Material You colors).
+
 ## [M0] — 2026-10-25 — Foundations
 
 ### Added

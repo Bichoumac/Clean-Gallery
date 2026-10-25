@@ -1,6 +1,6 @@
 import 'package:clean_gallery/app.dart';
 import 'package:clean_gallery/core/providers.dart';
-import 'package:flutter/material.dart';
+import 'package:clean_gallery/core/router/compact_nav_bar.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -56,20 +56,21 @@ void main() {
 
     await tester.tap(find.text('Get started'));
     await tester.pumpAndSettle();
-    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byType(CompactNavBar), findsOneWidget);
   });
 
   testWidgets('skip goes straight to the main shell', (tester) async {
     await pumpApp(tester, completed: false);
     await tester.tap(find.text('Skip'));
     await tester.pumpAndSettle();
-    expect(find.byType(NavigationBar), findsOneWidget);
+    expect(find.byType(CompactNavBar), findsOneWidget);
     expect(permissions.mediaRequests, 0);
   });
 
   testWidgets('returning users skip onboarding', (tester) async {
     await pumpApp(tester, completed: true);
-    expect(find.byType(NavigationBar), findsOneWidget);
-    expect(find.text('Photos'), findsOneWidget);
+    expect(find.byType(CompactNavBar), findsOneWidget);
+    expect(find.byTooltip('Photos'), findsOneWidget);
+    expect(find.byTooltip('Stats'), findsOneWidget);
   });
 }
