@@ -9,7 +9,7 @@ Last updated: 2026-10-25 — Milestone M1
 | Milestone | Scope | Status |
 | --- | --- | --- |
 | M0 | Foundations | Merged into `main` (PR #1) |
-| M1 | Navigation: timelines, albums, grid, viewer, video | Done, awaiting device check and approval |
+| M1 | Navigation: timelines, albums, grid, viewer, video, sorting, date filter | Done, tested on a phone, awaiting PR review |
 | M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Not started |
 | M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Not started |
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Not started |
@@ -38,7 +38,7 @@ Last updated: 2026-10-25 — Milestone M1
 | --- | --- |
 | `flutter analyze` | No issues |
 | `flutter test` | 68 tests pass |
-| Galaxy A54 | Sorting, date filters, durations, Favorites, fast-scroll thumb and viewer swipe OK. Grid and viewer now fast; video progress bar and Albums tab speed fixed since, to re-check. |
+| Galaxy A54 (Android 16) | Confirmed by the product owner: timelines, sorting, date filters, durations, Favorites, pinch, fast-scroll thumb, viewer swipe, and speed of Photos, Videos, Albums and the viewer. Details in [testing.md](testing.md#m1--to-verify-on-a-device). |
 | Device checklist | [testing.md](testing.md#m1--to-verify-on-a-device) |
 
 ### Known issues
@@ -47,9 +47,15 @@ Last updated: 2026-10-25 — Milestone M1
 - The column count, sort and date filter reset at each launch (settings in M2).
 - Scrolling performance with very large libraries is not measured yet.
 
+### Not verified yet
+
+- Video progress bar fix (covered by a layout test, not re-confirmed on the phone).
+- Zoom details, immersive mode, rotation, HEIC and very large photos, pull-to-refresh after a new photo, Android 14+ partial access, date filter on a folder.
+- CI on GitHub for this branch (the repository is private; its status cannot be read from the development machine).
+
 ### Next steps
 
-1. Run the M1 device checks on a phone.
+1. Review and merge the M1 pull request.
 2. Approval of M1, then M2 (favorites, sharing, multi-select, trash, basic settings).
 
 ## M0 — Foundations

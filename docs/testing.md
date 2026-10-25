@@ -128,7 +128,18 @@ Device tests on the Galaxy A54 (2026-10-25):
 1. Items 1–2, 4–7, 14–17 OK; Favorites match the system gallery. Broken: viewer swipe, video controls; slow: viewer display, grid after a far scroll.
 2. After fixes: fast-scroll thumb (18) and viewer swipe (20) OK. Still broken: video progress bar in the middle of the screen; still slow: grid and viewer display.
 3. Fixed since: progress bar height (22), native thumbnail and preview loader (19, 21).
-4. Photos and Videos became very fast; the Albums tab was still slow. Fixed since: one native query for all folders and cached folder paths. To re-check.
+4. Photos and Videos became very fast; the Albums tab was still slow. Fixed since: one native query for all folders and cached folder paths.
+5. Albums tab fast as well.
+
+M1 status on the Galaxy A54 after these rounds:
+
+| Status | Items |
+| --- | --- |
+| Confirmed OK | 1 Photos timeline, 2 Videos tab, 3 and 19 scrolling speed, 4 pinch, 5 Albums (now fast), 6 Favorites match the system gallery, 7 and 20 viewer swipe, 14 sorting, 15 date filters, 17 viewer order after sorting, 18 fast-scroll thumb, 21 viewer display speed |
+| Fixed, not re-confirmed | 22 video progress bar position and seeking (layout test added) |
+| Not tested yet | 8 zoom gestures in detail, 9 immersive mode, 10 rotate, 11 HEIC / panorama / very large photo, 12 pull-to-refresh after a new photo, 13 partial access, 16 filter on a folder |
+
+These checks were done by the product owner on their own phone; the app was installed over adb and nothing on the phone was inspected remotely.
 
 ### Already checked on a Samsung Galaxy A54, Android 16 (2026-10-25)
 

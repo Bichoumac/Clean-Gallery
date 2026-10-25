@@ -8,7 +8,7 @@ The app is free with two small, unobtrusive ad placements, and a single "Remove 
 
 ## Status
 
-Milestone **M1 — Navigation** is built on top of M0: photo and video timelines, albums, pinch-to-zoom grid, full-screen viewer and video playback. Stats and Settings are still placeholders. See [docs/progress.md](docs/progress.md) for what is verified. See [docs/progress.md](docs/progress.md) for details and the device checklist.
+Milestone **M1 — Navigation** is built on top of M0: photo and video timelines, albums, pinch-to-zoom grid, full-screen viewer and video playback. Timelines can be sorted and filtered by date, with a fast-scroll thumb. Stats and Settings are still placeholders. Tested on a Galaxy A54 (Android 16); see [docs/progress.md](docs/progress.md) for what is verified. See [docs/progress.md](docs/progress.md) for details and the device checklist.
 
 ## Features
 
