@@ -10,7 +10,7 @@ Last updated: 2026-10-25 — Milestone M2
 | --- | --- | --- |
 | M0 | Foundations | Merged into `main` (PR #1) |
 | M1 | Navigation: timelines, albums, grid, viewer, video, sorting, date filter | Merged into `main` (PR #2) |
-| M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Done, awaiting device check and approval |
+| M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Done, tested on a phone, awaiting PR review |
 | M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Not started |
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Not started |
 | M5 | Cleanup: Stats values, swipe mode, blurry, screenshots, large videos | Not started |
@@ -37,7 +37,7 @@ Last updated: 2026-10-25 — Milestone M2
 | --- | --- |
 | `flutter analyze` | No issues |
 | `flutter test --timeout 60s` | 101 tests pass |
-| Galaxy A54, first test (debug build) | Favorites, drag selection, emptying the trash, sharing, theme, language and columns OK. Favorites slow to show and the app generally laggy: fixed since (no list reload after actions, memoized grid, release build for testing). |
+| Galaxy A54 (release build) | Confirmed by the product owner: favorites, drag selection, trash and undo, delete for good, sharing, theme, language, columns, Camera tab, video thumbnails, fluidity. Details in [testing.md](testing.md#m2--to-verify-on-a-device). |
 
 ### Decisions
 
@@ -49,10 +49,14 @@ Last updated: 2026-10-25 — Milestone M2
 - Whether `createFavoriteRequest` skips the confirmation with Media management is to be checked on a device.
 - Video location is not removed when sharing (warned); HEIC copies lose all metadata.
 
+### Not verified yet
+
+- Behaviour with Media management (no system prompt for favorites and deletion), the expiry offer the next day, HEIC and video sharing, restore, sort restored after a restart, permission refresh ([testing.md](testing.md#m2--to-verify-on-a-device)).
+
 ### Next steps
 
-1. Run the M2 device checks.
-2. Approval of M2, then M3 (indexing, dates, exact duplicates, bursts).
+1. Review and merge the M2 pull request.
+2. M3: persistent media index (cache) so lists show instantly at launch, then dates, exact duplicates and bursts.
 
 ## M1 — Navigation
 

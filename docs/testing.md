@@ -134,6 +134,13 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 16 | Videos tab, including videos received from messaging apps | Every video has a thumbnail (MediaStore's, the embedded cover, or the frame at 10 %). |
 | 17 | Camera tab | Only photos taken with the camera; no screenshots or WhatsApp images; those are in Albums → All media. |
 
+M2 status on the Galaxy A54 (Android 16), checked by the product owner on 2026-10-25:
+
+| Status | Items |
+| --- | --- |
+| Confirmed OK | 1 favorites (after the optimistic update fix), 2 drag selection, 4 trash and undo, 6 delete for good (one Android confirmation), 9 and 11 sharing, 13 theme, language and columns, 16 video thumbnails, 17 Camera tab; overall fluidity on a release build |
+| Not tested yet | 3 favorite batch prompt, 5 restore, 7 behaviour with Media management, 8 expiry offer the next day, 10 HEIC sharing, 12 video sharing warning, 14 sort restored after restart, 15 permission refresh |
+
 ### M1 — to verify on a device
 
 | # | Check | Expected |
