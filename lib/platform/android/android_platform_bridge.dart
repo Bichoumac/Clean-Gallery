@@ -27,6 +27,18 @@ final class AndroidPlatformBridge implements PlatformBridge {
     return _channel.invokeMethod<void>('openMediaManagementSettings');
   }
 
+  /// File sizes in bytes of the MediaStore items with the given [ids].
+  ///
+  /// Android-only helper used by `AndroidMediaSource`: `photo_manager` does
+  /// not expose file sizes. Items that no longer exist are left out.
+  Future<Map<String, int>> mediaSizes(List<String> ids) async {
+    if (ids.isEmpty) return const {};
+    final sizes = await _channel.invokeMapMethod<String, int>('mediaSizes', {
+      'ids': ids,
+    });
+    return sizes ?? const {};
+  }
+
   @override
   Future<int> sdkVersion() async {
     final version = await _channel.invokeMethod<int>('sdkVersion');

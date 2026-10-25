@@ -73,6 +73,11 @@
   "filterEmptyBody": "Essayez une autre période, ou effacez le filtre de dates.",
   "filterClear": "Effacer le filtre",
 
+  "sizeBytes": "{value} o",
+  "sizeKilobytes": "{value} Ko",
+  "sizeMegabytes": "{value} Mo",
+  "sizeGigabytes": "{value} Go",
+
   "albumsAllMedia": "Tous les médias",
   "albumsFavorites": "Favoris",
   "albumsFolders": "Dossiers",

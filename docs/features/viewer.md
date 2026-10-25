@@ -30,9 +30,11 @@ Route: `/viewer`, above the tabs, with `ViewerArgs(selection, initialIndex)` as 
 ## State and data
 
 - Items come from `mediaListProvider(selection)`, the same list as the grid, so nothing is loaded twice and indexes match.
-- Photos: `MediaSource.fullImage`, decoded at most 4,096 px on the longest side; the 512 px thumbnail is shown until it is ready.
+- Photos: the grid thumbnail is shown instantly, then a **screen-sized preview** (`MediaSource.preview`, at most 2,560 px, rendered by Android's thumbnail pipeline). The full-resolution image (`MediaSource.fullImage`, at most 4,096 px) is only loaded once the user zooms past 1.3×.
+- Previews of the next, previous and second-next photos are precached when a page is shown, so swiping lands on a ready image.
 - Videos: `MediaSource.videoUri` (a `content://` URI) played by `video_player` ([ADR 0011](../decisions/0011-video-playback.md)).
-- Zoom: Flutter's `InteractiveViewer` ([ADR 0010](../decisions/0010-photo-zoom.md)).
+- Zoom: own gesture handling ([ADR 0010](../decisions/0010-photo-zoom.md)): one finger swipes between pages at fit scale and pans once zoomed; two fingers zoom.
+- The top bar is pinned to the top with its own height: an earlier full-screen overlay swallowed swipes and the video controls.
 
 ## Edge cases and error handling
 
@@ -45,6 +47,7 @@ Route: `/viewer`, above the tabs, with `ViewerArgs(selection, initialIndex)` as 
 ## Tests
 
 - [library_test.dart](../../test/features/library/library_test.dart): opening the viewer on the tapped item, showing its file name, closing with back.
+- [viewer_test.dart](../../test/features/viewer/viewer_test.dart): swipe left and right (fling and slow drag), pinch then pan without changing page, double-tap back to fit, top bar height.
 - Video playback, zoom gestures and Hero transitions are checked on a device ([testing.md](../testing.md#m1--to-verify-on-a-device)).
 
 ## Known limitations / future work

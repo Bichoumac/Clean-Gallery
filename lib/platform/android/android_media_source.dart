@@ -1,6 +1,7 @@
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/domain/media_item.dart';
+import 'package:clean_gallery/platform/android/android_platform_bridge.dart';
 import 'package:clean_gallery/platform/android/media_image_providers.dart';
 import 'package:clean_gallery/platform/media_source.dart';
 import 'package:flutter/widgets.dart';
@@ -12,11 +13,13 @@ import 'package:photo_manager/photo_manager.dart';
 /// permission check is turned off. Loaded `AssetEntity`s are kept by id so
 /// image providers can be built synchronously from a [MediaItem].
 final class AndroidMediaSource implements MediaSource {
-  /// Creates the source. Call nothing on `photo_manager` before this.
-  AndroidMediaSource() {
+  /// Creates the source. [_bridge] provides what `photo_manager` lacks
+  /// (file sizes).
+  AndroidMediaSource(this._bridge) {
     _ready = PhotoManager.setIgnorePermissionCheck(true);
   }
 
+  final AndroidPlatformBridge _bridge;
   late final Future<void> _ready;
 
   /// Assets loaded so far, by id.
@@ -105,17 +108,36 @@ final class AndroidMediaSource implements MediaSource {
   }) async {
     final path = await _path(selection);
     if (path == null || end <= start) return const [];
-    final entities = await path.getAssetListRange(start: start, end: end);
-    return [
-      for (final entity in entities)
+    final entities = [
+      for (final entity in await path.getAssetListRange(start: start, end: end))
         if (entity.type == AssetType.image || entity.type == AssetType.video)
-          _toItem(entity),
+          entity,
+    ];
+    // One extra MediaStore query per chunk for the file sizes.
+    final sizes = await _bridge.mediaSizes([for (final e in entities) e.id]);
+    return [
+      for (final entity in entities) _toItem(entity, sizes[entity.id] ?? 0),
     ];
   }
 
   @override
   ImageProvider thumbnail(MediaItem item, {required int size}) =>
-      AssetThumbnailProvider(_entity(item), size: size);
+      AssetThumbnailProvider(_entity(item), width: size, height: size);
+
+  @override
+  ImageProvider preview(MediaItem item, {required int longestSide}) {
+    // Keep the proportions so Android neither crops nor pads the image.
+    final ratio = item.aspectRatio;
+    final (width, height) = ratio >= 1
+        ? (longestSide, (longestSide / ratio).round())
+        : ((longestSide * ratio).round(), longestSide);
+    return AssetThumbnailProvider(
+      _entity(item),
+      width: width,
+      height: height,
+      quality: 90,
+    );
+  }
 
   @override
   ImageProvider fullImage(MediaItem item, {int maxDimension = 4096}) =>
@@ -166,7 +188,7 @@ final class AndroidMediaSource implements MediaSource {
         modifiedDateSecond: item.modifiedAt.millisecondsSinceEpoch ~/ 1000,
       );
 
-  MediaItem _toItem(AssetEntity entity) {
+  MediaItem _toItem(AssetEntity entity, int sizeBytes) {
     _assets[entity.id] = entity;
     return MediaItem(
       id: entity.id,
@@ -177,6 +199,7 @@ final class AndroidMediaSource implements MediaSource {
       modifiedAt: entity.modifiedDateTime,
       duration: entity.videoDuration,
       isFavorite: entity.isFavorite,
+      sizeBytes: sizeBytes,
       fileName: entity.title,
       relativePath: entity.relativePath,
       mimeType: entity.mimeType,

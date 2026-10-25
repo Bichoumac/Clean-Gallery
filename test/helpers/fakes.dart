@@ -83,6 +83,7 @@ MediaItem testItem(
   DateTime? takenAt,
   Duration? duration,
   bool isFavorite = false,
+  int sizeBytes = 0,
 }) {
   final at = takenAt ?? DateTime(2026, 10, 25, 12);
   return MediaItem(
@@ -94,6 +95,7 @@ MediaItem testItem(
     modifiedAt: at,
     duration: duration ?? Duration.zero,
     isFavorite: isFavorite,
+    sizeBytes: sizeBytes,
     fileName: 'IMG_$id.jpg',
   );
 }
@@ -115,9 +117,6 @@ class FakeMediaSource implements MediaSource {
 
   /// Items of each folder, by folder id.
   Map<String, List<MediaItem>> folderItems;
-
-  /// File size of each item in bytes, by id, for sorting by size.
-  Map<String, int> sizes = {};
 
   /// Ranges requested through [load], as `(start, end)`.
   final loads = <(int, int)>[];
@@ -142,7 +141,7 @@ class FakeMediaSource implements MediaSource {
       MediaSortField.name => (a.fileName ?? '').toLowerCase().compareTo(
         (b.fileName ?? '').toLowerCase(),
       ),
-      MediaSortField.size => (sizes[a.id] ?? 0).compareTo(sizes[b.id] ?? 0),
+      MediaSortField.size => a.sizeBytes.compareTo(b.sizeBytes),
       MediaSortField.duration => a.duration.compareTo(b.duration),
     };
     // Ties keep the given order, like the SQL secondary sort keys.
@@ -175,6 +174,10 @@ class FakeMediaSource implements MediaSource {
 
   @override
   ImageProvider thumbnail(MediaItem item, {required int size}) =>
+      MemoryImage(kTransparentPng);
+
+  @override
+  ImageProvider preview(MediaItem item, {required int longestSide}) =>
       MemoryImage(kTransparentPng);
 
   @override

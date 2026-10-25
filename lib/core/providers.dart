@@ -36,7 +36,7 @@ PermissionService permissionService(Ref ref) => AndroidPermissionService();
 
 /// Photos and videos of the device. Overridden in tests with a fake.
 @Riverpod(keepAlive: true)
-MediaSource mediaSource(Ref ref) => AndroidMediaSource();
+MediaSource mediaSource(Ref ref) => AndroidMediaSource(AndroidPlatformBridge());
 
 /// Whether onboarding was completed, read from the database before the app
 /// starts. `main()` overrides it so the router can pick the first screen

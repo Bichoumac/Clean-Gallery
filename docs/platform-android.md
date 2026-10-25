@@ -66,8 +66,10 @@ Every query is a custom SQL filter built from the `MediaSelection` ([ADR 0012](d
 
 - File names come from `DISPLAY_NAME` (`needTitle: true`).
 - `photo_manager`'s own permission check is disabled; permissions are handled by `PermissionService`.
-- Thumbnails are rendered by Android (`thumbnailDataWithSize`) at 256 or 512 px, JPEG quality 85.
-- Full images are decoded from the file, at most 4,096 px on the longest side.
+- Thumbnails are rendered by Android (`thumbnailDataWithSize`) at 256 or 512 px, JPEG quality 80.
+- Viewer previews use the same pipeline at the screen's size (at most 2,560 px, keeping proportions, quality 90).
+- Full images are decoded from the file, at most 4,096 px on the longest side, only when zooming in.
+- File sizes come from the `mediaSizes` channel method (below), one query per chunk.
 - Videos play from `getMediaUrl()`, a `content://` URI given to `video_player`.
 - `photo_manager`'s manifest only adds `READ_EXTERNAL_STORAGE` up to Android 12, like ours.
 
@@ -80,6 +82,7 @@ Kotlin side: [MainActivity.kt](../android/app/src/main/kotlin/com/bichoumac/clea
 | `isMediaManagementGranted` | none | `bool` | none | `MediaStore.canManageMedia`; always `false` below Android 12. |
 | `openMediaManagementSettings` | none | `null` | none | Opens `Settings.ACTION_REQUEST_MANAGE_MEDIA` for this package. No-op below Android 12 or if no activity handles the intent. |
 | `sdkVersion` | none | `int` | none | `Build.VERSION.SDK_INT`. |
+| `mediaSizes` | `ids`: `List<String>` | `Map<String, int>` (id → bytes) | `permission` if MediaStore refuses | `_SIZE` of each MediaStore item, queried off the main thread by chunks of 500 ids. Missing ids are left out. Used by `AndroidMediaSource` for each chunk of 1,000 items, since `photo_manager` has no file sizes. |
 
 Unknown methods return `notImplemented`, which Dart raises as `MissingPluginException`.
 

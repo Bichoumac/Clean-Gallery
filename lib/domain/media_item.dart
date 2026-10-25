@@ -39,6 +39,9 @@ abstract class MediaItem with _$MediaItem {
     /// Whether the item is a favorite in the system gallery.
     @Default(false) bool isFavorite,
 
+    /// File size in bytes; 0 when unknown.
+    @Default(0) int sizeBytes,
+
     /// File name with extension, when known.
     String? fileName,
 

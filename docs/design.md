@@ -94,6 +94,12 @@ Tabs use `TabPage`: 20 dp side margins, a `displaySmall` title 24 dp below the s
 - Bottom sheet with a drag handle: "Sort by" choice chips, a full-width segmented button for the direction, "Period" choice chips (the custom one shows the range), *Reset* at the top right.
 - Active choices as input chips under the title (date range icon or sort icon), with a delete cross.
 
+## Fast-scroll thumb
+
+- 6 dp wide pill (8 dp while dragging) on the right edge, 48 dp high, `onSurfaceVariant` at 60 % (lime while dragging), with a 44 dp wide touch area.
+- Shown while scrolling, faded out 1.5 s after; only on lists of three screens or more.
+- Bubble left of the thumb while dragging: `inverseSurface` stadium, `titleSmall` text.
+
 ## Album tiles
 
 Two columns, 12 dp apart. Cover with 24 dp radius, then the name (`titleSmall`) and the count (`bodySmall`, secondary color). Virtual albums (Favorites) show a lime badge with their icon on the cover.

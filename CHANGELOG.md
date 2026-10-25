@@ -17,10 +17,14 @@ Last updated: 2026-10-25 — Milestone M1
 - Full-screen viewer: swipe, Hero transition, pinch and double-tap zoom, tap to hide controls ([docs/features/viewer.md](docs/features/viewer.md)).
 - Video playback with own controls: play/pause/replay, seek, mute, rotate.
 - `MediaSource` interface and `AndroidMediaSource` on `photo_manager` 3.12, with own thumbnail and full-image providers ([ADR 0009](docs/decisions/0009-media-access.md)).
-- `video_player` 2.14 ([ADR 0011](docs/decisions/0011-video-playback.md)); zoom with Flutter's `InteractiveViewer` instead of `photo_view` ([ADR 0010](docs/decisions/0010-photo-zoom.md)).
+- `video_player` 2.14 ([ADR 0011](docs/decisions/0011-video-playback.md)); own zoom gestures instead of `photo_view` ([ADR 0010](docs/decisions/0010-photo-zoom.md)), so one finger swipes between photos and two fingers zoom.
 - Shared media layer in `lib/core/media/`.
 - Sorting (date, name, size, duration, both directions) and date filter (presets and custom range) in every timeline, done by MediaStore ([ADR 0012](docs/decisions/0012-sort-and-date-filter.md)).
-- Tests: timeline grouping, chunked loading, library and viewer widget tests, pinch gesture, sorting and date filter; shared `pumpTestApp` helper on a phone-sized screen (55 tests).
+- Fast-scroll thumb with a bubble showing the month, size, duration or first letter.
+- File sizes from MediaStore through the new `mediaSizes` channel method.
+- Viewer: screen-sized previews first, full resolution only when zooming in; neighbors precached.
+- Grid: fixed-height rows (`SliverVariedExtentList`), one-screen prefetch, larger image cache.
+- Tests: timeline grouping, chunked loading, library and viewer widget tests, pinch gesture, sorting and date filter, fast scroller, viewer gestures; shared `pumpTestApp` helper on a phone-sized screen (65 tests).
 
 ## [M0] — 2026-10-25 — Foundations
 

@@ -74,6 +74,15 @@
   "filterEmptyBody": "Try another period, or clear the date filter.",
   "filterClear": "Clear filter",
 
+  "sizeBytes": "{value} B",
+  "@sizeBytes": {"placeholders": {"value": {"type": "String"}}},
+  "sizeKilobytes": "{value} KB",
+  "@sizeKilobytes": {"placeholders": {"value": {"type": "String"}}},
+  "sizeMegabytes": "{value} MB",
+  "@sizeMegabytes": {"placeholders": {"value": {"type": "String"}}},
+  "sizeGigabytes": "{value} GB",
+  "@sizeGigabytes": {"placeholders": {"value": {"type": "String"}}},
+
   "albumsAllMedia": "All media",
   "albumsFavorites": "Favorites",
   "albumsFolders": "Folders",

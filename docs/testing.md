@@ -53,6 +53,8 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [media_providers_test.dart](../test/core/media/media_providers_test.dart) | Chunked loading (first chunk, then the rest), column limits, duration format. |
 | [library_test.dart](../test/features/library/library_test.dart) | Timeline headers, photo/video filters, empty, denied and limited states, Albums and folder pages, opening the viewer, pinch gesture. |
 | [sort_filter_test.dart](../test/features/library/sort_filter_test.dart) | Date ranges and presets, plain rows, sort by name, date preset and chip removal, empty period, viewer order, per-tab state. |
+| [fast_scroller_test.dart](../test/features/library/fast_scroller_test.dart) | Thumb visibility, drag jump with month bubble, size bubble, short lists, size formatting. |
+| [viewer_test.dart](../test/features/viewer/viewer_test.dart) | Swipe both ways, pinch then pan without page change, double-tap back, top bar height. |
 
 App-level widget tests use `pumpTestApp` ([pump_app.dart](../test/helpers/pump_app.dart)): the whole app on a phone-sized screen (1080 × 2400 px at 3×) with all fakes, so tests see what a user would.
 
@@ -114,6 +116,13 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 15 | Date presets and a custom range | Only items of the period; counts plausible; headers match the period. |
 | 16 | Filter on a folder | Only that folder's items in the period. |
 | 17 | Open the viewer after sorting | Swipes in the sorted order. |
+| 18 | Fast-scroll thumb | Appears when scrolling; dragging jumps; bubble shows the month (date sort) or the size (size sort). |
+| 19 | Scroll far, then stop | Thumbnails appear quickly (compare with the first test). |
+| 20 | Viewer: swipe left and right | Next and previous photo or video. |
+| 21 | Viewer: open, zoom | The photo shows sharp quickly; zooming loads full detail without a pause. |
+| 22 | Video controls | Play/pause, seek, mute and rotate respond on the first tap. |
+
+First device test on the Galaxy A54 (2026-10-25): items 1–2, 4–7, 14–17 OK, Favorites match the system gallery. Problems found and fixed since: viewer swipe (items 7, 20), video controls (item 22), slow viewer display (item 21), grid latency (item 19, to re-check).
 
 ### Already checked on a Samsung Galaxy A54, Android 16 (2026-10-25)
 

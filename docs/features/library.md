@@ -17,6 +17,26 @@ Show every photo and video on the device, newest first, grouped by day or month,
 5. **Albums tab**: "All media" and "Favorites", then "Folders" sorted by size. Tapping one opens its timeline, with a back button.
 6. **Sort and filter**: the button next to the title opens a sheet (see below).
 
+## Fast scrolling
+
+On long lists (three screens or more), a thumb appears on the right edge while scrolling and fades out 1.5 s after it stops. Dragging it jumps anywhere in the list; a bubble next to it shows where the user is going:
+
+| Sort | Bubble |
+| --- | --- |
+| Date | Month and year, e.g. "March 2024" |
+| Size | File size, e.g. "4.2 MB" ("4,2 Mo" in French) |
+| Duration | Video length, e.g. "1:15" |
+| Name | First letter |
+
+Widget: [fast_scroller.dart](../../lib/features/library/fast_scroller.dart).
+
+## Performance
+
+- Every row has a known height (date headers a fixed height growing with the text size, item rows one cell), so the grid is a `SliverVariedExtentList`: jumping far with the thumb never lays out the rows in between.
+- Thumbnails one screen above and below are prefetched (`scrollCacheExtent`).
+- Flutter's image cache holds up to 2,000 images / 200 MB, so scrolling back does not reload thumbnails.
+- Thumbnails are rendered by Android at 256 px (512 px at 2–3 columns), JPEG quality 80.
+
 ## Sorting and date filter
 
 Every timeline (Photos, Videos, each album) can be sorted and limited to a date range ([ADR 0012](../decisions/0012-sort-and-date-filter.md)).
@@ -63,6 +83,7 @@ flowchart TD
 | `MediaTimelineView` (Photos, Videos, album pages) | [media_timeline_view.dart](../../lib/features/library/media_timeline_view.dart) |
 | `AlbumsScreen` | [albums_screen.dart](../../lib/features/library/albums_screen.dart) |
 | `PinchToChangeColumns` | [pinch_to_change_columns.dart](../../lib/features/library/pinch_to_change_columns.dart) |
+| `FastScroller` | [fast_scroller.dart](../../lib/features/library/fast_scroller.dart) |
 | `SortFilterSheet`, date presets and labels | [sort_filter_sheet.dart](../../lib/features/library/sort_filter_sheet.dart) |
 | `MediaThumbnail` (shared with the viewer's Hero) | [media_thumbnail.dart](../../lib/core/media/media_thumbnail.dart) |
 
@@ -98,6 +119,7 @@ No database table is used yet: the index (`assets`) is filled from M3.
 - [media_providers_test.dart](../../test/core/media/media_providers_test.dart): chunked loading, column limits, duration formatting.
 - [library_test.dart](../../test/features/library/library_test.dart): headers, photo/video filters, empty, denied and limited states, albums and folder pages, opening the viewer, pinch gesture.
 - [sort_filter_test.dart](../../test/features/library/sort_filter_test.dart): date ranges and presets, plain rows, sorting by name, date preset and chip removal, empty period, viewer order, per-tab state.
+- [fast_scroller_test.dart](../../test/features/library/fast_scroller_test.dart): thumb shown on scroll and hidden after a pause, drag jumps with a month bubble, size bubble when sorted by size, no thumb on short lists, size formatting.
 
 ## Known limitations / future work
 
@@ -105,4 +127,4 @@ No database table is used yet: the index (`assets`) is filled from M3.
 - The column count, sort and date filter are not saved across launches yet (settings in M2).
 - Multi-select, favorites and trash actions come in M2; trashed items will then be hidden here.
 - The "Duplicates" tile at the top of grids comes in M3; the "Trash" album in M2.
-- Scrolling performance with 30,000 items still has to be measured on a device (M9 target: 60 fps).
+- On the first device test, new thumbnails appeared with a small delay after scrolling far; prefetching, a larger image cache and fixed row heights were added. To be measured again on a device (M9 target: 60 fps).

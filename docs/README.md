@@ -48,6 +48,6 @@ One file per feature is added as each feature is built.
 | [0007](decisions/0007-android-toolchain.md) | Android toolchain: AGP 9.4.1, Gradle 9.6.0, `compileSdk 37` |
 | [0008](decisions/0008-navigation-and-visual-identity.md) | Five-tab navigation and own visual identity |
 | [0009](decisions/0009-media-access.md) | Media access with `photo_manager` and own image providers |
-| [0010](decisions/0010-photo-zoom.md) | Photo zoom with `InteractiveViewer` instead of `photo_view` |
+| [0010](decisions/0010-photo-zoom.md) | Own photo zoom instead of `photo_view` or `InteractiveViewer` |
 | [0011](decisions/0011-video-playback.md) | Video playback with `video_player` and own controls |
 | [0012](decisions/0012-sort-and-date-filter.md) | Sorting and date filter in every timeline |

@@ -29,6 +29,7 @@ Last updated: 2026-10-25 — Milestone M1
 - Viewer: swipe, Hero transition, zoom, immersive mode; video playback with own controls ([features/viewer.md](features/viewer.md)).
 - Access, limited-access, empty, error and skeleton states.
 - Sorting and date filter in every timeline ([ADR 0012](decisions/0012-sort-and-date-filter.md)).
+- Fast-scroll thumb with month or size bubble; grid and viewer performance work after the first device test.
 - `MediaSource` on `photo_manager`, own image providers ([ADR 0009](decisions/0009-media-access.md)); `InteractiveViewer` for zoom ([ADR 0010](decisions/0010-photo-zoom.md)); `video_player` ([ADR 0011](decisions/0011-video-playback.md)).
 
 ### Verified
@@ -36,14 +37,14 @@ Last updated: 2026-10-25 — Milestone M1
 | Check | Result |
 | --- | --- |
 | `flutter analyze` | No issues |
-| `flutter test` | 55 tests pass |
-| Device | See the M1 checklist in [testing.md](testing.md#m1--to-verify-on-a-device) |
+| `flutter test` | 65 tests pass |
+| Galaxy A54, first test | Sorting, date filters, durations, Favorites OK. Viewer swipe and video controls broken, viewer and grid not fluid enough: fixed, to re-check. |
+| Device checklist | [testing.md](testing.md#m1--to-verify-on-a-device) |
 
 ### Known issues
 
 - New photos only appear after pull-to-refresh (automatic updates come with indexing in M3).
 - The column count, sort and date filter reset at each launch (settings in M2).
-- The sort and filter SQL has not run on a device yet (MediaStore validates SQL strictly since Android 11).
 - Scrolling performance with very large libraries is not measured yet.
 
 ### Next steps

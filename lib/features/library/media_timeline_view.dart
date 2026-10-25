@@ -7,11 +7,13 @@ import 'package:clean_gallery/core/router/compact_nav_bar.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/domain/timeline.dart';
+import 'package:clean_gallery/features/library/fast_scroller.dart';
 import 'package:clean_gallery/features/library/pinch_to_change_columns.dart';
 import 'package:clean_gallery/features/library/sort_filter_sheet.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -110,8 +112,14 @@ class MediaTimelineView extends ConsumerWidget {
   }
 }
 
-/// The loaded grid: title, optional banner, then header and item rows.
-class _Timeline extends StatelessWidget {
+/// The loaded grid: title, optional banner, then header and item rows, with
+/// a fast-scroll thumb on the right.
+///
+/// Every row has a known height (headers a fixed one, item rows a cell), so
+/// the list is a [SliverVariedExtentList]: jumping far with the thumb never
+/// lays out the rows in between, and thumbnails one screen ahead are
+/// prefetched through `cacheExtent`.
+class _Timeline extends StatefulWidget {
   const _Timeline({
     required this.header,
     required this.banner,
@@ -127,38 +135,110 @@ class _Timeline extends StatelessWidget {
   final int columns;
 
   @override
+  State<_Timeline> createState() => _TimelineState();
+}
+
+class _TimelineState extends State<_Timeline> {
+  final _scroll = ScrollController();
+  final GlobalKey _headerKey = GlobalKey();
+
+  @override
+  void dispose() {
+    _scroll.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final columns = widget.columns;
+    final items = widget.items;
+    final selection = widget.selection;
     final grouping = groupingForColumns(columns);
     // Date headers only make sense when the list is in date order.
     final rows = selection.sort.isChronological
         ? buildRows(groupByDate(items, grouping), columns)
         : buildFlatRows(items.length, columns);
-    final width = MediaQuery.sizeOf(context).width;
-    final cell = (width - _gap * (columns - 1)) / columns;
+    final screen = MediaQuery.sizeOf(context);
+    final cell = (screen.width - _gap * (columns - 1)) / columns;
+    final headerExtent = sectionHeaderExtent(context);
+    final extents = [
+      for (final row in rows)
+        if (row is TimelineHeader) headerExtent else cell + _gap,
+    ];
+    // Top offset of each row inside the list, for the fast-scroll bubble.
+    final offsets = List<double>.filled(rows.length, 0);
+    for (var i = 1; i < rows.length; i++) {
+      offsets[i] = offsets[i - 1] + extents[i - 1];
+    }
     // Two size buckets keep cache keys stable while pinching.
     final pixelSize = columns <= 3 ? 512 : 256;
 
-    return CustomScrollView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      slivers: [
-        SliverToBoxAdapter(child: header),
-        if (banner != null) SliverToBoxAdapter(child: banner),
-        SliverList.builder(
-          itemCount: rows.length,
-          itemBuilder: (context, index) => switch (rows[index]) {
-            TimelineHeader(:final section) => _SectionHeader(
-              label: formatSectionDate(context, section.date, grouping),
+    String? labelAt(double scrollOffset) {
+      if (rows.isEmpty) return null;
+      final headerBox =
+          _headerKey.currentContext?.findRenderObject() as RenderBox?;
+      final y = scrollOffset - (headerBox?.size.height ?? 0);
+      // Last row starting at or above the top of the screen.
+      var low = 0;
+      var high = rows.length - 1;
+      while (low < high) {
+        final mid = (low + high + 1) ~/ 2;
+        if (offsets[mid] <= y) {
+          low = mid;
+        } else {
+          high = mid - 1;
+        }
+      }
+      final index = switch (rows[low]) {
+        TimelineHeader(:final section) => section.start,
+        TimelineItems(:final start) => start,
+      };
+      final item = items[index];
+      return switch (selection.sort.field) {
+        MediaSortField.date => formatMonth(context, item.takenAt),
+        MediaSortField.size => formatBytes(context, item.sizeBytes),
+        MediaSortField.duration => formatDuration(item.duration),
+        MediaSortField.name => switch (item.fileName) {
+          final name? when name.isNotEmpty => name[0].toUpperCase(),
+          _ => null,
+        },
+      };
+    }
+
+    return FastScroller(
+      controller: _scroll,
+      labelAt: labelAt,
+      topPadding: MediaQuery.paddingOf(context).top + 8,
+      bottomPadding: CompactNavBar.contentInset(context),
+      child: CustomScrollView(
+        controller: _scroll,
+        physics: const AlwaysScrollableScrollPhysics(),
+        // Prefetch thumbnails one screen above and below.
+        scrollCacheExtent: ScrollCacheExtent.pixels(screen.height),
+        slivers: [
+          SliverToBoxAdapter(
+            child: Column(
+              key: _headerKey,
+              children: [widget.header, ?widget.banner],
             ),
-            TimelineItems(:final start, :final length) => Padding(
-              padding: const EdgeInsets.only(bottom: _gap),
-              child: SizedBox(
-                height: cell,
+          ),
+          SliverVariedExtentList.builder(
+            itemCount: rows.length,
+            itemExtentBuilder: (index, _) =>
+                index < extents.length ? extents[index] : null,
+            itemBuilder: (context, index) => switch (rows[index]) {
+              TimelineHeader(:final section) => _SectionHeader(
+                label: formatSectionDate(context, section.date, grouping),
+              ),
+              TimelineItems(:final start, :final length) => Padding(
+                padding: const EdgeInsets.only(bottom: _gap),
                 child: Row(
                   children: [
                     for (var i = 0; i < columns; i++) ...[
                       if (i > 0) const SizedBox(width: _gap),
                       SizedBox(
                         width: cell,
+                        height: cell,
                         child: i < length
                             ? MediaThumbnail(
                                 item: items[start + i],
@@ -177,16 +257,20 @@ class _Timeline extends StatelessWidget {
                   ],
                 ),
               ),
-            ),
-          },
-        ),
-        SliverToBoxAdapter(
-          child: SizedBox(height: CompactNavBar.contentInset(context)),
-        ),
-      ],
+            },
+          ),
+          SliverToBoxAdapter(
+            child: SizedBox(height: CompactNavBar.contentInset(context)),
+          ),
+        ],
+      ),
     );
   }
 }
+
+/// Height of a date section header, growing with the user's text size.
+double sectionHeaderExtent(BuildContext context) =>
+    30 + MediaQuery.textScalerOf(context).scale(26);
 
 /// Page title with an optional back button and the sort and filter button,
 /// followed by removable chips for the active sort and date filter.
@@ -275,6 +359,7 @@ class _TimelineHeader extends ConsumerWidget {
   }
 }
 
+/// Date header of a section, at the fixed height of [sectionHeaderExtent].
 class _SectionHeader extends StatelessWidget {
   const _SectionHeader({required this.label});
 
@@ -282,11 +367,19 @@ class _SectionHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 20, 20, 10),
-      child: Semantics(
-        header: true,
-        child: Text(label, style: Theme.of(context).textTheme.titleMedium),
+    return Align(
+      alignment: Alignment.bottomLeft,
+      child: Padding(
+        padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+        child: Semantics(
+          header: true,
+          child: Text(
+            label,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+        ),
       ),
     );
   }

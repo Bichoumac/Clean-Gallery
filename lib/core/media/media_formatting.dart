@@ -41,6 +41,32 @@ String formatSectionDate(
   return _capitalize(pattern.format(date));
 }
 
+/// File size with a unit and one decimal: "812 KB", "4.2 MB", "1.3 GB" in
+/// English; "812 Ko", "4,2 Mo" in French.
+String formatBytes(BuildContext context, int bytes) {
+  final l10n = AppLocalizations.of(context);
+  final locale = Localizations.localeOf(context).toLanguageTag();
+  final number = NumberFormat.decimalPatternDigits(
+    locale: locale,
+    decimalDigits: 1,
+  );
+  const kilo = 1024;
+  if (bytes < kilo) return l10n.sizeBytes('$bytes');
+  if (bytes < kilo * kilo) {
+    return l10n.sizeKilobytes('${(bytes / kilo).round()}');
+  }
+  if (bytes < kilo * kilo * kilo) {
+    return l10n.sizeMegabytes(number.format(bytes / (kilo * kilo)));
+  }
+  return l10n.sizeGigabytes(number.format(bytes / (kilo * kilo * kilo)));
+}
+
+/// Month and year, capitalized: "March 2024", "Mars 2024".
+String formatMonth(BuildContext context, DateTime date) {
+  final locale = Localizations.localeOf(context).toLanguageTag();
+  return _capitalize(DateFormat.yMMMM(locale).format(date.toLocal()));
+}
+
 /// Date and time of a media item, for the viewer and screen readers.
 String formatMediaDate(BuildContext context, DateTime date) {
   final locale = Localizations.localeOf(context).toLanguageTag();

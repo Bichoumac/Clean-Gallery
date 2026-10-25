@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:clean_gallery/core/media/media_formatting.dart';
 import 'package:clean_gallery/core/media/media_providers.dart';
+import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/core/theme/app_theme.dart';
 import 'package:clean_gallery/domain/media_item.dart';
@@ -32,6 +33,7 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
   late int _index = widget.args.initialIndex;
   bool _controlsVisible = true;
   bool _zoomed = false;
+  bool _precachedInitial = false;
 
   @override
   void dispose() {
@@ -40,6 +42,23 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
     unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
     unawaited(SystemChrome.setPreferredOrientations(const []));
     super.dispose();
+  }
+
+  /// Starts loading the previews of the photos around [index], so swiping
+  /// shows a ready image instead of the thumbnail placeholder.
+  void _precacheNeighbors(List<MediaItem> items, int index) {
+    final source = ref.read(mediaSourceProvider);
+    final side = viewerPreviewSide(context);
+    for (final i in [index + 1, index - 1, index + 2]) {
+      if (i < 0 || i >= items.length || items[i].isVideo) continue;
+      unawaited(
+        precacheImage(
+          source.preview(items[i], longestSide: side),
+          context,
+          onError: (_, _) {},
+        ),
+      );
+    }
   }
 
   void _toggleControls() {
@@ -59,6 +78,12 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
         ref.watch(mediaListProvider(widget.args.selection)).value ??
         const <MediaItem>[];
     final index = items.isEmpty ? 0 : _index.clamp(0, items.length - 1);
+    if (!_precachedInitial && items.isNotEmpty) {
+      _precachedInitial = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _precacheNeighbors(items, index);
+      });
+    }
 
     return Theme(
       data: AppTheme.dark(),
@@ -76,10 +101,13 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
                           ? const NeverScrollableScrollPhysics()
                           : const PageScrollPhysics(),
                       itemCount: items.length,
-                      onPageChanged: (i) => setState(() {
-                        _index = i;
-                        _zoomed = false;
-                      }),
+                      onPageChanged: (i) {
+                        setState(() {
+                          _index = i;
+                          _zoomed = false;
+                        });
+                        _precacheNeighbors(items, i);
+                      },
                       itemBuilder: (context, i) {
                         final item = items[i];
                         return item.isVideo
@@ -99,12 +127,19 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
                               );
                       },
                     ),
-                    IgnorePointer(
-                      ignoring: !_controlsVisible,
-                      child: AnimatedOpacity(
-                        opacity: _controlsVisible ? 1 : 0,
-                        duration: const Duration(milliseconds: 200),
-                        child: _TopBar(item: items[index]),
+                    // Pinned to the top with its own height: a full-screen
+                    // overlay would swallow page swipes and video controls.
+                    Positioned(
+                      top: 0,
+                      left: 0,
+                      right: 0,
+                      child: IgnorePointer(
+                        ignoring: !_controlsVisible,
+                        child: AnimatedOpacity(
+                          opacity: _controlsVisible ? 1 : 0,
+                          duration: const Duration(milliseconds: 200),
+                          child: _TopBar(item: items[index]),
+                        ),
                       ),
                     ),
                   ],
@@ -143,6 +178,7 @@ class _TopBar extends StatelessWidget {
               const SizedBox(width: 4),
               Expanded(
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
