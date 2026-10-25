@@ -1,0 +1,45 @@
+# Documentation index
+
+Every documentation file in the repository, with a one-line description. Start with [progress.md](progress.md) to see where the project stands.
+
+Last updated: 2026-10-25 — Milestone M0
+
+## Project
+
+| File | Description |
+| --- | --- |
+| [../README.md](../README.md) | Overview, setup, build, run and test commands. |
+| [../AGENTS.md](../AGENTS.md) | Entry point for AI assistants: commands, architecture map, rules. |
+| [../CHANGELOG.md](../CHANGELOG.md) | Changes per milestone. |
+| [progress.md](progress.md) | Milestone status, known issues, next steps. |
+
+## Technical reference
+
+| File | Description |
+| --- | --- |
+| [architecture.md](architecture.md) | Layers, module map, data flow and dependency rules. |
+| [database.md](database.md) | Drift schema, indexes and migration history. |
+| [platform-android.md](platform-android.md) | Permissions and the native Kotlin channel API. |
+| [testing.md](testing.md) | Test strategy, commands and fixtures. |
+
+Planned files: `analysis-engine.md` (M3), `monetization.md` (M8), `release.md` (M9).
+
+## Features
+
+| File | Description |
+| --- | --- |
+| [features/onboarding.md](features/onboarding.md) | First-launch flow and permission requests. |
+
+One file per feature is added as each feature is built.
+
+## Decisions
+
+| ADR | Decision |
+| --- | --- |
+| [0001](decisions/0001-flutter-and-package-stack.md) | Flutter version and package stack |
+| [0002](decisions/0002-layered-architecture.md) | Layered architecture with platform interfaces |
+| [0003](decisions/0003-riverpod-and-go-router.md) | Riverpod with code generation, and go_router |
+| [0004](decisions/0004-drift-database.md) | Drift on a background isolate |
+| [0005](decisions/0005-lints.md) | `very_good_analysis` lints and exceptions |
+| [0006](decisions/0006-permissions.md) | Permission handling and `minSdk 30` |
+| [0007](decisions/0007-android-toolchain.md) | Android toolchain: AGP 9.4.1, Gradle 9.6.0, `compileSdk 37` |
