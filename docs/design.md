@@ -88,6 +88,12 @@ Tabs use `TabPage`: 20 dp side margins, a `displaySmall` title 24 dp below the s
 | Loading | Grey `surfaceContainerHigh` squares (skeleton) |
 | Empty and error states | 88 dp rounded-square icon, `titleLarge` title, secondary text, optional button |
 
+## Sort and filter
+
+- Filter button (`filter_list_rounded`) at the right of the page title, with an 8 dp lime dot when the view is customized.
+- Bottom sheet with a drag handle: "Sort by" choice chips, a full-width segmented button for the direction, "Period" choice chips (the custom one shows the range), *Reset* at the top right.
+- Active choices as input chips under the title (date range icon or sort icon), with a delete cross.
+
 ## Album tiles
 
 Two columns, 12 dp apart. Cover with 24 dp radius, then the name (`titleSmall`) and the count (`bodySmall`, secondary color). Virtual albums (Favorites) show a lime badge with their icon on the cover.

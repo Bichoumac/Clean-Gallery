@@ -28,6 +28,7 @@ Last updated: 2026-10-25 — Milestone M1
 - Albums tab: All media, Favorites, device folders, album pages.
 - Viewer: swipe, Hero transition, zoom, immersive mode; video playback with own controls ([features/viewer.md](features/viewer.md)).
 - Access, limited-access, empty, error and skeleton states.
+- Sorting and date filter in every timeline ([ADR 0012](decisions/0012-sort-and-date-filter.md)).
 - `MediaSource` on `photo_manager`, own image providers ([ADR 0009](decisions/0009-media-access.md)); `InteractiveViewer` for zoom ([ADR 0010](decisions/0010-photo-zoom.md)); `video_player` ([ADR 0011](decisions/0011-video-playback.md)).
 
 ### Verified
@@ -35,13 +36,14 @@ Last updated: 2026-10-25 — Milestone M1
 | Check | Result |
 | --- | --- |
 | `flutter analyze` | No issues |
-| `flutter test` | 45 tests pass |
+| `flutter test` | 55 tests pass |
 | Device | See the M1 checklist in [testing.md](testing.md#m1--to-verify-on-a-device) |
 
 ### Known issues
 
 - New photos only appear after pull-to-refresh (automatic updates come with indexing in M3).
-- The column count resets to 4 at each launch (setting in M2).
+- The column count, sort and date filter reset at each launch (settings in M2).
+- The sort and filter SQL has not run on a device yet (MediaStore validates SQL strictly since Android 11).
 - Scrolling performance with very large libraries is not measured yet.
 
 ### Next steps

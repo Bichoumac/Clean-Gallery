@@ -22,25 +22,63 @@ final class AndroidMediaSource implements MediaSource {
   /// Assets loaded so far, by id.
   final _assets = <String, AssetEntity>{};
 
-  /// Newest first, with file names (MediaStore `DISPLAY_NAME`).
-  static final _defaultFilter = FilterOptionGroup(
-    imageOption: const FilterOption(needTitle: true),
-    videoOption: const FilterOption(needTitle: true),
-    orders: const [OrderOption()],
-  );
+  /// Capture date in seconds, computed exactly like `photo_manager`'s
+  /// `createDateTime`: `DATE_TAKEN` (milliseconds) when set, otherwise
+  /// `DATE_ADDED`. Sorting and filtering on it keeps them consistent with
+  /// the timeline headers.
+  static const _captureDate =
+      '(CASE WHEN datetaken > 0 THEN datetaken / 1000 ELSE date_added END)';
 
-  /// Items with MediaStore `IS_FAVORITE = 1` (Android 11+), newest first.
-  static final _favoritesFilter = CustomFilter.sql(
-    where: '${CustomColumns.android.isFavorite} = 1',
-    orderBy: [OrderByItem.desc(CustomColumns.android.createDate)],
-  )..needTitle = true;
+  /// MediaStore `MEDIA_TYPE` values.
+  static const _imageType = 1;
+  static const _videoType = 3;
+
+  /// MediaStore query for [selection]: type, favorites and date conditions,
+  /// and the sort order.
+  ///
+  /// `photo_manager` drops its own media-type condition as soon as a custom
+  /// `where` is given, so the type condition is always written here.
+  static CustomFilter _filterFor(MediaSelection selection) {
+    final where = <String>[
+      switch (selection.filter) {
+        MediaFilter.photos => 'media_type = $_imageType',
+        MediaFilter.videos => 'media_type = $_videoType',
+        MediaFilter.all ||
+        MediaFilter.favorites => 'media_type IN ($_imageType, $_videoType)',
+      },
+      if (selection.filter == MediaFilter.favorites)
+        '${CustomColumns.android.isFavorite} = 1',
+      if (selection.dates?.start case final start?)
+        '$_captureDate >= ${start.millisecondsSinceEpoch ~/ 1000}',
+      if (selection.dates?.end case final end?)
+        '$_captureDate < ${end.millisecondsSinceEpoch ~/ 1000}',
+    ];
+    final sort = selection.sort;
+    final asc = !sort.descending;
+    final column = switch (sort.field) {
+      MediaSortField.date => _captureDate,
+      MediaSortField.name => 'LOWER(_display_name)',
+      MediaSortField.size => '_size',
+      MediaSortField.duration => 'duration',
+    };
+    return CustomFilter.sql(
+      where: where.join(' AND '),
+      orderBy: [
+        OrderByItem(column, asc),
+        // Stable order for equal values: newest first, then by id.
+        if (sort.field != MediaSortField.date)
+          const OrderByItem.desc(_captureDate),
+        OrderByItem('_id', asc),
+      ],
+    )..needTitle = true;
+  }
 
   @override
   Future<List<Album>> albums() async {
     await _ready;
     final paths = await PhotoManager.getAssetPathList(
       hasAll: false,
-      filterOption: _defaultFilter,
+      filterOption: _filterFor(MediaSelection.all),
     );
     final albums = <Album>[];
     for (final path in paths) {
@@ -92,20 +130,22 @@ final class AndroidMediaSource implements MediaSource {
   /// The `photo_manager` path that lists [selection].
   Future<AssetPathEntity?> _path(MediaSelection selection) async {
     await _ready;
+    final filter = _filterFor(selection);
+    final type = switch (selection.filter) {
+      MediaFilter.photos => RequestType.image,
+      MediaFilter.videos => RequestType.video,
+      MediaFilter.all || MediaFilter.favorites => RequestType.common,
+    };
     final albumId = selection.albumId;
     if (albumId != null) {
+      // A folder with no item matching the filter is not listed: count 0.
       final paths = await PhotoManager.getAssetPathList(
         hasAll: false,
-        filterOption: _defaultFilter,
+        type: type,
+        filterOption: filter,
       );
       return paths.where((p) => p.id == albumId).firstOrNull;
     }
-    final (type, filter) = switch (selection.filter) {
-      MediaFilter.all => (RequestType.common, _defaultFilter),
-      MediaFilter.photos => (RequestType.image, _defaultFilter),
-      MediaFilter.videos => (RequestType.video, _defaultFilter),
-      MediaFilter.favorites => (RequestType.common, _favoritesFilter),
-    };
     final paths = await PhotoManager.getAssetPathList(
       onlyAll: true,
       type: type,

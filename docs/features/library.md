@@ -15,6 +15,33 @@ Show every photo and video on the device, newest first, grouped by day or month,
 3. **Pull down** to reload after taking new photos.
 4. **Tap a thumbnail**: the viewer opens on that item ([viewer.md](viewer.md)).
 5. **Albums tab**: "All media" and "Favorites", then "Folders" sorted by size. Tapping one opens its timeline, with a back button.
+6. **Sort and filter**: the button next to the title opens a sheet (see below).
+
+## Sorting and date filter
+
+Every timeline (Photos, Videos, each album) can be sorted and limited to a date range ([ADR 0012](../decisions/0012-sort-and-date-filter.md)).
+
+| Sort by | Directions | Default direction |
+| --- | --- | --- |
+| Date (capture date) | Newest first / Oldest first | Newest first |
+| Name | A to Z / Z to A | A to Z |
+| Size | Largest first / Smallest first | Largest first |
+| Duration (not on Photos) | Longest first / Shortest first | Longest first |
+
+| Period | Range |
+| --- | --- |
+| All time | No filter |
+| Last 7 days, Last 30 days | Today and the previous 6 or 29 days |
+| This year | From January 1st |
+| Last year | The previous calendar year |
+| Custom… | Any range from the system date range picker |
+
+- Changes apply immediately; *Reset* returns to newest first, all dates.
+- Active choices show as chips under the title; tapping a chip reopens the sheet, its cross removes it.
+- The filter button shows a lime dot when the view is customized.
+- Date headers only appear in date order; other orders show a plain grid.
+- A period with no item shows "Nothing in this period" with *Clear filter*.
+- Each tab and album keeps its own choice until the app is closed.
 
 ```mermaid
 flowchart TD
@@ -36,6 +63,7 @@ flowchart TD
 | `MediaTimelineView` (Photos, Videos, album pages) | [media_timeline_view.dart](../../lib/features/library/media_timeline_view.dart) |
 | `AlbumsScreen` | [albums_screen.dart](../../lib/features/library/albums_screen.dart) |
 | `PinchToChangeColumns` | [pinch_to_change_columns.dart](../../lib/features/library/pinch_to_change_columns.dart) |
+| `SortFilterSheet`, date presets and labels | [sort_filter_sheet.dart](../../lib/features/library/sort_filter_sheet.dart) |
 | `MediaThumbnail` (shared with the viewer's Hero) | [media_thumbnail.dart](../../lib/core/media/media_thumbnail.dart) |
 
 ## State and data
@@ -47,6 +75,8 @@ flowchart TD
 | `mediaListProvider(selection)` | [media_providers.dart](../../lib/core/media/media_providers.dart) | All items of a selection, loaded by chunks of 1,000. Shared with the viewer. |
 | `albumsProvider`, `mediaCountProvider`, `albumCoverProvider` | same | Albums tab data. |
 | `gridColumnsProvider` | same | Column count (2–6), shared by all grids; default 4. |
+| `viewSelectionProvider(base)` | same | Sort and date range chosen for one tab or album. |
+| `MediaSort`, `DateFilter` | [album.dart](../../lib/domain/album.dart) | Sort order and date range, part of `MediaSelection`. |
 | `mediaAccessProvider` | same | Current permission level. |
 | `MediaSource` | [media_source.dart](../../lib/platform/media_source.dart) | Platform access ([platform-android.md](../platform-android.md#media-access)). |
 
@@ -67,11 +97,12 @@ No database table is used yet: the index (`assets`) is filled from M3.
 - [timeline_test.dart](../../test/domain/timeline_test.dart): day and month sections, row building, grouping by column count.
 - [media_providers_test.dart](../../test/core/media/media_providers_test.dart): chunked loading, column limits, duration formatting.
 - [library_test.dart](../../test/features/library/library_test.dart): headers, photo/video filters, empty, denied and limited states, albums and folder pages, opening the viewer, pinch gesture.
+- [sort_filter_test.dart](../../test/features/library/sort_filter_test.dart): date ranges and presets, plain rows, sorting by name, date preset and chip removal, empty period, viewer order, per-tab state.
 
 ## Known limitations / future work
 
 - New photos appear after pull-to-refresh, not automatically (MediaStore change listening comes with indexing in M3).
-- The column count is not saved yet (default column setting in M2).
+- The column count, sort and date filter are not saved across launches yet (settings in M2).
 - Multi-select, favorites and trash actions come in M2; trashed items will then be hidden here.
 - The "Duplicates" tile at the top of grids comes in M3; the "Trash" album in M2.
 - Scrolling performance with 30,000 items still has to be measured on a device (M9 target: 60 fps).

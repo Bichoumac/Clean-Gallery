@@ -82,6 +82,26 @@ Future<MediaItem?> albumCover(Ref ref, MediaSelection selection) async {
   return items.firstOrNull;
 }
 
+/// The selection a timeline currently shows: its base selection (a tab or an
+/// album) plus the sort order and date range picked by the user.
+///
+/// One state per base selection, kept for the whole session, so each tab
+/// and album remembers its own order.
+@Riverpod(keepAlive: true)
+class ViewSelection extends _$ViewSelection {
+  @override
+  MediaSelection build(MediaSelection base) => base;
+
+  /// Changes the sort order.
+  void setSort(MediaSort sort) => state = state.copyWith(sort: sort);
+
+  /// Limits the timeline to [dates], or shows all dates when `null`.
+  void setDates(DateFilter? dates) => state = state.copyWith(dates: dates);
+
+  /// Back to newest first, all dates.
+  void reset() => state = base;
+}
+
 /// Column count of media grids, changed by pinching. Shared by all grids.
 @Riverpod(keepAlive: true)
 class GridColumns extends _$GridColumns {

@@ -19,7 +19,8 @@ Last updated: 2026-10-25 — Milestone M1
 - `MediaSource` interface and `AndroidMediaSource` on `photo_manager` 3.12, with own thumbnail and full-image providers ([ADR 0009](docs/decisions/0009-media-access.md)).
 - `video_player` 2.14 ([ADR 0011](docs/decisions/0011-video-playback.md)); zoom with Flutter's `InteractiveViewer` instead of `photo_view` ([ADR 0010](docs/decisions/0010-photo-zoom.md)).
 - Shared media layer in `lib/core/media/`.
-- Tests: timeline grouping, chunked loading, library and viewer widget tests, pinch gesture; shared `pumpTestApp` helper on a phone-sized screen (45 tests).
+- Sorting (date, name, size, duration, both directions) and date filter (presets and custom range) in every timeline, done by MediaStore ([ADR 0012](docs/decisions/0012-sort-and-date-filter.md)).
+- Tests: timeline grouping, chunked loading, library and viewer widget tests, pinch gesture, sorting and date filter; shared `pumpTestApp` helper on a phone-sized screen (55 tests).
 
 ## [M0] — 2026-10-25 — Foundations
 

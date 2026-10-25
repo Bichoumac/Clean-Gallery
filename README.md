@@ -16,7 +16,7 @@ Milestone **M1 — Navigation** is built on top of M0: photo and video timelines
 | --- | --- | --- |
 | Onboarding | Privacy promise, media and GPS permissions, optional "Media management" | M0 ✓ |
 | Navigation | Five icon-only tabs: Photos, Videos, Albums, Stats, Settings | M0 ✓ (placeholder tabs) |
-| Library | Photo and video timelines, albums, zoomable grid, viewer, video playback | M1 ✓ |
+| Library | Photo and video timelines with sorting and date filter, albums, zoomable grid, viewer, video playback | M1 ✓ |
 | Actions | System favorites, sharing without GPS, multi-select, trash | M2 |
 | Duplicates | Exact duplicates and bursts in a virtual folder | M3 |
 | Similar photos | Perceptual hashing, best-shot suggestion, storage dashboard | M4 |

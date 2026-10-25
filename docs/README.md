@@ -50,3 +50,4 @@ One file per feature is added as each feature is built.
 | [0009](decisions/0009-media-access.md) | Media access with `photo_manager` and own image providers |
 | [0010](decisions/0010-photo-zoom.md) | Photo zoom with `InteractiveViewer` instead of `photo_view` |
 | [0011](decisions/0011-video-playback.md) | Video playback with `video_player` and own controls |
+| [0012](decisions/0012-sort-and-date-filter.md) | Sorting and date filter in every timeline |

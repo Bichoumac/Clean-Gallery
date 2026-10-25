@@ -116,18 +116,43 @@ class FakeMediaSource implements MediaSource {
   /// Items of each folder, by folder id.
   Map<String, List<MediaItem>> folderItems;
 
+  /// File size of each item in bytes, by id, for sorting by size.
+  Map<String, int> sizes = {};
+
   /// Ranges requested through [load], as `(start, end)`.
   final loads = <(int, int)>[];
 
+  /// Filters, date range and sort applied like `AndroidMediaSource` does.
   List<MediaItem> _select(MediaSelection selection) {
     final albumId = selection.albumId;
-    if (albumId != null) return folderItems[albumId] ?? const [];
-    return switch (selection.filter) {
-      MediaFilter.all => items,
-      MediaFilter.photos => items.where((i) => !i.isVideo).toList(),
-      MediaFilter.videos => items.where((i) => i.isVideo).toList(),
-      MediaFilter.favorites => items.where((i) => i.isFavorite).toList(),
+    final base = albumId != null ? folderItems[albumId] ?? const [] : items;
+    final dates = selection.dates;
+    final selected = base.where((i) {
+      final kept = switch (selection.filter) {
+        MediaFilter.all => true,
+        MediaFilter.photos => !i.isVideo,
+        MediaFilter.videos => i.isVideo,
+        MediaFilter.favorites => i.isFavorite,
+      };
+      return kept && (dates == null || dates.contains(i.takenAt));
+    }).toList();
+    final sort = selection.sort;
+    int compare(MediaItem a, MediaItem b) => switch (sort.field) {
+      MediaSortField.date => a.takenAt.compareTo(b.takenAt),
+      MediaSortField.name => (a.fileName ?? '').toLowerCase().compareTo(
+        (b.fileName ?? '').toLowerCase(),
+      ),
+      MediaSortField.size => (sizes[a.id] ?? 0).compareTo(sizes[b.id] ?? 0),
+      MediaSortField.duration => a.duration.compareTo(b.duration),
     };
+    // Ties keep the given order, like the SQL secondary sort keys.
+    final position = {for (final (i, item) in base.indexed) item.id: i};
+    return selected..sort((a, b) {
+      final byField = sort.descending ? compare(b, a) : compare(a, b);
+      return byField != 0
+          ? byField
+          : position[a.id]!.compareTo(position[b.id]!);
+    });
   }
 
   @override

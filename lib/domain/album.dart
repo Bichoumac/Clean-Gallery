@@ -17,10 +17,68 @@ enum MediaFilter {
   favorites,
 }
 
-/// A set of media to display: a filter, optionally limited to one folder.
+/// Criterion a media list is sorted by.
+enum MediaSortField {
+  /// Capture date (the date shown in the timeline headers).
+  date,
+
+  /// File name, case-insensitive.
+  name,
+
+  /// File size in bytes.
+  size,
+
+  /// Video length. Photos count as zero.
+  duration,
+}
+
+/// Sort order of a media list.
+@freezed
+abstract class MediaSort with _$MediaSort {
+  /// Creates a sort order.
+  const factory MediaSort({
+    @Default(MediaSortField.date) MediaSortField field,
+
+    /// Largest, newest or last-in-alphabet first.
+    @Default(true) bool descending,
+  }) = _MediaSort;
+
+  const MediaSort._();
+
+  /// Newest first: the default order of every timeline.
+  static const newest = MediaSort();
+
+  /// Whether this order groups items by date, so timeline headers apply.
+  bool get isChronological => field == MediaSortField.date;
+}
+
+/// Capture-date range: items from [start] (included) to [end] (excluded).
+///
+/// Either bound can be `null` for an open range. Dates are local time.
+@freezed
+abstract class DateFilter with _$DateFilter {
+  /// Creates a range.
+  const factory DateFilter({DateTime? start, DateTime? end}) = _DateFilter;
+
+  const DateFilter._();
+
+  /// Range covering the calendar days [first] to [last], both included.
+  factory DateFilter.days(DateTime first, DateTime last) => DateFilter(
+    start: DateTime(first.year, first.month, first.day),
+    end: DateTime(last.year, last.month, last.day + 1),
+  );
+
+  /// Whether [date] falls inside the range.
+  bool contains(DateTime date) =>
+      (start == null || !date.isBefore(start!)) &&
+      (end == null || date.isBefore(end!));
+}
+
+/// A set of media to display: a filter, optionally limited to one folder,
+/// with a sort order and an optional date range.
 ///
 /// Used as the key of the media list providers, so equal selections share
-/// the same loaded list.
+/// the same loaded list, and the viewer swipes in the grid's order.
 @freezed
 abstract class MediaSelection with _$MediaSelection {
   /// Creates a selection.
@@ -29,6 +87,12 @@ abstract class MediaSelection with _$MediaSelection {
 
     /// Folder id, or `null` for the whole library.
     String? albumId,
+
+    /// Sort order; newest first by default.
+    @Default(MediaSort.newest) MediaSort sort,
+
+    /// Capture-date range, or `null` for all dates.
+    DateFilter? dates,
   }) = _MediaSelection;
 
   /// Every photo, newest first (Photos tab).

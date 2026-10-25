@@ -52,6 +52,7 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [timeline_test.dart](../test/domain/timeline_test.dart) | Day and month sections, grid rows, grouping by column count. |
 | [media_providers_test.dart](../test/core/media/media_providers_test.dart) | Chunked loading (first chunk, then the rest), column limits, duration format. |
 | [library_test.dart](../test/features/library/library_test.dart) | Timeline headers, photo/video filters, empty, denied and limited states, Albums and folder pages, opening the viewer, pinch gesture. |
+| [sort_filter_test.dart](../test/features/library/sort_filter_test.dart) | Date ranges and presets, plain rows, sort by name, date preset and chip removal, empty period, viewer order, per-tab state. |
 
 App-level widget tests use `pumpTestApp` ([pump_app.dart](../test/helpers/pump_app.dart)): the whole app on a phone-sized screen (1080 × 2400 px at 3×) with all fakes, so tests see what a user would.
 
@@ -109,6 +110,10 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 11 | HEIC photo, panorama, very large photo | Displays; no crash or out-of-memory. |
 | 12 | Take a new photo, pull down on Photos | The new photo appears. |
 | 13 | Android 14+ partial access | Only the shared photos, with the "Allow all" banner. |
+| 14 | **Sort by date, name, size, duration**, both directions | Correct order; no crash (checks that MediaStore accepts the `CASE` and `LOWER` SQL). |
+| 15 | Date presets and a custom range | Only items of the period; counts plausible; headers match the period. |
+| 16 | Filter on a folder | Only that folder's items in the period. |
+| 17 | Open the viewer after sorting | Swipes in the sorted order. |
 
 ### Already checked on a Samsung Galaxy A54, Android 16 (2026-10-25)
 

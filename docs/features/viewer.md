@@ -11,7 +11,7 @@ Show one item at a time, full screen, with swiping between the items of the grid
 ## User flows
 
 1. Tap a thumbnail: the image flies from the grid to full screen (Hero transition).
-2. Swipe left or right to move between items, in the grid's order.
+2. Swipe left or right to move between items, in the grid's order, including its sort and date filter.
 3. Pinch, or double-tap, to zoom a photo; double-tap again to fit. Swiping is disabled while zoomed.
 4. Tap once to hide or show the controls and the system bars.
 5. Videos start playing when they become the current page and pause when swiped away. Controls: play/pause/replay, progress bar with seeking, mute, rotate.

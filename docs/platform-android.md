@@ -51,13 +51,18 @@ When the user chooses "Select photos" in the system prompt, `permission_handler`
 
 `AndroidMediaSource` ([android_media_source.dart](../lib/platform/android/android_media_source.dart)) implements `MediaSource` with `photo_manager` 3.12 ([ADR 0009](decisions/0009-media-access.md)).
 
-| Selection | MediaStore query |
+Every query is a custom SQL filter built from the `MediaSelection` ([ADR 0012](decisions/0012-sort-and-date-filter.md)):
+
+| Part | SQL |
 | --- | --- |
-| Photos tab | "All" path, images only, by creation date, newest first |
-| Videos tab | "All" path, videos only |
-| All media | "All" path, images and videos |
-| Favorites | Images and videos with `IS_FAVORITE = 1` (Android 11+ column) |
-| Folder | The `photo_manager` path with that id (a MediaStore bucket) |
+| Photos / Videos / both | `media_type = 1` / `media_type = 3` / `media_type IN (1, 3)` |
+| Favorites | `AND is_favorite = 1` (Android 11+ column) |
+| Capture date | `CASE WHEN datetaken > 0 THEN datetaken / 1000 ELSE date_added END` (seconds), as `photo_manager` computes `createDateTime` |
+| Date range | `AND <capture date> >= start AND <capture date> < end` |
+| Sort | `<capture date>`, `LOWER(_display_name)`, `_size` or `duration`, then capture date (newest first) and `_id` as tie-breakers |
+| Folder | The `photo_manager` path with that id (a MediaStore bucket), with the same filter |
+
+`photo_manager` drops its media-type condition when a custom `where` is given, so the app always writes it.
 
 - File names come from `DISPLAY_NAME` (`needTitle: true`).
 - `photo_manager`'s own permission check is disabled; permissions are handled by `PermissionService`.

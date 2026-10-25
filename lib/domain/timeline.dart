@@ -106,6 +106,16 @@ List<TimelineRow> buildRows(List<TimelineSection> sections, int columns) {
   return rows;
 }
 
+/// Rows of a grid without headers, for orders that are not chronological
+/// (name, size, duration), where date sections would be meaningless.
+List<TimelineRow> buildFlatRows(int itemCount, int columns) {
+  assert(columns > 0, 'columns must be positive');
+  return [
+    for (var i = 0; i < itemCount; i += columns)
+      TimelineItems(start: i, length: (itemCount - i).clamp(1, columns)),
+  ];
+}
+
 /// Grouping used for a grid with [columns] columns: days while thumbnails
 /// are large, months once the grid is dense.
 TimelineGrouping groupingForColumns(int columns) =>
