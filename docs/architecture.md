@@ -114,7 +114,7 @@ The flag is read before the first frame, so the router chooses the first screen 
 
 | Tab | Route | Content | Milestone |
 | --- | --- | --- | --- |
-| Photos | `/photos` | Photo timeline | M1 ✓ |
+| Camera | `/camera` | Timeline of the camera's photos (`DCIM/Camera/`) | M1 ✓, camera-only since M2 |
 | Videos | `/videos` | Video timeline | M1 ✓ |
 | Albums | `/albums`, `/albums/<key>?name=`, `/albums/trash` | All media, Favorites, Trash, folders | M1–M2 ✓ |
 | Stats | `/stats` | Reclaimable space, entry to cleanup tools | Layout in M0, values in M5 |

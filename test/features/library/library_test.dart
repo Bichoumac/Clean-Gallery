@@ -29,7 +29,7 @@ void main() {
     },
   );
 
-  testApp('Photos tab: date headers and photos only', (tester) async {
+  testApp('Camera tab: date headers and photos only', (tester) async {
     await pumpTestApp(tester, media: source());
     expect(find.text('Today'), findsOneWidget);
     expect(find.text('Friday, January 10, 2025'), findsOneWidget);
@@ -46,7 +46,7 @@ void main() {
 
   testApp('empty library shows the empty state', (tester) async {
     await pumpTestApp(tester);
-    expect(find.text('No photos yet'), findsOneWidget);
+    expect(find.text('No camera photos yet'), findsOneWidget);
   });
 
   testApp('denied access shows a prompt that requests access', (tester) async {
@@ -151,5 +151,28 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Camera'), findsOneWidget);
     expect(media.loadedSelections.where((s) => s.albumId == 'cam'), isEmpty);
+  });
+
+  testApp('Camera tab leaves out screenshots; All media has them', (
+    tester,
+  ) async {
+    final media = FakeMediaSource(
+      items: [
+        testItem(1, takenAt: now),
+        testItem(
+          2,
+          takenAt: now.subtract(const Duration(minutes: 1)),
+          relativePath: 'Pictures/Screenshots/',
+        ),
+      ],
+    );
+    await pumpTestApp(tester, media: media);
+    expect(find.byType(MediaThumbnail), findsOneWidget);
+
+    await tester.tap(find.byTooltip('Albums'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('All media'));
+    await tester.pumpAndSettle();
+    expect(find.byType(MediaThumbnail), findsNWidgets(2));
   });
 }

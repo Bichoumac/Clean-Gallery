@@ -1,6 +1,6 @@
 # Library
 
-Browsing the device's photos and videos: the Photos and Videos timelines, the Albums tab and album pages.
+Browsing the device's photos and videos: the Camera and Videos timelines, the Albums tab and album pages.
 
 Last updated: 2026-10-25 — Milestone M2
 
@@ -10,7 +10,7 @@ Show every photo and video on the device, newest first, grouped by day or month,
 
 ## User flows
 
-1. **Photos / Videos tab**: the timeline opens on the newest items. Section headers read "Today", "Yesterday", then full dates.
+1. **Camera / Videos tab**: the timeline opens on the newest items. Camera shows only the photos taken with the device camera (`DCIM/Camera/`); Videos shows every video; everything else is in **Albums → All media**. Section headers read "Today", "Yesterday", then full dates.
 2. **Pinch** with two fingers: spreading shows fewer, larger thumbnails (down to 2 columns); pinching shows more (up to 6). From 5 columns, headers switch from days to months.
 3. **Pull down** to reload after taking new photos.
 4. **Tap a thumbnail**: the viewer opens on that item ([viewer.md](viewer.md)).
@@ -93,7 +93,7 @@ flowchart TD
 
 | Widget | File |
 | --- | --- |
-| `MediaTimelineView` (Photos, Videos, album pages) | [media_timeline_view.dart](../../lib/features/library/media_timeline_view.dart) |
+| `MediaTimelineView` (Camera, Videos, album pages) | [media_timeline_view.dart](../../lib/features/library/media_timeline_view.dart) |
 | `AlbumsScreen` | [albums_screen.dart](../../lib/features/library/albums_screen.dart) |
 | `PinchToChangeColumns` | [pinch_to_change_columns.dart](../../lib/features/library/pinch_to_change_columns.dart) |
 | `FastScroller` | [fast_scroller.dart](../../lib/features/library/fast_scroller.dart) |

@@ -4,6 +4,7 @@
   "@appTitle": {"description": "Application name shown in the launcher and the task switcher."},
 
   "navPhotos": "Photos",
+  "navCamera": "Camera",
   "navVideos": "Videos",
   "navAlbums": "Albums",
   "navStats": "Stats",
@@ -37,6 +38,7 @@
   "onboardingPermissionDenied": "Permission denied. You can change it later in Settings.",
 
   "libraryEmptyPhotos": "No photos yet",
+  "libraryEmptyCamera": "No camera photos yet",
   "libraryEmptyVideos": "No videos yet",
   "libraryEmptyAlbum": "This album is empty",
   "libraryEmptyBody": "New photos and videos appear here automatically. Pull down to refresh.",

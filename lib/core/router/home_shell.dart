@@ -67,9 +67,9 @@ class _HomeShellState extends ConsumerState<HomeShell> {
               ),
               destinations: [
                 CompactNavDestination(
-                  icon: Icons.image_outlined,
-                  selectedIcon: Icons.image_rounded,
-                  label: l10n.navPhotos,
+                  icon: Icons.photo_camera_outlined,
+                  selectedIcon: Icons.photo_camera_rounded,
+                  label: l10n.navCamera,
                 ),
                 CompactNavDestination(
                   icon: Icons.smart_display_outlined,

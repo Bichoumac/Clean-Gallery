@@ -20,8 +20,8 @@ abstract final class AppRoutes {
   /// First-launch onboarding.
   static const onboarding = '/onboarding';
 
-  /// Photos tab: timeline of photos.
-  static const photos = '/photos';
+  /// Camera tab: timeline of the camera's photos.
+  static const camera = '/camera';
 
   /// Videos tab: timeline of videos.
   static const videos = '/videos';
@@ -93,17 +93,17 @@ GoRouter appRouter(Ref ref) {
     ..onDispose(refresh.dispose);
 
   return GoRouter(
-    initialLocation: AppRoutes.photos,
+    initialLocation: AppRoutes.camera,
     refreshListenable: refresh,
     redirect: (context, state) {
       final completed = ref.read(onboardingCompletedProvider);
       final onOnboarding = state.matchedLocation == AppRoutes.onboarding;
       if (!completed && !onOnboarding) return AppRoutes.onboarding;
-      if (completed && onOnboarding) return AppRoutes.photos;
+      if (completed && onOnboarding) return AppRoutes.camera;
       if (state.matchedLocation == AppRoutes.viewer &&
           state.extra is! ViewerArgs) {
         // A viewer location without arguments (e.g. after process death).
-        return AppRoutes.photos;
+        return AppRoutes.camera;
       }
       return null;
     },
@@ -126,11 +126,11 @@ GoRouter appRouter(Ref ref) {
         // Order must match the destinations of HomeShell.
         branches: [
           _branch(
-            AppRoutes.photos,
+            AppRoutes.camera,
             (context, l10n) => MediaTimelineView(
-              selection: MediaSelection.photos,
-              title: l10n.navPhotos,
-              emptyTitle: l10n.libraryEmptyPhotos,
+              selection: MediaSelection.camera,
+              title: l10n.navCamera,
+              emptyTitle: l10n.libraryEmptyCamera,
             ),
           ),
           _branch(

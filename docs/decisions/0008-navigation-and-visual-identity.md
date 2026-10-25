@@ -43,3 +43,7 @@ The "Duplicates" virtual tile stays at the top of every album grid, as in the br
 - Separate Photos and Videos tabs mean "All media" mixing both lives in Albums ("All photos" album in the brief, to be renamed "All media" in M1).
 - The two ad placements keep the same rule (only two, nothing else), but in different tabs. [AGENTS.md](../../AGENTS.md) is updated.
 - M1 builds the Photos, Videos and Albums tabs; M5 fills the Stats tab with real values and links to the cleanup tools.
+
+## Amendment (M2): Camera instead of Photos
+
+At the product owner's request, the first tab shows **only the photos of the device camera** (MediaStore `RELATIVE_PATH` starting with `DCIM/Camera/`) instead of every photo. Screenshots, received and downloaded images stay out of it; every item remains reachable through **Albums → All media**. The tab is named "Camera" ("Appareil photo") with a camera icon so its name matches its content. The Videos tab still lists every video.

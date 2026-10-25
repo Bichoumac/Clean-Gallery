@@ -26,7 +26,7 @@ void main() {
     expect(find.text('Your photos never leave your device.'), findsOneWidget);
   });
 
-  testApp('full flow: grant access, then land on the Photos tab', (
+  testApp('full flow: grant access, then land on the Camera tab', (
     tester,
   ) async {
     await pumpApp(tester, completed: false);
@@ -59,7 +59,7 @@ void main() {
   testApp('returning users skip onboarding', (tester) async {
     await pumpApp(tester, completed: true);
     expect(find.byType(CompactNavBar), findsOneWidget);
-    expect(find.byTooltip('Photos'), findsOneWidget);
+    expect(find.byTooltip('Camera'), findsOneWidget);
     expect(find.byTooltip('Stats'), findsOneWidget);
   });
 }

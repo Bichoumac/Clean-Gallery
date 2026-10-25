@@ -70,7 +70,9 @@ class MediaThumbnail extends ConsumerWidget {
                       error is PlatformException && error.code == 'dropped'
                       ? const SizedBox.shrink()
                       : Icon(
-                          Icons.broken_image_outlined,
+                          item.isVideo
+                              ? Icons.movie_outlined
+                              : Icons.broken_image_outlined,
                           color: colors.onSurfaceVariant,
                         ),
                 ),

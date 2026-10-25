@@ -24,11 +24,13 @@ Last updated: 2026-10-25 — Milestone M2
 
 ### Changed
 
+- The first tab is now **Camera**: only the photos of the device camera (`DCIM/Camera/`); every other item is in Albums → All media ([ADR 0008](docs/decisions/0008-navigation-and-visual-identity.md#amendment-m2-camera-instead-of-photos)).
 - Trash, undo and favorites no longer reload lists: the trash and favorite changes are applied in memory (`visibleMediaListProvider`, `favoriteOverridesProvider`); hearts switch at once and switch back if the request is declined.
 - Grid layout memoized; selection driven by a `ValueNotifier` so a tap rebuilds only visible cells; date formats cached.
 
 ### Fixed
 
+- Videos without a MediaStore thumbnail now show their embedded cover or the frame at 10 % of their duration; a film icon if none can be read.
 - Fast-scroll thumb now jumps under the finger at once (the grid's long press competes for the same pointer).
 
 ## [M1] — 2026-10-25 — Navigation

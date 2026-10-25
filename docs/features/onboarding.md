@@ -13,7 +13,7 @@ On first launch, the user learns that their photos never leave the device, grant
 1. **Privacy page**: "Your photos never leave your device." The user taps *Next*.
 2. **Media access page**: the user taps *Allow access*. The system asks for photos and videos, then for GPS metadata if media access was given.
 3. **Media management page** (optional): *Allow media management* opens the system setting. The user returns and taps *Get started*.
-4. Onboarding is marked complete and the app opens the Photos tab. It is never shown again.
+4. Onboarding is marked complete and the app opens the Camera tab. It is never shown again.
 
 *Skip* at the top finishes onboarding immediately from the first two pages.
 
@@ -29,7 +29,7 @@ flowchart TD
     F --> G
     G -->|Allow media management| H[System setting]
     H --> G
-    G -->|Get started| I[Photos tab]
+    G -->|Get started| I[Camera tab]
     A -->|Skip| I
     B -->|Skip| I
 ```
@@ -62,7 +62,7 @@ flowchart TD
 ## Tests
 
 - [onboarding_controller_test.dart](../../test/features/onboarding/onboarding_controller_test.dart): granted, limited and denied results; GPS requested only with media access; completion persisted.
-- [onboarding_screen_test.dart](../../test/features/onboarding/onboarding_screen_test.dart): privacy promise shown, full flow to the Photos tab, skip, returning users.
+- [onboarding_screen_test.dart](../../test/features/onboarding/onboarding_screen_test.dart): privacy promise shown, full flow to the Camera tab, skip, returning users.
 
 ## Known limitations / future work
 

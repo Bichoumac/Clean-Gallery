@@ -118,13 +118,15 @@ final kTransparentPng = Uint8List.fromList(const [
   0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82, //
 ]);
 
-/// A photo (or video, with [duration]) taken at [takenAt], id `'$id'`.
+/// A photo (or video, with [duration]) taken at [takenAt], id `'$id'`, in
+/// the camera folder unless [relativePath] says otherwise.
 MediaItem testItem(
   int id, {
   DateTime? takenAt,
   Duration? duration,
   bool isFavorite = false,
   int sizeBytes = 0,
+  String relativePath = 'DCIM/Camera/',
 }) {
   final at = takenAt ?? DateTime(2026, 10, 25, 12);
   return MediaItem(
@@ -138,6 +140,7 @@ MediaItem testItem(
     isFavorite: isFavorite,
     sizeBytes: sizeBytes,
     fileName: 'IMG_$id.jpg',
+    relativePath: relativePath,
   );
 }
 
@@ -177,6 +180,8 @@ class FakeMediaSource implements MediaSource {
       final kept = switch (selection.filter) {
         MediaFilter.all => true,
         MediaFilter.photos => !i.isVideo,
+        MediaFilter.camera =>
+          !i.isVideo && (i.relativePath ?? '').startsWith('DCIM/Camera/'),
         MediaFilter.videos => i.isVideo,
         MediaFilter.favorites => i.isFavorite,
       };

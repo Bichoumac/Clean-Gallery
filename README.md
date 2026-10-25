@@ -15,8 +15,8 @@ Milestones **M0** and **M1** are merged. **M2 — Actions** is built: system fav
 | Area | Summary | Milestone |
 | --- | --- | --- |
 | Onboarding | Privacy promise, media and GPS permissions, optional "Media management" | M0 ✓ |
-| Navigation | Five icon-only tabs: Photos, Videos, Albums, Stats, Settings | M0 ✓ (placeholder tabs) |
-| Library | Photo and video timelines with sorting and date filter, albums, zoomable grid, viewer, video playback | M1 ✓ |
+| Navigation | Five icon-only tabs: Camera, Videos, Albums, Stats, Settings | M0 ✓ (placeholder tabs) |
+| Library | Camera and video timelines with sorting and date filter, albums, zoomable grid, viewer, video playback | M1 ✓ |
 | Actions | System favorites, sharing without GPS, multi-select, trash, settings | M2 ✓ |
 | Duplicates | Exact duplicates and bursts in a virtual folder | M3 |
 | Similar photos | Perceptual hashing, best-shot suggestion, storage dashboard | M4 |

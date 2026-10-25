@@ -29,7 +29,7 @@ class MainActivity : FlutterActivity() {
     private val mainHandler = Handler(Looper.getMainLooper())
 
     /** Thumbnails and previews from MediaStore's thumbnail cache. */
-    private val thumbnails by lazy { ThumbnailLoader(contentResolver, mainHandler) }
+    private val thumbnails by lazy { ThumbnailLoader(applicationContext, mainHandler) }
 
     /** Favorites, permanent deletion and sharing. */
     private val actions by lazy { MediaActions(this, worker, mainHandler) }

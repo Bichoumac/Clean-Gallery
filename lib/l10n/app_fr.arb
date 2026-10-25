@@ -3,6 +3,7 @@
   "appTitle": "Clean Gallery",
 
   "navPhotos": "Photos",
+  "navCamera": "Appareil photo",
   "navVideos": "Vidéos",
   "navAlbums": "Albums",
   "navStats": "Stats",
@@ -36,6 +37,7 @@
   "onboardingPermissionDenied": "Autorisation refusée. Vous pourrez la modifier plus tard dans les réglages.",
 
   "libraryEmptyPhotos": "Aucune photo pour l'instant",
+  "libraryEmptyCamera": "Aucune photo de l'appareil photo pour l'instant",
   "libraryEmptyVideos": "Aucune vidéo pour l'instant",
   "libraryEmptyAlbum": "Cet album est vide",
   "libraryEmptyBody": "Les nouvelles photos et vidéos apparaissent ici automatiquement. Tirez vers le bas pour actualiser.",

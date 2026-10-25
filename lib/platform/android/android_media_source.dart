@@ -32,6 +32,10 @@ final class AndroidMediaSource implements MediaSource {
   static const _captureDate =
       '(CASE WHEN datetaken > 0 THEN datetaken / 1000 ELSE date_added END)';
 
+  /// Folder the device camera saves to, as a MediaStore `RELATIVE_PATH`.
+  /// The same on Samsung and Pixel phones.
+  static const cameraFolder = 'DCIM/Camera/';
+
   /// MediaStore `MEDIA_TYPE` values.
   static const _imageType = 1;
   static const _videoType = 3;
@@ -48,6 +52,9 @@ final class AndroidMediaSource implements MediaSource {
     final where = <String>[
       switch (selection.filter) {
         MediaFilter.photos => 'media_type = $_imageType',
+        MediaFilter.camera =>
+          'media_type = $_imageType AND relative_path LIKE '
+              "'$cameraFolder%'",
         MediaFilter.videos => 'media_type = $_videoType',
         MediaFilter.all ||
         MediaFilter.favorites => 'media_type IN ($_imageType, $_videoType)',
@@ -210,7 +217,7 @@ final class AndroidMediaSource implements MediaSource {
     await _ready;
     final filter = _filterFor(selection, hidden);
     final type = switch (selection.filter) {
-      MediaFilter.photos => RequestType.image,
+      MediaFilter.photos || MediaFilter.camera => RequestType.image,
       MediaFilter.videos => RequestType.video,
       MediaFilter.all || MediaFilter.favorites => RequestType.common,
     };

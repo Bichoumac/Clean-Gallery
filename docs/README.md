@@ -55,5 +55,5 @@ One file per feature is added as each feature is built.
 | [0010](decisions/0010-photo-zoom.md) | Own photo zoom instead of `photo_view` or `InteractiveViewer` |
 | [0011](decisions/0011-video-playback.md) | Video playback with `video_player` and own controls |
 | [0012](decisions/0012-sort-and-date-filter.md) | Sorting and date filter in every timeline |
-| [0013](decisions/0013-trash-purge-without-background-job.md) | Trash purge at launch and resume, without a background job (proposed) |
+| [0013](decisions/0013-trash-purge-without-background-job.md) | Trash purge at launch and resume, without a background job |
 | [0014](decisions/0014-native-sharing.md) | Sharing with native intents instead of `share_plus` |

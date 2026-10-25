@@ -145,7 +145,9 @@ class SortFilterSheet extends ConsumerWidget {
       MediaSortField.date,
       MediaSortField.name,
       MediaSortField.size,
-      if (base.filter != MediaFilter.photos) MediaSortField.duration,
+      if (base.filter != MediaFilter.photos &&
+          base.filter != MediaFilter.camera)
+        MediaSortField.duration,
     ];
     String direction({required bool descending}) =>
         _directionLabel(l10n, sort.field, descending: descending);

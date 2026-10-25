@@ -83,7 +83,7 @@ void main() {
       tester,
       media: media,
       settings: const AppSettings(
-        viewSorts: {'photos:': MediaSort(descending: false)},
+        viewSorts: {'camera:': MediaSort(descending: false)},
       ),
     );
     final ids = tester
@@ -103,7 +103,7 @@ void main() {
     await tester.tap(find.widgetWithText(ChoiceChip, 'Size'));
     await tester.pumpAndSettle();
     expect(
-      await SettingsRepository(db).read('${SettingKeys.viewSortPrefix}photos:'),
+      await SettingsRepository(db).read('${SettingKeys.viewSortPrefix}camera:'),
       'size:desc',
     );
   });

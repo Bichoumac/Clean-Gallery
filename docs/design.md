@@ -62,7 +62,7 @@ A floating pill, 56 dp high, 12 dp above the system navigation area, centered, w
 
 | Tab | Icon (inactive / selected) |
 | --- | --- |
-| Photos | `image_outlined` / `image_rounded` |
+| Camera | `photo_camera_outlined` / `photo_camera_rounded` |
 | Videos | `smart_display_outlined` / `smart_display_rounded` |
 | Albums | `collections_bookmark_outlined` / `collections_bookmark_rounded` |
 | Stats | `donut_large_outlined` / `donut_large_rounded` |

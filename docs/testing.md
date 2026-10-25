@@ -131,6 +131,8 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 13 | Settings: theme, language, default columns | Applied at once and after restarting the app. |
 | 14 | Sort a tab, restart the app | The sort is restored. |
 | 15 | Settings → Permissions: change one in the system settings, come back | Status refreshed. |
+| 16 | Videos tab, including videos received from messaging apps | Every video has a thumbnail (MediaStore's, the embedded cover, or the frame at 10 %). |
+| 17 | Camera tab | Only photos taken with the camera; no screenshots or WhatsApp images; those are in Albums → All media. |
 
 ### M1 — to verify on a device
 

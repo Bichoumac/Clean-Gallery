@@ -28,6 +28,8 @@ Last updated: 2026-10-25 — Milestone M2
 - Multi-select: long press, drag to select a range with auto-scroll, selection bar with share, favorite, trash ([features/library.md](features/library.md#selection-and-actions)).
 - App trash: every delete goes through it, *Undo*, Trash page with days left, restore, delete for good, daily expiry offer ([features/trash.md](features/trash.md)).
 - Settings tab: theme, language, default columns, trash retention, location on share, permissions; sort of each view saved ([features/settings.md](features/settings.md)).
+- First tab changed to **Camera** (camera photos only) at the product owner's request; everything else in Albums → All media.
+- Video thumbnails fall back to the embedded cover or the frame at 10 %.
 
 ### Verified
 
@@ -37,9 +39,10 @@ Last updated: 2026-10-25 — Milestone M2
 | `flutter test --timeout 60s` | 101 tests pass |
 | Galaxy A54, first test (debug build) | Favorites, drag selection, emptying the trash, sharing, theme, language and columns OK. Favorites slow to show and the app generally laggy: fixed since (no list reload after actions, memoized grid, release build for testing). |
 
-### Open question for the product owner
+### Decisions
 
-- **Daily WorkManager purge**: not possible as specified, since deleting other apps' media needs a request launched from a visible screen. Purge at launch and resume implemented instead; a reminder notification is an option ([ADR 0013](decisions/0013-trash-purge-without-background-job.md)).
+- **Purge at launch and resume** instead of a daily WorkManager task, accepted by the product owner ([ADR 0013](decisions/0013-trash-purge-without-background-job.md)).
+- **App trash kept** rather than Android's trash ([features/trash.md](features/trash.md#known-limitations--future-work)).
 
 ### Known issues
 
@@ -49,8 +52,7 @@ Last updated: 2026-10-25 — Milestone M2
 ### Next steps
 
 1. Run the M2 device checks.
-2. Decide on ADR 0013.
-3. Approval of M2, then M3 (indexing, dates, exact duplicates, bursts).
+2. Approval of M2, then M3 (indexing, dates, exact duplicates, bursts).
 
 ## M1 — Navigation
 
