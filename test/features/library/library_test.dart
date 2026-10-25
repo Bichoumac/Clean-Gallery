@@ -132,4 +132,19 @@ void main() {
     await tester.pumpAndSettle();
     expect(container.read(gridColumnsProvider), 3);
   });
+
+  testWidgets('folders with a known cover load nothing more', (tester) async {
+    final media = FakeMediaSource(
+      items: library,
+      folders: [Album(id: 'cam', name: 'Camera', count: 2, cover: library[0])],
+      folderItems: {
+        'cam': [library[0], library[3]],
+      },
+    );
+    await pumpTestApp(tester, media: media);
+    await tester.tap(find.byTooltip('Albums'));
+    await tester.pumpAndSettle();
+    expect(find.text('Camera'), findsOneWidget);
+    expect(media.loadedSelections.where((s) => s.albumId == 'cam'), isEmpty);
+  });
 }

@@ -127,7 +127,8 @@ Device tests on the Galaxy A54 (2026-10-25):
 
 1. Items 1–2, 4–7, 14–17 OK; Favorites match the system gallery. Broken: viewer swipe, video controls; slow: viewer display, grid after a far scroll.
 2. After fixes: fast-scroll thumb (18) and viewer swipe (20) OK. Still broken: video progress bar in the middle of the screen; still slow: grid and viewer display.
-3. Fixed since: progress bar height (22), native thumbnail and preview loader (19, 21). To re-check.
+3. Fixed since: progress bar height (22), native thumbnail and preview loader (19, 21).
+4. Photos and Videos became very fast; the Albums tab was still slow. Fixed since: one native query for all folders and cached folder paths. To re-check.
 
 ### Already checked on a Samsung Galaxy A54, Android 16 (2026-10-25)
 

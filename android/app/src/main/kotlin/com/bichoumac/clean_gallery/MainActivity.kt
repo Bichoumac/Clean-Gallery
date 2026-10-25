@@ -58,6 +58,14 @@ class MainActivity : FlutterActivity() {
                     }
                 }
             }
+            "albumSummaries" -> worker.execute {
+                try {
+                    val summaries = albumSummaries()
+                    mainHandler.post { result.success(summaries) }
+                } catch (e: SecurityException) {
+                    mainHandler.post { result.error("permission", e.message, null) }
+                }
+            }
             "thumbnail" -> {
                 val id = call.argument<String>("id")?.toLongOrNull()
                 val width = call.argument<Int>("width")
@@ -121,6 +129,69 @@ class MainActivity : FlutterActivity() {
             }
         }
         return sizes
+    }
+
+    /**
+     * One entry per folder (MediaStore bucket) containing photos or videos:
+     * `{id, name, count, coverId, coverIsVideo, coverWidth, coverHeight,
+     * coverModified}`, largest folder first.
+     *
+     * A single pass over the library, newest first, so the first item met in
+     * each folder is its cover. This replaces one count query and one path
+     * listing per folder.
+     */
+    private fun albumSummaries(): List<Map<String, Any?>> {
+        val uri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
+        val projection = arrayOf(
+            MediaStore.MediaColumns._ID,
+            MediaStore.MediaColumns.BUCKET_ID,
+            MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
+            MediaStore.Files.FileColumns.MEDIA_TYPE,
+            MediaStore.MediaColumns.WIDTH,
+            MediaStore.MediaColumns.HEIGHT,
+            MediaStore.MediaColumns.ORIENTATION,
+            MediaStore.MediaColumns.DATE_MODIFIED,
+        )
+        val selection = "${MediaStore.Files.FileColumns.MEDIA_TYPE} IN (" +
+            "${MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE}, " +
+            "${MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO}) " +
+            "AND ${MediaStore.MediaColumns.BUCKET_ID} IS NOT NULL"
+        // Same capture date as the timelines (see AndroidMediaSource).
+        val sortOrder = "CASE WHEN datetaken > 0 THEN datetaken / 1000 " +
+            "ELSE date_added END DESC"
+        val folders = LinkedHashMap<String, MutableMap<String, Any?>>()
+        contentResolver.query(uri, projection, selection, null, sortOrder)?.use { c ->
+            val id = c.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
+            val bucket = c.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_ID)
+            val name = c.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME)
+            val type = c.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MEDIA_TYPE)
+            val width = c.getColumnIndexOrThrow(MediaStore.MediaColumns.WIDTH)
+            val height = c.getColumnIndexOrThrow(MediaStore.MediaColumns.HEIGHT)
+            val orientation = c.getColumnIndexOrThrow(MediaStore.MediaColumns.ORIENTATION)
+            val modified = c.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED)
+            while (c.moveToNext()) {
+                val bucketId = c.getString(bucket) ?: continue
+                val folder = folders[bucketId]
+                if (folder != null) {
+                    folder["count"] = (folder["count"] as Int) + 1
+                    continue
+                }
+                // First item of the folder: the newest, used as its cover.
+                val rotated = c.getInt(orientation) % 180 != 0
+                folders[bucketId] = mutableMapOf(
+                    "id" to bucketId,
+                    "name" to (c.getString(name) ?: ""),
+                    "count" to 1,
+                    "coverId" to c.getLong(id).toString(),
+                    "coverIsVideo" to
+                        (c.getInt(type) == MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO),
+                    "coverWidth" to if (rotated) c.getInt(height) else c.getInt(width),
+                    "coverHeight" to if (rotated) c.getInt(width) else c.getInt(height),
+                    "coverModified" to c.getLong(modified),
+                )
+            }
+        }
+        return folders.values.sortedByDescending { it["count"] as Int }
     }
 
     /** Stops the worker thread with the activity. */

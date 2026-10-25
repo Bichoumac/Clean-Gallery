@@ -3,6 +3,7 @@ import 'package:clean_gallery/core/media/media_thumbnail.dart';
 import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/core/router/compact_nav_bar.dart';
 import 'package:clean_gallery/domain/album.dart';
+import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -76,6 +77,7 @@ class AlbumsScreen extends ConsumerWidget {
                     name: album.name,
                     routeKey: album.id,
                     knownCount: album.count,
+                    knownCover: album.cover,
                   ),
               ],
             ),
@@ -113,6 +115,7 @@ class _AlbumTile extends ConsumerWidget {
     required this.name,
     required this.routeKey,
     this.knownCount,
+    this.knownCover,
     this.icon,
   });
 
@@ -123,6 +126,9 @@ class _AlbumTile extends ConsumerWidget {
   /// Count already known from the album list; fetched otherwise.
   final int? knownCount;
 
+  /// Cover already known from the album list; fetched otherwise.
+  final MediaItem? knownCover;
+
   /// Icon shown over the cover, for virtual albums.
   final IconData? icon;
 
@@ -130,7 +136,7 @@ class _AlbumTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final cover = ref.watch(albumCoverProvider(selection)).value;
+    final cover = knownCover ?? ref.watch(albumCoverProvider(selection)).value;
     final count = knownCount ?? ref.watch(mediaCountProvider(selection)).value;
 
     return Semantics(

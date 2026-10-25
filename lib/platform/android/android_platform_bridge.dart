@@ -39,6 +39,22 @@ final class AndroidPlatformBridge implements PlatformBridge {
     return sizes ?? const {};
   }
 
+  /// Folders containing photos or videos, largest first, each with its item
+  /// count and newest item, from one pass over MediaStore.
+  ///
+  /// Android-only helper used by `AndroidMediaSource.albums`. Each map has
+  /// `id`, `name`, `count`, `coverId`, `coverIsVideo`, `coverWidth`,
+  /// `coverHeight` and `coverModified` (seconds).
+  Future<List<Map<String, Object?>>> albumSummaries() async {
+    final list = await _channel.invokeListMethod<Map<Object?, Object?>>(
+      'albumSummaries',
+    );
+    return [
+      for (final entry in list ?? const <Map<Object?, Object?>>[])
+        entry.cast<String, Object?>(),
+    ];
+  }
+
   /// Raw RGBA pixels of MediaStore item [id], fitting in [width] × [height],
   /// read from MediaStore's thumbnail cache.
   ///

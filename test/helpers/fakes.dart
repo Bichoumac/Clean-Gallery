@@ -121,6 +121,9 @@ class FakeMediaSource implements MediaSource {
   /// Ranges requested through [load], as `(start, end)`.
   final loads = <(int, int)>[];
 
+  /// Selections passed to [load], in call order.
+  final loadedSelections = <MediaSelection>[];
+
   /// Filters, date range and sort applied like `AndroidMediaSource` does.
   List<MediaItem> _select(MediaSelection selection) {
     final albumId = selection.albumId;
@@ -168,6 +171,7 @@ class FakeMediaSource implements MediaSource {
     required int end,
   }) async {
     loads.add((start, end));
+    loadedSelections.add(selection);
     final all = _select(selection);
     return all.sublist(start.clamp(0, all.length), end.clamp(0, all.length));
   }

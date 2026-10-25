@@ -60,7 +60,7 @@ Every query is a custom SQL filter built from the `MediaSelection` ([ADR 0012](d
 | Capture date | `CASE WHEN datetaken > 0 THEN datetaken / 1000 ELSE date_added END` (seconds), as `photo_manager` computes `createDateTime` |
 | Date range | `AND <capture date> >= start AND <capture date> < end` |
 | Sort | `<capture date>`, `LOWER(_display_name)`, `_size` or `duration`, then capture date (newest first) and `_id` as tie-breakers |
-| Folder | The `photo_manager` path with that id (a MediaStore bucket), with the same filter |
+| Folder | The `photo_manager` path with that id (a MediaStore bucket), with the same filter. Folder paths are listed once per filter and cached until the Albums tab reloads. |
 
 `photo_manager` drops its media-type condition when a custom `where` is given, so the app always writes it.
 
@@ -83,6 +83,7 @@ Kotlin side: [MainActivity.kt](../android/app/src/main/kotlin/com/bichoumac/clea
 | `openMediaManagementSettings` | none | `null` | none | Opens `Settings.ACTION_REQUEST_MANAGE_MEDIA` for this package. No-op below Android 12 or if no activity handles the intent. |
 | `sdkVersion` | none | `int` | none | `Build.VERSION.SDK_INT`. |
 | `thumbnail` | `id`: `String`, `video`: `bool`, `width`, `height`: `int` | `{width, height, rowBytes, pixels}`, `pixels` RGBA 8888 | `not_found` (unreadable item), `dropped` (waited behind 200 newer requests), `bad_arguments` | `ContentResolver.loadThumbnail` (MediaStore's thumbnail cache, shared with the system gallery), on 4 worker threads, **last in, first out**: what is on screen loads before what was scrolled past. Implemented in [ThumbnailLoader.kt](../android/app/src/main/kotlin/com/bichoumac/clean_gallery/ThumbnailLoader.kt). |
+| `albumSummaries` | none | `List` of `{id, name, count, coverId, coverIsVideo, coverWidth, coverHeight, coverModified}`, largest folder first | `permission` | One pass over MediaStore (images and videos, newest first) grouping by `BUCKET_ID`, the folder id `photo_manager` also uses. The first item met in each folder is its cover. Replaces one count call and one path listing per folder in the Albums tab. |
 | `mediaSizes` | `ids`: `List<String>` | `Map<String, int>` (id → bytes) | `permission` if MediaStore refuses | `_SIZE` of each MediaStore item, queried off the main thread by chunks of 500 ids. Missing ids are left out. Used by `AndroidMediaSource` for each chunk of 1,000 items, since `photo_manager` has no file sizes. |
 
 Unknown methods return `notImplemented`, which Dart raises as `MissingPluginException`.

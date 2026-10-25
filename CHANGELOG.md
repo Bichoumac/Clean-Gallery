@@ -24,9 +24,10 @@ Last updated: 2026-10-25 — Milestone M1
 - File sizes from MediaStore through the new `mediaSizes` channel method.
 - Native thumbnail loader (`thumbnail` channel method): MediaStore's thumbnail cache, raw pixels, newest request first; used for grid thumbnails and viewer previews instead of `photo_manager`'s Glide pipeline.
 - Video progress bar follows the finger and seeks on release; fixed it being drawn in the middle of the screen.
+- Albums tab: folders, counts and covers from one native query (`albumSummaries`); folder paths cached for album pages.
 - Viewer: screen-sized previews first, full resolution only when zooming in; neighbors precached.
 - Grid: fixed-height rows (`SliverVariedExtentList`), one-screen prefetch, larger image cache.
-- Tests: timeline grouping, chunked loading, library and viewer widget tests, pinch gesture, sorting and date filter, fast scroller, viewer gestures; shared `pumpTestApp` helper on a phone-sized screen (67 tests).
+- Tests: timeline grouping, chunked loading, library and viewer widget tests, pinch gesture, sorting and date filter, fast scroller, viewer gestures; shared `pumpTestApp` helper on a phone-sized screen (68 tests).
 
 ## [M0] — 2026-10-25 — Foundations
 

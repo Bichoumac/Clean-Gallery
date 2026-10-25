@@ -79,19 +79,37 @@ final class AndroidMediaSource implements MediaSource {
   @override
   Future<List<Album>> albums() async {
     await _ready;
-    final paths = await PhotoManager.getAssetPathList(
-      hasAll: false,
-      filterOption: _filterFor(MediaSelection.all),
+    // One native pass gives every folder's count and cover. Folder paths
+    // are listed again on the next album page, so drop the cached ones.
+    _folderPaths.clear();
+    final summaries = await _bridge.albumSummaries();
+    return [
+      for (final summary in summaries)
+        Album(
+          id: summary['id']! as String,
+          name: summary['name']! as String,
+          count: summary['count']! as int,
+          cover: _coverItem(summary),
+        ),
+    ];
+  }
+
+  /// Cover of a folder from its native summary. Only what a thumbnail needs
+  /// is known: id, kind, size and modification time.
+  MediaItem _coverItem(Map<String, Object?> summary) {
+    final modified = DateTime.fromMillisecondsSinceEpoch(
+      (summary['coverModified']! as int) * 1000,
     );
-    final albums = <Album>[];
-    for (final path in paths) {
-      final count = await path.assetCountAsync;
-      if (count > 0) {
-        albums.add(Album(id: path.id, name: path.name, count: count));
-      }
-    }
-    albums.sort((a, b) => b.count.compareTo(a.count));
-    return albums;
+    return MediaItem(
+      id: summary['coverId']! as String,
+      kind: summary['coverIsVideo']! as bool
+          ? MediaKind.video
+          : MediaKind.photo,
+      width: summary['coverWidth']! as int,
+      height: summary['coverHeight']! as int,
+      takenAt: modified,
+      modifiedAt: modified,
+    );
   }
 
   @override
@@ -161,6 +179,11 @@ final class AndroidMediaSource implements MediaSource {
     return url == null ? null : Uri.parse(url);
   }
 
+  /// Folder paths by id, per selection without folder (same filter, sort
+  /// and dates). Listing every folder is a full MediaStore query, so it is
+  /// done once per filter instead of once per chunk or per album page.
+  final _folderPaths = <MediaSelection, Map<String, AssetPathEntity>>{};
+
   /// The `photo_manager` path that lists [selection].
   Future<AssetPathEntity?> _path(MediaSelection selection) async {
     await _ready;
@@ -172,13 +195,17 @@ final class AndroidMediaSource implements MediaSource {
     };
     final albumId = selection.albumId;
     if (albumId != null) {
+      final key = selection.copyWith(albumId: null);
+      final folders = _folderPaths[key] ??= {
+        for (final path in await PhotoManager.getAssetPathList(
+          hasAll: false,
+          type: type,
+          filterOption: filter,
+        ))
+          path.id: path,
+      };
       // A folder with no item matching the filter is not listed: count 0.
-      final paths = await PhotoManager.getAssetPathList(
-        hasAll: false,
-        type: type,
-        filterOption: filter,
-      );
-      return paths.where((p) => p.id == albumId).firstOrNull;
+      return folders[albumId];
     }
     final paths = await PhotoManager.getAssetPathList(
       onlyAll: true,

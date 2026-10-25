@@ -35,6 +35,7 @@ Widget: [fast_scroller.dart](../../lib/features/library/fast_scroller.dart).
 - Every row has a known height (date headers a fixed height growing with the text size, item rows one cell), so the grid is a `SliverVariedExtentList`: jumping far with the thumb never lays out the rows in between.
 - Thumbnails one screen above and below are prefetched (`scrollCacheExtent`).
 - Flutter's image cache holds up to 2,000 images / 200 MB, so scrolling back does not reload thumbnails.
+- The Albums tab gets every folder's name, count and cover from one native query (`albumSummaries`) instead of one count and one cover lookup per folder; album pages reuse cached folder paths.
 - Thumbnails come from MediaStore's own thumbnail cache through a native loader, as raw pixels, newest request first, so the screen you land on after a far jump loads before the rows scrolled past ([platform-android.md](../platform-android.md#why-not-photo_manager-thumbnails)).
 
 ## Sorting and date filter
@@ -94,7 +95,7 @@ flowchart TD
 | `MediaSelection`, `Album`, `MediaItem` | [album.dart](../../lib/domain/album.dart), [media_item.dart](../../lib/domain/media_item.dart) | What to show, and the items. |
 | `groupByDate`, `buildRows` | [timeline.dart](../../lib/domain/timeline.dart) | Pure-Dart grouping into sections and grid rows. |
 | `mediaListProvider(selection)` | [media_providers.dart](../../lib/core/media/media_providers.dart) | All items of a selection, loaded by chunks of 1,000. Shared with the viewer. |
-| `albumsProvider`, `mediaCountProvider`, `albumCoverProvider` | same | Albums tab data. |
+| `albumsProvider`, `mediaCountProvider`, `albumCoverProvider` | same | Albums tab data. Folders come with their count and cover; the count and cover providers serve the virtual albums (All media, Favorites). |
 | `gridColumnsProvider` | same | Column count (2–6), shared by all grids; default 4. |
 | `viewSelectionProvider(base)` | same | Sort and date range chosen for one tab or album. |
 | `MediaSort`, `DateFilter` | [album.dart](../../lib/domain/album.dart) | Sort order and date range, part of `MediaSelection`. |

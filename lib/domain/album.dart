@@ -1,3 +1,4 @@
+import 'package:clean_gallery/domain/media_item.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'album.freezed.dart';
@@ -121,6 +122,9 @@ abstract class Album with _$Album {
 
     /// Number of photos and videos in the folder.
     required int count,
+
+    /// Newest item, shown as the album cover; `null` if not known yet.
+    MediaItem? cover,
   }) = _Album;
 
   const Album._();

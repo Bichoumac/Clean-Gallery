@@ -37,8 +37,8 @@ Last updated: 2026-10-25 — Milestone M1
 | Check | Result |
 | --- | --- |
 | `flutter analyze` | No issues |
-| `flutter test` | 67 tests pass |
-| Galaxy A54 | Sorting, date filters, durations, Favorites, fast-scroll thumb and viewer swipe OK. Video progress bar and display speed fixed since, to re-check. |
+| `flutter test` | 68 tests pass |
+| Galaxy A54 | Sorting, date filters, durations, Favorites, fast-scroll thumb and viewer swipe OK. Grid and viewer now fast; video progress bar and Albums tab speed fixed since, to re-check. |
 | Device checklist | [testing.md](testing.md#m1--to-verify-on-a-device) |
 
 ### Known issues
