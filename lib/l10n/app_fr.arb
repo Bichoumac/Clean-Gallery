@@ -1,0 +1,30 @@
+{
+  "@@locale": "fr",
+  "appTitle": "Clean Gallery",
+
+  "navPhotos": "Photos",
+  "navFolders": "Dossiers",
+  "navClean": "Nettoyer",
+
+  "onboardingTitle": "Bienvenue dans Clean Gallery",
+  "onboardingPrivacyHeadline": "Vos photos ne quittent jamais votre appareil.",
+  "onboardingPrivacyBody": "Clean Gallery fonctionne entièrement hors ligne. Rien de vos médias n'est envoyé ailleurs.",
+  "onboardingAccessHeadline": "Accéder à vos médias",
+  "onboardingAccessBody": "Clean Gallery a besoin de l'autorisation de lire vos photos et vidéos pour les afficher et trouver les doublons.",
+  "onboardingLimitedHeadline": "Seule une partie de vos médias est partagée",
+  "onboardingLimitedBody": "Vous n'avez partagé que certaines photos et vidéos. Autorisez l'accès à tous vos médias pour trouver tous les doublons.",
+  "onboardingManageHeadline": "Nettoyage plus rapide (facultatif)",
+  "onboardingManageBody": "Autorisez Clean Gallery à gérer les médias. La suppression et les favoris ne demanderont plus de confirmation à chaque fois. L'application fonctionne entièrement sans cela.",
+
+  "onboardingGrantAccess": "Autoriser l'accès",
+  "onboardingGrantAll": "Autoriser l'accès à tout",
+  "onboardingOpenSettings": "Ouvrir les réglages",
+  "onboardingAllowManage": "Autoriser la gestion des médias",
+  "onboardingSkip": "Passer",
+  "onboardingNext": "Suivant",
+  "onboardingStart": "Commencer",
+  "onboardingPermissionDenied": "Autorisation refusée. Vous pourrez la modifier plus tard dans les réglages.",
+
+  "homePlaceholderTitle": "Bientôt disponible",
+  "homePlaceholderBody": "Cette section est réalisée dans un jalon ultérieur."
+}

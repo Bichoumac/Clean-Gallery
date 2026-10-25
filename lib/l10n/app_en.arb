@@ -1,0 +1,31 @@
+{
+  "@@locale": "en",
+  "appTitle": "Clean Gallery",
+  "@appTitle": {"description": "Application name shown in the launcher and the task switcher."},
+
+  "navPhotos": "Photos",
+  "navFolders": "Folders",
+  "navClean": "Clean",
+
+  "onboardingTitle": "Welcome to Clean Gallery",
+  "onboardingPrivacyHeadline": "Your photos never leave your device.",
+  "onboardingPrivacyBody": "Clean Gallery works entirely offline. Nothing about your media is uploaded anywhere.",
+  "onboardingAccessHeadline": "Access your media",
+  "onboardingAccessBody": "Clean Gallery needs permission to read your photos and videos so it can show them and find duplicates.",
+  "onboardingLimitedHeadline": "Only some of your media is shared",
+  "onboardingLimitedBody": "You chose to share only some photos and videos. Grant access to all of them to find every duplicate.",
+  "onboardingManageHeadline": "Faster cleanup (optional)",
+  "onboardingManageBody": "Allow Clean Gallery to manage media. Deleting and favoriting then won't ask you for confirmation every time. The app works fully without it.",
+
+  "onboardingGrantAccess": "Allow access",
+  "onboardingGrantAll": "Allow access to all",
+  "onboardingOpenSettings": "Open settings",
+  "onboardingAllowManage": "Allow media management",
+  "onboardingSkip": "Skip",
+  "onboardingNext": "Next",
+  "onboardingStart": "Get started",
+  "onboardingPermissionDenied": "Permission denied. You can change it later in Settings.",
+
+  "homePlaceholderTitle": "Coming soon",
+  "homePlaceholderBody": "This section is built in a later milestone."
+}
