@@ -36,6 +36,41 @@
   "onboardingStart": "Get started",
   "onboardingPermissionDenied": "Permission denied. You can change it later in Settings.",
 
+  "libraryEmptyPhotos": "No photos yet",
+  "libraryEmptyVideos": "No videos yet",
+  "libraryEmptyAlbum": "This album is empty",
+  "libraryEmptyBody": "New photos and videos appear here automatically. Pull down to refresh.",
+  "libraryAccessTitle": "Allow access to your media",
+  "libraryAccessBody": "Clean Gallery needs to read your photos and videos to show them. They never leave your device.",
+  "libraryAccessButton": "Allow access",
+  "libraryLimitedBanner": "Only some of your media is shared.",
+  "libraryLimitedAction": "Allow all",
+  "libraryLoadError": "Your media couldn't be loaded.",
+  "libraryRetry": "Retry",
+
+  "albumsAllMedia": "All media",
+  "albumsFavorites": "Favorites",
+  "albumsFolders": "Folders",
+  "albumItemCount": "{count, plural, =0{Empty} =1{1 item} other{{count} items}}",
+  "@albumItemCount": {"placeholders": {"count": {"type": "int"}}},
+
+  "timelineToday": "Today",
+  "timelineYesterday": "Yesterday",
+
+  "mediaPhotoLabel": "Photo, {date}",
+  "@mediaPhotoLabel": {"placeholders": {"date": {"type": "String"}}},
+  "mediaVideoLabel": "Video, {duration}, {date}",
+  "@mediaVideoLabel": {"placeholders": {"duration": {"type": "String"}, "date": {"type": "String"}}},
+  "mediaFavoriteLabel": "Favorite",
+
+  "viewerLoadError": "This item can't be displayed.",
+  "videoPlay": "Play",
+  "videoPause": "Pause",
+  "videoMute": "Mute",
+  "videoUnmute": "Unmute",
+  "videoRotate": "Rotate",
+  "videoReplay": "Replay",
+
   "homePlaceholderTitle": "Coming soon",
   "homePlaceholderBody": "This section is built in a later milestone."
 }

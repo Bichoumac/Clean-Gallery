@@ -2,7 +2,7 @@
 
 Android-specific configuration: SDK levels, permissions and the native Kotlin MethodChannel. Everything here is reached from Dart through interfaces in `lib/platform/`, so the rest of the app stays platform-agnostic.
 
-Last updated: 2026-10-25 — Milestone M0
+Last updated: 2026-10-25 — Milestone M1
 
 ## SDK levels
 
@@ -46,6 +46,25 @@ Runtime requests go through `PermissionService` ([interface](../lib/platform/per
 ### Partial access (Android 14+)
 
 When the user chooses "Select photos" in the system prompt, `permission_handler` reports the photo permission as `limited`. `PermissionService` maps that to `MediaAccess.limited`; onboarding then explains it and offers a button to the app's settings to grant full access.
+
+## Media access
+
+`AndroidMediaSource` ([android_media_source.dart](../lib/platform/android/android_media_source.dart)) implements `MediaSource` with `photo_manager` 3.12 ([ADR 0009](decisions/0009-media-access.md)).
+
+| Selection | MediaStore query |
+| --- | --- |
+| Photos tab | "All" path, images only, by creation date, newest first |
+| Videos tab | "All" path, videos only |
+| All media | "All" path, images and videos |
+| Favorites | Images and videos with `IS_FAVORITE = 1` (Android 11+ column) |
+| Folder | The `photo_manager` path with that id (a MediaStore bucket) |
+
+- File names come from `DISPLAY_NAME` (`needTitle: true`).
+- `photo_manager`'s own permission check is disabled; permissions are handled by `PermissionService`.
+- Thumbnails are rendered by Android (`thumbnailDataWithSize`) at 256 or 512 px, JPEG quality 85.
+- Full images are decoded from the file, at most 4,096 px on the longest side.
+- Videos play from `getMediaUrl()`, a `content://` URI given to `video_player`.
+- `photo_manager`'s manifest only adds `READ_EXTERNAL_STORAGE` up to Android 12, like ours.
 
 ## Native channel `clean_gallery/platform`
 

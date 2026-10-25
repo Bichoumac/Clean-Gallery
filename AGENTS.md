@@ -2,7 +2,7 @@
 
 Entry point for AI assistants working on Clean Gallery. Read this first, then follow the links to `docs/` for depth.
 
-Last updated: 2026-10-25 — Milestone M0
+Last updated: 2026-10-25 — Milestone M1
 
 ## Project summary
 
@@ -37,7 +37,8 @@ Generated files are not committed. After editing a class annotated with `@DriftD
 | `lib/analysis/` | Detection engine, pure Dart | adding an algorithm (dates, hashes, grouping). No Flutter imports. |
 | `lib/domain/` | Entities and enums shared by all layers | adding a business concept. No Flutter imports. |
 | `lib/core/` | Theme, database, router, providers, config | adding app-wide infrastructure. |
-| `lib/platform/` | Interfaces (`PlatformBridge`, `PermissionService`, …) | adding a platform capability: interface here, implementation in `platform/android/`. |
+| `lib/core/media/` | Media list providers, thumbnail widget, formatting | adding media code shared by several features. |
+| `lib/platform/` | Interfaces (`MediaSource`, `PlatformBridge`, `PermissionService`, …) | adding a platform capability: interface here, implementation in `platform/android/`. |
 | `lib/platform/android/` | Android implementations | implementing an interface for Android. |
 | `lib/features/<feature>/` | Screens, controllers, feature logic | building a user-facing feature. |
 | `lib/l10n/` | ARB files (`app_en.arb`, `app_fr.arb`) | adding any user-visible string. |

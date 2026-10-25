@@ -2,7 +2,7 @@
 
 Clean Gallery uses a layered architecture organized by feature. Platform-specific code sits behind interfaces, so the UI and the analysis engine never depend on Android directly. This file describes the layers, where code lives, how data flows and which dependencies are allowed.
 
-Last updated: 2026-10-25 — Milestone M0
+Last updated: 2026-10-25 — Milestone M1
 
 ## Layers
 
@@ -52,13 +52,16 @@ The brief lists `core/`, `analysis/`, `platform/` and `features/` under `lib/`. 
 | [lib/core/providers.dart](../lib/core/providers.dart) | App-wide providers: database, settings, platform services. |
 | [lib/core/config/app_config.dart](../lib/core/config/app_config.dart) | Build-time configuration (ad unit IDs). |
 | [lib/core/database/](../lib/core/database/) | Tables, database class, settings repository. See [database.md](database.md). |
-| [lib/core/router/](../lib/core/router/) | Routes, redirect rules, five-tab shell, `CompactNavBar`, `TabPage`. |
+| [lib/core/router/](../lib/core/router/) | Routes (`AppRoutes`, `AlbumRoutes`, `ViewerArgs`), redirect rules, five-tab shell, `CompactNavBar`, `TabPage`. |
+| [lib/core/media/](../lib/core/media/) | Media layer shared by library and viewer: `mediaListProvider` and related providers, `MediaThumbnail`, date and duration formatting. |
 | [lib/core/theme/app_theme.dart](../lib/core/theme/app_theme.dart) | Theme and brand palette. See [design.md](design.md). |
-| [lib/domain/enums.dart](../lib/domain/enums.dart) | `MediaKind`, `DateSource`, `DuplicateKind`, `SwipeAction`. |
+| [lib/domain/](../lib/domain/) | `MediaItem`, `Album`, `MediaSelection`, timeline grouping, enums (`MediaKind`, `DateSource`, `DuplicateKind`, `SwipeAction`). |
 | [lib/analysis/](../lib/analysis/) | Analysis engine; currently only `analysisVersion`. |
-| [lib/platform/](../lib/platform/) | `PlatformBridge`, `PermissionService` interfaces. |
+| [lib/platform/](../lib/platform/) | `MediaSource`, `PlatformBridge`, `PermissionService` interfaces. |
 | [lib/platform/android/](../lib/platform/android/) | Android implementations. See [platform-android.md](platform-android.md). |
 | [lib/features/onboarding/](../lib/features/onboarding/) | Onboarding. See [features/onboarding.md](features/onboarding.md). |
+| [lib/features/library/](../lib/features/library/) | Photos and Videos timelines, Albums tab, album pages. See [features/library.md](features/library.md). |
+| [lib/features/viewer/](../lib/features/viewer/) | Full-screen viewer and video player. See [features/viewer.md](features/viewer.md). |
 | [lib/features/stats/](../lib/features/stats/) | Stats tab (layout only until M5). |
 | [assets/fonts/manrope/](../assets/fonts/manrope/) | Bundled Manrope variable font and its license. |
 | [lib/l10n/](../lib/l10n/) | ARB files for English and French. |
@@ -108,11 +111,13 @@ The flag is read before the first frame, so the router chooses the first screen 
 
 | Tab | Route | Content | Milestone |
 | --- | --- | --- | --- |
-| Photos | `/photos` | Photo timeline | M1 |
-| Videos | `/videos` | Video timeline | M1 |
-| Albums | `/albums` | All media, Favorites, Trash, folders | M1–M2 |
+| Photos | `/photos` | Photo timeline | M1 ✓ |
+| Videos | `/videos` | Video timeline | M1 ✓ |
+| Albums | `/albums`, `/albums/<key>?name=` | All media, Favorites, folders (Trash in M2) | M1 ✓ |
 | Stats | `/stats` | Reclaimable space, entry to cleanup tools | Layout in M0, values in M5 |
 | Settings | `/settings` | Settings | M2 |
+
+The viewer (`/viewer`) sits above the tabs, without the navigation bar.
 
 Defined in [app_router.dart](../lib/core/router/app_router.dart) (`AppRoutes`); the order must match the destinations in [home_shell.dart](../lib/core/router/home_shell.dart). Why five tabs: [ADR 0008](decisions/0008-navigation-and-visual-identity.md).
 

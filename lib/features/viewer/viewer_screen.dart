@@ -1,0 +1,172 @@
+import 'dart:async';
+
+import 'package:clean_gallery/core/media/media_formatting.dart';
+import 'package:clean_gallery/core/media/media_providers.dart';
+import 'package:clean_gallery/core/router/app_router.dart';
+import 'package:clean_gallery/core/theme/app_theme.dart';
+import 'package:clean_gallery/domain/media_item.dart';
+import 'package:clean_gallery/features/viewer/video_page.dart';
+import 'package:clean_gallery/features/viewer/zoomable_image.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+/// Full-screen viewer: swipe between the items of a selection.
+///
+/// Opened from a grid with [ViewerArgs]; reads the same media list as the
+/// grid, so no item is loaded twice. Tapping toggles the controls and the
+/// system bars. Always dark, whatever the app theme, so photos stand out.
+class ViewerScreen extends ConsumerStatefulWidget {
+  /// Creates the viewer.
+  const ViewerScreen({required this.args, super.key});
+
+  /// Selection to browse and item to open first.
+  final ViewerArgs args;
+
+  @override
+  ConsumerState<ViewerScreen> createState() => _ViewerScreenState();
+}
+
+class _ViewerScreenState extends ConsumerState<ViewerScreen> {
+  late final _pages = PageController(initialPage: widget.args.initialIndex);
+  late int _index = widget.args.initialIndex;
+  bool _controlsVisible = true;
+  bool _zoomed = false;
+
+  @override
+  void dispose() {
+    _pages.dispose();
+    // Leave the viewer with system bars and free rotation restored.
+    unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
+    unawaited(SystemChrome.setPreferredOrientations(const []));
+    super.dispose();
+  }
+
+  void _toggleControls() {
+    setState(() => _controlsVisible = !_controlsVisible);
+    unawaited(
+      SystemChrome.setEnabledSystemUIMode(
+        _controlsVisible
+            ? SystemUiMode.edgeToEdge
+            : SystemUiMode.immersiveSticky,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final items =
+        ref.watch(mediaListProvider(widget.args.selection)).value ??
+        const <MediaItem>[];
+    final index = items.isEmpty ? 0 : _index.clamp(0, items.length - 1);
+
+    return Theme(
+      data: AppTheme.dark(),
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light,
+        child: Scaffold(
+          backgroundColor: Colors.black,
+          body: items.isEmpty
+              ? const Center(child: CircularProgressIndicator())
+              : Stack(
+                  children: [
+                    PageView.builder(
+                      controller: _pages,
+                      physics: _zoomed
+                          ? const NeverScrollableScrollPhysics()
+                          : const PageScrollPhysics(),
+                      itemCount: items.length,
+                      onPageChanged: (i) => setState(() {
+                        _index = i;
+                        _zoomed = false;
+                      }),
+                      itemBuilder: (context, i) {
+                        final item = items[i];
+                        return item.isVideo
+                            ? VideoPage(
+                                key: ValueKey(item.id),
+                                item: item,
+                                isCurrent: i == index,
+                                controlsVisible: _controlsVisible,
+                                onTap: _toggleControls,
+                              )
+                            : ZoomableImage(
+                                key: ValueKey(item.id),
+                                item: item,
+                                onTap: _toggleControls,
+                                onZoomChanged: (zoomed) =>
+                                    setState(() => _zoomed = zoomed),
+                              );
+                      },
+                    ),
+                    IgnorePointer(
+                      ignoring: !_controlsVisible,
+                      child: AnimatedOpacity(
+                        opacity: _controlsVisible ? 1 : 0,
+                        duration: const Duration(milliseconds: 200),
+                        child: _TopBar(item: items[index]),
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Back button, date and file name over a dark gradient.
+class _TopBar extends StatelessWidget {
+  const _TopBar({required this.item});
+
+  final MediaItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    final fileName = item.fileName;
+    return DecoratedBox(
+      decoration: const BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Colors.black54, Colors.transparent],
+        ),
+      ),
+      child: SafeArea(
+        bottom: false,
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(4, 4, 16, 24),
+          child: Row(
+            children: [
+              const BackButton(color: Colors.white),
+              const SizedBox(width: 4),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      formatMediaDate(context, item.takenAt),
+                      style: textTheme.titleMedium?.copyWith(
+                        color: Colors.white,
+                      ),
+                    ),
+                    if (fileName != null)
+                      Text(
+                        fileName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: textTheme.bodySmall?.copyWith(
+                          color: Colors.white70,
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

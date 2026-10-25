@@ -35,6 +35,38 @@
   "onboardingStart": "Commencer",
   "onboardingPermissionDenied": "Autorisation refusée. Vous pourrez la modifier plus tard dans les réglages.",
 
+  "libraryEmptyPhotos": "Aucune photo pour l'instant",
+  "libraryEmptyVideos": "Aucune vidéo pour l'instant",
+  "libraryEmptyAlbum": "Cet album est vide",
+  "libraryEmptyBody": "Les nouvelles photos et vidéos apparaissent ici automatiquement. Tirez vers le bas pour actualiser.",
+  "libraryAccessTitle": "Autorisez l'accès à vos médias",
+  "libraryAccessBody": "Clean Gallery doit lire vos photos et vidéos pour les afficher. Elles ne quittent jamais votre appareil.",
+  "libraryAccessButton": "Autoriser l'accès",
+  "libraryLimitedBanner": "Seule une partie de vos médias est partagée.",
+  "libraryLimitedAction": "Tout autoriser",
+  "libraryLoadError": "Impossible de charger vos médias.",
+  "libraryRetry": "Réessayer",
+
+  "albumsAllMedia": "Tous les médias",
+  "albumsFavorites": "Favoris",
+  "albumsFolders": "Dossiers",
+  "albumItemCount": "{count, plural, =0{Vide} =1{1 élément} other{{count} éléments}}",
+
+  "timelineToday": "Aujourd'hui",
+  "timelineYesterday": "Hier",
+
+  "mediaPhotoLabel": "Photo, {date}",
+  "mediaVideoLabel": "Vidéo, {duration}, {date}",
+  "mediaFavoriteLabel": "Favori",
+
+  "viewerLoadError": "Impossible d'afficher cet élément.",
+  "videoPlay": "Lire",
+  "videoPause": "Pause",
+  "videoMute": "Couper le son",
+  "videoUnmute": "Activer le son",
+  "videoRotate": "Pivoter",
+  "videoReplay": "Revoir",
+
   "homePlaceholderTitle": "Bientôt disponible",
   "homePlaceholderBody": "Cette section est réalisée dans un jalon ultérieur."
 }

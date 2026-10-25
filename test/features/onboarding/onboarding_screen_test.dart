@@ -1,10 +1,8 @@
-import 'package:clean_gallery/app.dart';
-import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/router/compact_nav_bar.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/fakes.dart';
+import '../../helpers/pump_app.dart';
 
 void main() {
   late FakePermissionService permissions;
@@ -15,22 +13,13 @@ void main() {
     bridge = FakePlatformBridge();
   });
 
-  Future<void> pumpApp(WidgetTester tester, {required bool completed}) async {
-    final db = inMemoryDatabase();
-    addTearDown(db.close);
-    await tester.pumpWidget(
-      ProviderScope(
-        overrides: [
-          appDatabaseProvider.overrideWithValue(db),
-          permissionServiceProvider.overrideWithValue(permissions),
-          platformBridgeProvider.overrideWithValue(bridge),
-          initialOnboardingCompletedProvider.overrideWithValue(completed),
-        ],
-        child: const CleanGalleryApp(),
-      ),
-    );
-    await tester.pumpAndSettle();
-  }
+  Future<void> pumpApp(WidgetTester tester, {required bool completed}) =>
+      pumpTestApp(
+        tester,
+        onboardingCompleted: completed,
+        permissions: permissions,
+        bridge: bridge,
+      );
 
   testWidgets('first launch shows the privacy promise', (tester) async {
     await pumpApp(tester, completed: false);

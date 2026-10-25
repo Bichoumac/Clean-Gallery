@@ -2,7 +2,7 @@
 
 Visual identity of Clean Gallery: palette, typography, shapes and navigation. The goal is an app that feels distinct from stock Google apps while staying calm and uncluttered.
 
-Last updated: 2026-10-25 — Milestone M0
+Last updated: 2026-10-25 — Milestone M1
 
 Source: [app_theme.dart](../lib/core/theme/app_theme.dart), [compact_nav_bar.dart](../lib/core/router/compact_nav_bar.dart). Why this direction was chosen: [ADR 0008](decisions/0008-navigation-and-visual-identity.md).
 
@@ -75,4 +75,26 @@ A floating pill, 56 dp high, 12 dp above the system navigation area, centered, w
 
 ## Page layout
 
-Tabs use `TabPage`: 20 dp side margins, a `displaySmall` title 24 dp below the status bar, then content. There is no app bar.
+Tabs use `TabPage`: 20 dp side margins, a `displaySmall` title 24 dp below the status bar, then content. There is no app bar. Album pages use a `headlineMedium` title after a back button.
+
+## Media grid
+
+| Element | Spec |
+| --- | --- |
+| Grid | Edge to edge, 2 dp gaps, square cells, 2–6 columns (default 4) |
+| Section header | `titleMedium`, 20 dp side margin; "Today", "Yesterday", then full dates; months from 5 columns |
+| Video badge | Bottom right, black 55 % pill, play icon and duration in white, 11 sp bold |
+| Favorite badge | Bottom left, same pill with a heart |
+| Loading | Grey `surfaceContainerHigh` squares (skeleton) |
+| Empty and error states | 88 dp rounded-square icon, `titleLarge` title, secondary text, optional button |
+
+## Album tiles
+
+Two columns, 12 dp apart. Cover with 24 dp radius, then the name (`titleSmall`) and the count (`bodySmall`, secondary color). Virtual albums (Favorites) show a lime badge with their icon on the cover.
+
+## Viewer
+
+- Always dark, black background, whatever the app theme.
+- Top bar over a black-to-transparent gradient: back button, date (`titleMedium`), file name (`bodySmall`, 70 % white).
+- Tapping hides the bars and the system UI (immersive mode).
+- Video controls: 72 dp lime play button in the center; at the bottom, position, slider, duration, mute and rotate over a gradient.

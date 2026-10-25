@@ -2,7 +2,7 @@
 
 How Clean Gallery is tested: test layers, commands, fakes and fixtures. Every milestone adds tests for what it builds; a milestone is not done until the suite passes.
 
-Last updated: 2026-10-25 — Milestone M0
+Last updated: 2026-10-25 — Milestone M1
 
 ## Commands
 
@@ -35,6 +35,8 @@ Shared fakes live in [test/helpers/fakes.dart](../test/helpers/fakes.dart):
 | `inMemoryDatabase()` | `AppDatabase.open()` | Fresh SQLite database in memory per test. |
 | `FakePermissionService` | `PermissionService` | Returns a configurable `MediaAccess`; counts requests. |
 | `FakePlatformBridge` | `PlatformBridge` | Records calls; never touches Android. |
+| `FakeMediaSource` | `MediaSource` | In-memory items and folders; records loaded ranges; every image is a 1 × 1 PNG. |
+| `testItem(id, …)` | — | Builds a photo or video `MediaItem` with a given date. |
 
 Fakes are injected by overriding providers in a `ProviderScope` or `ProviderContainer`. Prefer hand-written fakes for interfaces that are used in many tests; use `mocktail` for one-off interactions.
 
@@ -47,6 +49,11 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [onboarding_screen_test.dart](../test/features/onboarding/onboarding_screen_test.dart) | Privacy promise shown, full flow, skip, returning users skip onboarding. |
 | [dependency_rules_test.dart](../test/architecture/dependency_rules_test.dart) | Pure-Dart engine and domain, no direct Android imports in features, no `MANAGE_EXTERNAL_STORAGE`. |
 | [navigation_test.dart](../test/core/router/navigation_test.dart) | Five icon-only tabs, switching tabs, Stats content, 48 dp touch targets. |
+| [timeline_test.dart](../test/domain/timeline_test.dart) | Day and month sections, grid rows, grouping by column count. |
+| [media_providers_test.dart](../test/core/media/media_providers_test.dart) | Chunked loading (first chunk, then the rest), column limits, duration format. |
+| [library_test.dart](../test/features/library/library_test.dart) | Timeline headers, photo/video filters, empty, denied and limited states, Albums and folder pages, opening the viewer, pinch gesture. |
+
+App-level widget tests use `pumpTestApp` ([pump_app.dart](../test/helpers/pump_app.dart)): the whole app on a phone-sized screen (1080 × 2400 px at 3×) with all fakes, so tests see what a user would.
 
 ## Fixtures
 
@@ -84,6 +91,24 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 12 | Kill the app mid-onboarding, relaunch | any | Onboarding restarts from the first page. |
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
+
+### M1 — to verify on a device
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 1 | Photos tab with a real library | Newest first; "Today", "Yesterday", then dates; photos only. |
+| 2 | Videos tab | Videos only, with duration badges. |
+| 3 | Scroll quickly through thousands of items | Smooth, thumbnails fill in fast, no freeze; the end of the library appears as chunks load. |
+| 4 | Pinch out / in on a grid | 2 to 6 columns, one step per gesture; month headers from 5 columns. |
+| 5 | Albums tab | All media and Favorites counts match the system gallery; folders sorted by size. |
+| 6 | Favorites | Same items as the favorites in Google Photos / Samsung Gallery. |
+| 7 | Tap a photo | Flies to full screen; swipe between items; back returns to the same place. |
+| 8 | Pinch and double-tap in the viewer | Zooms; double-tap again fits; no page swipe while zoomed. |
+| 9 | Tap in the viewer | Bars and system UI hide and show. |
+| 10 | Open a video | Plays; pause, seek, mute, rotate work; swiping away pauses it. |
+| 11 | HEIC photo, panorama, very large photo | Displays; no crash or out-of-memory. |
+| 12 | Take a new photo, pull down on Photos | The new photo appears. |
+| 13 | Android 14+ partial access | Only the shared photos, with the "Allow all" banner. |
 
 ### Already checked on a Samsung Galaxy A54, Android 16 (2026-10-25)
 

@@ -1,9 +1,12 @@
 import 'package:clean_gallery/core/router/home_shell.dart';
+import 'package:clean_gallery/domain/album.dart';
+import 'package:clean_gallery/features/library/albums_screen.dart';
+import 'package:clean_gallery/features/library/media_timeline_view.dart';
 import 'package:clean_gallery/features/onboarding/onboarding_controller.dart';
 import 'package:clean_gallery/features/onboarding/onboarding_screen.dart';
 import 'package:clean_gallery/features/stats/stats_screen.dart';
+import 'package:clean_gallery/features/viewer/viewer_screen.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -21,7 +24,7 @@ abstract final class AppRoutes {
   /// Videos tab: timeline of videos.
   static const videos = '/videos';
 
-  /// Albums tab: folders, plus the Favorites and Trash virtual albums.
+  /// Albums tab: All media, Favorites and device folders.
   static const albums = '/albums';
 
   /// Stats tab: space that cleaning could free, and entry to cleanup tools.
@@ -29,6 +32,44 @@ abstract final class AppRoutes {
 
   /// Settings tab.
   static const settings = '/settings';
+
+  /// Full-screen viewer, above the tabs. Requires [ViewerArgs] as `extra`.
+  static const viewer = '/viewer';
+}
+
+/// Album pages under the Albums tab: `/albums/<key>?name=<title>`.
+abstract final class AlbumRoutes {
+  /// Key of the "All media" virtual album.
+  static const allKey = 'all';
+
+  /// Key of the "Favorites" virtual album.
+  static const favoritesKey = 'favorites';
+
+  /// Location of the album with [key] (a virtual key or a folder id).
+  static String location(String key, String name) => Uri(
+    path: '${AppRoutes.albums}/${Uri.encodeComponent(key)}',
+    queryParameters: {'name': name},
+  ).toString();
+
+  /// Selection shown by the album with [key].
+  static MediaSelection selectionFor(String key) => switch (key) {
+    allKey => MediaSelection.all,
+    favoritesKey => MediaSelection.favorites,
+    _ => MediaSelection(albumId: key),
+  };
+}
+
+/// What the viewer opens: a selection and the index of the first item.
+@immutable
+final class ViewerArgs {
+  /// Creates viewer arguments.
+  const ViewerArgs({required this.selection, required this.initialIndex});
+
+  /// Items to swipe through.
+  final MediaSelection selection;
+
+  /// Index in [selection] of the item shown first.
+  final int initialIndex;
 }
 
 /// The application router.
@@ -54,6 +95,11 @@ GoRouter appRouter(Ref ref) {
       final onOnboarding = state.matchedLocation == AppRoutes.onboarding;
       if (!completed && !onOnboarding) return AppRoutes.onboarding;
       if (completed && onOnboarding) return AppRoutes.photos;
+      if (state.matchedLocation == AppRoutes.viewer &&
+          state.extra is! ViewerArgs) {
+        // A viewer location without arguments (e.g. after process death).
+        return AppRoutes.photos;
+      }
       return null;
     },
     routes: [
@@ -61,14 +107,59 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.onboarding,
         builder: (context, state) => const OnboardingScreen(),
       ),
+      GoRoute(
+        path: AppRoutes.viewer,
+        pageBuilder: (context, state) => CustomTransitionPage(
+          child: ViewerScreen(args: state.extra! as ViewerArgs),
+          transitionsBuilder: (context, animation, _, child) =>
+              FadeTransition(opacity: animation, child: child),
+        ),
+      ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>
             HomeShell(navigationShell: navigationShell),
         // Order must match the destinations of HomeShell.
         branches: [
-          _tab(AppRoutes.photos, (l10n) => l10n.navPhotos),
-          _tab(AppRoutes.videos, (l10n) => l10n.navVideos),
-          _tab(AppRoutes.albums, (l10n) => l10n.navAlbums),
+          _branch(
+            AppRoutes.photos,
+            (context, l10n) => MediaTimelineView(
+              selection: MediaSelection.photos,
+              title: l10n.navPhotos,
+              emptyTitle: l10n.libraryEmptyPhotos,
+            ),
+          ),
+          _branch(
+            AppRoutes.videos,
+            (context, l10n) => MediaTimelineView(
+              selection: MediaSelection.videos,
+              title: l10n.navVideos,
+              emptyTitle: l10n.libraryEmptyVideos,
+            ),
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.albums,
+                builder: (context, state) => const AlbumsScreen(),
+                routes: [
+                  GoRoute(
+                    path: ':key',
+                    builder: (context, state) {
+                      final l10n = AppLocalizations.of(context);
+                      return MediaTimelineView(
+                        selection: AlbumRoutes.selectionFor(
+                          state.pathParameters['key']!,
+                        ),
+                        title: state.uri.queryParameters['name'] ?? '',
+                        emptyTitle: l10n.libraryEmptyAlbum,
+                        showBackButton: true,
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
           StatefulShellBranch(
             routes: [
               GoRoute(
@@ -77,24 +168,27 @@ GoRouter appRouter(Ref ref) {
               ),
             ],
           ),
-          _tab(AppRoutes.settings, (l10n) => l10n.navSettings),
+          _branch(
+            AppRoutes.settings,
+            (context, l10n) => PlaceholderTab(title: l10n.navSettings),
+          ),
         ],
       ),
     ],
   );
 }
 
-/// Branch for a tab that is still a placeholder.
-StatefulShellBranch _tab(
+/// A tab branch with a single page built by [page].
+StatefulShellBranch _branch(
   String path,
-  String Function(AppLocalizations l10n) title,
+  Widget Function(BuildContext context, AppLocalizations l10n) page,
 ) {
   return StatefulShellBranch(
     routes: [
       GoRoute(
         path: path,
         builder: (context, state) =>
-            PlaceholderTab(title: title(AppLocalizations.of(context))),
+            page(context, AppLocalizations.of(context)),
       ),
     ],
   );

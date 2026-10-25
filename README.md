@@ -2,13 +2,13 @@
 
 A photo and video gallery for Android, built with Flutter, with cleanup tools: a virtual folder of likely duplicates, a swipe-to-sort mode and a trash with a configurable retention period. **Your photos never leave your device.**
 
-Last updated: 2026-10-25 — Milestone M0
+Last updated: 2026-10-25 — Milestone M1
 
 The app is free with two small, unobtrusive ad placements, and a single "Remove ads" in-app purchase. Every feature is available to everyone.
 
 ## Status
 
-Milestone **M0 — Foundations** is built: project setup, architecture, database, native module, onboarding and permissions. The main tabs are placeholders. Tests and the debug build pass; on a phone, only startup and the first design have been checked so far. See [docs/progress.md](docs/progress.md) for details and the device checklist.
+Milestone **M1 — Navigation** is built on top of M0: photo and video timelines, albums, pinch-to-zoom grid, full-screen viewer and video playback. Stats and Settings are still placeholders. See [docs/progress.md](docs/progress.md) for what is verified. See [docs/progress.md](docs/progress.md) for details and the device checklist.
 
 ## Features
 
@@ -16,7 +16,7 @@ Milestone **M0 — Foundations** is built: project setup, architecture, database
 | --- | --- | --- |
 | Onboarding | Privacy promise, media and GPS permissions, optional "Media management" | M0 ✓ |
 | Navigation | Five icon-only tabs: Photos, Videos, Albums, Stats, Settings | M0 ✓ (placeholder tabs) |
-| Library | Photo and video timelines, albums, zoomable grid, viewer, video playback | M1 |
+| Library | Photo and video timelines, albums, zoomable grid, viewer, video playback | M1 ✓ |
 | Actions | System favorites, sharing without GPS, multi-select, trash | M2 |
 | Duplicates | Exact duplicates and bursts in a virtual folder | M3 |
 | Similar photos | Perceptual hashing, best-shot suggestion, storage dashboard | M4 |
