@@ -1,0 +1,79 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: "3.47.8"
+
+jobs:
+  flutter:
+    name: Analyze, test, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Generate code
+        run: |
+          dart run build_runner build
+          flutter gen-l10n
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed lib test
+
+      - name: Static analysis
+        run: flutter analyze
+
+      - name: Tests
+        run: flutter test --coverage
+
+      - name: Build debug APK
+        run: flutter build apk --debug
+
+      - name: Build release app bundle
+        # Uses Google's test ad IDs and the debug signing key; see docs/release.md.
+        run: flutter build appbundle --release
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: builds
+          path: |
+            build/app/outputs/flutter-apk/app-debug.apk
+            build/app/outputs/bundle/release/app-release.aab
+
+  docs:
+    name: Documentation lint and links
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Markdown lint
+        uses: DavidAnson/markdownlint-cli2-action@v20
+
+      - name: Check links
+        uses: lycheeverse/lychee-action@v2
+        with:
+          # Offline: checks relative links between repository files only, so
+          # CI does not fail on external sites being down.
+          args: --offline --no-progress --include-fragments "**/*.md"
+          fail: true
