@@ -12,6 +12,7 @@ Last updated: 2026-10-25 — Milestone M2
 | [../AGENTS.md](../AGENTS.md) | Entry point for AI assistants: commands, architecture map, rules. |
 | [../CHANGELOG.md](../CHANGELOG.md) | Changes per milestone. |
 | [progress.md](progress.md) | Milestone status, known issues, next steps. |
+| [working-notes.md](working-notes.md) | Where to pick up, working agreements with the product owner, development machine notes. |
 
 ## Technical reference
 

@@ -74,6 +74,7 @@ Full details and diagrams: [docs/architecture.md](docs/architecture.md).
 
 ## Where to read more
 
+- [docs/working-notes.md](docs/working-notes.md): **read first** — where to pick up, how to work with the product owner, privacy during device tests, development machine notes.
 - [docs/README.md](docs/README.md): documentation index.
 - [docs/progress.md](docs/progress.md): what is done and what is next.
 - [docs/architecture.md](docs/architecture.md): layers and dependency rules.
