@@ -20,7 +20,12 @@ Last updated: 2026-10-25 — Milestone M2
 - Settings read before the first frame; sort of each timeline saved across launches.
 - Native channel methods `setFavorite`, `deleteMedia`, `share`; `albumSummaries` skips trashed items.
 - Android dependencies `androidx.exifinterface` 1.4.2 and `androidx.core` 1.19.1; `FileProvider` for shared copies.
-- Tests: trash repository, settings, trash flows, selection, settings screen; `testApp` helper that closes Drift streams (99 tests).
+- Tests: trash repository, settings, trash flows, selection, settings screen; `testApp` helper that closes Drift streams (101 tests).
+
+### Changed
+
+- Trash, undo and favorites no longer reload lists: the trash and favorite changes are applied in memory (`visibleMediaListProvider`, `favoriteOverridesProvider`); hearts switch at once and switch back if the request is declined.
+- Grid layout memoized; selection driven by a `ValueNotifier` so a tap rebuilds only visible cells; date formats cached.
 
 ### Fixed
 

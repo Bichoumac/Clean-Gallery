@@ -1,6 +1,7 @@
 import 'package:clean_gallery/core/media/media_providers.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
+import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -36,15 +37,38 @@ final class MediaActions {
 
   /// Marks [items] as favorites, or not, in the system gallery. Returns
   /// `false` when the user declined the system prompt.
+  ///
+  /// The heart switches at once (optimistic update) and switches back if
+  /// the request is declined or fails; lists are not reloaded.
   Future<bool> setFavorite(
     List<MediaItem> items, {
     required bool favorite,
   }) async {
-    final done = await _ref
-        .read(platformBridgeProvider)
-        .setFavorite(items, favorite: favorite);
-    if (done) _refreshLists();
-    return done;
+    final ids = [for (final item in items) item.id];
+    final overrides = _ref.read(favoriteOverridesProvider.notifier)
+      ..set(ids, favorite: favorite);
+    try {
+      final done = await _ref
+          .read(platformBridgeProvider)
+          .setFavorite(items, favorite: favorite);
+      if (done) {
+        // The Favorites album and its count change; reload only those.
+        _ref
+          ..invalidate(mediaCountProvider)
+          ..invalidate(albumCoverProvider)
+          ..invalidate(
+            mediaListProvider(
+              _ref.read(viewSelectionProvider(MediaSelection.favorites)),
+            ),
+          );
+      } else {
+        overrides.clear(ids);
+      }
+      return done;
+    } on Object {
+      overrides.clear(ids);
+      rethrow;
+    }
   }
 
   /// Deletes [items] from the device for good and forgets them in the

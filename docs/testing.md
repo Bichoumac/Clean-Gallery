@@ -72,6 +72,15 @@ From M3, the analysis engine is tested against a small photo set in `test/fixtur
 
 ## Manual verification on a device
 
+**Test speed and fluidity on a release build**, never on a debug build: debug builds run without ahead-of-time compilation and are several times slower. For the Galaxy A54:
+
+```sh
+flutter build apk --release --target-platform android-arm64
+adb install -r build/app/outputs/flutter-apk/app-release.apk
+```
+
+Release builds are signed with the debug key for now (M9), so they install over a debug build and keep the app data.
+
 Automated tests use fakes and never touch Android. The items below can only be checked on a real phone or a working emulator. Each milestone adds its own items; tick them in the pull request or commit that verifies them, with the device and Android version used.
 
 Install the debug build with:

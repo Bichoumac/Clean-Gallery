@@ -50,7 +50,10 @@ flowchart TD
 | `trash_entries`, `assets` tables | [database.md](../database.md#trash_entries) | One entry per item; a minimal asset row is inserted with it. |
 | `trash_retention_days`, `last_purge_check` settings | [database.md](../database.md#settings) | Retention and once-a-day check. |
 
-Trashed items are hidden by MediaStore itself (`_id NOT IN (…)` in every query, folder summaries included), so counts, order and covers stay right ([platform-android.md](../platform-android.md#media-access)).
+Trashed items are hidden in two ways:
+
+- **Timelines and the viewer** filter them out of the loaded list in memory (`visibleMediaListProvider`), so trashing and undoing are instant and never query MediaStore.
+- **Album counts and covers** exclude them in the MediaStore query itself (`_id NOT IN (…)`, folder summaries included), so the Albums tab stays right ([platform-android.md](../platform-android.md#media-access)).
 
 ## Edge cases and error handling
 

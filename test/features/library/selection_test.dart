@@ -114,4 +114,34 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(SelectionBar), findsNothing);
   });
+
+  testApp('favorite and trash do not reload the lists', (tester) async {
+    final media = source();
+    await pumpTestApp(tester, media: media);
+    final loadsBefore = media.loads.length;
+
+    await tester.longPress(thumb(0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Add to favorites'));
+    await tester.pumpAndSettle();
+    await tester.longPress(thumb(1));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Move to trash'));
+    await tester.pumpAndSettle();
+
+    expect(media.loads.length, loadsBefore);
+    final first = tester.widget<MediaThumbnail>(thumb(0));
+    expect(first.item.isFavorite, isTrue);
+  });
+
+  testApp('a declined favorite switches back', (tester) async {
+    final bridge = FakePlatformBridge()..acceptRequests = false;
+    await pumpTestApp(tester, media: source(), bridge: bridge);
+    await tester.longPress(thumb(0));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Add to favorites'));
+    await tester.pumpAndSettle();
+    expect(tester.widget<MediaThumbnail>(thumb(0)).item.isFavorite, isFalse);
+    expect(find.text('Favorites were not changed.'), findsOneWidget);
+  });
 }

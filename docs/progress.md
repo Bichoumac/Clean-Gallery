@@ -34,8 +34,8 @@ Last updated: 2026-10-25 — Milestone M2
 | Check | Result |
 | --- | --- |
 | `flutter analyze` | No issues |
-| `flutter test --timeout 60s` | 99 tests pass |
-| Device | Not yet; checklist in [testing.md](testing.md#m2--to-verify-on-a-device) |
+| `flutter test --timeout 60s` | 101 tests pass |
+| Galaxy A54, first test (debug build) | Favorites, drag selection, emptying the trash, sharing, theme, language and columns OK. Favorites slow to show and the app generally laggy: fixed since (no list reload after actions, memoized grid, release build for testing). |
 
 ### Open question for the product owner
 

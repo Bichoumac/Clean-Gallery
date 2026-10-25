@@ -29,35 +29,29 @@ const maxGridColumns = 6;
 Future<MediaAccess> mediaAccess(Ref ref) =>
     ref.watch(permissionServiceProvider).mediaAccess();
 
-/// All items of a selection, newest first, loaded in chunks.
+/// All items of a selection as MediaStore returns them, loaded in chunks.
 ///
 /// The state grows as chunks arrive. Invalidate it to reload, e.g. on
-/// pull-to-refresh.
+/// pull-to-refresh. Screens read [visibleMediaListProvider], which applies
+/// the trash and pending favorite changes in memory.
 @riverpod
 class MediaList extends _$MediaList {
   @override
   Future<List<MediaItem>> build(MediaSelection selection) async {
     final source = ref.watch(mediaSourceProvider);
-    // Rebuilt whenever the trash changes, so trashed items disappear.
-    final hidden = await ref.watch(trashedIdsProvider.future);
-    final total = await source.count(selection, hidden: hidden);
+    final total = await source.count(selection);
     final first = await source.load(
       selection,
       start: 0,
       end: math.min(mediaChunkSize, total),
-      hidden: hidden,
     );
     if (total > mediaChunkSize) {
-      unawaited(_loadRemaining(first, total, hidden));
+      unawaited(_loadRemaining(first, total));
     }
     return first;
   }
 
-  Future<void> _loadRemaining(
-    List<MediaItem> first,
-    int total,
-    Set<String> hidden,
-  ) async {
+  Future<void> _loadRemaining(List<MediaItem> first, int total) async {
     final source = ref.read(mediaSourceProvider);
     var items = first;
     for (var start = mediaChunkSize; start < total; start += mediaChunkSize) {
@@ -65,13 +59,63 @@ class MediaList extends _$MediaList {
         selection,
         start: start,
         end: math.min(start + mediaChunkSize, total),
-        hidden: hidden,
       );
       if (!ref.mounted) return;
       items = [...items, ...chunk];
       state = AsyncData(items);
     }
   }
+}
+
+/// Favorite changes made in the app, by item id, applied before MediaStore
+/// is reloaded. Lets the heart switch at once instead of after reloading
+/// every list.
+@Riverpod(keepAlive: true)
+class FavoriteOverrides extends _$FavoriteOverrides {
+  @override
+  Map<String, bool> build() => const {};
+
+  /// Records [favorite] for [ids].
+  void set(Iterable<String> ids, {required bool favorite}) {
+    state = {...state, for (final id in ids) id: favorite};
+  }
+
+  /// Forgets the changes for [ids], e.g. when the user declined them.
+  void clear(Iterable<String> ids) {
+    state = {...state}..removeWhere((id, _) => ids.contains(id));
+  }
+}
+
+/// What screens show for a selection: [mediaListProvider] without trashed
+/// items, with favorite changes applied. Loading and error states are
+/// passed through, and each new chunk is applied as it arrives.
+///
+/// Computed in memory, so trashing, undoing or favoriting never queries
+/// MediaStore again; the order stays the same, which keeps viewer indexes in
+/// sync with the grid.
+@riverpod
+AsyncValue<List<MediaItem>> visibleMediaList(
+  Ref ref,
+  MediaSelection selection,
+) {
+  final trashed = ref.watch(trashedIdsProvider).value ?? const <String>{};
+  final favorites = ref.watch(favoriteOverridesProvider);
+  final onlyFavorites = selection.filter == MediaFilter.favorites;
+  return ref.watch(mediaListProvider(selection)).whenData((items) {
+    if (trashed.isEmpty && favorites.isEmpty) return items;
+    final visible = <MediaItem>[];
+    for (final item in items) {
+      if (trashed.contains(item.id)) continue;
+      final favorite = favorites[item.id];
+      if (favorite == null) {
+        visible.add(item);
+      } else if (favorite || !onlyFavorites) {
+        visible.add(item.copyWith(isFavorite: favorite));
+      }
+      // Unfavorited here: leaves the Favorites album at once.
+    }
+    return visible;
+  });
 }
 
 /// Device folders that contain media, largest first.

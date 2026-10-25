@@ -59,7 +59,7 @@ Every query is a custom SQL filter built from the `MediaSelection` ([ADR 0012](d
 | Favorites | `AND is_favorite = 1` (Android 11+ column) |
 | Capture date | `CASE WHEN datetaken > 0 THEN datetaken / 1000 ELSE date_added END` (seconds), as `photo_manager` computes `createDateTime` |
 | Date range | `AND <capture date> >= start AND <capture date> < end` |
-| Trash | `AND _id NOT IN (…)`, ids inlined (numbers) to stay clear of SQLite's 999-parameter limit on Android 11 |
+| Trash (counts, covers, folder summaries) | `AND _id NOT IN (…)`, ids inlined (numbers) to stay clear of SQLite's 999-parameter limit on Android 11. Timelines filter trashed items in memory instead. |
 | Sort | `<capture date>`, `LOWER(_display_name)`, `_size` or `duration`, then capture date (newest first) and `_id` as tie-breakers |
 | Folder | The `photo_manager` path with that id (a MediaStore bucket), with the same filter. Folder paths are listed once per filter and cached until the Albums tab reloads. |
 

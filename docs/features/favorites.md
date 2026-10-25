@@ -13,7 +13,7 @@ Read and write MediaStore's `IS_FAVORITE` flag, so favorites follow the user acr
 1. **Viewer**: heart button in the top bar toggles the current item.
 2. **Selection**: heart button in the selection bar. If every selected item is already a favorite, it removes them; otherwise it adds them all.
 3. Android shows one confirmation for the whole batch, or none when the app has "Media management".
-4. Lists reload and show the new hearts; declining shows "Favorites were not changed."
+4. The heart switches **at once** (optimistic update through `favoriteOverridesProvider`); if the user declines or the request fails, it switches back and "Favorites were not changed." is shown. Only the Favorites album and album counts reload.
 
 ## Screens and widgets
 
@@ -28,7 +28,7 @@ Read and write MediaStore's `IS_FAVORITE` flag, so favorites follow the user acr
 
 - `MediaActions.setFavorite` → `PlatformBridge.setFavorite` → native `setFavorite` (`MediaStore.createFavoriteRequest`), see [platform-android.md](../platform-android.md#native-channel-clean_galleryplatform).
 - Reading: the `IS_FAVORITE` column in every MediaStore query; the Favorites album filters on it.
-- After a change, media lists, album counts and covers are invalidated and reload.
+- After a change, no list reloads: the change is applied in memory by `visibleMediaListProvider`. The Favorites album list, counts and covers are refreshed.
 
 ## Edge cases and error handling
 
@@ -38,7 +38,7 @@ Read and write MediaStore's `IS_FAVORITE` flag, so favorites follow the user acr
 
 ## Tests
 
-- [selection_test.dart](../../test/features/library/selection_test.dart): favoriting a selection sends one request with the selected ids.
+- [selection_test.dart](../../test/features/library/selection_test.dart): favoriting a selection sends one request with the selected ids; the heart switches without reloading lists; a declined request switches it back.
 - [library_test.dart](../../test/features/library/library_test.dart): Favorites album count.
 
 ## Known limitations / future work

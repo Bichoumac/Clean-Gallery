@@ -39,6 +39,11 @@ Widget: [fast_scroller.dart](../../lib/features/library/fast_scroller.dart).
 
 ## Performance
 
+- **Actions never reload lists.** Screens read `visibleMediaListProvider`, which applies the trash and in-app favorite changes to the loaded list in memory; MediaStore is queried again only on pull-to-refresh or after a permanent deletion. (Before this, every trash, undo or favorite reloaded every list, which felt like latency after each action.)
+- **The grid layout is memoized**: sections, rows and offsets are recomputed only when the list, column count, order, text size or width change.
+- **Selection is a `ValueNotifier`**: a tap rebuilds the visible cells and the selection bar, not the grid.
+- **Date formats are cached** by pattern and locale; each thumbnail formats a date for its screen reader label.
+
 - Every row has a known height (date headers a fixed height growing with the text size, item rows one cell), so the grid is a `SliverVariedExtentList`: jumping far with the thumb never lays out the rows in between.
 - Thumbnails one screen above and below are prefetched (`scrollCacheExtent`).
 - Flutter's image cache holds up to 2,000 images / 200 MB, so scrolling back does not reload thumbnails.
@@ -101,7 +106,9 @@ flowchart TD
 | --- | --- | --- |
 | `MediaSelection`, `Album`, `MediaItem` | [album.dart](../../lib/domain/album.dart), [media_item.dart](../../lib/domain/media_item.dart) | What to show, and the items. |
 | `groupByDate`, `buildRows` | [timeline.dart](../../lib/domain/timeline.dart) | Pure-Dart grouping into sections and grid rows. |
-| `mediaListProvider(selection)` | [media_providers.dart](../../lib/core/media/media_providers.dart) | All items of a selection, loaded by chunks of 1,000. Shared with the viewer. |
+| `mediaListProvider(selection)` | [media_providers.dart](../../lib/core/media/media_providers.dart) | All items of a selection as MediaStore returns them, loaded by chunks of 1,000. |
+| `visibleMediaListProvider(selection)` | same | What grids and the viewer show: the list without trashed items, with in-app favorite changes. |
+| `favoriteOverridesProvider` | same | Favorite changes not yet reloaded from MediaStore. |
 | `albumsProvider`, `mediaCountProvider`, `albumCoverProvider` | same | Albums tab data. Folders come with their count and cover; the count and cover providers serve the virtual albums (All media, Favorites). |
 | `gridColumnsProvider` | same | Column count (2–6), shared by all grids; default 4. |
 | `viewSelectionProvider(base)` | same | Sort and date range chosen for one tab or album. |

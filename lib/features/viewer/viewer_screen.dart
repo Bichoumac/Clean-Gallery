@@ -78,10 +78,12 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
   @override
   Widget build(BuildContext context) {
     final items =
-        ref.watch(mediaListProvider(widget.args.selection)).value ??
+        ref.watch(visibleMediaListProvider(widget.args.selection)).value ??
         const <MediaItem>[];
     final index = items.isEmpty ? 0 : _index.clamp(0, items.length - 1);
-    final loaded = ref.watch(mediaListProvider(widget.args.selection)).hasValue;
+    final loaded = ref
+        .watch(visibleMediaListProvider(widget.args.selection))
+        .hasValue;
     if (loaded && items.isEmpty && !_closing) {
       // Everything was moved to the trash: nothing left to show.
       _closing = true;

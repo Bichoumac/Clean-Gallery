@@ -76,7 +76,7 @@ class MediaTimelineView extends ConsumerWidget {
     }
 
     final shown = ref.watch(viewSelectionProvider(selection));
-    final items = ref.watch(mediaListProvider(shown));
+    final items = ref.watch(visibleMediaListProvider(shown));
     final columns = ref.watch(gridColumnsProvider);
     final banner = access == MediaAccess.limited
         ? const _LimitedAccessBanner()
@@ -147,8 +147,9 @@ class _TimelineState extends ConsumerState<_Timeline> {
   final _scroll = ScrollController();
   final GlobalKey _headerKey = GlobalKey();
 
-  /// Ids of the selected items; selection mode while not empty.
-  Set<String> _picked = {};
+  /// Ids of the selected items; selection mode while not empty. A notifier,
+  /// so a tap rebuilds the visible cells and the bar, not the whole grid.
+  final _picked = ValueNotifier<Set<String>>({});
 
   /// Selection when the current long-press drag started.
   Set<String> _pickedAtDragStart = {};
@@ -157,10 +158,13 @@ class _TimelineState extends ConsumerState<_Timeline> {
   Offset? _dragPosition;
   Timer? _autoScroll;
 
-  /// Layout of the last build, used to find the item under a finger.
+  /// Layout of the grid, computed once per list, column count, order, text
+  /// size and width; also used to find the item under a finger.
   List<TimelineRow> _rows = const [];
+  List<double> _extents = const [];
   List<double> _offsets = const [];
   double _cell = 0;
+  Object? _layoutKey;
 
   late final SelectionMode _selectionMode = ref.read(
     selectionModeProvider.notifier,
@@ -170,9 +174,9 @@ class _TimelineState extends ConsumerState<_Timeline> {
   void didUpdateWidget(_Timeline oldWidget) {
     super.didUpdateWidget(oldWidget);
     // Items trashed or reloaded: forget selected ids that are gone.
-    if (_picked.isNotEmpty && oldWidget.items != widget.items) {
+    if (_picked.value.isNotEmpty && oldWidget.items != widget.items) {
       final present = {for (final item in widget.items) item.id};
-      _picked = _picked.intersection(present);
+      _picked.value = _picked.value.intersection(present);
       _syncSelectionMode();
     }
   }
@@ -181,7 +185,9 @@ class _TimelineState extends ConsumerState<_Timeline> {
   void dispose() {
     _autoScroll?.cancel();
     _scroll.dispose();
-    if (_picked.isNotEmpty) {
+    final wasSelecting = _picked.value.isNotEmpty;
+    _picked.dispose();
+    if (wasSelecting) {
       // After the frame: providers cannot change while the tree builds.
       final mode = _selectionMode;
       unawaited(Future.microtask(() => mode.set(active: false)));
@@ -189,15 +195,16 @@ class _TimelineState extends ConsumerState<_Timeline> {
     super.dispose();
   }
 
-  void _syncSelectionMode() => _selectionMode.set(active: _picked.isNotEmpty);
+  void _syncSelectionMode() =>
+      _selectionMode.set(active: _picked.value.isNotEmpty);
 
   void _setPicked(Set<String> picked) {
-    setState(() => _picked = picked);
+    _picked.value = picked;
     _syncSelectionMode();
   }
 
   void _toggle(MediaItem item) {
-    final picked = {..._picked};
+    final picked = {..._picked.value};
     if (!picked.remove(item.id)) picked.add(item.id);
     _setPicked(picked);
   }
@@ -243,8 +250,8 @@ class _TimelineState extends ConsumerState<_Timeline> {
     if (index == null) return;
     unawaited(HapticFeedback.selectionClick());
     _dragAnchor = index;
-    _pickedAtDragStart = {..._picked};
-    _dragAdds = !_picked.contains(widget.items[index].id);
+    _pickedAtDragStart = {..._picked.value};
+    _dragAdds = !_picked.value.contains(widget.items[index].id);
     _dragPosition = details.localPosition;
     _selectRangeTo(index);
   }
@@ -304,10 +311,45 @@ class _TimelineState extends ConsumerState<_Timeline> {
     if (index != null) _selectRangeTo(index);
   }
 
-  List<MediaItem> get _pickedItems => [
+  List<MediaItem> _itemsOf(Set<String> ids) => [
     for (final item in widget.items)
-      if (_picked.contains(item.id)) item,
+      if (ids.contains(item.id)) item,
   ];
+
+  /// Recomputes rows, extents and offsets when what they depend on changed.
+  void _updateLayout({
+    required List<MediaItem> items,
+    required int columns,
+    required bool chronological,
+    required double headerExtent,
+    required double width,
+  }) {
+    final key = (
+      identityHashCode(items),
+      items.length,
+      columns,
+      chronological,
+      headerExtent,
+      width,
+    );
+    if (key == _layoutKey) return;
+    _layoutKey = key;
+    final grouping = groupingForColumns(columns);
+    // Date headers only make sense when the list is in date order.
+    _rows = chronological
+        ? buildRows(groupByDate(items, grouping), columns)
+        : buildFlatRows(items.length, columns);
+    _cell = (width - _gap * (columns - 1)) / columns;
+    _extents = [
+      for (final row in _rows)
+        if (row is TimelineHeader) headerExtent else _cell + _gap,
+    ];
+    final offsets = List<double>.filled(_rows.length, 0);
+    for (var i = 1; i < _rows.length; i++) {
+      offsets[i] = offsets[i - 1] + _extents[i - 1];
+    }
+    _offsets = offsets;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -316,29 +358,19 @@ class _TimelineState extends ConsumerState<_Timeline> {
     final items = widget.items;
     final selection = widget.selection;
     final grouping = groupingForColumns(columns);
-    // Date headers only make sense when the list is in date order.
-    final rows = selection.sort.isChronological
-        ? buildRows(groupByDate(items, grouping), columns)
-        : buildFlatRows(items.length, columns);
     final screen = MediaQuery.sizeOf(context);
-    final cell = (screen.width - _gap * (columns - 1)) / columns;
-    final headerExtent = sectionHeaderExtent(context);
-    final extents = [
-      for (final row in rows)
-        if (row is TimelineHeader) headerExtent else cell + _gap,
-    ];
-    // Top offset of each row inside the list, for the fast-scroll bubble
-    // and to find the item under a finger.
-    final offsets = List<double>.filled(rows.length, 0);
-    for (var i = 1; i < rows.length; i++) {
-      offsets[i] = offsets[i - 1] + extents[i - 1];
-    }
-    _rows = rows;
-    _offsets = offsets;
-    _cell = cell;
+    _updateLayout(
+      items: items,
+      columns: columns,
+      chronological: selection.sort.isChronological,
+      headerExtent: sectionHeaderExtent(context),
+      width: screen.width,
+    );
+    final rows = _rows;
+    final extents = _extents;
+    final cell = _cell;
     // Two size buckets keep cache keys stable while pinching.
     final pixelSize = columns <= 3 ? 512 : 256;
-    final selecting = _picked.isNotEmpty;
 
     String? labelAt(double scrollOffset) {
       if (rows.isEmpty) return null;
@@ -360,19 +392,29 @@ class _TimelineState extends ConsumerState<_Timeline> {
 
     Widget thumbnail(int index) {
       final item = items[index];
-      return _Selectable(
-        selected: selecting ? _picked.contains(item.id) : null,
-        child: MediaThumbnail(
-          item: item,
-          pixelSize: pixelSize,
-          hero: !selecting,
-          onTap: selecting
-              ? () => _toggle(item)
-              : () => context.push(
-                  AppRoutes.viewer,
-                  extra: ViewerArgs(selection: selection, initialIndex: index),
-                ),
-        ),
+      // Only this cell rebuilds when the selection changes.
+      return ValueListenableBuilder<Set<String>>(
+        valueListenable: _picked,
+        builder: (context, picked, _) {
+          final selecting = picked.isNotEmpty;
+          return _Selectable(
+            selected: selecting ? picked.contains(item.id) : null,
+            child: MediaThumbnail(
+              item: item,
+              pixelSize: pixelSize,
+              hero: !selecting,
+              onTap: selecting
+                  ? () => _toggle(item)
+                  : () => context.push(
+                      AppRoutes.viewer,
+                      extra: ViewerArgs(
+                        selection: selection,
+                        initialIndex: index,
+                      ),
+                    ),
+            ),
+          );
+        },
       );
     }
 
@@ -430,53 +472,63 @@ class _TimelineState extends ConsumerState<_Timeline> {
       ),
     );
 
-    final picked = _pickedItems;
-    return PopScope(
-      canPop: !selecting,
-      onPopInvokedWithResult: (didPop, _) {
-        if (!didPop) _clearSelection();
+    return ValueListenableBuilder<Set<String>>(
+      valueListenable: _picked,
+      // The grid itself does not depend on the selection.
+      child: grid,
+      builder: (context, pickedIds, grid) {
+        final selecting = pickedIds.isNotEmpty;
+        final picked = selecting ? _itemsOf(pickedIds) : const <MediaItem>[];
+        final allFavorite = picked.every((i) => i.isFavorite);
+        return PopScope(
+          canPop: !selecting,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) _clearSelection();
+          },
+          child: Stack(
+            children: [
+              grid!,
+              if (selecting)
+                Align(
+                  alignment: Alignment.bottomCenter,
+                  child: SelectionBar(
+                    count: picked.length,
+                    onClose: _clearSelection,
+                    actions: [
+                      SelectionAction(
+                        icon: Icons.share_rounded,
+                        label: l10n.actionShare,
+                        onPressed: () =>
+                            unawaited(shareWithOptions(context, ref, picked)),
+                      ),
+                      SelectionAction(
+                        icon: allFavorite
+                            ? Icons.favorite_rounded
+                            : Icons.favorite_border_rounded,
+                        label: allFavorite
+                            ? l10n.actionUnfavorite
+                            : l10n.actionFavorite,
+                        onPressed: () {
+                          // Hearts switch at once; the selection closes.
+                          unawaited(toggleFavorite(context, ref, picked));
+                          _clearSelection();
+                        },
+                      ),
+                      SelectionAction(
+                        icon: Icons.delete_outline_rounded,
+                        label: l10n.actionTrash,
+                        onPressed: () {
+                          unawaited(trashWithUndo(context, ref, picked));
+                          _clearSelection();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+            ],
+          ),
+        );
       },
-      child: Stack(
-        children: [
-          grid,
-          if (selecting)
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: SelectionBar(
-                count: picked.length,
-                onClose: _clearSelection,
-                actions: [
-                  SelectionAction(
-                    icon: Icons.share_rounded,
-                    label: l10n.actionShare,
-                    onPressed: () =>
-                        unawaited(shareWithOptions(context, ref, picked)),
-                  ),
-                  SelectionAction(
-                    icon: picked.every((i) => i.isFavorite)
-                        ? Icons.favorite_rounded
-                        : Icons.favorite_border_rounded,
-                    label: picked.every((i) => i.isFavorite)
-                        ? l10n.actionUnfavorite
-                        : l10n.actionFavorite,
-                    onPressed: () async {
-                      await toggleFavorite(context, ref, picked);
-                      if (mounted) _clearSelection();
-                    },
-                  ),
-                  SelectionAction(
-                    icon: Icons.delete_outline_rounded,
-                    label: l10n.actionTrash,
-                    onPressed: () async {
-                      await trashWithUndo(context, ref, picked);
-                      if (mounted) _clearSelection();
-                    },
-                  ),
-                ],
-              ),
-            ),
-        ],
-      ),
     );
   }
 }
