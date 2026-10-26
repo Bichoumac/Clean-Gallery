@@ -169,6 +169,12 @@ Before the test, take a burst with the Samsung camera: hold the shutter button (
 | 24 | Two photos taken separately a few seconds apart | Not grouped. |
 | 25 | **Move N to trash** on the burst | Only the best shot remains in the Camera tab; *Undo* brings the others back. |
 
+Bursts status on the Galaxy A54, checked by the product owner on 2026-10-26: burst detection works.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 26 | Settings → Analysis → **Analyze the library again** | Snackbar "Analysis started"; a spinner on the row while it runs; afterwards, timelines, dates, duplicates and bursts are as before. |
+
 ### M3 — capture dates, to verify on a device
 
 | # | Check | Expected |

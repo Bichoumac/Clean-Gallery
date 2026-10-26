@@ -124,6 +124,23 @@ final class MediaIndexRepository {
     await query.go();
   }
 
+  /// Forgets every analysis result, so the next sync and scan work out
+  /// everything again: dates and burst ids (rows are described again),
+  /// content hashes and duplicate groups. Metadata, the trash and settings
+  /// are kept.
+  Future<void> resetAnalysis() => _db.transaction(() async {
+    await _db
+        .update(_db.assets)
+        .write(
+          const AssetsCompanion(
+            mediaRevision: Value(null),
+            contentHash: Value(null),
+            analysisVersion: Value(0),
+          ),
+        );
+    await _db.delete(_db.duplicateGroups).go();
+  });
+
   /// Records the favorite state of the items with [ids], after the system
   /// applied it.
   Future<void> setFavorite(Iterable<String> ids, {required bool favorite}) {

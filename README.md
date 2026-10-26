@@ -8,7 +8,7 @@ The app is free with two small, unobtrusive ad placements, and a single "Remove 
 
 ## Status
 
-Milestones **M0** to **M2** are merged. **M3 — Engine level 1** is in progress: the persistent media index (lists show at once at launch), corrected capture dates, exact duplicates and bursts (Duplicates tile and screen) are done. Stats is still a placeholder. See [docs/progress.md](docs/progress.md) for details and the device checklist.
+Milestones **M0** to **M2** are merged. **M3 — Engine level 1** is complete, awaiting review: the persistent media index (lists show at once at launch), corrected capture dates, exact duplicates and bursts (Duplicates tile and screen), and re-running the analysis from Settings. Stats is still a placeholder. See [docs/progress.md](docs/progress.md) for details and the device checklist.
 
 ## Features
 
@@ -16,9 +16,9 @@ Milestones **M0** to **M2** are merged. **M3 — Engine level 1** is in progress
 | --- | --- | --- |
 | Onboarding | Privacy promise, media and GPS permissions, optional "Media management" | M0 ✓ |
 | Navigation | Five icon-only tabs: Camera, Videos, Albums, Stats, Settings | M0 ✓ (placeholder tabs) |
-| Library | Camera and video timelines with sorting and date filter, albums, zoomable grid, viewer, video playback | M1 ✓ |
+| Library | Camera and video timelines with sorting and date filter, albums, zoomable grid, viewer, video playback; persistent index | M1 ✓, index M3 ✓ |
 | Actions | System favorites, sharing without GPS, multi-select, trash, settings | M2 ✓ |
-| Duplicates | Exact duplicates and bursts in a virtual folder | M3 |
+| Duplicates | Exact duplicates and bursts in a virtual folder | M3 ✓ |
 | Similar photos | Perceptual hashing, best-shot suggestion, storage dashboard | M4 |
 | Cleanup | Stats tab values, swipe mode, blurry photos, screenshots, large videos | M5 |
 | Editing | Translucent info panel, crop, adjustments, filters | M6 |

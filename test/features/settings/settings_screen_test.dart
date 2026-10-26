@@ -87,6 +87,33 @@ void main() {
     expect(shownDate(), DateTime(2026, 9, 1, 8));
   });
 
+  testApp('analyzing again reads the duplicates again', (tester) async {
+    final media = FakeMediaSource(
+      items: [testItem(1, sizeBytes: 50), testItem(2, sizeBytes: 50)],
+    );
+    await pumpTestApp(tester, media: media);
+    expect(media.hashCalls, hasLength(1));
+    final describes = media.describeCalls.length;
+
+    await openSettings(tester);
+    await tester.scrollUntilVisible(
+      find.text('Analyze the library again'),
+      200,
+      scrollable: find.byType(Scrollable).last,
+    );
+    // Clear of the floating navigation bar.
+    await tester.drag(find.byType(Scrollable).last, const Offset(0, -300));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Analyze the library again'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Analysis started. Lists update as it goes.'),
+      findsOneWidget,
+    );
+    expect(media.hashCalls, hasLength(2));
+    expect(media.describeCalls.length, greaterThan(describes));
+  });
+
   testApp('permission statuses are shown', (tester) async {
     final permissions = FakePermissionService(result: MediaAccess.limited)
       ..locationGranted = false;

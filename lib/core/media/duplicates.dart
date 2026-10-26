@@ -60,6 +60,16 @@ class DuplicateScan extends _$DuplicateScan {
     return _running = _runLoop();
   }
 
+  /// Works out every analysis result again (Settings → "Analyze the
+  /// library again"): forgets dates, burst ids, hashes and groups, then
+  /// syncs the index and scans. The media are not touched.
+  Future<void> reanalyze() async {
+    await ref.read(mediaIndexRepositoryProvider).resetAnalysis();
+    if (!ref.mounted) return;
+    await ref.read(mediaIndexProvider.notifier).sync();
+    if (ref.mounted) await run();
+  }
+
   Future<void> _runLoop() async {
     try {
       do {

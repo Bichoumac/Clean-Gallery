@@ -6,6 +6,8 @@ Last updated: 2026-10-26 — Milestone M3
 
 ## [Unreleased]
 
+## [M3] — 2026-10-26 — Engine level 1
+
 ### Added
 
 - Persistent media index: lists read the `assets` table and show at once at launch; a sync at launch, on return to the foreground and on pull-to-refresh applies only new, changed and deleted items, compared by MediaStore `GENERATION_MODIFIED` ([ADR 0015](docs/decisions/0015-persistent-media-index.md)).
@@ -18,7 +20,8 @@ Last updated: 2026-10-26 — Milestone M3
 - Duplicates tile at the top of every grid, filtered by that grid's folder; duplicates screen with Best badge, each copy's full path, pre-selected extra copies, per-group trash and "Clean all groups" with a summary ([docs/features/duplicates.md](docs/features/duplicates.md)).
 - Bursts: Samsung and Google camera burst names give a burst id at index time; shots of one burst form a **Burst** group under Certain duplicates ([docs/analysis-engine.md](docs/analysis-engine.md#bursts)).
 - Native channel method `contentHashes`.
-- Tests: index sync and queries, migration 1 → 2, reload in place, pull-to-refresh, file name dates, corrected dates setting, best pick, exact duplicates and their screen, bursts (154 tests).
+- Settings → Analysis → **Analyze the library again**: forgets every analysis result and works it out again.
+- Tests: index sync and queries, migration 1 → 2, reload in place, pull-to-refresh, file name dates, corrected dates setting, best pick, exact duplicates and their screen, bursts, analyze again (155 tests).
 
 ### Changed
 

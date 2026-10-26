@@ -16,6 +16,8 @@ Last updated: 2026-10-26 — Milestone M3
 
 Code in `lib/analysis/` is pure Dart: no Flutter import, so it can run in an isolate and be tested without a device (a test enforces it).
 
+**Where the work runs.** The brief asks for an engine in an isolate, incremental and resumable. In M3 the heavy parts already run off the UI thread: SQL (grouping, candidates) in Drift's background isolate, file hashing on a native thread. What runs on the UI isolate is per-item rule matching during a sync (two regular expressions on a file name), well under a millisecond per item. A Dart isolate becomes worth it with image analysis (perceptual hashes, blur) in M4 and M5. Results are saved as they go, so an interrupted sync or scan resumes; **Settings → Analyze the library again** forgets them all and starts over.
+
 ## Capture date
 
 The date a photo or video was taken. Timelines sort and group by it unless the user turns **Corrected dates** off in Settings ([settings.md](features/settings.md)); duplicates and bursts will use it too.
