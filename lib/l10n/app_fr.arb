@@ -163,5 +163,20 @@
   "purgeBody": "Ils sont dans la corbeille depuis plus longtemps que la durée de conservation. Les supprimer définitivement ?",
 
   "homePlaceholderTitle": "Bientôt disponible",
-  "homePlaceholderBody": "Cette section est réalisée dans un jalon ultérieur."
+  "homePlaceholderBody": "Cette section est réalisée dans un jalon ultérieur.",
+
+  "duplicatesTitle": "Doublons",
+  "duplicatesTileSummary": "{count, plural, =1{1 copie en trop} other{{count} copies en trop}} · {size}",
+  "duplicatesCertain": "Doublons certains",
+  "duplicatesBest": "Meilleure",
+  "duplicatesTrashGroup": "{count, plural, =1{Mettre 1 élément à la corbeille} other{Mettre {count} éléments à la corbeille}}",
+  "duplicatesCleanAll": "Nettoyer tous les groupes",
+  "duplicatesCleanTitle": "{count, plural, =1{Mettre 1 élément ({size}) à la corbeille ?} other{Mettre {count} éléments ({size}) à la corbeille ?}}",
+  "duplicatesCleanBody": "Dans chaque groupe, la photo marquée Meilleure est conservée. Les éléments restent dans la corbeille jusqu'à ce qu'elle soit vidée.",
+  "duplicatesMove": "Mettre à la corbeille",
+  "duplicatesEmpty": "Aucun doublon",
+  "duplicatesEmptyHelp": "Les copies identiques d'une photo ou d'une vidéo apparaissent ici.",
+  "duplicatesScanning": "Recherche de doublons…",
+  "duplicatesSelect": "Sélectionner pour la corbeille",
+  "duplicatesUnselect": "Garder"
 }

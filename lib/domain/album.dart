@@ -98,6 +98,10 @@ abstract class MediaSelection with _$MediaSelection {
 
     /// Capture-date range, or `null` for all dates.
     DateFilter? dates,
+
+    /// Only these items, e.g. a duplicate group opened in the viewer, or
+    /// `null` for every item matching the rest of the selection.
+    List<String>? ids,
   }) = _MediaSelection;
 
   /// Every photo, newest first.

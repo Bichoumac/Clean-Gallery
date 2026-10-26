@@ -16,6 +16,7 @@ Show every photo and video on the device, newest first, grouped by day or month,
 4. **Tap a thumbnail**: the viewer opens on that item ([viewer.md](viewer.md)).
 5. **Albums tab**: "All media" and "Favorites", then "Folders" sorted by size. Tapping one opens its timeline, with a back button.
 6. **Sort and filter**: the button next to the title opens a sheet (see below).
+7. **Duplicates**: when a grid holds extra copies, a tile above the photos opens them ([duplicates.md](duplicates.md)).
 
 ## Selection and actions
 
@@ -162,5 +163,4 @@ Tables: `assets` (the index), `trash_entries`, `settings` (`media_index_version`
 
 - Photos taken while the app stays open appear after pull-to-refresh or the next return to the app (no `ContentObserver` yet, [ADR 0015](../decisions/0015-persistent-media-index.md#alternatives-considered)).
 - The date filter is not saved across launches (on purpose); the default column count and the sort of each view are ([settings.md](settings.md)).
-- The "Duplicates" tile at the top of grids comes in M3; the "Trash" album in M2.
 - On the first device tests, new thumbnails appeared slowly after scrolling far. Prefetching, a larger image cache, fixed row heights and then the native thumbnail loader were added. To be measured again on a device (M9 target: 60 fps).

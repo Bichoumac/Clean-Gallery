@@ -1,6 +1,8 @@
+import 'package:clean_gallery/analysis/best_picker.dart';
 import 'package:clean_gallery/analysis/capture_date.dart';
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/domain/album.dart';
+import 'package:clean_gallery/domain/duplicate_group.dart';
 import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/platform/media_source.dart';
@@ -40,7 +42,8 @@ final class MediaIndexRepository {
   /// Their capture date is resolved on the way ([resolveCaptureDate]).
   ///
   /// When an item's file changed (modification date or size), its
-  /// `analysis_version` is reset so the engine analyses it again. With
+  /// `analysis_version` and content hash are reset so the engine analyses
+  /// it again. With
   /// [resetAnalysis], every updated row is reset, e.g. after the platform
   /// rebuilt its database and ids may point to other files.
   Future<void> upsert(
@@ -74,22 +77,34 @@ final class MediaIndexRepository {
               mediaRevision: excluded.mediaRevision,
               analysisVersion: resetAnalysis
                   ? const Constant(0)
-                  : CaseWhenExpression(
-                      cases: [
-                        CaseWhen(
-                          old.modifiedAt.equalsExp(excluded.modifiedAt) &
-                              old.sizeBytes.equalsExp(excluded.sizeBytes),
-                          then: old.analysisVersion,
-                        ),
-                      ],
-                      orElse: const Constant(0),
-                    ),
+                  : _keptIfSameFile(old, excluded, old.analysisVersion, 0),
+              contentHash: resetAnalysis
+                  ? const Constant(null)
+                  : _keptIfSameFile(old, excluded, old.contentHash, null),
             ),
           ),
         );
       }
     });
   }
+
+  /// [kept] when the file of [old] did not change (same modification date
+  /// and size as [excluded]), [otherwise] when it did.
+  static Expression<T> _keptIfSameFile<T extends Object>(
+    $AssetsTable old,
+    $AssetsTable excluded,
+    Expression<T> kept,
+    T? otherwise,
+  ) => CaseWhenExpression(
+    cases: [
+      CaseWhen(
+        old.modifiedAt.equalsExp(excluded.modifiedAt) &
+            old.sizeBytes.equalsExp(excluded.sizeBytes),
+        then: kept,
+      ),
+    ],
+    orElse: Variable<T>(otherwise),
+  );
 
   /// Removes the items with [ids], which no longer exist on the device.
   ///
@@ -176,6 +191,32 @@ final class MediaIndexRepository {
     return [for (final row in rows) _album(row)];
   }
 
+  /// Duplicate groups among the items of [selection], trashed items left
+  /// out, newest first. Groups are stored for the whole library; here each
+  /// keeps only its members in [selection] and is dropped below two. The
+  /// item to keep is picked again among the remaining members.
+  Future<List<DuplicateGroup>> duplicateGroups(MediaSelection selection) async {
+    final assets = _db.assets;
+    final members = _db.duplicateMembers;
+    final groups = _db.duplicateGroups;
+    final query = _db.select(assets).join([
+      innerJoin(members, members.assetId.equalsExp(assets.id)),
+      innerJoin(groups, groups.id.equalsExp(members.groupId)),
+    ])..where(_matches(assets, selection) & _notTrashed(assets));
+    final kinds = <int, DuplicateKind>{};
+    final items = <int, List<MediaItem>>{};
+    for (final row in await query.get()) {
+      final group = row.readTable(groups);
+      kinds[group.id] = group.kind;
+      (items[group.id] ??= []).add(_toItem(row.readTable(assets)));
+    }
+    return [
+      for (final MapEntry(key: id, value: members) in items.entries)
+        if (members.length > 1)
+          DuplicateGroup(id: id, kind: kinds[id]!, items: bestFirst(members)),
+    ]..sort((a, b) => b.best.takenAt.compareTo(a.best.takenAt));
+  }
+
   Album _album(QueryRow row) {
     final cover = _db.assets.map(row.data);
     return Album(
@@ -200,6 +241,8 @@ final class MediaIndexRepository {
         MediaFilter.favorites => t.isFavorite.equals(true),
       },
       if (selection.albumId case final albumId?) t.bucketId.equals(albumId),
+      if (selection.ids case final ids?)
+        t.id.isIn([for (final id in ids) ?int.tryParse(id)]),
       if (dates?.start case final start?) _date(t).isBiggerOrEqualValue(start),
       if (dates?.end case final end?) _date(t).isSmallerThanValue(end),
     ]);

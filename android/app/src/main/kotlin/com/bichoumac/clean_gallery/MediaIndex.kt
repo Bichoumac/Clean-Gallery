@@ -1,7 +1,10 @@
 package com.bichoumac.clean_gallery
 
+import android.content.ContentUris
 import android.content.Context
 import android.provider.MediaStore
+import java.io.IOException
+import java.security.MessageDigest
 
 /**
  * Reads MediaStore for the app's media index (`MediaIndex` on the Dart side).
@@ -142,6 +145,45 @@ class MediaIndex(private val context: Context) {
             }
         }
         return items
+    }
+
+    /**
+     * SHA-256 of the content of [items] (MediaStore id, and whether it is a
+     * video), as lowercase hex, by id. Items that cannot be read are left
+     * out.
+     *
+     * Reads each file once, in 1 MB blocks, through its Images or Video
+     * URI, which the media permissions cover; used for exact duplicates.
+     */
+    fun contentHashes(items: List<Pair<Long, Boolean>>): Map<String, String> {
+        val hashes = HashMap<String, String>(items.size)
+        val buffer = ByteArray(1 shl 20)
+        for ((id, isVideo) in items) {
+            val collection = if (isVideo) {
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            } else {
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            }
+            val itemUri = ContentUris.withAppendedId(collection, id)
+            try {
+                val digest = MessageDigest.getInstance("SHA-256")
+                resolver.openInputStream(itemUri)?.use { input ->
+                    while (true) {
+                        val read = input.read(buffer)
+                        if (read < 0) break
+                        digest.update(buffer, 0, read)
+                    }
+                    hashes[id.toString()] = digest.digest().joinToString("") {
+                        "%02x".format(it)
+                    }
+                }
+            } catch (e: IOException) {
+                // Unreadable or deleted meanwhile: no hash.
+            } catch (e: SecurityException) {
+                // Access withdrawn for this item: no hash.
+            }
+        }
+        return hashes
     }
 
     private companion object {

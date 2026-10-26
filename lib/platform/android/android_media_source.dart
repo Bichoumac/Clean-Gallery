@@ -39,6 +39,10 @@ final class AndroidMediaSource implements MediaSource {
     for (final row in await _bridge.mediaDetails(ids)) _toIndexed(row),
   ];
 
+  @override
+  Future<Map<String, String>> contentHashes(List<MediaItem> items) =>
+      _bridge.contentHashes(items);
+
   /// An item from one map of [AndroidPlatformBridge.mediaDetails].
   static IndexedMedia _toIndexed(Map<String, Object?> row) {
     final video = row['video']! as bool;

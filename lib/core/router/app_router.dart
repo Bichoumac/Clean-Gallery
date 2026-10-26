@@ -1,5 +1,6 @@
 import 'package:clean_gallery/core/router/home_shell.dart';
 import 'package:clean_gallery/domain/album.dart';
+import 'package:clean_gallery/features/duplicates/duplicates_screen.dart';
 import 'package:clean_gallery/features/library/albums_screen.dart';
 import 'package:clean_gallery/features/library/media_timeline_view.dart';
 import 'package:clean_gallery/features/onboarding/onboarding_controller.dart';
@@ -37,6 +38,10 @@ abstract final class AppRoutes {
 
   /// Full-screen viewer, above the tabs. Requires [ViewerArgs] as `extra`.
   static const viewer = '/viewer';
+
+  /// Duplicates of one folder or tab, above the tabs. Requires the
+  /// [MediaSelection] to look in as `extra`.
+  static const duplicates = '/duplicates';
 }
 
 /// Album pages under the Albums tab: `/albums/<key>?name=<title>`.
@@ -105,6 +110,10 @@ GoRouter appRouter(Ref ref) {
         // A viewer location without arguments (e.g. after process death).
         return AppRoutes.camera;
       }
+      if (state.matchedLocation == AppRoutes.duplicates &&
+          state.extra is! MediaSelection) {
+        return AppRoutes.camera;
+      }
       return null;
     },
     routes: [
@@ -119,6 +128,11 @@ GoRouter appRouter(Ref ref) {
           transitionsBuilder: (context, animation, _, child) =>
               FadeTransition(opacity: animation, child: child),
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.duplicates,
+        builder: (context, state) =>
+            DuplicatesScreen(scope: state.extra! as MediaSelection),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

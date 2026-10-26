@@ -22,7 +22,7 @@ Last updated: 2026-10-26 — Milestone M3
 | [design.md](design.md) | Design system: palette, typography, shapes, navigation bar. |
 | [database.md](database.md) | Drift schema, indexes and migration history. |
 | [platform-android.md](platform-android.md) | Permissions and the native Kotlin channel API. |
-| [analysis-engine.md](analysis-engine.md) | Analysis algorithms (capture dates, then duplicates), thresholds and rationale. |
+| [analysis-engine.md](analysis-engine.md) | Analysis algorithms (capture dates, exact duplicates, best pick), thresholds and rationale. |
 | [testing.md](testing.md) | Test strategy, commands and fixtures. |
 
 Planned files: `monetization.md` (M8), `release.md` (M9).
@@ -38,6 +38,7 @@ Planned files: `monetization.md` (M8), `release.md` (M9).
 | [features/sharing.md](features/sharing.md) | Share sheet and location removal. |
 | [features/trash.md](features/trash.md) | App trash, retention and purge. |
 | [features/settings.md](features/settings.md) | Settings tab. |
+| [features/duplicates.md](features/duplicates.md) | Duplicates tile and screen: groups, Best badge, cleaning. |
 
 One file per feature is added as each feature is built.
 
@@ -61,3 +62,4 @@ One file per feature is added as each feature is built.
 | [0014](decisions/0014-native-sharing.md) | Sharing with native intents instead of `share_plus` |
 | [0015](decisions/0015-persistent-media-index.md) | Persistent media index in Drift |
 | [0016](decisions/0016-capture-dates-at-index-time.md) | Capture dates resolved at index time, without reading files |
+| [0017](decisions/0017-exact-duplicates-sha256.md) | Exact duplicates with SHA-256 on size collisions |

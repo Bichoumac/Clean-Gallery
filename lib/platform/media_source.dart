@@ -19,6 +19,14 @@ abstract interface class MediaSource {
   /// left out.
   Future<List<IndexedMedia>> describe(List<String> ids);
 
+  /// Fingerprint of the content of each of [items] (SHA-256 on Android),
+  /// by id. Two items with the same fingerprint are byte-for-byte
+  /// identical. Items that cannot be read are left out.
+  ///
+  /// Reads every file in full: call it only for items that may be
+  /// duplicates, i.e. that share their size with another item.
+  Future<Map<String, String>> contentHashes(List<MediaItem> items);
+
   /// Small square thumbnail of [item], about [size] pixels wide.
   ImageProvider thumbnail(MediaItem item, {required int size});
 

@@ -1,6 +1,6 @@
 # Analysis engine
 
-Algorithms that work out facts about photos and videos on the device: capture dates now, then exact duplicates, bursts, similar photos and blur. This file lists each algorithm, its thresholds and their rationale, and performance notes.
+Algorithms that work out facts about photos and videos on the device: capture dates and exact duplicates now, then bursts, similar photos and blur. This file lists each algorithm, its thresholds and their rationale, and performance notes.
 
 Last updated: 2026-10-26 — Milestone M3
 
@@ -9,7 +9,7 @@ Last updated: 2026-10-26 — Milestone M3
 | Step | Status | Where | Stored in |
 | --- | --- | --- | --- |
 | Capture date | Done (M3) | [capture_date.dart](../lib/analysis/capture_date.dart), applied by the media index sync | `assets.capture_at`, `capture_source` |
-| Exact duplicates | M3 | — | `content_hash`, `duplicate_groups` |
+| Exact duplicates | Done (M3) | [duplicates.dart](../lib/core/media/duplicates.dart), hashing in [MediaIndex.kt](../android/app/src/main/kotlin/com/bichoumac/clean_gallery/MediaIndex.kt) | `content_hash`, `duplicate_groups` |
 | Bursts | M3 | — | `burst_id`, `duplicate_groups` |
 | Similar photos | M4 | — | `d_hash`, `p_hash` |
 | Blur | M5 | — | `blur_score` |
@@ -60,8 +60,43 @@ During the media index sync, for each new or changed item, from the metadata the
 
 Resolving a date is a regular expression on the file name: well under a millisecond per item, inside a sync that already reads the item's metadata. A full re-resolution of 30,000 items costs one full sync (the same as the first launch).
 
+## Exact duplicates
+
+Items whose content is byte-for-byte identical ([ADR 0017](decisions/0017-exact-duplicates-sha256.md)).
+
+1. **Candidates**: items with no hash yet whose size (`size_bytes > 0`) is shared by another item, outside the trash, smallest first.
+2. **Hash**: SHA-256 of the whole file, computed natively, 20 files per call; saved after each batch. A file that cannot be read gets an empty hash.
+3. **Group**: every non-empty hash held by two items or more is a group of kind `exact`, rebuilt after each scan; the item to keep is marked ([best pick](#best-pick)).
+
+**When**: after each index sync (launch, return to the foreground), by `DuplicateScan`. A changed file (modification date or size) loses its hash at the next sync and is hashed again.
+
+**Display**: groups are stored for the whole library. A grid shows only the members among its items, a group needs at least two, trashed items are left out, and the best item is picked again among those shown.
+
+### Performance
+
+- Only size collisions are read. Each file is read once; its hash is kept until the file changes, so later scans read only new candidates.
+- Hashing runs on its own native thread; the 1 MB buffer is reused.
+- Rebuilding the groups is one SQL grouping on `content_hash` plus inserts.
+
+## Best pick
+
+`pickBest` ([best_picker.dart](../lib/analysis/best_picker.dart)) chooses the item to keep in a group, by the brief's order:
+
+| Order | Rule | Why |
+| --- | --- | --- |
+| 1 | A favorite | The user already chose it. |
+| 2 | Highest resolution | More detail. |
+| 3 | Sharpest, when known for both | Blur scores come in M5. |
+| 4 | Largest file | Less compression. |
+| 5 | Oldest capture date | Most likely the original. |
+| 6 | Smallest id | Usually the first copy on the device; makes the choice stable. |
+
+For exact duplicates, rules 2 to 4 are equal by definition, so the choice is the favorite, then the oldest, then the first copy.
+
 ## Tests
 
 - [capture_date_test.dart](../test/analysis/capture_date_test.dart): file name patterns, rejected names, date-only names, resolution order.
 - [media_index_test.dart](../test/core/media/media_index_test.dart): dates resolved during a sync, rules version, sorting by corrected or platform date.
 - [android_media_source_test.dart](../test/platform/android_media_source_test.dart): when `DATE_TAKEN` counts as metadata.
+- [best_picker_test.dart](../test/analysis/best_picker_test.dart): every rule of the best pick, in order.
+- [duplicates_test.dart](../test/core/media/duplicates_test.dart): only size collisions hashed, groups, no re-read on a second scan, filter by folder, trash and undo, changed file hashed again, favorite kept.

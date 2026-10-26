@@ -1,4 +1,5 @@
 import 'package:clean_gallery/core/database/app_database.dart';
+import 'package:clean_gallery/core/database/duplicate_repository.dart';
 import 'package:clean_gallery/core/database/media_index_repository.dart';
 import 'package:clean_gallery/core/database/settings_repository.dart';
 import 'package:clean_gallery/core/database/trash_repository.dart';
@@ -40,6 +41,11 @@ MediaIndexRepository mediaIndexRepository(Ref ref) => MediaIndexRepository(
     appSettingsControllerProvider.select((s) => s.correctedDates),
   ),
 );
+
+/// Hashes and groups of the duplicate detection.
+@Riverpod(keepAlive: true)
+DuplicateRepository duplicateRepository(Ref ref) =>
+    DuplicateRepository(ref.watch(appDatabaseProvider));
 
 /// The app trash.
 @Riverpod(keepAlive: true)

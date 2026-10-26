@@ -58,6 +58,20 @@ final class AndroidPlatformBridge implements PlatformBridge {
     ];
   }
 
+  /// SHA-256 of the content of [items], as lowercase hex, by id; items
+  /// that cannot be read are left out.
+  ///
+  /// Android-only helper used by `AndroidMediaSource.contentHashes`. Runs
+  /// on its own native thread, apart from the other MediaStore queries.
+  Future<Map<String, String>> contentHashes(List<MediaItem> items) async {
+    if (items.isEmpty) return const {};
+    final hashes = await _channel.invokeMapMethod<String, String>(
+      'contentHashes',
+      {'items': _encode(items)},
+    );
+    return hashes ?? const {};
+  }
+
   /// Raw RGBA pixels of MediaStore item [id], fitting in [width] × [height],
   /// read from MediaStore's thumbnail cache.
   ///

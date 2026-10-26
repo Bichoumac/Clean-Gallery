@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clean_gallery/core/media/duplicates_tile.dart';
 import 'package:clean_gallery/core/media/media_actions.dart';
 import 'package:clean_gallery/core/media/media_formatting.dart';
 import 'package:clean_gallery/core/media/media_index.dart';
@@ -434,7 +435,11 @@ class _TimelineState extends ConsumerState<_Timeline> {
             SliverToBoxAdapter(
               child: Column(
                 key: _headerKey,
-                children: [widget.header, ?widget.banner],
+                children: [
+                  widget.header,
+                  ?widget.banner,
+                  DuplicatesTile(selection: widget.selection),
+                ],
               ),
             ),
             SliverVariedExtentList.builder(

@@ -8,7 +8,7 @@ The app is free with two small, unobtrusive ad placements, and a single "Remove 
 
 ## Status
 
-Milestones **M0** to **M2** are merged. **M3 — Engine level 1** is in progress: the persistent media index (lists show at once at launch) and corrected capture dates are done; exact duplicates and bursts come next. Stats is still a placeholder. See [docs/progress.md](docs/progress.md) for details and the device checklist.
+Milestones **M0** to **M2** are merged. **M3 — Engine level 1** is in progress: the persistent media index (lists show at once at launch), corrected capture dates and exact duplicates (Duplicates tile and screen) are done; bursts come next. Stats is still a placeholder. See [docs/progress.md](docs/progress.md) for details and the device checklist.
 
 ## Features
 

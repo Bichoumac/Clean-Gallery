@@ -11,6 +11,7 @@ import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 /**
@@ -24,6 +25,12 @@ class MainActivity : FlutterActivity() {
 
     /** Runs MediaStore queries off the main thread. */
     private val worker = Executors.newSingleThreadExecutor()
+
+    /**
+     * Hashes file contents for exact duplicates, apart from [worker] so that
+     * long reads never delay index syncs or favorite requests.
+     */
+    private val hasher = Executors.newSingleThreadExecutor()
 
     /** Delivers results back on the main thread, as Flutter requires. */
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -58,6 +65,11 @@ class MainActivity : FlutterActivity() {
                 val ids = call.argument<List<String>>("ids").orEmpty()
                     .mapNotNull { it.toLongOrNull() }
                 onWorker(result) { mediaIndex.describe(ids) }
+            }
+            "contentHashes" -> {
+                val items = MediaActions.Item.listFrom(call.argument("items"))
+                    .map { it.id to it.isVideo }
+                onWorker(result, hasher) { mediaIndex.contentHashes(items) }
             }
             "thumbnail" -> {
                 val id = call.argument<String>("id")?.toLongOrNull()
@@ -116,11 +128,15 @@ class MainActivity : FlutterActivity() {
     }
 
     /**
-     * Runs a MediaStore query on the worker thread and replies on the main
-     * thread. A revoked media permission is reported as a `permission` error.
+     * Runs a MediaStore query on [executor] (the worker thread by default)
+     * and replies on the main thread. A revoked media permission is reported as a `permission` error.
      */
-    private fun onWorker(result: MethodChannel.Result, query: () -> Any) {
-        worker.execute {
+    private fun onWorker(
+        result: MethodChannel.Result,
+        executor: ExecutorService = worker,
+        query: () -> Any,
+    ) {
+        executor.execute {
             try {
                 val value = query()
                 mainHandler.post { result.success(value) }
@@ -142,6 +158,7 @@ class MainActivity : FlutterActivity() {
     /** Stops the worker thread with the activity. */
     override fun onDestroy() {
         worker.shutdown()
+        hasher.shutdownNow()
         thumbnails.shutdown()
         super.onDestroy()
     }

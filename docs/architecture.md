@@ -64,6 +64,7 @@ The brief lists `core/`, `analysis/`, `platform/` and `features/` under `lib/`. 
 | [lib/features/library/](../lib/features/library/) | Photos and Videos timelines, Albums tab, album pages. See [features/library.md](features/library.md). |
 | [lib/features/viewer/](../lib/features/viewer/) | Full-screen viewer and video player. See [features/viewer.md](features/viewer.md). |
 | [lib/features/trash/](../lib/features/trash/) | Trash page and daily purge offer. See [features/trash.md](features/trash.md). |
+| [lib/features/duplicates/](../lib/features/duplicates/) | Duplicates screen and its selection. See [features/duplicates.md](features/duplicates.md). |
 | [lib/features/settings/](../lib/features/settings/) | Settings tab. See [features/settings.md](features/settings.md). |
 | [lib/features/stats/](../lib/features/stats/) | Stats tab (layout only until M5). |
 | [assets/fonts/manrope/](../assets/fonts/manrope/) | Bundled Manrope variable font and its license. |

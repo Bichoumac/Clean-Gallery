@@ -36,7 +36,7 @@ The media index: one row per photo or video, keyed by its MediaStore id. Every l
 | `media_revision` | INTEGER | yes | MediaStore `GENERATION_MODIFIED` when indexed; `null` forces a refresh |
 | `capture_at` | DATETIME | yes | Resolved capture date (metadata, file name, then file date), written by the index sync ([analysis-engine.md](analysis-engine.md#capture-date)). Timelines use `COALESCE(capture_at, taken_at)` when corrected dates are on |
 | `capture_source` | TEXT | yes | `exif` / `filename` / `file` |
-| `content_hash` | TEXT | yes | xxHash of the content |
+| `content_hash` | TEXT | yes | SHA-256 of the content (hex), only for items whose size is shared; `''` when the file could not be read; reset when the file changes ([ADR 0017](decisions/0017-exact-duplicates-sha256.md)) |
 | `d_hash`, `p_hash` | INTEGER | yes | 64-bit perceptual hashes |
 | `blur_score` | REAL | yes | Laplacian variance; higher is sharper |
 | `burst_id` | TEXT | yes | |
@@ -49,6 +49,8 @@ The media index: one row per photo or video, keyed by its MediaStore id. Every l
 `is_favorite` is not in the original brief. The engine's best-shot rule ranks favorites first, so the flag must be readable inside the analysis isolate, without calling MediaStore.
 
 ### `duplicate_groups`
+
+Used since M3 by [DuplicateRepository](../lib/core/database/duplicate_repository.dart): groups of kind `exact` are deleted and rebuilt after each duplicate scan; `duplicate_members.is_suggested_keep` marks the best item of the whole group ([analysis-engine.md](analysis-engine.md#exact-duplicates)).
 
 | Column | Type | Notes |
 | --- | --- | --- |

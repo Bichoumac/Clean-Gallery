@@ -51,6 +51,9 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [navigation_test.dart](../test/core/router/navigation_test.dart) | Five icon-only tabs, switching tabs, Stats content, 48 dp touch targets. |
 | [timeline_test.dart](../test/domain/timeline_test.dart) | Day and month sections, grid rows, grouping by column count. |
 | [media_providers_test.dart](../test/core/media/media_providers_test.dart) | First chunk then the rest from the index, reload in place without a loading state, column limits, duration format. |
+| [best_picker_test.dart](../test/analysis/best_picker_test.dart) | Each best-pick rule in order, best item first. |
+| [duplicates_test.dart](../test/core/media/duplicates_test.dart) | Only size collisions hashed, exact groups, no re-read, filter by folder, trash and undo, changed file, favorite kept. |
+| [duplicates_flow_test.dart](../test/features/duplicates/duplicates_flow_test.dart) | Duplicates tile and count, screen, clean all with summary, keep every copy, open a photo full screen. |
 | [capture_date_test.dart](../test/analysis/capture_date_test.dart) | File name date patterns, rejected names, date-only names, resolution order. |
 | [android_media_source_test.dart](../test/platform/android_media_source_test.dart) | When MediaStore's `DATE_TAKEN` counts as a metadata date. |
 | [media_index_test.dart](../test/core/media/media_index_test.dart) | Capture dates resolved during a sync, rules version, sort by corrected or platform date; sync plan; first, unchanged and incremental syncs; analysis kept unless the file changed; platform version change; denied and limited access; merged calls; index filters, sorts, date range, folders and trash exclusion. |
@@ -137,6 +140,20 @@ Media index status on the Galaxy A54 (Android 16), release build installed over 
 | --- | --- |
 | Confirmed OK | 1 to 9: M2 trash kept by the migration, instant display at launch, camera photos, deletions and favorites made in Samsung Gallery picked up on return, instant actions, scroll position kept, sorts and filters, Albums tab |
 | Not tested yet | Limited access (Android 14+ partial selection), first launch on a fresh install of a large library |
+
+### M3 — exact duplicates, to verify on a device
+
+Before the test, make an exact copy: in Samsung Gallery or My Files, copy a photo to another folder; or forward a photo to yourself on WhatsApp and save it twice.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 15 | Launch, wait a few seconds, Albums → All media | A **Duplicates** tile above the photos: "N extra copies · size". |
+| 16 | Camera tab, if the copy is in another folder | No tile for that pair (the copy is not in Camera). |
+| 17 | Open the tile | Groups side by side with resolution, size, date; one photo with **Best**, the others dimmed with a check mark. |
+| 18 | Tap a photo | It opens full screen; swiping shows the other copies of the group. |
+| 19 | Tap the round button on a picked photo | It is kept (no longer dimmed); the group's button count drops. |
+| 20 | **Clean all groups** | Summary "Move N items (size) to the trash?"; after confirming, the groups disappear, *Undo* brings them back. |
+| 21 | Albums → Trash, then relaunch the app | The trashed copies are in the trash; launching again does not re-read the files (the tile appears at once). |
 
 ### M3 — capture dates, to verify on a device
 

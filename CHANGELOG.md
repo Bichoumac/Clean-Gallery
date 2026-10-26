@@ -14,7 +14,10 @@ Last updated: 2026-10-26 — Milestone M3
 - Capture dates resolved during the index sync: photo metadata (MediaStore `DATE_TAKEN`), then a date in the file name (camera, screenshots, WhatsApp, Signal…), then the file date ([docs/analysis-engine.md](docs/analysis-engine.md), [ADR 0016](docs/decisions/0016-capture-dates-at-index-time.md)).
 - Setting **Corrected dates** (on by default): timelines sort, group and filter by the resolved capture date, or by Android's date when off.
 - `docs/analysis-engine.md`.
-- Tests: index sync and queries, migration 1 → 2, reload in place, pull-to-refresh, file name dates, corrected dates setting (131 tests).
+- Exact duplicates: items sharing their size are hashed natively (SHA-256, incremental, resumable, on a thread of its own) after each index sync; identical hashes form groups with a suggested item to keep (favorite, resolution, size, oldest) ([ADR 0017](docs/decisions/0017-exact-duplicates-sha256.md)).
+- Duplicates tile at the top of every grid, filtered by that grid's folder; duplicates screen with Best badge, pre-selected extra copies, per-group trash and "Clean all groups" with a summary ([docs/features/duplicates.md](docs/features/duplicates.md)).
+- Native channel method `contentHashes`.
+- Tests: index sync and queries, migration 1 → 2, reload in place, pull-to-refresh, file name dates, corrected dates setting, best pick, exact duplicates and their screen (148 tests).
 
 ### Changed
 

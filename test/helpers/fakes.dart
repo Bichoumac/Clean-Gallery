@@ -202,6 +202,19 @@ class FakeMediaSource implements MediaSource {
     ];
   }
 
+  /// Content fingerprint of items by id; items not listed hash to their
+  /// own id, so they are all different.
+  final hashes = <String, String>{};
+
+  /// Ids passed to [contentHashes], per call.
+  final hashCalls = <List<String>>[];
+
+  @override
+  Future<Map<String, String>> contentHashes(List<MediaItem> items) async {
+    hashCalls.add([for (final item in items) item.id]);
+    return {for (final item in items) item.id: hashes[item.id] ?? item.id};
+  }
+
   IndexedMedia _indexed(MediaItem item) {
     final folder = folders.where(
       (f) => folderItems[f.id]?.any((i) => i.id == item.id) ?? false,
