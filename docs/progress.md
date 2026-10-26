@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-10-25 — Milestone M2
+Last updated: 2026-10-26 — Milestone M3
 
 ## Milestones
 
@@ -10,14 +10,39 @@ Last updated: 2026-10-25 — Milestone M2
 | --- | --- | --- |
 | M0 | Foundations | Merged into `main` (PR #1) |
 | M1 | Navigation: timelines, albums, grid, viewer, video, sorting, date filter | Merged into `main` (PR #2) |
-| M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Done, tested on a phone, awaiting PR review |
-| M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Not started |
+| M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Merged into `main` (PR #3) |
+| M3 | Engine level 1: indexing, dates, exact duplicates, bursts | In progress on `m3-engine`: media index done |
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Not started |
 | M5 | Cleanup: Stats values, swipe mode, blurry, screenshots, large videos | Not started |
 | M6 | Advanced viewer and editing | Not started |
 | M7 | Exploration: map, search | Not started |
 | M8 | Monetization | Not started |
 | M9 | Polish and release preparation | Not started |
+
+## M3 — Engine level 1
+
+### Done
+
+- **Persistent media index**: every list reads the `assets` table, so the library shows at once at launch; a sync at launch, on return to the foreground and on pull-to-refresh applies only what changed in MediaStore ([ADR 0015](decisions/0015-persistent-media-index.md), [features/library.md](features/library.md#media-index)).
+- Schema version 2 with a migration that keeps the M2 trash ([database.md](database.md#migrations)).
+- Native `mediaSnapshot` and `mediaDetails` replace `albumSummaries`, `mediaSizes` and `photo_manager` listing ([platform-android.md](platform-android.md#media-access)).
+
+### Verified
+
+| Check | Result |
+| --- | --- |
+| `flutter analyze` | No issues |
+| `flutter test --timeout 60s` | 117 tests pass |
+| Galaxy A54 (release build) | Not tested yet: checklist in [testing.md](testing.md#m3--media-index-to-verify-on-a-device) |
+
+### Known issues
+
+- Photos taken while the app stays in the foreground appear after pull-to-refresh or the next return to the app.
+
+### Next steps
+
+1. Device test of the media index.
+2. Capture dates (EXIF, file name), exact duplicates and bursts; virtual folder, comparison screen, batch delete; `docs/analysis-engine.md`.
 
 ## M2 — Actions
 
@@ -55,7 +80,7 @@ Last updated: 2026-10-25 — Milestone M2
 
 ### Next steps
 
-1. Review and merge the M2 pull request.
+1. ~~Review and merge the M2 pull request.~~ Merged (PR #3).
 2. M3: persistent media index (cache) so lists show instantly at launch, then dates, exact duplicates and bursts.
 
 ## M1 — Navigation

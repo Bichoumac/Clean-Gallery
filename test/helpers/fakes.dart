@@ -145,89 +145,69 @@ MediaItem testItem(
 }
 
 /// In-memory [MediaSource]. Items must be given newest first.
+///
+/// Items listed in [folderItems] belong to that folder, named after the
+/// matching entry of [folders]; other items belong to no folder.
 class FakeMediaSource implements MediaSource {
   /// Creates a source with [items] and the given [folders].
   FakeMediaSource({
     this.items = const [],
     this.folders = const [],
     this.folderItems = const {},
+    this.version = '1',
   });
 
   /// Every item of the library, newest first.
   List<MediaItem> items;
 
-  /// Folders returned by [albums].
+  /// Folders the items of [folderItems] belong to; only `id` and `name`
+  /// are used.
   List<Album> folders;
 
   /// Items of each folder, by folder id.
   Map<String, List<MediaItem>> folderItems;
 
-  /// Ranges requested through [load], as `(start, end)`.
-  final loads = <(int, int)>[];
+  /// Version reported by [snapshot].
+  String version;
 
-  /// Selections passed to [load], in call order.
-  final loadedSelections = <MediaSelection>[];
+  /// Revision of items by id; items not listed have revision 1.
+  final revisions = <String, int>{};
 
-  /// Filters, date range and sort applied like `AndroidMediaSource` does.
-  List<MediaItem> _select(
-    MediaSelection selection, [
-    Set<String> hidden = const {},
-  ]) {
-    final albumId = selection.albumId;
-    final base = albumId != null ? folderItems[albumId] ?? const [] : items;
-    final dates = selection.dates;
-    final selected = base.where((i) {
-      final kept = switch (selection.filter) {
-        MediaFilter.all => true,
-        MediaFilter.photos => !i.isVideo,
-        MediaFilter.camera =>
-          !i.isVideo && (i.relativePath ?? '').startsWith('DCIM/Camera/'),
-        MediaFilter.videos => i.isVideo,
-        MediaFilter.favorites => i.isFavorite,
-      };
-      return kept &&
-          !hidden.contains(i.id) &&
-          (dates == null || dates.contains(i.takenAt));
-    }).toList();
-    final sort = selection.sort;
-    int compare(MediaItem a, MediaItem b) => switch (sort.field) {
-      MediaSortField.date => a.takenAt.compareTo(b.takenAt),
-      MediaSortField.name => (a.fileName ?? '').toLowerCase().compareTo(
-        (b.fileName ?? '').toLowerCase(),
-      ),
-      MediaSortField.size => a.sizeBytes.compareTo(b.sizeBytes),
-      MediaSortField.duration => a.duration.compareTo(b.duration),
-    };
-    // Ties keep the given order, like the SQL secondary sort keys.
-    final position = {for (final (i, item) in base.indexed) item.id: i};
-    return selected..sort((a, b) {
-      final byField = sort.descending ? compare(b, a) : compare(a, b);
-      return byField != 0
-          ? byField
-          : position[a.id]!.compareTo(position[b.id]!);
-    });
+  /// Ids passed to [describe], per call.
+  final describeCalls = <List<String>>[];
+
+  /// Number of [snapshot] calls.
+  int snapshots = 0;
+
+  @override
+  Future<LibrarySnapshot> snapshot() async {
+    snapshots++;
+    return LibrarySnapshot(
+      version: version,
+      revisions: {for (final item in items) item.id: revisions[item.id] ?? 1},
+    );
   }
 
   @override
-  Future<List<Album>> albums({Set<String> hidden = const {}}) async => folders;
+  Future<List<IndexedMedia>> describe(List<String> ids) async {
+    describeCalls.add(ids);
+    final wanted = ids.toSet();
+    return [
+      for (final item in items)
+        if (wanted.contains(item.id)) _indexed(item),
+    ];
+  }
 
-  @override
-  Future<int> count(
-    MediaSelection selection, {
-    Set<String> hidden = const {},
-  }) async => _select(selection, hidden).length;
-
-  @override
-  Future<List<MediaItem>> load(
-    MediaSelection selection, {
-    required int start,
-    required int end,
-    Set<String> hidden = const {},
-  }) async {
-    loads.add((start, end));
-    loadedSelections.add(selection);
-    final all = _select(selection, hidden);
-    return all.sublist(start.clamp(0, all.length), end.clamp(0, all.length));
+  IndexedMedia _indexed(MediaItem item) {
+    final folder = folders.where(
+      (f) => folderItems[f.id]?.any((i) => i.id == item.id) ?? false,
+    );
+    return IndexedMedia(
+      item: item,
+      albumId: folder.firstOrNull?.id,
+      albumName: folder.firstOrNull?.name ?? '',
+      revision: revisions[item.id] ?? 1,
+    );
   }
 
   @override

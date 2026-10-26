@@ -25,6 +25,9 @@ abstract final class SettingKeys {
   /// [AppSettings.lastPurgeCheck], as an ISO 8601 date.
   static const lastPurgeCheck = 'last_purge_check';
 
+  /// [AppSettings.mediaIndexVersion].
+  static const mediaIndexVersion = 'media_index_version';
+
   /// Prefix of one [AppSettings.viewSorts] entry: `view_sort:<viewKey>`.
   static const viewSortPrefix = 'view_sort:';
 }
@@ -113,6 +116,7 @@ final class SettingsRepository {
       lastPurgeCheck: DateTime.tryParse(
         values[SettingKeys.lastPurgeCheck] ?? '',
       ),
+      mediaIndexVersion: values[SettingKeys.mediaIndexVersion],
     );
   }
 }

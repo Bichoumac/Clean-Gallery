@@ -44,7 +44,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Current schema version. Bump it for every schema change.
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
 
   /// Migration steps, applied in order from the installed version.
   @override
@@ -52,8 +52,24 @@ class AppDatabase extends _$AppDatabase {
     onCreate: (m) => m.createAll(),
     onUpgrade: (m, from, to) async {
       // Add one `if (from < n)` block per schema version, in order.
-      // Example for version 2:
-      //   if (from < 2) { await m.addColumn(assets, assets.someColumn); }
+      if (from < 2) {
+        // Media index. Version 1 rows were only written by the trash, which
+        // stored the MediaStore date in `capture_at`: move it to `taken_at`.
+        // Foreign keys are still off here (`beforeOpen` runs after), so the
+        // table can be rebuilt under the trash entries.
+        await m.alterTable(
+          TableMigration(
+            assets,
+            newColumns: [assets.bucketId, assets.takenAt, assets.mediaRevision],
+            columnTransformer: {
+              assets.takenAt: coalesce([assets.captureAt, assets.modifiedAt]),
+              assets.captureAt: const Constant<DateTime>(null),
+            },
+          ),
+        );
+        await m.createIndex(assetsTakenAt);
+        await m.createIndex(assetsBucketId);
+      }
     },
     beforeOpen: (details) async {
       // Foreign keys are off by default in SQLite; enable them per connection.

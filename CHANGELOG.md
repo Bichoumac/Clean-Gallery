@@ -2,9 +2,27 @@
 
 All notable changes to this project are documented here, one section per milestone. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-10-25 — Milestone M2
+Last updated: 2026-10-26 — Milestone M3
 
 ## [Unreleased]
+
+### Added
+
+- Persistent media index: lists read the `assets` table and show at once at launch; a sync at launch, on return to the foreground and on pull-to-refresh applies only new, changed and deleted items, compared by MediaStore `GENERATION_MODIFIED` ([ADR 0015](docs/decisions/0015-persistent-media-index.md)).
+- Native channel methods `mediaSnapshot` and `mediaDetails` ([MediaIndex.kt](android/app/src/main/kotlin/com/bichoumac/clean_gallery/MediaIndex.kt)).
+- Schema version 2: `assets.bucket_id`, `taken_at`, `media_revision`, indexes on `taken_at` and `bucket_id`; setting `media_index_version`.
+- Tests: index sync and queries, migration 1 → 2, reload in place, pull-to-refresh (117 tests).
+
+### Changed
+
+- Timelines, album pages, the Albums tab, counts and covers are queried in SQLite instead of MediaStore; sorting and filtering keep the same rules.
+- Lists reload in place when the index changes, keeping the scroll position; an empty list shows a skeleton until the first index is complete.
+- Favorites changed in the app are written to the index at once.
+- Items deleted from the trash by another app are removed from it at the next sync.
+
+### Removed
+
+- Native `albumSummaries` and `mediaSizes`; `photo_manager` is no longer used for listing (still for full images and video URIs).
 
 ## [M2] — 2026-10-25 — Actions
 

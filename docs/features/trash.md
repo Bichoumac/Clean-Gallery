@@ -2,7 +2,7 @@
 
 The app's own trash: every delete in Clean Gallery lands here first, and items are deleted from the device only after the retention period, with the user's confirmation.
 
-Last updated: 2026-10-25 — Milestone M2
+Last updated: 2026-10-26 — Milestone M3
 
 ## Purpose
 
@@ -47,20 +47,21 @@ flowchart TD
 | `TrashRepository` | [trash_repository.dart](../../lib/core/database/trash_repository.dart) | Trash, restore, expired items, forget after deletion. |
 | `trashedIdsProvider`, `trashItemsProvider` | [providers.dart](../../lib/core/providers.dart) | Live trash content; every media list hides the trashed ids. |
 | `MediaActions` | [media_actions.dart](../../lib/core/media/media_actions.dart) | Trash, restore, delete for good. |
-| `trash_entries`, `assets` tables | [database.md](../database.md#trash_entries) | One entry per item; a minimal asset row is inserted with it. |
+| `trash_entries`, `assets` tables | [database.md](../database.md#trash_entries) | One entry per item, pointing to its row in the media index (a minimal row is inserted if the item was not indexed yet). |
 | `trash_retention_days`, `last_purge_check` settings | [database.md](../database.md#settings) | Retention and once-a-day check. |
 
 Trashed items are hidden in two ways:
 
-- **Timelines and the viewer** filter them out of the loaded list in memory (`visibleMediaListProvider`), so trashing and undoing are instant and never query MediaStore.
-- **Album counts and covers** exclude them in the MediaStore query itself (`_id NOT IN (…)`, folder summaries included), so the Albums tab stays right ([platform-android.md](../platform-android.md#media-access)).
+- **Timelines and the viewer** filter them out of the loaded list in memory (`visibleMediaListProvider`), so trashing and undoing are instant and never query the index again.
+- **Album counts, covers and folders** exclude them in the index query itself (`id NOT IN (SELECT asset_id FROM trash_entries)`), so the Albums tab stays right.
+- **Deleted for good**: hidden at once (`deletedIdsProvider`), then the lists reload from the index.
 
 ## Edge cases and error handling
 
 - **Trashing an item twice** keeps a single entry.
 - **Declining the system confirmation**: nothing is deleted; the trash says so.
 - **"Later" on the expiry prompt**: asked again the next day.
-- **Item deleted by another app while in the trash**: the system deletion of the batch skips it; the entry remains until the next successful deletion. To be handled with indexing (M3).
+- **Item deleted by another app while in the trash**: the next index sync finds it gone and removes its entry ([library.md](library.md#media-index)). With limited access, trashed items missing from the shared set are kept, since they may still exist.
 - **Retention changed**: applies to items trashed afterwards; existing entries keep their expiry date.
 
 ## Tests

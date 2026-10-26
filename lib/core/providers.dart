@@ -1,4 +1,5 @@
 import 'package:clean_gallery/core/database/app_database.dart';
+import 'package:clean_gallery/core/database/media_index_repository.dart';
 import 'package:clean_gallery/core/database/settings_repository.dart';
 import 'package:clean_gallery/core/database/trash_repository.dart';
 import 'package:clean_gallery/domain/trashed_item.dart';
@@ -27,6 +28,11 @@ AppDatabase appDatabase(Ref ref) {
 SettingsRepository settingsRepository(Ref ref) {
   return SettingsRepository(ref.watch(appDatabaseProvider));
 }
+
+/// The media index stored in the `assets` table.
+@Riverpod(keepAlive: true)
+MediaIndexRepository mediaIndexRepository(Ref ref) =>
+    MediaIndexRepository(ref.watch(appDatabaseProvider));
 
 /// The app trash.
 @Riverpod(keepAlive: true)

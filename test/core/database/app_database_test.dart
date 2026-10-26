@@ -2,6 +2,7 @@ import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/core/database/settings_repository.dart';
 import 'package:clean_gallery/domain/enums.dart';
 import 'package:drift/drift.dart' hide isNull;
+import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/fakes.dart';
@@ -23,10 +24,11 @@ void main() {
     width: 4000,
     height: 3000,
     modifiedAt: DateTime(2026),
+    takenAt: DateTime(2026),
   );
 
-  test('schema version is 1', () {
-    expect(db.schemaVersion, 1);
+  test('schema version is 2', () {
+    expect(db.schemaVersion, 2);
   });
 
   test('stores enums by name', () async {
@@ -70,6 +72,61 @@ void main() {
         );
     await db.delete(db.assets).go();
     expect(await db.select(db.trashEntries).get(), isEmpty);
+  });
+
+  test('migration 1 → 2 keeps trashed items and moves their date', () async {
+    final old = AppDatabase(
+      NativeDatabase.memory(
+        setup: (raw) {
+          // The two version 1 tables the migration touches, as Drift
+          // created them, with one trashed item.
+          raw
+            ..execute(
+              'CREATE TABLE "assets" ("id" INTEGER NOT NULL, '
+              '"folder" TEXT NOT NULL, "relative_path" TEXT NOT NULL, '
+              '"file_name" TEXT NOT NULL, "mime_type" TEXT NOT NULL, '
+              '"kind" TEXT NOT NULL, "size_bytes" INTEGER NOT NULL, '
+              '"width" INTEGER NOT NULL, "height" INTEGER NOT NULL, '
+              '"duration_ms" INTEGER NULL, "modified_at" INTEGER NOT NULL, '
+              '"capture_at" INTEGER NULL, "capture_source" TEXT NULL, '
+              '"content_hash" TEXT NULL, "d_hash" INTEGER NULL, '
+              '"p_hash" INTEGER NULL, "blur_score" REAL NULL, '
+              '"burst_id" TEXT NULL, '
+              '"is_screenshot" INTEGER NOT NULL DEFAULT 0, '
+              '"is_favorite" INTEGER NOT NULL DEFAULT 0, '
+              '"latitude" REAL NULL, "longitude" REAL NULL, '
+              '"camera_model" TEXT NULL, '
+              '"analysis_version" INTEGER NOT NULL DEFAULT 0, '
+              'PRIMARY KEY ("id"))',
+            )
+            ..execute(
+              'CREATE TABLE "trash_entries" ("asset_id" INTEGER NOT NULL '
+              'REFERENCES assets (id) ON DELETE CASCADE, '
+              '"trashed_at" INTEGER NOT NULL, "expires_at" INTEGER NOT NULL, '
+              '"original_folder" TEXT NOT NULL, PRIMARY KEY ("asset_id"))',
+            )
+            ..execute(
+              'INSERT INTO assets (id, folder, relative_path, file_name, '
+              'mime_type, kind, size_bytes, width, height, modified_at, '
+              "capture_at) VALUES (7, 'Camera', 'DCIM/Camera/', 'a.jpg', "
+              "'image/jpeg', 'photo', 10, 4, 3, 100, 200)",
+            )
+            ..execute(
+              'INSERT INTO trash_entries VALUES (7, 300, 400, '
+              "'Camera')",
+            )
+            ..userVersion = 1;
+        },
+      ),
+    );
+    addTearDown(old.close);
+
+    final row = await old.select(old.assets).getSingle();
+    expect(row.takenAt, DateTime.fromMillisecondsSinceEpoch(200 * 1000));
+    expect(row.captureAt, isNull);
+    expect(row.bucketId, isNull);
+    expect(row.mediaRevision, isNull);
+    expect(await old.select(old.trashEntries).get(), hasLength(1));
   });
 
   group('SettingsRepository', () {

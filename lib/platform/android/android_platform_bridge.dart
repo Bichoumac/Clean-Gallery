@@ -28,32 +28,29 @@ final class AndroidPlatformBridge implements PlatformBridge {
     return _channel.invokeMethod<void>('openMediaManagementSettings');
   }
 
-  /// File sizes in bytes of the MediaStore items with the given [ids].
+  /// MediaStore version and, newest first, the id and revision
+  /// (`GENERATION_MODIFIED`) of every photo and video.
   ///
-  /// Android-only helper used by `AndroidMediaSource`: `photo_manager` does
-  /// not expose file sizes. Items that no longer exist are left out.
-  Future<Map<String, int>> mediaSizes(List<String> ids) async {
-    if (ids.isEmpty) return const {};
-    final sizes = await _channel.invokeMapMethod<String, int>('mediaSizes', {
-      'ids': ids,
-    });
-    return sizes ?? const {};
+  /// Android-only helper used by `AndroidMediaSource.snapshot`. The map has
+  /// `version` (a string) and `ids` and `revisions`, two lists of the same
+  /// length.
+  Future<Map<String, Object?>> mediaSnapshot() async {
+    final reply = await _channel.invokeMapMethod<String, Object?>(
+      'mediaSnapshot',
+    );
+    return reply ?? const {};
   }
 
-  /// Folders containing photos or videos, largest first, each with its item
-  /// count and newest item, from one pass over MediaStore.
+  /// Full metadata of the MediaStore items with the given [ids], one map
+  /// per item; items that no longer exist are left out.
   ///
-  /// Android-only helper used by `AndroidMediaSource.albums`. Each map has
-  /// `id`, `name`, `count`, `coverId`, `coverIsVideo`, `coverWidth`,
-  /// `coverHeight` and `coverModified` (seconds).
-  ///
-  /// Items whose id is in [excluded] (the app trash) are skipped.
-  Future<List<Map<String, Object?>>> albumSummaries({
-    List<int> excluded = const [],
-  }) async {
+  /// Android-only helper used by `AndroidMediaSource.describe`. Keys are
+  /// listed in `docs/platform-android.md`.
+  Future<List<Map<String, Object?>>> mediaDetails(List<String> ids) async {
+    if (ids.isEmpty) return const [];
     final list = await _channel.invokeListMethod<Map<Object?, Object?>>(
-      'albumSummaries',
-      {'excluded': excluded},
+      'mediaDetails',
+      {'ids': ids},
     );
     return [
       for (final entry in list ?? const <Map<Object?, Object?>>[])

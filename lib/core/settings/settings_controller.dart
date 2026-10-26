@@ -69,4 +69,11 @@ class AppSettingsController extends _$AppSettingsController {
     state = state.copyWith(lastPurgeCheck: day);
     await _repository.write(SettingKeys.lastPurgeCheck, day.toIso8601String());
   }
+
+  /// Records that the media index is complete for the platform media
+  /// database [version].
+  Future<void> setMediaIndexVersion(String version) async {
+    state = state.copyWith(mediaIndexVersion: version);
+    await _repository.write(SettingKeys.mediaIndexVersion, version);
+  }
 }

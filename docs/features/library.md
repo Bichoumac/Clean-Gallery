@@ -2,17 +2,17 @@
 
 Browsing the device's photos and videos: the Camera and Videos timelines, the Albums tab and album pages.
 
-Last updated: 2026-10-25 — Milestone M2
+Last updated: 2026-10-26 — Milestone M3
 
 ## Purpose
 
-Show every photo and video on the device, newest first, grouped by day or month, in a grid the user can zoom by pinching. Albums gives access to all media, favorites and each device folder. Everything is read from MediaStore on demand; nothing is copied.
+Show every photo and video on the device, newest first, grouped by day or month, in a grid the user can zoom by pinching. Albums gives access to all media, favorites and each device folder. Lists read the app's media index, a copy of the library's metadata in the database, so they show at once at launch; the index catches up with the device in the background. Only metadata is copied, never the media.
 
 ## User flows
 
 1. **Camera / Videos tab**: the timeline opens on the newest items. Camera shows only the photos taken with the device camera (`DCIM/Camera/`); Videos shows every video; everything else is in **Albums → All media**. Section headers read "Today", "Yesterday", then full dates.
 2. **Pinch** with two fingers: spreading shows fewer, larger thumbnails (down to 2 columns); pinching shows more (up to 6). From 5 columns, headers switch from days to months.
-3. **Pull down** to reload after taking new photos.
+3. **Pull down** to pick up changes at once (new photos, deletions made in another app). The app also does it at launch and when it returns to the foreground.
 4. **Tap a thumbnail**: the viewer opens on that item ([viewer.md](viewer.md)).
 5. **Albums tab**: "All media" and "Favorites", then "Folders" sorted by size. Tapping one opens its timeline, with a back button.
 6. **Sort and filter**: the button next to the title opens a sheet (see below).
@@ -39,7 +39,7 @@ Widget: [fast_scroller.dart](../../lib/features/library/fast_scroller.dart).
 
 ## Performance
 
-- **Actions never reload lists.** Screens read `visibleMediaListProvider`, which applies the trash and in-app favorite changes to the loaded list in memory; MediaStore is queried again only on pull-to-refresh or after a permanent deletion. (Before this, every trash, undo or favorite reloaded every list, which felt like latency after each action.)
+- **Actions never reload lists.** Screens read `visibleMediaListProvider`, which applies the trash and in-app favorite changes to the loaded list in memory; lists query the index again only when it changes (a sync, a permanent deletion). (Before this, every trash, undo or favorite reloaded every list, which felt like latency after each action.)
 - **The grid layout is memoized**: sections, rows and offsets are recomputed only when the list, column count, order, text size or width change.
 - **Selection is a `ValueNotifier`**: a tap rebuilds the visible cells and the selection bar, not the grid.
 - **Date formats are cached** by pattern and locale; each thumbnail formats a date for its screen reader label.
@@ -47,8 +47,22 @@ Widget: [fast_scroller.dart](../../lib/features/library/fast_scroller.dart).
 - Every row has a known height (date headers a fixed height growing with the text size, item rows one cell), so the grid is a `SliverVariedExtentList`: jumping far with the thumb never lays out the rows in between.
 - Thumbnails one screen above and below are prefetched (`scrollCacheExtent`).
 - Flutter's image cache holds up to 2,000 images / 200 MB, so scrolling back does not reload thumbnails.
-- The Albums tab gets every folder's name, count and cover from one native query (`albumSummaries`) instead of one count and one cover lookup per folder; album pages reuse cached folder paths.
+- The Albums tab gets every folder's name, count and cover from one SQLite query on the index (grouped by folder, newest item as cover).
 - Thumbnails come from MediaStore's own thumbnail cache through a native loader, as raw pixels, newest request first, so the screen you land on after a far jump loads before the rows scrolled past ([platform-android.md](../platform-android.md#why-not-photo_manager-thumbnails)).
+
+## Media index
+
+Lists read the `assets` table, kept in sync with MediaStore by `MediaIndex` ([ADR 0015](../decisions/0015-persistent-media-index.md)):
+
+1. **When**: at launch, when the app returns to the foreground, and on pull-to-refresh. A call during a sync adds one more pass.
+2. **Snapshot**: the id and revision (`GENERATION_MODIFIED`) of every item, newest first, in one query.
+3. **Compare** with the stored revisions: new and changed items are described (full metadata, 1,000 per call) and written; missing items are removed with their trash entries.
+4. **Refresh lists**: open lists query the index again and replace their content without a loading state. On a long sync, after the first 1,000 items, then at most once a second.
+
+- A favorite changed in the app is written to the index at once; MediaStore confirms it at the next sync.
+- If MediaStore rebuilt its database (its version changed), every item is described again.
+- **Limited access**: the index holds only the shared items, but items in the app trash are kept.
+- **Denied access** or a platform error: the sync stops and the index stays as it was.
 
 ## Sorting and date filter
 
@@ -82,11 +96,12 @@ flowchart TD
     B -->|Denied| C[Access prompt] -->|Allow access| D{Granted?}
     D -->|No| E[Open app settings]
     D -->|Yes| F
-    B -->|Granted| F[Load first 1,000 items]
+    B -->|Granted| F[First 1,000 items from the index]
     B -->|Limited| G[Banner: allow all] --> F
     F --> H{Empty?}
+    H -->|Yes, never indexed| S[Skeleton until the first sync]
     H -->|Yes| I[Empty state]
-    H -->|No| J[Timeline grid] -.->|background| K[Load the rest by chunks of 1,000]
+    H -->|No| J[Timeline grid] -.->|background| K[Rest of the list from the index]
 ```
 
 ## Screens and widgets
@@ -106,17 +121,20 @@ flowchart TD
 | --- | --- | --- |
 | `MediaSelection`, `Album`, `MediaItem` | [album.dart](../../lib/domain/album.dart), [media_item.dart](../../lib/domain/media_item.dart) | What to show, and the items. |
 | `groupByDate`, `buildRows` | [timeline.dart](../../lib/domain/timeline.dart) | Pure-Dart grouping into sections and grid rows. |
-| `mediaListProvider(selection)` | [media_providers.dart](../../lib/core/media/media_providers.dart) | All items of a selection as MediaStore returns them, loaded by chunks of 1,000. |
-| `visibleMediaListProvider(selection)` | same | What grids and the viewer show: the list without trashed items, with in-app favorite changes. |
-| `favoriteOverridesProvider` | same | Favorite changes not yet reloaded from MediaStore. |
+| `mediaListProvider(selection)` | [media_providers.dart](../../lib/core/media/media_providers.dart) | All items of a selection from the index: the first 1,000, then the rest. Reloaded in place when the index changes. |
+| `visibleMediaListProvider(selection)` | same | What grids and the viewer show: the list without trashed or deleted items, with in-app favorite changes; loading until the first sync if empty. |
+| `deletedIdsProvider` | same | Items deleted for good this session, hidden until lists reload. |
+| `favoriteOverridesProvider` | same | Favorite changes made in the app, applied without reloading lists. |
 | `albumsProvider`, `mediaCountProvider`, `albumCoverProvider` | same | Albums tab data. Folders come with their count and cover; the count and cover providers serve the virtual albums (All media, Favorites). |
 | `gridColumnsProvider` | same | Column count (2–6), shared by all grids; default 4. |
 | `viewSelectionProvider(base)` | same | Sort and date range chosen for one tab or album. |
 | `MediaSort`, `DateFilter` | [album.dart](../../lib/domain/album.dart) | Sort order and date range, part of `MediaSelection`. |
 | `mediaAccessProvider` | same | Current permission level. |
+| `mediaIndexProvider` (`MediaIndex`) | [media_index.dart](../../lib/core/media/media_index.dart) | Syncs the index; its state says whether the index is ready, syncing, and its revision. |
+| `MediaIndexRepository` | [media_index_repository.dart](../../lib/core/database/media_index_repository.dart) | Index queries: lists, counts, covers, folders, sync writes. |
 | `MediaSource` | [media_source.dart](../../lib/platform/media_source.dart) | Platform access ([platform-android.md](../platform-android.md#media-access)). |
 
-No database table is used yet: the index (`assets`) is filled from M3.
+Tables: `assets` (the index), `trash_entries`, `settings` (`media_index_version`) — see [database.md](../database.md#assets).
 
 ## Edge cases and error handling
 
@@ -124,14 +142,16 @@ No database table is used yet: the index (`assets`) is filled from M3.
 - **Limited access** (Android 14+): only the shared items are shown, with a banner to allow all.
 - **Empty library or album**: empty state with a hint to pull down.
 - **Load error**: message with *Retry*.
-- **Large libraries**: the first chunk shows immediately; the timeline grows as the rest loads. Only visible rows are built.
+- **Large libraries**: the first 1,000 items show immediately, the rest follows from a second query. Only visible rows are built.
+- **First launch**: lists show a skeleton until the first sync completes, then fill from the newest items as the library is indexed.
 - **Same item twice on a page** (album covers): Hero is disabled on covers, since Hero tags must be unique per route.
 - **Thumbnail failure**: a broken-image icon replaces the thumbnail.
 
 ## Tests
 
 - [timeline_test.dart](../../test/domain/timeline_test.dart): day and month sections, row building, grouping by column count.
-- [media_providers_test.dart](../../test/core/media/media_providers_test.dart): chunked loading, column limits, duration formatting.
+- [media_providers_test.dart](../../test/core/media/media_providers_test.dart): first chunk then the rest, reload in place, column limits, duration formatting.
+- [media_index_test.dart](../../test/core/media/media_index_test.dart): sync plan, first and incremental syncs, analysis kept or reset, platform version change, denied and limited access, merged calls, index queries (filters, sorts, date range, folders, trash).
 - [library_test.dart](../../test/features/library/library_test.dart): headers, photo/video filters, empty, denied and limited states, albums and folder pages, opening the viewer, pinch gesture.
 - [sort_filter_test.dart](../../test/features/library/sort_filter_test.dart): date ranges and presets, plain rows, sorting by name, date preset and chip removal, empty period, viewer order, per-tab state.
 - [selection_test.dart](../../test/features/library/selection_test.dart): long press, tap, drag range, trash with undo, favorite, share, back.
@@ -139,7 +159,7 @@ No database table is used yet: the index (`assets`) is filled from M3.
 
 ## Known limitations / future work
 
-- New photos appear after pull-to-refresh, not automatically (MediaStore change listening comes with indexing in M3).
+- Photos taken while the app stays open appear after pull-to-refresh or the next return to the app (no `ContentObserver` yet, [ADR 0015](../decisions/0015-persistent-media-index.md#alternatives-considered)).
 - The date filter is not saved across launches (on purpose); the default column count and the sort of each view are ([settings.md](settings.md)).
 - The "Duplicates" tile at the top of grids comes in M3; the "Trash" album in M2.
 - On the first device tests, new thumbnails appeared slowly after scrolling far. Prefetching, a larger image cache, fixed row heights and then the native thumbnail loader were added. To be measured again on a device (M9 target: 60 fps).

@@ -2,7 +2,7 @@
 
 The app stores its index, analysis results, trash and settings in a local SQLite database managed by Drift. It runs on a background isolate so queries never block the UI. This file lists the schema, indexes and migration history.
 
-Last updated: 2026-10-25 — Milestone M2
+Last updated: 2026-10-26 — Milestone M3
 
 Source: [tables.dart](../lib/core/database/tables.dart), [app_database.dart](../lib/core/database/app_database.dart).
 
@@ -17,12 +17,13 @@ Source: [tables.dart](../lib/core/database/tables.dart), [app_database.dart](../
 
 ### `assets`
 
-One row per media item, keyed by its MediaStore id. Analysis columns are filled incrementally by the engine.
+The media index: one row per photo or video, keyed by its MediaStore id. Every list of the app reads it; [MediaIndex](../lib/core/media/media_index.dart) keeps it in sync with MediaStore ([ADR 0015](decisions/0015-persistent-media-index.md), [library.md](features/library.md#media-index)). Queries live in [MediaIndexRepository](../lib/core/database/media_index_repository.dart). Analysis columns are filled incrementally by the engine; a sync updates only the metadata columns and resets `analysis_version` when the file changed (modification date or size).
 
 | Column | Type | Null | Notes |
 | --- | --- | --- | --- |
 | `id` | INTEGER PK | no | MediaStore id |
-| `folder` | TEXT | no | Album name |
+| `folder` | TEXT | no | Album name (`BUCKET_DISPLAY_NAME`) |
+| `bucket_id` | TEXT | yes | Album id (`BUCKET_ID`); `null` until indexed |
 | `relative_path` | TEXT | no | e.g. `DCIM/Camera/` |
 | `file_name` | TEXT | no | |
 | `mime_type` | TEXT | no | |
@@ -31,7 +32,9 @@ One row per media item, keyed by its MediaStore id. Analysis columns are filled 
 | `width`, `height` | INTEGER | no | Pixels |
 | `duration_ms` | INTEGER | yes | Videos only |
 | `modified_at` | DATETIME | no | File modification date |
-| `capture_at` | DATETIME | yes | Resolved capture date |
+| `taken_at` | DATETIME | no | MediaStore capture date: `DATE_TAKEN`, or `DATE_ADDED` when unset. Timelines sort and group by it |
+| `media_revision` | INTEGER | yes | MediaStore `GENERATION_MODIFIED` when indexed; `null` forces a refresh |
+| `capture_at` | DATETIME | yes | Capture date resolved by the engine |
 | `capture_source` | TEXT | yes | `exif` / `filename` / `file` |
 | `content_hash` | TEXT | yes | xxHash of the content |
 | `d_hash`, `p_hash` | INTEGER | yes | 64-bit perceptual hashes |
@@ -77,7 +80,7 @@ Primary key: (`asset_a`, `asset_b`).
 
 ### `trash_entries`
 
-Used since M2 by [TrashRepository](../lib/core/database/trash_repository.dart) ([trash.md](features/trash.md)). Trashing an item also inserts a minimal `assets` row (id, folder, path, name, type, kind, size, dimensions, dates, favorite) with `INSERT OR IGNORE`, which satisfies the foreign key before indexing exists (M3) and lets the trash screen show items without querying MediaStore. Deleting an item for good deletes its asset row, which cascades to its trash entry.
+Used since M2 by [TrashRepository](../lib/core/database/trash_repository.dart) ([trash.md](features/trash.md)). The trashed item's `assets` row is normally already there (the index); if not, trashing inserts a minimal one with `INSERT OR IGNORE`, completed by the next sync. The trash screen reads items from `assets`, without querying MediaStore. Deleting an item for good deletes its asset row, which cascades to its trash entry; so does a sync that finds the item gone from the device (except with limited access, see [library.md](features/library.md#media-index)).
 
 The brief calls this table `trash`. The Dart class is `TrashEntries` (table `trash_entries`) so that the plural table and singular row names read naturally (`TrashEntries` / `TrashRow`).
 
@@ -116,13 +119,19 @@ Known keys are constants in `SettingKeys` ([settings_repository.dart](../lib/cor
 | `theme` | `system` / `light` / `dark` | Theme |
 | `language` | `system` / `english` / `french` | Interface language |
 | `last_purge_check` | ISO 8601 date | Day the expired trash was last offered for purging |
+| `media_index_version` | text | MediaStore version (`MediaStore.getVersion`) of the last complete index sync; unset before the first one |
 | `view_sort:<filter>:<folder id>` | `<field>:<asc\|desc>` | Saved sort of one timeline, e.g. `view_sort:photos:` → `size:desc` |
 
 They are read together by `SettingsRepository.loadAppSettings` before the first frame; invalid values fall back to the defaults ([settings.md](features/settings.md)).
 
 ## Indexes
 
-No secondary indexes yet. Indexes on `assets(folder)`, `assets(content_hash)`, `assets(capture_at)` and `trash_entries(expires_at)` are planned with the queries that need them (M1 to M3), so each one is justified by a real query.
+| Index | Columns | Used by |
+| --- | --- | --- |
+| `assets_taken_at` | `assets(taken_at)` | Timelines in date order, date ranges, album covers |
+| `assets_bucket_id` | `assets(bucket_id)` | Album pages, the Albums tab's grouping |
+
+Other indexes (`assets(content_hash)`, `assets(capture_at)`, `trash_entries(expires_at)`) are added with the queries that need them, so each one is justified by a real query.
 
 ## `analysis_version`
 
@@ -139,3 +148,4 @@ Every schema change:
 | Version | Milestone | Change |
 | --- | --- | --- |
 | 1 | M0 | Initial schema. |
+| 2 | M3 | Media index: `assets.bucket_id`, `taken_at`, `media_revision`; indexes `assets_taken_at`, `assets_bucket_id`. The table is rebuilt (`alterTable`): rows written by the M2 trash move their date from `capture_at` to `taken_at`, since `capture_at` is now reserved for the engine. |

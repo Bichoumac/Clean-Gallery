@@ -2,7 +2,7 @@
 
 Timelines can be sorted by several criteria and limited to a date range, a request from the product owner during M1. This ADR records where sorting and filtering happen and why.
 
-Last updated: 2026-10-25 — Milestone M1
+Last updated: 2026-10-26 — Milestone M3
 
 - **Status**: Accepted
 - **Date**: 2026-10-25
@@ -21,6 +21,10 @@ Libraries can hold tens of thousands of items, loaded by chunks of 1,000 ([ADR 0
 - **Per-view state for the session**: `viewSelectionProvider(base)` keeps one choice per tab or album ([media_providers.dart](../../lib/core/media/media_providers.dart)).
 - **Date headers only in date order**: other orders show a plain grid.
 - **UI**: a "Sort and filter" button next to the title, a bottom sheet that applies changes immediately, and removable chips for the active choices ([library.md](../features/library.md#sorting-and-date-filter)).
+
+### Amendment (M3, media index)
+
+Sorting and filtering moved from MediaStore SQL to the same conditions in SQLite on the media index ([ADR 0015](0015-persistent-media-index.md), [media_index_repository.dart](../../lib/core/database/media_index_repository.dart)). The capture date rule is unchanged: it is computed once when an item is indexed and stored as `assets.taken_at`.
 
 ## Alternatives considered
 

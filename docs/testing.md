@@ -2,7 +2,7 @@
 
 How Clean Gallery is tested: test layers, commands, fakes and fixtures. Every milestone adds tests for what it builds; a milestone is not done until the suite passes.
 
-Last updated: 2026-10-25 — Milestone M2
+Last updated: 2026-10-26 — Milestone M3
 
 ## Commands
 
@@ -44,14 +44,15 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 
 | File | What it checks |
 | --- | --- |
-| [app_database_test.dart](../test/core/database/app_database_test.dart) | Schema version, enum storage, foreign keys, cascade delete, settings repository. |
+| [app_database_test.dart](../test/core/database/app_database_test.dart) | Schema version, migration 1 → 2 with a trashed item, enum storage, foreign keys, cascade delete, settings repository. |
 | [onboarding_controller_test.dart](../test/features/onboarding/onboarding_controller_test.dart) | Permission flow for granted, limited and denied access; persistence of completion. |
 | [onboarding_screen_test.dart](../test/features/onboarding/onboarding_screen_test.dart) | Privacy promise shown, full flow, skip, returning users skip onboarding. |
 | [dependency_rules_test.dart](../test/architecture/dependency_rules_test.dart) | Pure-Dart engine and domain, no direct Android imports in features, no `MANAGE_EXTERNAL_STORAGE`. |
 | [navigation_test.dart](../test/core/router/navigation_test.dart) | Five icon-only tabs, switching tabs, Stats content, 48 dp touch targets. |
 | [timeline_test.dart](../test/domain/timeline_test.dart) | Day and month sections, grid rows, grouping by column count. |
-| [media_providers_test.dart](../test/core/media/media_providers_test.dart) | Chunked loading (first chunk, then the rest), column limits, duration format. |
-| [library_test.dart](../test/features/library/library_test.dart) | Timeline headers, photo/video filters, empty, denied and limited states, Albums and folder pages, opening the viewer, pinch gesture. |
+| [media_providers_test.dart](../test/core/media/media_providers_test.dart) | First chunk then the rest from the index, reload in place without a loading state, column limits, duration format. |
+| [media_index_test.dart](../test/core/media/media_index_test.dart) | Sync plan; first, unchanged and incremental syncs; analysis kept unless the file changed; platform version change; denied and limited access; merged calls; index filters, sorts, date range, folders and trash exclusion. |
+| [library_test.dart](../test/features/library/library_test.dart) | Timeline headers, photo/video filters, empty, denied and limited states, Albums and folder pages, opening the viewer, pinch gesture, pull-to-refresh indexing new items. |
 | [sort_filter_test.dart](../test/features/library/sort_filter_test.dart) | Date ranges and presets, plain rows, sort by name, date preset and chip removal, empty period, viewer order, per-tab state. |
 | [fast_scroller_test.dart](../test/features/library/fast_scroller_test.dart) | Thumb visibility, drag jump with month bubble, size bubble, short lists, size formatting. |
 | [viewer_test.dart](../test/features/viewer/viewer_test.dart) | Swipe both ways, pinch then pan without page change, double-tap back, top bar height. |
@@ -111,6 +112,22 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 12 | Kill the app mid-onboarding, relaunch | any | Onboarding restarts from the first page. |
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
+
+### M3 — media index, to verify on a device
+
+Install over the M2 version (do not uninstall), so the database migration runs on real data.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 1 | First launch after the update | Items trashed in M2 are still in Albums → Trash. The Camera tab shows a skeleton briefly, then fills from the newest photos. |
+| 2 | Close the app completely, relaunch | Camera, Videos and Albums show their content at once, without a skeleton. |
+| 3 | Take a photo with the camera app, come back to Clean Gallery | The photo appears at the top within a second or two, without pulling down. |
+| 4 | Delete a photo in Samsung Gallery, come back | It disappears from the timeline and its album count. |
+| 5 | Favorite a photo in Samsung Gallery, come back | The heart shows in Clean Gallery; the photo is in Favorites. |
+| 6 | Favorite and trash in Clean Gallery | Instant, as in M2; no list reload or jump. |
+| 7 | Scroll far down the Camera tab, then switch apps and come back | The scroll position is kept. |
+| 8 | Sort by size, then by name; date filter "Last 30 days" | Same results as in M2. |
+| 9 | Albums tab | Folders, counts and covers as in M2. |
 
 ### M2 — to verify on a device
 

@@ -1,4 +1,5 @@
 import 'package:clean_gallery/core/database/app_database.dart';
+import 'package:clean_gallery/core/database/media_index_repository.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/domain/trashed_item.dart';
 import 'package:drift/drift.dart';
@@ -6,9 +7,9 @@ import 'package:drift/drift.dart';
 /// The app trash, stored in the `trash_entries` table.
 ///
 /// Trashing never touches the file: it records the item so that every list
-/// hides it. A minimal `assets` row is inserted with it, which satisfies the
-/// foreign key and lets the trash screen show the item without asking
-/// MediaStore. See `docs/features/trash.md`.
+/// hides it. The item's row in the media index is kept; if the item was not
+/// indexed yet, a minimal row is inserted, which satisfies the foreign key
+/// until the next sync completes it. See `docs/features/trash.md`.
 final class TrashRepository {
   /// Creates the repository on [_db].
   const TrashRepository(this._db);
@@ -90,20 +91,7 @@ final class TrashRepository {
     final entry = row.readTable(_db.trashEntries);
     final asset = row.readTable(_db.assets);
     return TrashedItem(
-      item: MediaItem(
-        id: '${asset.id}',
-        kind: asset.kind,
-        width: asset.width,
-        height: asset.height,
-        takenAt: asset.captureAt ?? asset.modifiedAt,
-        modifiedAt: asset.modifiedAt,
-        duration: Duration(milliseconds: asset.durationMs ?? 0),
-        isFavorite: asset.isFavorite,
-        sizeBytes: asset.sizeBytes,
-        fileName: asset.fileName.isEmpty ? null : asset.fileName,
-        relativePath: asset.relativePath.isEmpty ? null : asset.relativePath,
-        mimeType: asset.mimeType.isEmpty ? null : asset.mimeType,
-      ),
+      item: asset.toMediaItem(),
       trashedAt: entry.trashedAt,
       expiresAt: entry.expiresAt,
       originalFolder: entry.originalFolder,
@@ -122,7 +110,7 @@ final class TrashRepository {
     height: item.height,
     durationMs: Value(item.isVideo ? item.duration.inMilliseconds : null),
     modifiedAt: item.modifiedAt,
-    captureAt: Value(item.takenAt),
+    takenAt: item.takenAt,
     isFavorite: Value(item.isFavorite),
   );
 

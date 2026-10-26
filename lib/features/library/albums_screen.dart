@@ -1,3 +1,4 @@
+import 'package:clean_gallery/core/media/media_index.dart';
 import 'package:clean_gallery/core/media/media_providers.dart';
 import 'package:clean_gallery/core/media/media_thumbnail.dart';
 import 'package:clean_gallery/core/providers.dart';
@@ -27,10 +28,7 @@ class AlbumsScreen extends ConsumerWidget {
     final trash = ref.watch(trashItemsProvider).value ?? const <TrashedItem>[];
 
     return RefreshIndicator(
-      onRefresh: () async {
-        ref.invalidate(albumsProvider);
-        await ref.read(albumsProvider.future);
-      },
+      onRefresh: () => ref.read(mediaIndexProvider.notifier).sync(),
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         slivers: [

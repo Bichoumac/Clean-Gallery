@@ -53,6 +53,11 @@ abstract class AppSettings with _$AppSettings {
 
     /// Last day the expired trash was offered for purging, if any.
     DateTime? lastPurgeCheck,
+
+    /// Platform media database version of the last complete index, or
+    /// `null` before the first one. While `null`, empty lists show a
+    /// loading state instead of an empty one.
+    String? mediaIndexVersion,
   }) = _AppSettings;
 
   /// Smallest and largest trash retention, in days.

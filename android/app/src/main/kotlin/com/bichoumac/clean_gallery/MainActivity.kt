@@ -31,6 +31,9 @@ class MainActivity : FlutterActivity() {
     /** Thumbnails and previews from MediaStore's thumbnail cache. */
     private val thumbnails by lazy { ThumbnailLoader(applicationContext, mainHandler) }
 
+    /** MediaStore reads for the app's media index. */
+    private val mediaIndex by lazy { MediaIndex(applicationContext) }
+
     /** Favorites, permanent deletion and sharing. */
     private val actions by lazy { MediaActions(this, worker, mainHandler) }
 
@@ -50,26 +53,11 @@ class MainActivity : FlutterActivity() {
                 result.success(null)
             }
             "sdkVersion" -> result.success(Build.VERSION.SDK_INT)
-            "mediaSizes" -> {
+            "mediaSnapshot" -> onWorker(result) { mediaIndex.snapshot() }
+            "mediaDetails" -> {
                 val ids = call.argument<List<String>>("ids").orEmpty()
-                worker.execute {
-                    try {
-                        val sizes = mediaSizes(ids)
-                        mainHandler.post { result.success(sizes) }
-                    } catch (e: SecurityException) {
-                        mainHandler.post { result.error("permission", e.message, null) }
-                    }
-                }
-            }
-            "albumSummaries" -> worker.execute {
-                try {
-                    val excluded = call.argument<List<Number>>("excluded")
-                        .orEmpty().map { it.toLong() }
-                    val summaries = albumSummaries(excluded)
-                    mainHandler.post { result.success(summaries) }
-                } catch (e: SecurityException) {
-                    mainHandler.post { result.error("permission", e.message, null) }
-                }
+                    .mapNotNull { it.toLongOrNull() }
+                onWorker(result) { mediaIndex.describe(ids) }
             }
             "thumbnail" -> {
                 val id = call.argument<String>("id")?.toLongOrNull()
@@ -128,94 +116,18 @@ class MainActivity : FlutterActivity() {
     }
 
     /**
-     * File sizes in bytes of the MediaStore items with the given [ids].
-     *
-     * Queried by chunks of 500 ids to stay below SQLite's limit on bound
-     * parameters. Items that no longer exist are missing from the result.
+     * Runs a MediaStore query on the worker thread and replies on the main
+     * thread. A revoked media permission is reported as a `permission` error.
      */
-    private fun mediaSizes(ids: List<String>): Map<String, Long> {
-        val sizes = HashMap<String, Long>(ids.size)
-        val uri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
-        val projection = arrayOf(MediaStore.MediaColumns._ID, MediaStore.MediaColumns.SIZE)
-        for (chunk in ids.chunked(500)) {
-            val selection = "${MediaStore.MediaColumns._ID} IN (${chunk.joinToString(",") { "?" }})"
-            contentResolver.query(uri, projection, selection, chunk.toTypedArray(), null)?.use { cursor ->
-                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
-                val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.SIZE)
-                while (cursor.moveToNext()) {
-                    sizes[cursor.getLong(idColumn).toString()] = cursor.getLong(sizeColumn)
-                }
+    private fun onWorker(result: MethodChannel.Result, query: () -> Any) {
+        worker.execute {
+            try {
+                val value = query()
+                mainHandler.post { result.success(value) }
+            } catch (e: SecurityException) {
+                mainHandler.post { result.error("permission", e.message, null) }
             }
         }
-        return sizes
-    }
-
-    /**
-     * One entry per folder (MediaStore bucket) containing photos or videos:
-     * `{id, name, count, coverId, coverIsVideo, coverWidth, coverHeight,
-     * coverModified}`, largest folder first.
-     *
-     * A single pass over the library, newest first, so the first item met in
-     * each folder is its cover. This replaces one count query and one path
-     * listing per folder. Items whose id is in `excluded` (the app trash)
-     * are left out.
-     */
-    private fun albumSummaries(excluded: List<Long>): List<Map<String, Any?>> {
-        val uri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
-        val projection = arrayOf(
-            MediaStore.MediaColumns._ID,
-            MediaStore.MediaColumns.BUCKET_ID,
-            MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
-            MediaStore.Files.FileColumns.MEDIA_TYPE,
-            MediaStore.MediaColumns.WIDTH,
-            MediaStore.MediaColumns.HEIGHT,
-            MediaStore.MediaColumns.ORIENTATION,
-            MediaStore.MediaColumns.DATE_MODIFIED,
-        )
-        val selection = "${MediaStore.Files.FileColumns.MEDIA_TYPE} IN (" +
-            "${MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE}, " +
-            "${MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO}) " +
-            "AND ${MediaStore.MediaColumns.BUCKET_ID} IS NOT NULL" +
-            // Trashed items; ids are numbers, inlined to avoid SQLite's limit
-            // on bound parameters.
-            if (excluded.isEmpty()) "" else
-                " AND ${MediaStore.MediaColumns._ID} NOT IN (${excluded.joinToString(",")})"
-        // Same capture date as the timelines (see AndroidMediaSource).
-        val sortOrder = "CASE WHEN datetaken > 0 THEN datetaken / 1000 " +
-            "ELSE date_added END DESC"
-        val folders = LinkedHashMap<String, MutableMap<String, Any?>>()
-        contentResolver.query(uri, projection, selection, null, sortOrder)?.use { c ->
-            val id = c.getColumnIndexOrThrow(MediaStore.MediaColumns._ID)
-            val bucket = c.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_ID)
-            val name = c.getColumnIndexOrThrow(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME)
-            val type = c.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MEDIA_TYPE)
-            val width = c.getColumnIndexOrThrow(MediaStore.MediaColumns.WIDTH)
-            val height = c.getColumnIndexOrThrow(MediaStore.MediaColumns.HEIGHT)
-            val orientation = c.getColumnIndexOrThrow(MediaStore.MediaColumns.ORIENTATION)
-            val modified = c.getColumnIndexOrThrow(MediaStore.MediaColumns.DATE_MODIFIED)
-            while (c.moveToNext()) {
-                val bucketId = c.getString(bucket) ?: continue
-                val folder = folders[bucketId]
-                if (folder != null) {
-                    folder["count"] = (folder["count"] as Int) + 1
-                    continue
-                }
-                // First item of the folder: the newest, used as its cover.
-                val rotated = c.getInt(orientation) % 180 != 0
-                folders[bucketId] = mutableMapOf(
-                    "id" to bucketId,
-                    "name" to (c.getString(name) ?: ""),
-                    "count" to 1,
-                    "coverId" to c.getLong(id).toString(),
-                    "coverIsVideo" to
-                        (c.getInt(type) == MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO),
-                    "coverWidth" to if (rotated) c.getInt(height) else c.getInt(width),
-                    "coverHeight" to if (rotated) c.getInt(width) else c.getInt(height),
-                    "coverModified" to c.getLong(modified),
-                )
-            }
-        }
-        return folders.values.sortedByDescending { it["count"] as Int }
     }
 
     /** Routes the result of MediaStore favorite and delete requests. */

@@ -2,7 +2,7 @@
 
 Every documentation file in the repository, with a one-line description. Start with [progress.md](progress.md) to see where the project stands.
 
-Last updated: 2026-10-25 — Milestone M2
+Last updated: 2026-10-26 — Milestone M3
 
 ## Project
 
@@ -58,3 +58,4 @@ One file per feature is added as each feature is built.
 | [0012](decisions/0012-sort-and-date-filter.md) | Sorting and date filter in every timeline |
 | [0013](decisions/0013-trash-purge-without-background-job.md) | Trash purge at launch and resume, without a background job |
 | [0014](decisions/0014-native-sharing.md) | Sharing with native intents instead of `share_plus` |
+| [0015](decisions/0015-persistent-media-index.md) | Persistent media index in Drift |

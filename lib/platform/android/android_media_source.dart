@@ -1,4 +1,3 @@
-import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/platform/android/android_platform_bridge.dart';
@@ -7,14 +6,14 @@ import 'package:clean_gallery/platform/media_source.dart';
 import 'package:flutter/widgets.dart';
 import 'package:photo_manager/photo_manager.dart';
 
-/// [MediaSource] backed by Android's MediaStore through `photo_manager`.
+/// [MediaSource] backed by Android's MediaStore.
 ///
-/// Permissions are requested by `PermissionService`, so `photo_manager`'s own
-/// permission check is turned off. Loaded `AssetEntity`s are kept by id so
-/// image providers can be built synchronously from a [MediaItem].
+/// The index queries ([snapshot], [describe]) and thumbnails go through the
+/// app's own native channel; full images and video URIs through
+/// `photo_manager`, whose permission check is turned off because
+/// `PermissionService` requests permissions.
 final class AndroidMediaSource implements MediaSource {
-  /// Creates the source. [_bridge] provides what `photo_manager` lacks
-  /// (file sizes).
+  /// Creates the source on [_bridge].
   AndroidMediaSource(this._bridge) {
     _ready = PhotoManager.setIgnorePermissionCheck(true);
   }
@@ -22,143 +21,51 @@ final class AndroidMediaSource implements MediaSource {
   final AndroidPlatformBridge _bridge;
   late final Future<void> _ready;
 
-  /// Assets loaded so far, by id.
-  final _assets = <String, AssetEntity>{};
-
-  /// Capture date in seconds, computed exactly like `photo_manager`'s
-  /// `createDateTime`: `DATE_TAKEN` (milliseconds) when set, otherwise
-  /// `DATE_ADDED`. Sorting and filtering on it keeps them consistent with
-  /// the timeline headers.
-  static const _captureDate =
-      '(CASE WHEN datetaken > 0 THEN datetaken / 1000 ELSE date_added END)';
-
-  /// Folder the device camera saves to, as a MediaStore `RELATIVE_PATH`.
-  /// The same on Samsung and Pixel phones.
-  static const cameraFolder = 'DCIM/Camera/';
-
-  /// MediaStore `MEDIA_TYPE` values.
-  static const _imageType = 1;
-  static const _videoType = 3;
-
-  /// MediaStore query for [selection]: type, favorites and date conditions,
-  /// and the sort order.
-  ///
-  /// `photo_manager` drops its own media-type condition as soon as a custom
-  /// `where` is given, so the type condition is always written here.
-  static CustomFilter _filterFor(
-    MediaSelection selection, [
-    Set<String> hidden = const {},
-  ]) {
-    final where = <String>[
-      switch (selection.filter) {
-        MediaFilter.photos => 'media_type = $_imageType',
-        MediaFilter.camera =>
-          'media_type = $_imageType AND relative_path LIKE '
-              "'$cameraFolder%'",
-        MediaFilter.videos => 'media_type = $_videoType',
-        MediaFilter.all ||
-        MediaFilter.favorites => 'media_type IN ($_imageType, $_videoType)',
+  @override
+  Future<LibrarySnapshot> snapshot() async {
+    final reply = await _bridge.mediaSnapshot();
+    final ids = (reply['ids'] as List<Object?>?) ?? const [];
+    final revisions = (reply['revisions'] as List<Object?>?) ?? const [];
+    return LibrarySnapshot(
+      version: '${reply['version'] ?? ''}',
+      revisions: {
+        for (var i = 0; i < ids.length; i++) '${ids[i]}': revisions[i]! as int,
       },
-      if (selection.filter == MediaFilter.favorites)
-        '${CustomColumns.android.isFavorite} = 1',
-      if (selection.dates?.start case final start?)
-        '$_captureDate >= ${start.millisecondsSinceEpoch ~/ 1000}',
-      if (selection.dates?.end case final end?)
-        '$_captureDate < ${end.millisecondsSinceEpoch ~/ 1000}',
-      // Trashed items. Ids are numbers, inlined to avoid SQLite's limit on
-      // bound parameters (999 on Android 11).
-      if (hidden.isNotEmpty) '_id NOT IN (${_numericIds(hidden).join(',')})',
-    ];
-    final sort = selection.sort;
-    final asc = !sort.descending;
-    final column = switch (sort.field) {
-      MediaSortField.date => _captureDate,
-      MediaSortField.name => 'LOWER(_display_name)',
-      MediaSortField.size => '_size',
-      MediaSortField.duration => 'duration',
-    };
-    return CustomFilter.sql(
-      where: where.join(' AND '),
-      orderBy: [
-        OrderByItem(column, asc),
-        // Stable order for equal values: newest first, then by id.
-        if (sort.field != MediaSortField.date)
-          const OrderByItem.desc(_captureDate),
-        OrderByItem('_id', asc),
-      ],
-    )..needTitle = true;
+    );
   }
-
-  /// Ids of [ids] that are plain numbers (MediaStore ids always are).
-  static Iterable<int> _numericIds(Set<String> ids) =>
-      ids.map(int.tryParse).whereType<int>();
 
   @override
-  Future<List<Album>> albums({Set<String> hidden = const {}}) async {
-    await _ready;
-    // One native pass gives every folder's count and cover. Folder paths
-    // are listed again on the next album page, so drop the cached ones.
-    _folderPaths.clear();
-    final summaries = await _bridge.albumSummaries(
-      excluded: _numericIds(hidden).toList(),
-    );
-    return [
-      for (final summary in summaries)
-        Album(
-          id: summary['id']! as String,
-          name: summary['name']! as String,
-          count: summary['count']! as int,
-          cover: _coverItem(summary),
-        ),
-    ];
-  }
+  Future<List<IndexedMedia>> describe(List<String> ids) async => [
+    for (final row in await _bridge.mediaDetails(ids)) _toIndexed(row),
+  ];
 
-  /// Cover of a folder from its native summary. Only what a thumbnail needs
-  /// is known: id, kind, size and modification time.
-  MediaItem _coverItem(Map<String, Object?> summary) {
+  /// An item from one map of [AndroidPlatformBridge.mediaDetails].
+  static IndexedMedia _toIndexed(Map<String, Object?> row) {
+    final video = row['video']! as bool;
     final modified = DateTime.fromMillisecondsSinceEpoch(
-      (summary['coverModified']! as int) * 1000,
+      (row['modified']! as int) * 1000,
     );
-    return MediaItem(
-      id: summary['coverId']! as String,
-      kind: summary['coverIsVideo']! as bool
-          ? MediaKind.video
-          : MediaKind.photo,
-      width: summary['coverWidth']! as int,
-      height: summary['coverHeight']! as int,
-      takenAt: modified,
-      modifiedAt: modified,
+    return IndexedMedia(
+      item: MediaItem(
+        id: row['id']! as String,
+        kind: video ? MediaKind.video : MediaKind.photo,
+        width: row['width']! as int,
+        height: row['height']! as int,
+        takenAt: DateTime.fromMillisecondsSinceEpoch(row['takenAt']! as int),
+        modifiedAt: modified,
+        duration: video
+            ? Duration(milliseconds: row['duration']! as int)
+            : Duration.zero,
+        isFavorite: row['favorite']! as bool,
+        sizeBytes: row['size']! as int,
+        fileName: row['name'] as String?,
+        relativePath: row['relativePath'] as String?,
+        mimeType: row['mimeType'] as String?,
+      ),
+      albumId: row['bucketId'] as String?,
+      albumName: row['bucketName']! as String,
+      revision: row['revision']! as int,
     );
-  }
-
-  @override
-  Future<int> count(
-    MediaSelection selection, {
-    Set<String> hidden = const {},
-  }) async {
-    final path = await _path(selection, hidden);
-    return path == null ? 0 : await path.assetCountAsync;
-  }
-
-  @override
-  Future<List<MediaItem>> load(
-    MediaSelection selection, {
-    required int start,
-    required int end,
-    Set<String> hidden = const {},
-  }) async {
-    final path = await _path(selection, hidden);
-    if (path == null || end <= start) return const [];
-    final entities = [
-      for (final entity in await path.getAssetListRange(start: start, end: end))
-        if (entity.type == AssetType.image || entity.type == AssetType.video)
-          entity,
-    ];
-    // One extra MediaStore query per chunk for the file sizes.
-    final sizes = await _bridge.mediaSizes([for (final e in entities) e.id]);
-    return [
-      for (final entity in entities) _toItem(entity, sizes[entity.id] ?? 0),
-    ];
   }
 
   @override
@@ -198,81 +105,21 @@ final class AndroidMediaSource implements MediaSource {
 
   @override
   Future<Uri?> videoUri(MediaItem item) async {
+    await _ready;
     final url = await _entity(item).getMediaUrl();
     return url == null ? null : Uri.parse(url);
   }
 
-  /// Folder paths by id, per selection without folder and set of hidden
-  /// ids (each path keeps the filter it was listed with). Listing every
-  /// folder is a full MediaStore query, so it is done once per filter
-  /// instead of once per chunk or per album page.
-  final _folderPaths =
-      <(MediaSelection, String), Map<String, AssetPathEntity>>{};
-
-  /// The `photo_manager` path that lists [selection] without [hidden] ids.
-  Future<AssetPathEntity?> _path(
-    MediaSelection selection, [
-    Set<String> hidden = const {},
-  ]) async {
-    await _ready;
-    final filter = _filterFor(selection, hidden);
-    final type = switch (selection.filter) {
-      MediaFilter.photos || MediaFilter.camera => RequestType.image,
-      MediaFilter.videos => RequestType.video,
-      MediaFilter.all || MediaFilter.favorites => RequestType.common,
-    };
-    final albumId = selection.albumId;
-    if (albumId != null) {
-      final key = (
-        selection.copyWith(albumId: null),
-        (hidden.toList()..sort()).join(','),
-      );
-      final folders = _folderPaths[key] ??= {
-        for (final path in await PhotoManager.getAssetPathList(
-          hasAll: false,
-          type: type,
-          filterOption: filter,
-        ))
-          path.id: path,
-      };
-      // A folder with no item matching the filter is not listed: count 0.
-      return folders[albumId];
-    }
-    final paths = await PhotoManager.getAssetPathList(
-      onlyAll: true,
-      type: type,
-      filterOption: filter,
-    );
-    return paths.firstOrNull;
-  }
-
-  /// Entity for [item], rebuilt from its id if it was never loaded here.
-  AssetEntity _entity(MediaItem item) =>
-      _assets[item.id] ??
-      AssetEntity(
-        id: item.id,
-        typeInt: item.isVideo ? AssetType.video.index : AssetType.image.index,
-        width: item.width,
-        height: item.height,
-        duration: item.duration.inSeconds,
-        modifiedDateSecond: item.modifiedAt.millisecondsSinceEpoch ~/ 1000,
-      );
-
-  MediaItem _toItem(AssetEntity entity, int sizeBytes) {
-    _assets[entity.id] = entity;
-    return MediaItem(
-      id: entity.id,
-      kind: entity.type == AssetType.video ? MediaKind.video : MediaKind.photo,
-      width: entity.orientatedWidth,
-      height: entity.orientatedHeight,
-      takenAt: entity.createDateTime,
-      modifiedAt: entity.modifiedDateTime,
-      duration: entity.videoDuration,
-      isFavorite: entity.isFavorite,
-      sizeBytes: sizeBytes,
-      fileName: entity.title,
-      relativePath: entity.relativePath,
-      mimeType: entity.mimeType,
-    );
-  }
+  /// `photo_manager` entity for [item], built from its id.
+  AssetEntity _entity(MediaItem item) => AssetEntity(
+    id: item.id,
+    typeInt: item.isVideo ? AssetType.video.index : AssetType.image.index,
+    width: item.width,
+    height: item.height,
+    duration: item.duration.inSeconds,
+    modifiedDateSecond: item.modifiedAt.millisecondsSinceEpoch ~/ 1000,
+    title: item.fileName,
+    relativePath: item.relativePath,
+    mimeType: item.mimeType,
+  );
 }

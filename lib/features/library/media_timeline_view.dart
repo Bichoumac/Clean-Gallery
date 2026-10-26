@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:clean_gallery/core/media/media_actions.dart';
 import 'package:clean_gallery/core/media/media_formatting.dart';
+import 'package:clean_gallery/core/media/media_index.dart';
 import 'package:clean_gallery/core/media/media_providers.dart';
 import 'package:clean_gallery/core/media/media_thumbnail.dart';
 import 'package:clean_gallery/core/media/selection_bar.dart';
@@ -53,11 +54,8 @@ class MediaTimelineView extends ConsumerWidget {
   final bool showBackButton;
 
   Future<void> _refresh(WidgetRef ref) async {
-    final shown = ref.read(viewSelectionProvider(selection));
-    ref
-      ..invalidate(mediaAccessProvider)
-      ..invalidate(mediaListProvider(shown));
-    await ref.read(mediaListProvider(shown).future);
+    ref.invalidate(mediaAccessProvider);
+    await ref.read(mediaIndexProvider.notifier).sync();
   }
 
   @override
