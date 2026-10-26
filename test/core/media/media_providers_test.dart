@@ -29,6 +29,18 @@ void main() {
     expect(formatDuration(const Duration(hours: 1, seconds: 5)), '1:00:05');
   });
 
+  test('mediaPath', () {
+    expect(mediaPath(testItem(1)), 'DCIM/Camera/IMG_1.jpg');
+    expect(
+      mediaPath(testItem(1, relativePath: 'Pictures')),
+      'Pictures/IMG_1.jpg',
+    );
+    expect(
+      mediaPath(testItem(1).copyWith(fileName: null, relativePath: null)),
+      isNull,
+    );
+  });
+
   group('MediaList', () {
     late AppDatabase db;
     late ProviderContainer container;

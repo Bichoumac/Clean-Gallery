@@ -149,11 +149,13 @@ Before the test, make an exact copy: in Samsung Gallery or My Files, copy a phot
 | --- | --- | --- |
 | 15 | Launch, wait a few seconds, Albums → All media | A **Duplicates** tile above the photos: "N extra copies · size". |
 | 16 | Camera tab, if the copy is in another folder | No tile for that pair (the copy is not in Camera). |
-| 17 | Open the tile | Groups side by side with resolution, size, date; one photo with **Best**, the others dimmed with a check mark. |
+| 17 | Open the tile | Groups side by side with resolution, size, date and full path; one photo with **Best**, the others dimmed with a check mark. |
 | 18 | Tap a photo | It opens full screen; swiping shows the other copies of the group. |
 | 19 | Tap the round button on a picked photo | It is kept (no longer dimmed); the group's button count drops. |
 | 20 | **Clean all groups** | Summary "Move N items (size) to the trash?"; after confirming, the groups disappear, *Undo* brings them back. |
 | 21 | Albums → Trash, then relaunch the app | The trashed copies are in the trash; launching again does not re-read the files (the tile appears at once). |
+
+Exact duplicates status on the Galaxy A54, checked by the product owner on 2026-10-26: duplicates work. Requested: show each copy's file path to help choose; added the same day, to check on the next install.
 
 ### M3 — capture dates, to verify on a device
 

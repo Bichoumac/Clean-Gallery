@@ -35,7 +35,7 @@ Last updated: 2026-10-26 — Milestone M3
 | --- | --- |
 | `flutter analyze` | No issues |
 | `flutter test --timeout 60s` | 148 tests pass |
-| Galaxy A54 (release build) | Media index confirmed by the product owner on 2026-10-26: migration of the M2 trash, instant display at launch, changes from other apps picked up on return, scroll position kept ([testing.md](testing.md#m3--media-index-to-verify-on-a-device)). Limited access and a fresh install not tested. Capture dates confirmed on 2026-10-26: received photos at their real date, camera photos unchanged, Corrected dates switch ([testing.md](testing.md#m3--capture-dates-to-verify-on-a-device)). Exact duplicates not tested yet ([testing.md](testing.md#m3--exact-duplicates-to-verify-on-a-device)). |
+| Galaxy A54 (release build) | Media index confirmed by the product owner on 2026-10-26: migration of the M2 trash, instant display at launch, changes from other apps picked up on return, scroll position kept ([testing.md](testing.md#m3--media-index-to-verify-on-a-device)). Limited access and a fresh install not tested. Capture dates confirmed on 2026-10-26: received photos at their real date, camera photos unchanged, Corrected dates switch ([testing.md](testing.md#m3--capture-dates-to-verify-on-a-device)). Exact duplicates confirmed working on 2026-10-26; the file path under each copy, added after that test, is to check ([testing.md](testing.md#m3--exact-duplicates-to-verify-on-a-device)). |
 
 ### Known issues
 
@@ -43,7 +43,7 @@ Last updated: 2026-10-26 — Milestone M3
 
 ### Next steps
 
-1. Device test of exact duplicates.
+1. Check the file path in the duplicates screen.
 2. Bursts, in the "Certain duplicates" section.
 
 ## M2 — Actions

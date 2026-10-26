@@ -42,6 +42,9 @@ void main() {
     expect(find.text('Certain duplicates'), findsOneWidget);
     expect(find.text('Best'), findsOneWidget);
     expect(find.text('Move 1 to trash'), findsOneWidget);
+    // Each copy shows where it is.
+    expect(find.text('DCIM/Camera/IMG_1.jpg'), findsOneWidget);
+    expect(find.text('DCIM/Camera/IMG_2.jpg'), findsOneWidget);
   });
 
   testApp('no tile without duplicates', (tester) async {

@@ -307,6 +307,12 @@ class _Member extends StatelessWidget {
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
+          // Where each copy is tells them apart; shown in full, since the
+          // end of the path (folder, file name) matters most.
+          if (mediaPath(item) case final path?) ...[
+            const SizedBox(height: 4),
+            Text(path, style: details),
+          ],
         ],
       ),
     );
