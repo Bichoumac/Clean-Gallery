@@ -4,7 +4,9 @@ import 'package:clean_gallery/features/library/albums_screen.dart';
 import 'package:clean_gallery/features/library/media_timeline_view.dart';
 import 'package:clean_gallery/features/onboarding/onboarding_controller.dart';
 import 'package:clean_gallery/features/onboarding/onboarding_screen.dart';
+import 'package:clean_gallery/features/settings/settings_screen.dart';
 import 'package:clean_gallery/features/stats/stats_screen.dart';
+import 'package:clean_gallery/features/trash/trash_screen.dart';
 import 'package:clean_gallery/features/viewer/viewer_screen.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/widgets.dart';
@@ -18,8 +20,8 @@ abstract final class AppRoutes {
   /// First-launch onboarding.
   static const onboarding = '/onboarding';
 
-  /// Photos tab: timeline of photos.
-  static const photos = '/photos';
+  /// Camera tab: timeline of the camera's photos.
+  static const camera = '/camera';
 
   /// Videos tab: timeline of videos.
   static const videos = '/videos';
@@ -44,6 +46,9 @@ abstract final class AlbumRoutes {
 
   /// Key of the "Favorites" virtual album.
   static const favoritesKey = 'favorites';
+
+  /// Location of the app trash, a page of its own under Albums.
+  static const trash = '${AppRoutes.albums}/trash';
 
   /// Location of the album with [key] (a virtual key or a folder id).
   static String location(String key, String name) => Uri(
@@ -88,17 +93,17 @@ GoRouter appRouter(Ref ref) {
     ..onDispose(refresh.dispose);
 
   return GoRouter(
-    initialLocation: AppRoutes.photos,
+    initialLocation: AppRoutes.camera,
     refreshListenable: refresh,
     redirect: (context, state) {
       final completed = ref.read(onboardingCompletedProvider);
       final onOnboarding = state.matchedLocation == AppRoutes.onboarding;
       if (!completed && !onOnboarding) return AppRoutes.onboarding;
-      if (completed && onOnboarding) return AppRoutes.photos;
+      if (completed && onOnboarding) return AppRoutes.camera;
       if (state.matchedLocation == AppRoutes.viewer &&
           state.extra is! ViewerArgs) {
         // A viewer location without arguments (e.g. after process death).
-        return AppRoutes.photos;
+        return AppRoutes.camera;
       }
       return null;
     },
@@ -121,11 +126,11 @@ GoRouter appRouter(Ref ref) {
         // Order must match the destinations of HomeShell.
         branches: [
           _branch(
-            AppRoutes.photos,
+            AppRoutes.camera,
             (context, l10n) => MediaTimelineView(
-              selection: MediaSelection.photos,
-              title: l10n.navPhotos,
-              emptyTitle: l10n.libraryEmptyPhotos,
+              selection: MediaSelection.camera,
+              title: l10n.navCamera,
+              emptyTitle: l10n.libraryEmptyCamera,
             ),
           ),
           _branch(
@@ -142,6 +147,11 @@ GoRouter appRouter(Ref ref) {
                 path: AppRoutes.albums,
                 builder: (context, state) => const AlbumsScreen(),
                 routes: [
+                  // Before ':key', which would otherwise match "trash".
+                  GoRoute(
+                    path: 'trash',
+                    builder: (context, state) => const TrashScreen(),
+                  ),
                   GoRoute(
                     path: ':key',
                     builder: (context, state) {
@@ -168,9 +178,13 @@ GoRouter appRouter(Ref ref) {
               ),
             ],
           ),
-          _branch(
-            AppRoutes.settings,
-            (context, l10n) => PlaceholderTab(title: l10n.navSettings),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: AppRoutes.settings,
+                builder: (context, state) => const SettingsScreen(),
+              ),
+            ],
           ),
         ],
       ),

@@ -10,17 +10,21 @@ import 'package:flutter/widgets.dart';
 abstract interface class MediaSource {
   /// Device folders that contain at least one photo or video, largest first.
   ///
-  /// Virtual albums ("All media", "Favorites") are not included.
-  Future<List<Album>> albums();
+  /// Virtual albums ("All media", "Favorites") are not included. Items whose
+  /// id is in [hidden] (the app trash) are neither counted nor used as
+  /// covers.
+  Future<List<Album>> albums({Set<String> hidden = const {}});
 
-  /// Number of items in [selection].
-  Future<int> count(MediaSelection selection);
+  /// Number of items in [selection], leaving out [hidden] ids.
+  Future<int> count(MediaSelection selection, {Set<String> hidden = const {}});
 
-  /// Items `[start, end)` of [selection], newest first.
+  /// Items `[start, end)` of [selection] in its sort order, leaving out
+  /// [hidden] ids.
   Future<List<MediaItem>> load(
     MediaSelection selection, {
     required int start,
     required int end,
+    Set<String> hidden = const {},
   });
 
   /// Small square thumbnail of [item], about [size] pixels wide.

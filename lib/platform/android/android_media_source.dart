@@ -32,6 +32,10 @@ final class AndroidMediaSource implements MediaSource {
   static const _captureDate =
       '(CASE WHEN datetaken > 0 THEN datetaken / 1000 ELSE date_added END)';
 
+  /// Folder the device camera saves to, as a MediaStore `RELATIVE_PATH`.
+  /// The same on Samsung and Pixel phones.
+  static const cameraFolder = 'DCIM/Camera/';
+
   /// MediaStore `MEDIA_TYPE` values.
   static const _imageType = 1;
   static const _videoType = 3;
@@ -41,10 +45,16 @@ final class AndroidMediaSource implements MediaSource {
   ///
   /// `photo_manager` drops its own media-type condition as soon as a custom
   /// `where` is given, so the type condition is always written here.
-  static CustomFilter _filterFor(MediaSelection selection) {
+  static CustomFilter _filterFor(
+    MediaSelection selection, [
+    Set<String> hidden = const {},
+  ]) {
     final where = <String>[
       switch (selection.filter) {
         MediaFilter.photos => 'media_type = $_imageType',
+        MediaFilter.camera =>
+          'media_type = $_imageType AND relative_path LIKE '
+              "'$cameraFolder%'",
         MediaFilter.videos => 'media_type = $_videoType',
         MediaFilter.all ||
         MediaFilter.favorites => 'media_type IN ($_imageType, $_videoType)',
@@ -55,6 +65,9 @@ final class AndroidMediaSource implements MediaSource {
         '$_captureDate >= ${start.millisecondsSinceEpoch ~/ 1000}',
       if (selection.dates?.end case final end?)
         '$_captureDate < ${end.millisecondsSinceEpoch ~/ 1000}',
+      // Trashed items. Ids are numbers, inlined to avoid SQLite's limit on
+      // bound parameters (999 on Android 11).
+      if (hidden.isNotEmpty) '_id NOT IN (${_numericIds(hidden).join(',')})',
     ];
     final sort = selection.sort;
     final asc = !sort.descending;
@@ -76,13 +89,19 @@ final class AndroidMediaSource implements MediaSource {
     )..needTitle = true;
   }
 
+  /// Ids of [ids] that are plain numbers (MediaStore ids always are).
+  static Iterable<int> _numericIds(Set<String> ids) =>
+      ids.map(int.tryParse).whereType<int>();
+
   @override
-  Future<List<Album>> albums() async {
+  Future<List<Album>> albums({Set<String> hidden = const {}}) async {
     await _ready;
     // One native pass gives every folder's count and cover. Folder paths
     // are listed again on the next album page, so drop the cached ones.
     _folderPaths.clear();
-    final summaries = await _bridge.albumSummaries();
+    final summaries = await _bridge.albumSummaries(
+      excluded: _numericIds(hidden).toList(),
+    );
     return [
       for (final summary in summaries)
         Album(
@@ -113,8 +132,11 @@ final class AndroidMediaSource implements MediaSource {
   }
 
   @override
-  Future<int> count(MediaSelection selection) async {
-    final path = await _path(selection);
+  Future<int> count(
+    MediaSelection selection, {
+    Set<String> hidden = const {},
+  }) async {
+    final path = await _path(selection, hidden);
     return path == null ? 0 : await path.assetCountAsync;
   }
 
@@ -123,8 +145,9 @@ final class AndroidMediaSource implements MediaSource {
     MediaSelection selection, {
     required int start,
     required int end,
+    Set<String> hidden = const {},
   }) async {
-    final path = await _path(selection);
+    final path = await _path(selection, hidden);
     if (path == null || end <= start) return const [];
     final entities = [
       for (final entity in await path.getAssetListRange(start: start, end: end))
@@ -179,23 +202,31 @@ final class AndroidMediaSource implements MediaSource {
     return url == null ? null : Uri.parse(url);
   }
 
-  /// Folder paths by id, per selection without folder (same filter, sort
-  /// and dates). Listing every folder is a full MediaStore query, so it is
-  /// done once per filter instead of once per chunk or per album page.
-  final _folderPaths = <MediaSelection, Map<String, AssetPathEntity>>{};
+  /// Folder paths by id, per selection without folder and set of hidden
+  /// ids (each path keeps the filter it was listed with). Listing every
+  /// folder is a full MediaStore query, so it is done once per filter
+  /// instead of once per chunk or per album page.
+  final _folderPaths =
+      <(MediaSelection, String), Map<String, AssetPathEntity>>{};
 
-  /// The `photo_manager` path that lists [selection].
-  Future<AssetPathEntity?> _path(MediaSelection selection) async {
+  /// The `photo_manager` path that lists [selection] without [hidden] ids.
+  Future<AssetPathEntity?> _path(
+    MediaSelection selection, [
+    Set<String> hidden = const {},
+  ]) async {
     await _ready;
-    final filter = _filterFor(selection);
+    final filter = _filterFor(selection, hidden);
     final type = switch (selection.filter) {
-      MediaFilter.photos => RequestType.image,
+      MediaFilter.photos || MediaFilter.camera => RequestType.image,
       MediaFilter.videos => RequestType.video,
       MediaFilter.all || MediaFilter.favorites => RequestType.common,
     };
     final albumId = selection.albumId;
     if (albumId != null) {
-      final key = selection.copyWith(albumId: null);
+      final key = (
+        selection.copyWith(albumId: null),
+        (hidden.toList()..sort()).join(','),
+      );
       final folders = _folderPaths[key] ??= {
         for (final path in await PhotoManager.getAssetPathList(
           hasAll: false,

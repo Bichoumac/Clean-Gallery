@@ -1,9 +1,11 @@
 import 'package:clean_gallery/core/media/media_providers.dart';
 import 'package:clean_gallery/core/media/media_thumbnail.dart';
+import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/core/router/compact_nav_bar.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/media_item.dart';
+import 'package:clean_gallery/domain/trashed_item.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,7 +13,8 @@ import 'package:go_router/go_router.dart';
 
 /// Albums tab: "All media" and "Favorites", then the device folders.
 ///
-/// The Trash (M2) and Duplicates (M3) virtual albums join the top row later.
+/// The Trash is a page of the app, not a MediaStore album. The Duplicates
+/// virtual album joins the top row in M3.
 class AlbumsScreen extends ConsumerWidget {
   /// Creates the Albums tab.
   const AlbumsScreen({super.key});
@@ -21,6 +24,7 @@ class AlbumsScreen extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
     final folders = ref.watch(albumsProvider).value ?? const <Album>[];
+    final trash = ref.watch(trashItemsProvider).value ?? const <TrashedItem>[];
 
     return RefreshIndicator(
       onRefresh: () async {
@@ -46,13 +50,26 @@ class AlbumsScreen extends ConsumerWidget {
                 _AlbumTile(
                   selection: MediaSelection.all,
                   name: l10n.albumsAllMedia,
-                  routeKey: AlbumRoutes.allKey,
+                  location: AlbumRoutes.location(
+                    AlbumRoutes.allKey,
+                    l10n.albumsAllMedia,
+                  ),
                 ),
                 _AlbumTile(
                   selection: MediaSelection.favorites,
                   name: l10n.albumsFavorites,
-                  routeKey: AlbumRoutes.favoritesKey,
+                  location: AlbumRoutes.location(
+                    AlbumRoutes.favoritesKey,
+                    l10n.albumsFavorites,
+                  ),
                   icon: Icons.favorite_rounded,
+                ),
+                _AlbumTile(
+                  name: l10n.trashTitle,
+                  location: AlbumRoutes.trash,
+                  knownCount: trash.length,
+                  knownCover: trash.firstOrNull?.item,
+                  icon: Icons.delete_outline_rounded,
                 ),
               ],
             ),
@@ -75,7 +92,7 @@ class AlbumsScreen extends ConsumerWidget {
                   _AlbumTile(
                     selection: album.selection,
                     name: album.name,
-                    routeKey: album.id,
+                    location: AlbumRoutes.location(album.id, album.name),
                     knownCount: album.count,
                     knownCover: album.cover,
                   ),
@@ -111,17 +128,22 @@ class _AlbumGrid extends StatelessWidget {
 /// Cover, name and item count of one album.
 class _AlbumTile extends ConsumerWidget {
   const _AlbumTile({
-    required this.selection,
     required this.name,
-    required this.routeKey,
+    required this.location,
+    this.selection,
     this.knownCount,
     this.knownCover,
     this.icon,
   });
 
-  final MediaSelection selection;
   final String name;
-  final String routeKey;
+
+  /// Page opened by the tile.
+  final String location;
+
+  /// MediaStore selection to fetch the count and cover from when they are
+  /// not given; `null` for albums that are not in MediaStore (Trash).
+  final MediaSelection? selection;
 
   /// Count already known from the album list; fetched otherwise.
   final int? knownCount;
@@ -136,8 +158,17 @@ class _AlbumTile extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final cover = knownCover ?? ref.watch(albumCoverProvider(selection)).value;
-    final count = knownCount ?? ref.watch(mediaCountProvider(selection)).value;
+    final selection = this.selection;
+    final cover =
+        knownCover ??
+        (selection == null
+            ? null
+            : ref.watch(albumCoverProvider(selection)).value);
+    final count =
+        knownCount ??
+        (selection == null
+            ? null
+            : ref.watch(mediaCountProvider(selection)).value);
 
     return Semantics(
       button: true,
@@ -145,7 +176,7 @@ class _AlbumTile extends ConsumerWidget {
       excludeSemantics: true,
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
-        onTap: () => context.push(AlbumRoutes.location(routeKey, name)),
+        onTap: () => context.push(location),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [

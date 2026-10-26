@@ -1,3 +1,4 @@
+import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/platform/platform_bridge.dart';
 import 'package:flutter/services.dart';
 
@@ -45,9 +46,14 @@ final class AndroidPlatformBridge implements PlatformBridge {
   /// Android-only helper used by `AndroidMediaSource.albums`. Each map has
   /// `id`, `name`, `count`, `coverId`, `coverIsVideo`, `coverWidth`,
   /// `coverHeight` and `coverModified` (seconds).
-  Future<List<Map<String, Object?>>> albumSummaries() async {
+  ///
+  /// Items whose id is in [excluded] (the app trash) are skipped.
+  Future<List<Map<String, Object?>>> albumSummaries({
+    List<int> excluded = const [],
+  }) async {
     final list = await _channel.invokeListMethod<Map<Object?, Object?>>(
       'albumSummaries',
+      {'excluded': excluded},
     );
     return [
       for (final entry in list ?? const <Map<Object?, Object?>>[])
@@ -81,6 +87,46 @@ final class AndroidPlatformBridge implements PlatformBridge {
       pixels: reply['pixels']! as Uint8List,
     );
   }
+
+  @override
+  Future<bool> setFavorite(
+    List<MediaItem> items, {
+    required bool favorite,
+  }) async {
+    if (items.isEmpty) return true;
+    final done = await _channel.invokeMethod<bool>('setFavorite', {
+      'items': _encode(items),
+      'favorite': favorite,
+    });
+    return done ?? false;
+  }
+
+  @override
+  Future<bool> deletePermanently(List<MediaItem> items) async {
+    if (items.isEmpty) return true;
+    final done = await _channel.invokeMethod<bool>('deleteMedia', {
+      'items': _encode(items),
+    });
+    return done ?? false;
+  }
+
+  @override
+  Future<void> share(
+    List<MediaItem> items, {
+    required bool removeLocation,
+  }) async {
+    if (items.isEmpty) return;
+    await _channel.invokeMethod<void>('share', {
+      'items': _encode(items),
+      'removeLocation': removeLocation,
+    });
+  }
+
+  /// Items as the native side expects them.
+  List<Map<String, Object?>> _encode(List<MediaItem> items) => [
+    for (final item in items)
+      {'id': item.id, 'video': item.isVideo, 'mimeType': item.mimeType},
+  ];
 
   @override
   Future<int> sdkVersion() async {

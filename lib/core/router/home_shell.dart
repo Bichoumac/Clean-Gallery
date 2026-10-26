@@ -1,14 +1,23 @@
+import 'dart:async';
+
+import 'package:clean_gallery/core/media/selection_bar.dart';
 import 'package:clean_gallery/core/router/compact_nav_bar.dart';
+import 'package:clean_gallery/features/trash/trash_purge.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 /// Scaffold of the five main tabs, with the floating [CompactNavBar].
 ///
 /// Each tab keeps its own navigation stack through [navigationShell]. The
 /// content extends under the bar; tabs add [CompactNavBar.contentInset] at
-/// the bottom of their scrollable content.
-class HomeShell extends StatelessWidget {
+/// the bottom of their scrollable content. The bar is hidden while a tab is
+/// selecting items, since the tab then shows its [SelectionBar] there.
+///
+/// The shell also offers to purge the expired trash once a day, at launch
+/// and when the app comes back to the foreground.
+class HomeShell extends ConsumerStatefulWidget {
   /// Creates the shell around the branch navigator provided by go_router.
   const HomeShell({required this.navigationShell, super.key});
 
@@ -16,46 +25,74 @@ class HomeShell extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
   @override
+  ConsumerState<HomeShell> createState() => _HomeShellState();
+}
+
+class _HomeShellState extends ConsumerState<HomeShell> {
+  late final AppLifecycleListener _lifecycle;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle = AppLifecycleListener(onResume: _checkTrash);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkTrash());
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    super.dispose();
+  }
+
+  void _checkTrash() {
+    if (mounted) unawaited(offerExpiredTrashPurge(context, ref));
+  }
+
+  @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final navigationShell = widget.navigationShell;
+    final selecting = ref.watch(selectionModeProvider);
     return Scaffold(
       extendBody: true,
       body: navigationShell,
-      bottomNavigationBar: CompactNavBar(
-        selectedIndex: navigationShell.currentIndex,
-        onSelected: (index) => navigationShell.goBranch(
-          index,
-          // Tapping the active tab again returns to its root.
-          initialLocation: index == navigationShell.currentIndex,
-        ),
-        destinations: [
-          CompactNavDestination(
-            icon: Icons.image_outlined,
-            selectedIcon: Icons.image_rounded,
-            label: l10n.navPhotos,
-          ),
-          CompactNavDestination(
-            icon: Icons.smart_display_outlined,
-            selectedIcon: Icons.smart_display_rounded,
-            label: l10n.navVideos,
-          ),
-          CompactNavDestination(
-            icon: Icons.collections_bookmark_outlined,
-            selectedIcon: Icons.collections_bookmark_rounded,
-            label: l10n.navAlbums,
-          ),
-          CompactNavDestination(
-            icon: Icons.donut_large_outlined,
-            selectedIcon: Icons.donut_large_rounded,
-            label: l10n.navStats,
-          ),
-          CompactNavDestination(
-            icon: Icons.tune_outlined,
-            selectedIcon: Icons.tune_rounded,
-            label: l10n.navSettings,
-          ),
-        ],
-      ),
+      bottomNavigationBar: selecting
+          ? null
+          : CompactNavBar(
+              selectedIndex: navigationShell.currentIndex,
+              onSelected: (index) => navigationShell.goBranch(
+                index,
+                // Tapping the active tab again returns to its root.
+                initialLocation: index == navigationShell.currentIndex,
+              ),
+              destinations: [
+                CompactNavDestination(
+                  icon: Icons.photo_camera_outlined,
+                  selectedIcon: Icons.photo_camera_rounded,
+                  label: l10n.navCamera,
+                ),
+                CompactNavDestination(
+                  icon: Icons.smart_display_outlined,
+                  selectedIcon: Icons.smart_display_rounded,
+                  label: l10n.navVideos,
+                ),
+                CompactNavDestination(
+                  icon: Icons.collections_bookmark_outlined,
+                  selectedIcon: Icons.collections_bookmark_rounded,
+                  label: l10n.navAlbums,
+                ),
+                CompactNavDestination(
+                  icon: Icons.donut_large_outlined,
+                  selectedIcon: Icons.donut_large_rounded,
+                  label: l10n.navStats,
+                ),
+                CompactNavDestination(
+                  icon: Icons.tune_outlined,
+                  selectedIcon: Icons.tune_rounded,
+                  label: l10n.navSettings,
+                ),
+              ],
+            ),
     );
   }
 }

@@ -27,8 +27,8 @@ String formatSectionDate(
   final today = now ?? DateTime.now();
   if (grouping == TimelineGrouping.month) {
     final pattern = date.year == today.year
-        ? DateFormat.MMMM(locale)
-        : DateFormat.yMMMM(locale);
+        ? _format('MMMM', locale, DateFormat.MMMM)
+        : _format('yMMMM', locale, DateFormat.yMMMM);
     return _capitalize(pattern.format(date));
   }
   final todayStart = DateTime(today.year, today.month, today.day);
@@ -36,8 +36,8 @@ String formatSectionDate(
   if (days == 0) return l10n.timelineToday;
   if (days == 1) return l10n.timelineYesterday;
   final pattern = date.year == today.year
-      ? DateFormat.MMMMEEEEd(locale)
-      : DateFormat.yMMMMEEEEd(locale);
+      ? _format('MMMMEEEEd', locale, DateFormat.MMMMEEEEd)
+      : _format('yMMMMEEEEd', locale, DateFormat.yMMMMEEEEd);
   return _capitalize(pattern.format(date));
 }
 
@@ -64,14 +64,31 @@ String formatBytes(BuildContext context, int bytes) {
 /// Month and year, capitalized: "March 2024", "Mars 2024".
 String formatMonth(BuildContext context, DateTime date) {
   final locale = Localizations.localeOf(context).toLanguageTag();
-  return _capitalize(DateFormat.yMMMM(locale).format(date.toLocal()));
+  return _capitalize(
+    _format('yMMMM', locale, DateFormat.yMMMM).format(date.toLocal()),
+  );
 }
 
 /// Date and time of a media item, for the viewer and screen readers.
 String formatMediaDate(BuildContext context, DateTime date) {
   final locale = Localizations.localeOf(context).toLanguageTag();
-  return DateFormat.yMMMd(locale).add_Hm().format(date.toLocal());
+  return _format(
+    'yMMMd Hm',
+    locale,
+    (locale) => DateFormat.yMMMd(locale).add_Hm(),
+  ).format(date.toLocal());
 }
+
+/// Date formats by pattern and locale. Building a [DateFormat] parses its
+/// pattern and locale data; every thumbnail formats a date for its screen
+/// reader label, so formats are built once and reused.
+final _formats = <String, DateFormat>{};
+
+DateFormat _format(
+  String pattern,
+  String locale,
+  DateFormat Function(String locale) create,
+) => _formats.putIfAbsent('$pattern|$locale', () => create(locale));
 
 /// French month and day names are lowercase; titles start with a capital.
 String _capitalize(String text) =>

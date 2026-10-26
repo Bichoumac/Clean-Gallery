@@ -20,7 +20,7 @@ void main() {
     expect(find.byType(ViewerScreen), findsOneWidget);
   }
 
-  testWidgets('swiping left shows the next photo', (tester) async {
+  testApp('swiping left shows the next photo', (tester) async {
     await openViewerAt(tester, 0);
     expect(find.text('IMG_1.jpg'), findsOneWidget);
 
@@ -29,7 +29,7 @@ void main() {
     expect(find.text('IMG_2.jpg'), findsOneWidget);
   });
 
-  testWidgets('swiping right shows the previous photo', (tester) async {
+  testApp('swiping right shows the previous photo', (tester) async {
     await openViewerAt(tester, 2);
     expect(find.text('IMG_3.jpg'), findsOneWidget);
 
@@ -38,14 +38,14 @@ void main() {
     expect(find.text('IMG_2.jpg'), findsOneWidget);
   });
 
-  testWidgets('a slow drag also changes page', (tester) async {
+  testApp('a slow drag also changes page', (tester) async {
     await openViewerAt(tester, 0);
     await tester.drag(find.byType(PageView), const Offset(-250, 0));
     await tester.pumpAndSettle();
     expect(find.text('IMG_2.jpg'), findsOneWidget);
   });
 
-  testWidgets('zoomed in: one finger pans instead of changing page', (
+  testApp('zoomed in: one finger pans instead of changing page', (
     tester,
   ) async {
     await openViewerAt(tester, 0);
@@ -78,7 +78,7 @@ void main() {
     expect(find.text('IMG_2.jpg'), findsOneWidget);
   });
 
-  testWidgets('the top bar only covers the top of the screen', (tester) async {
+  testApp('the top bar only covers the top of the screen', (tester) async {
     await openViewerAt(tester, 0);
     final topBar = find.ancestor(
       of: find.text('IMG_1.jpg'),

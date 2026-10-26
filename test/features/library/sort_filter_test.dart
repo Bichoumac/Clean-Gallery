@@ -90,7 +90,7 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    testWidgets('sorting by name removes date headers', (tester) async {
+    testApp('sorting by name removes date headers', (tester) async {
       await pumpTestApp(tester, media: source());
       expect(find.text('Today'), findsOneWidget);
       expect(shownIds(tester), ['1', '2', '3']);
@@ -108,9 +108,7 @@ void main() {
       expect(find.text('Name · Z to A'), findsOneWidget); // Active chip.
     });
 
-    testWidgets('date preset hides older items; chip clears it', (
-      tester,
-    ) async {
+    testApp('date preset hides older items; chip clears it', (tester) async {
       await pumpTestApp(tester, media: source());
       await openSheet(tester);
       await tester.tap(find.widgetWithText(ChoiceChip, 'Last 7 days'));
@@ -129,7 +127,7 @@ void main() {
       expect(find.byType(InputChip), findsNothing);
     });
 
-    testWidgets('empty period offers to clear the filter', (tester) async {
+    testApp('empty period offers to clear the filter', (tester) async {
       final media = FakeMediaSource(
         items: [testItem(3, takenAt: DateTime(2020, 5))],
       );
@@ -145,7 +143,7 @@ void main() {
       expect(shownIds(tester), ['3']);
     });
 
-    testWidgets('the viewer follows the chosen order', (tester) async {
+    testApp('the viewer follows the chosen order', (tester) async {
       await pumpTestApp(tester, media: source());
       await openSheet(tester);
       await tester.tap(find.text('Oldest first'));
@@ -159,7 +157,7 @@ void main() {
       expect(find.text('IMG_3.jpg'), findsOneWidget);
     });
 
-    testWidgets('each tab keeps its own order', (tester) async {
+    testApp('each tab keeps its own order', (tester) async {
       await pumpTestApp(tester, media: source());
       await openSheet(tester);
       await tester.tap(find.text('Oldest first'));

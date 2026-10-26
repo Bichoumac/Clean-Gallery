@@ -2,13 +2,15 @@ import 'package:clean_gallery/app.dart';
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/core/database/settings_repository.dart';
 import 'package:clean_gallery/core/providers.dart';
+import 'package:clean_gallery/core/settings/settings_controller.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Entry point.
 ///
-/// Reads the onboarding flag before the first frame, so the router can open
-/// the right screen immediately without a loading state.
+/// Reads the onboarding flag and the user settings before the first frame,
+/// so the router opens the right screen and the theme and language are right
+/// immediately, without a loading state.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Room for the thumbnails of several screens of grid (about 260 KB each
@@ -18,8 +20,11 @@ Future<void> main() async {
     ..maximumSizeBytes = 200 << 20;
 
   final database = AppDatabase.open();
-  final onboardingCompleted = await SettingsRepository(database)
-      .readBool(SettingKeys.onboardingCompleted);
+  final settings = SettingsRepository(database);
+  final onboardingCompleted = await settings.readBool(
+    SettingKeys.onboardingCompleted,
+  );
+  final appSettings = await settings.loadAppSettings();
 
   runApp(
     ProviderScope(
@@ -28,6 +33,7 @@ Future<void> main() async {
         initialOnboardingCompletedProvider.overrideWithValue(
           onboardingCompleted,
         ),
+        initialAppSettingsProvider.overrideWithValue(appSettings),
       ],
       child: const CleanGalleryApp(),
     ),

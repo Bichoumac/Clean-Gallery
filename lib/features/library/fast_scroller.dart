@@ -141,6 +141,18 @@ class _FastScrollerState extends State<FastScroller> {
                                 onVerticalDragStart: (details) {
                                   _hideTimer?.cancel();
                                   setState(() => _dragging = true);
+                                  // Jump under the finger at once: the
+                                  // grid's long press also competes for
+                                  // this pointer, so the drag only starts
+                                  // after the touch slop.
+                                  final box =
+                                      context.findRenderObject()! as RenderBox;
+                                  _jumpTo(
+                                    box
+                                        .globalToLocal(details.globalPosition)
+                                        .dy,
+                                    trackHeight,
+                                  );
                                 },
                                 onVerticalDragUpdate: (details) {
                                   final box =

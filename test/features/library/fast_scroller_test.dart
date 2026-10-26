@@ -29,7 +29,7 @@ void main() {
       .position
       .pixels;
 
-  testWidgets('hidden until the list scrolls, then shown', (tester) async {
+  testApp('hidden until the list scrolls, then shown', (tester) async {
     await pumpTestApp(tester, media: FakeMediaSource(items: library));
     final opacity = find.descendant(
       of: find.byType(FastScroller),
@@ -46,14 +46,17 @@ void main() {
     expect(tester.widget<AnimatedOpacity>(opacity).opacity, 0);
   });
 
-  testWidgets('dragging the thumb jumps and shows the month', (tester) async {
+  testApp('dragging the thumb jumps and shows the month', (tester) async {
     await pumpTestApp(tester, media: FakeMediaSource(items: library));
     await tester.drag(find.byType(CustomScrollView), const Offset(0, -300));
     await tester.pump();
 
     final gesture = await tester.startGesture(tester.getCenter(thumb()));
-    await gesture.moveBy(const Offset(0, 300));
-    await tester.pump();
+    // A finger moves in small steps.
+    for (var i = 0; i < 10; i++) {
+      await gesture.moveBy(const Offset(0, 30));
+      await tester.pump();
+    }
     expect(scrollOffset(tester), greaterThan(2000));
     // The bubble shows a month and a year, e.g. "March 2025".
     expect(find.textContaining(RegExp(r'^[A-Z][a-z]+ \d{4}$')), findsOne);
@@ -63,7 +66,7 @@ void main() {
     expect(find.textContaining(RegExp(r'^[A-Z][a-z]+ \d{4}$')), findsNothing);
   });
 
-  testWidgets('sorted by size, the bubble shows a size', (tester) async {
+  testApp('sorted by size, the bubble shows a size', (tester) async {
     await pumpTestApp(tester, media: FakeMediaSource(items: library));
     await tester.tap(find.byTooltip('Sort and filter'));
     await tester.pumpAndSettle();
@@ -75,13 +78,15 @@ void main() {
     await tester.drag(find.byType(CustomScrollView), const Offset(0, -300));
     await tester.pump();
     final gesture = await tester.startGesture(tester.getCenter(thumb()));
-    await gesture.moveBy(const Offset(0, 200));
-    await tester.pump();
+    for (var i = 0; i < 10; i++) {
+      await gesture.moveBy(const Offset(0, 20));
+      await tester.pump();
+    }
     expect(find.textContaining(RegExp(r'^\d+(\.\d)? MB$')), findsOne);
     await gesture.up();
   });
 
-  testWidgets('short lists have no thumb', (tester) async {
+  testApp('short lists have no thumb', (tester) async {
     await pumpTestApp(
       tester,
       media: FakeMediaSource(items: library.take(10).toList()),
@@ -91,7 +96,7 @@ void main() {
     expect(thumb(), findsNothing);
   });
 
-  testWidgets('formatBytes', (tester) async {
+  testApp('formatBytes', (tester) async {
     late BuildContext context;
     await tester.pumpWidget(
       Localizations(

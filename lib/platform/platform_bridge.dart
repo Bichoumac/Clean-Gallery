@@ -1,3 +1,5 @@
+import 'package:clean_gallery/domain/media_item.dart';
+
 /// Platform-specific features that the Dart packages do not cover.
 ///
 /// The Android implementation talks to the Kotlin module over a
@@ -15,4 +17,25 @@ abstract interface class PlatformBridge {
 
   /// Android SDK version of the running device, e.g. `34`.
   Future<int> sdkVersion();
+
+  /// Marks [items] as favorites, or not, in the system gallery.
+  ///
+  /// Shows one system confirmation for the whole batch, unless the app has
+  /// "Media management". Returns `true` when applied, `false` when the user
+  /// declined.
+  Future<bool> setFavorite(List<MediaItem> items, {required bool favorite});
+
+  /// Deletes [items] from the device for good.
+  ///
+  /// Shows one system confirmation for the whole batch, unless the app has
+  /// "Media management". Returns `true` when deleted, `false` when the user
+  /// declined.
+  Future<bool> deletePermanently(List<MediaItem> items);
+
+  /// Opens the system share sheet for [items].
+  ///
+  /// With [removeLocation], photos are shared as temporary copies without
+  /// GPS data; the originals are not changed. Videos are always shared as
+  /// they are.
+  Future<void> share(List<MediaItem> items, {required bool removeLocation});
 }

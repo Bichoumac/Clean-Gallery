@@ -11,6 +11,10 @@ enum MediaFilter {
   /// Photos only.
   photos,
 
+  /// Photos taken with the device camera (the `DCIM/Camera/` folder), the
+  /// first tab. Screenshots, received and downloaded images are left out.
+  camera,
+
   /// Videos only.
   videos,
 
@@ -96,8 +100,11 @@ abstract class MediaSelection with _$MediaSelection {
     DateFilter? dates,
   }) = _MediaSelection;
 
-  /// Every photo, newest first (Photos tab).
+  /// Every photo, newest first.
   static const photos = MediaSelection(filter: MediaFilter.photos);
+
+  /// Photos of the device camera, newest first (Camera tab).
+  static const camera = MediaSelection(filter: MediaFilter.camera);
 
   /// Every video, newest first (Videos tab).
   static const videos = MediaSelection(filter: MediaFilter.videos);

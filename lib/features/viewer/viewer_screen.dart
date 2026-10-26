@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clean_gallery/core/media/media_actions.dart';
 import 'package:clean_gallery/core/media/media_formatting.dart';
 import 'package:clean_gallery/core/media/media_providers.dart';
 import 'package:clean_gallery/core/providers.dart';
@@ -8,6 +9,7 @@ import 'package:clean_gallery/core/theme/app_theme.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/features/viewer/video_page.dart';
 import 'package:clean_gallery/features/viewer/zoomable_image.dart';
+import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -34,6 +36,7 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
   bool _controlsVisible = true;
   bool _zoomed = false;
   bool _precachedInitial = false;
+  bool _closing = false;
 
   @override
   void dispose() {
@@ -75,9 +78,19 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
   @override
   Widget build(BuildContext context) {
     final items =
-        ref.watch(mediaListProvider(widget.args.selection)).value ??
+        ref.watch(visibleMediaListProvider(widget.args.selection)).value ??
         const <MediaItem>[];
     final index = items.isEmpty ? 0 : _index.clamp(0, items.length - 1);
+    final loaded = ref
+        .watch(visibleMediaListProvider(widget.args.selection))
+        .hasValue;
+    if (loaded && items.isEmpty && !_closing) {
+      // Everything was moved to the trash: nothing left to show.
+      _closing = true;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) Navigator.of(context).maybePop();
+      });
+    }
     if (!_precachedInitial && items.isNotEmpty) {
       _precachedInitial = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -151,13 +164,16 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
 }
 
 /// Back button, date and file name over a dark gradient.
-class _TopBar extends StatelessWidget {
+/// Back button, date and file name, and the actions on the current item:
+/// share, favorite, move to trash. Edit and info come in M6.
+class _TopBar extends ConsumerWidget {
   const _TopBar({required this.item});
 
   final MediaItem item;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
     final fileName = item.fileName;
     return DecoratedBox(
@@ -171,7 +187,7 @@ class _TopBar extends StatelessWidget {
       child: SafeArea(
         bottom: false,
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(4, 4, 16, 24),
+          padding: const EdgeInsets.fromLTRB(4, 4, 4, 24),
           child: Row(
             children: [
               const BackButton(color: Colors.white),
@@ -198,6 +214,30 @@ class _TopBar extends StatelessWidget {
                       ),
                   ],
                 ),
+              ),
+              IconButton(
+                tooltip: l10n.actionShare,
+                color: Colors.white,
+                onPressed: () => shareWithOptions(context, ref, [item]),
+                icon: const Icon(Icons.share_rounded),
+              ),
+              IconButton(
+                tooltip: item.isFavorite
+                    ? l10n.actionUnfavorite
+                    : l10n.actionFavorite,
+                color: Colors.white,
+                onPressed: () => toggleFavorite(context, ref, [item]),
+                icon: Icon(
+                  item.isFavorite
+                      ? Icons.favorite_rounded
+                      : Icons.favorite_border_rounded,
+                ),
+              ),
+              IconButton(
+                tooltip: l10n.actionTrash,
+                color: Colors.white,
+                onPressed: () => trashWithUndo(context, ref, [item]),
+                icon: const Icon(Icons.delete_outline_rounded),
               ),
             ],
           ),

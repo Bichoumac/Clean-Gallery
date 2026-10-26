@@ -2,7 +2,7 @@
 
 Full-screen photo and video viewer, opened from any grid.
 
-Last updated: 2026-10-25 — Milestone M1
+Last updated: 2026-10-25 — Milestone M2
 
 ## Purpose
 
@@ -15,7 +15,8 @@ Show one item at a time, full screen, with swiping between the items of the grid
 3. Pinch, or double-tap, to zoom a photo; double-tap again to fit. Swiping is disabled while zoomed.
 4. Tap once to hide or show the controls and the system bars.
 5. Videos start playing when they become the current page and pause when swiped away. Controls: play/pause/replay, progress bar with seeking, mute, rotate. The progress bar follows the finger and the video seeks when it is lifted.
-6. Back returns to the grid.
+6. Top bar actions: **share**, **favorite**, **move to trash** (with *Undo*); after trashing, the next item is shown, and the viewer closes when nothing is left.
+7. Back returns to the grid.
 
 ## Screens and widgets
 
@@ -53,6 +54,6 @@ Route: `/viewer`, above the tabs, with `ViewerArgs(selection, initialIndex)` as 
 
 ## Known limitations / future work
 
-- Action bar (share, favorite, edit, info, delete) comes in M2 and M6.
+- Edit and the info panel come in M6.
 - The info panel with EXIF data and a mini map comes in M6.
 - Zoom is limited to 5× and to the 4,096 px decoded image.

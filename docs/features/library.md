@@ -1,8 +1,8 @@
 # Library
 
-Browsing the device's photos and videos: the Photos and Videos timelines, the Albums tab and album pages.
+Browsing the device's photos and videos: the Camera and Videos timelines, the Albums tab and album pages.
 
-Last updated: 2026-10-25 — Milestone M1
+Last updated: 2026-10-25 — Milestone M2
 
 ## Purpose
 
@@ -10,12 +10,19 @@ Show every photo and video on the device, newest first, grouped by day or month,
 
 ## User flows
 
-1. **Photos / Videos tab**: the timeline opens on the newest items. Section headers read "Today", "Yesterday", then full dates.
+1. **Camera / Videos tab**: the timeline opens on the newest items. Camera shows only the photos taken with the device camera (`DCIM/Camera/`); Videos shows every video; everything else is in **Albums → All media**. Section headers read "Today", "Yesterday", then full dates.
 2. **Pinch** with two fingers: spreading shows fewer, larger thumbnails (down to 2 columns); pinching shows more (up to 6). From 5 columns, headers switch from days to months.
 3. **Pull down** to reload after taking new photos.
 4. **Tap a thumbnail**: the viewer opens on that item ([viewer.md](viewer.md)).
 5. **Albums tab**: "All media" and "Favorites", then "Folders" sorted by size. Tapping one opens its timeline, with a back button.
 6. **Sort and filter**: the button next to the title opens a sheet (see below).
+
+## Selection and actions
+
+- **Long press** a thumbnail to start selecting; **drag** without lifting to select every item between the first one and the finger (if the first item was already selected, the drag deselects). Near the top or bottom edge the grid scrolls by itself.
+- **Tap** adds or removes an item; **back** or the close button leaves selection mode.
+- The selection bar offers **share** ([sharing.md](sharing.md)), **favorite** ([favorites.md](favorites.md)) and **move to trash** with *Undo* ([trash.md](trash.md)).
+- Trashed items disappear from every list at once.
 
 ## Fast scrolling
 
@@ -31,6 +38,11 @@ On long lists (three screens or more), a thumb appears on the right edge while s
 Widget: [fast_scroller.dart](../../lib/features/library/fast_scroller.dart).
 
 ## Performance
+
+- **Actions never reload lists.** Screens read `visibleMediaListProvider`, which applies the trash and in-app favorite changes to the loaded list in memory; MediaStore is queried again only on pull-to-refresh or after a permanent deletion. (Before this, every trash, undo or favorite reloaded every list, which felt like latency after each action.)
+- **The grid layout is memoized**: sections, rows and offsets are recomputed only when the list, column count, order, text size or width change.
+- **Selection is a `ValueNotifier`**: a tap rebuilds the visible cells and the selection bar, not the grid.
+- **Date formats are cached** by pattern and locale; each thumbnail formats a date for its screen reader label.
 
 - Every row has a known height (date headers a fixed height growing with the text size, item rows one cell), so the grid is a `SliverVariedExtentList`: jumping far with the thumb never lays out the rows in between.
 - Thumbnails one screen above and below are prefetched (`scrollCacheExtent`).
@@ -81,7 +93,7 @@ flowchart TD
 
 | Widget | File |
 | --- | --- |
-| `MediaTimelineView` (Photos, Videos, album pages) | [media_timeline_view.dart](../../lib/features/library/media_timeline_view.dart) |
+| `MediaTimelineView` (Camera, Videos, album pages) | [media_timeline_view.dart](../../lib/features/library/media_timeline_view.dart) |
 | `AlbumsScreen` | [albums_screen.dart](../../lib/features/library/albums_screen.dart) |
 | `PinchToChangeColumns` | [pinch_to_change_columns.dart](../../lib/features/library/pinch_to_change_columns.dart) |
 | `FastScroller` | [fast_scroller.dart](../../lib/features/library/fast_scroller.dart) |
@@ -94,7 +106,9 @@ flowchart TD
 | --- | --- | --- |
 | `MediaSelection`, `Album`, `MediaItem` | [album.dart](../../lib/domain/album.dart), [media_item.dart](../../lib/domain/media_item.dart) | What to show, and the items. |
 | `groupByDate`, `buildRows` | [timeline.dart](../../lib/domain/timeline.dart) | Pure-Dart grouping into sections and grid rows. |
-| `mediaListProvider(selection)` | [media_providers.dart](../../lib/core/media/media_providers.dart) | All items of a selection, loaded by chunks of 1,000. Shared with the viewer. |
+| `mediaListProvider(selection)` | [media_providers.dart](../../lib/core/media/media_providers.dart) | All items of a selection as MediaStore returns them, loaded by chunks of 1,000. |
+| `visibleMediaListProvider(selection)` | same | What grids and the viewer show: the list without trashed items, with in-app favorite changes. |
+| `favoriteOverridesProvider` | same | Favorite changes not yet reloaded from MediaStore. |
 | `albumsProvider`, `mediaCountProvider`, `albumCoverProvider` | same | Albums tab data. Folders come with their count and cover; the count and cover providers serve the virtual albums (All media, Favorites). |
 | `gridColumnsProvider` | same | Column count (2–6), shared by all grids; default 4. |
 | `viewSelectionProvider(base)` | same | Sort and date range chosen for one tab or album. |
@@ -120,12 +134,12 @@ No database table is used yet: the index (`assets`) is filled from M3.
 - [media_providers_test.dart](../../test/core/media/media_providers_test.dart): chunked loading, column limits, duration formatting.
 - [library_test.dart](../../test/features/library/library_test.dart): headers, photo/video filters, empty, denied and limited states, albums and folder pages, opening the viewer, pinch gesture.
 - [sort_filter_test.dart](../../test/features/library/sort_filter_test.dart): date ranges and presets, plain rows, sorting by name, date preset and chip removal, empty period, viewer order, per-tab state.
+- [selection_test.dart](../../test/features/library/selection_test.dart): long press, tap, drag range, trash with undo, favorite, share, back.
 - [fast_scroller_test.dart](../../test/features/library/fast_scroller_test.dart): thumb shown on scroll and hidden after a pause, drag jumps with a month bubble, size bubble when sorted by size, no thumb on short lists, size formatting.
 
 ## Known limitations / future work
 
 - New photos appear after pull-to-refresh, not automatically (MediaStore change listening comes with indexing in M3).
-- The column count, sort and date filter are not saved across launches yet (settings in M2).
-- Multi-select, favorites and trash actions come in M2; trashed items will then be hidden here.
+- The date filter is not saved across launches (on purpose); the default column count and the sort of each view are ([settings.md](settings.md)).
 - The "Duplicates" tile at the top of grids comes in M3; the "Trash" album in M2.
 - On the first device tests, new thumbnails appeared slowly after scrolling far. Prefetching, a larger image cache, fixed row heights and then the native thumbnail loader were added. To be measured again on a device (M9 target: 60 fps).

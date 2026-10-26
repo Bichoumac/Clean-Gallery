@@ -39,6 +39,12 @@ class FakePermissionService implements PermissionService {
     return result;
   }
 
+  /// Whether GPS metadata access is reported as granted.
+  bool locationGranted = true;
+
+  @override
+  Future<bool> hasLocationAccess() async => locationGranted;
+
   @override
   Future<bool> requestLocationAccess() async {
     locationRequests++;
@@ -65,6 +71,41 @@ class FakePlatformBridge implements PlatformBridge {
 
   @override
   Future<int> sdkVersion() async => 34;
+
+  /// Whether system requests (favorite, delete) are accepted by the user.
+  bool acceptRequests = true;
+
+  /// Favorite requests, as `(ids, favorite)`.
+  final favoriteRequests = <(List<String>, bool)>[];
+
+  /// Ids passed to [deletePermanently], per call.
+  final deleteRequests = <List<String>>[];
+
+  /// Share requests, as `(ids, removeLocation)`.
+  final shareRequests = <(List<String>, bool)>[];
+
+  @override
+  Future<bool> setFavorite(
+    List<MediaItem> items, {
+    required bool favorite,
+  }) async {
+    favoriteRequests.add(([for (final i in items) i.id], favorite));
+    return acceptRequests;
+  }
+
+  @override
+  Future<bool> deletePermanently(List<MediaItem> items) async {
+    deleteRequests.add([for (final i in items) i.id]);
+    return acceptRequests;
+  }
+
+  @override
+  Future<void> share(
+    List<MediaItem> items, {
+    required bool removeLocation,
+  }) async {
+    shareRequests.add(([for (final i in items) i.id], removeLocation));
+  }
 }
 
 /// A 1 × 1 transparent PNG, used as every image of [FakeMediaSource].
@@ -77,13 +118,15 @@ final kTransparentPng = Uint8List.fromList(const [
   0x45, 0x4E, 0x44, 0xAE, 0x42, 0x60, 0x82, //
 ]);
 
-/// A photo (or video, with [duration]) taken at [takenAt], id `'$id'`.
+/// A photo (or video, with [duration]) taken at [takenAt], id `'$id'`, in
+/// the camera folder unless [relativePath] says otherwise.
 MediaItem testItem(
   int id, {
   DateTime? takenAt,
   Duration? duration,
   bool isFavorite = false,
   int sizeBytes = 0,
+  String relativePath = 'DCIM/Camera/',
 }) {
   final at = takenAt ?? DateTime(2026, 10, 25, 12);
   return MediaItem(
@@ -97,6 +140,7 @@ MediaItem testItem(
     isFavorite: isFavorite,
     sizeBytes: sizeBytes,
     fileName: 'IMG_$id.jpg',
+    relativePath: relativePath,
   );
 }
 
@@ -125,7 +169,10 @@ class FakeMediaSource implements MediaSource {
   final loadedSelections = <MediaSelection>[];
 
   /// Filters, date range and sort applied like `AndroidMediaSource` does.
-  List<MediaItem> _select(MediaSelection selection) {
+  List<MediaItem> _select(
+    MediaSelection selection, [
+    Set<String> hidden = const {},
+  ]) {
     final albumId = selection.albumId;
     final base = albumId != null ? folderItems[albumId] ?? const [] : items;
     final dates = selection.dates;
@@ -133,10 +180,14 @@ class FakeMediaSource implements MediaSource {
       final kept = switch (selection.filter) {
         MediaFilter.all => true,
         MediaFilter.photos => !i.isVideo,
+        MediaFilter.camera =>
+          !i.isVideo && (i.relativePath ?? '').startsWith('DCIM/Camera/'),
         MediaFilter.videos => i.isVideo,
         MediaFilter.favorites => i.isFavorite,
       };
-      return kept && (dates == null || dates.contains(i.takenAt));
+      return kept &&
+          !hidden.contains(i.id) &&
+          (dates == null || dates.contains(i.takenAt));
     }).toList();
     final sort = selection.sort;
     int compare(MediaItem a, MediaItem b) => switch (sort.field) {
@@ -158,21 +209,24 @@ class FakeMediaSource implements MediaSource {
   }
 
   @override
-  Future<List<Album>> albums() async => folders;
+  Future<List<Album>> albums({Set<String> hidden = const {}}) async => folders;
 
   @override
-  Future<int> count(MediaSelection selection) async =>
-      _select(selection).length;
+  Future<int> count(
+    MediaSelection selection, {
+    Set<String> hidden = const {},
+  }) async => _select(selection, hidden).length;
 
   @override
   Future<List<MediaItem>> load(
     MediaSelection selection, {
     required int start,
     required int end,
+    Set<String> hidden = const {},
   }) async {
     loads.add((start, end));
     loadedSelections.add(selection);
-    final all = _select(selection);
+    final all = _select(selection, hidden);
     return all.sublist(start.clamp(0, all.length), end.clamp(0, all.length));
   }
 

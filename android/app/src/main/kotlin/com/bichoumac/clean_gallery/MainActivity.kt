@@ -29,7 +29,10 @@ class MainActivity : FlutterActivity() {
     private val mainHandler = Handler(Looper.getMainLooper())
 
     /** Thumbnails and previews from MediaStore's thumbnail cache. */
-    private val thumbnails by lazy { ThumbnailLoader(contentResolver, mainHandler) }
+    private val thumbnails by lazy { ThumbnailLoader(applicationContext, mainHandler) }
+
+    /** Favorites, permanent deletion and sharing. */
+    private val actions by lazy { MediaActions(this, worker, mainHandler) }
 
     /** Registers the platform channel once the engine is ready. */
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
@@ -60,7 +63,9 @@ class MainActivity : FlutterActivity() {
             }
             "albumSummaries" -> worker.execute {
                 try {
-                    val summaries = albumSummaries()
+                    val excluded = call.argument<List<Number>>("excluded")
+                        .orEmpty().map { it.toLong() }
+                    val summaries = albumSummaries(excluded)
                     mainHandler.post { result.success(summaries) }
                 } catch (e: SecurityException) {
                     mainHandler.post { result.error("permission", e.message, null) }
@@ -77,6 +82,20 @@ class MainActivity : FlutterActivity() {
                     thumbnails.load(id, isVideo, width, height, result)
                 }
             }
+            "setFavorite" -> actions.setFavorite(
+                MediaActions.Item.listFrom(call.argument("items")),
+                call.argument<Boolean>("favorite") == true,
+                result,
+            )
+            "deleteMedia" -> actions.delete(
+                MediaActions.Item.listFrom(call.argument("items")),
+                result,
+            )
+            "share" -> actions.share(
+                MediaActions.Item.listFrom(call.argument("items")),
+                call.argument<Boolean>("removeLocation") == true,
+                result,
+            )
             else -> result.notImplemented()
         }
     }
@@ -138,9 +157,10 @@ class MainActivity : FlutterActivity() {
      *
      * A single pass over the library, newest first, so the first item met in
      * each folder is its cover. This replaces one count query and one path
-     * listing per folder.
+     * listing per folder. Items whose id is in `excluded` (the app trash)
+     * are left out.
      */
-    private fun albumSummaries(): List<Map<String, Any?>> {
+    private fun albumSummaries(excluded: List<Long>): List<Map<String, Any?>> {
         val uri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
         val projection = arrayOf(
             MediaStore.MediaColumns._ID,
@@ -155,7 +175,11 @@ class MainActivity : FlutterActivity() {
         val selection = "${MediaStore.Files.FileColumns.MEDIA_TYPE} IN (" +
             "${MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE}, " +
             "${MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO}) " +
-            "AND ${MediaStore.MediaColumns.BUCKET_ID} IS NOT NULL"
+            "AND ${MediaStore.MediaColumns.BUCKET_ID} IS NOT NULL" +
+            // Trashed items; ids are numbers, inlined to avoid SQLite's limit
+            // on bound parameters.
+            if (excluded.isEmpty()) "" else
+                " AND ${MediaStore.MediaColumns._ID} NOT IN (${excluded.joinToString(",")})"
         // Same capture date as the timelines (see AndroidMediaSource).
         val sortOrder = "CASE WHEN datetaken > 0 THEN datetaken / 1000 " +
             "ELSE date_added END DESC"
@@ -192,6 +216,15 @@ class MainActivity : FlutterActivity() {
             }
         }
         return folders.values.sortedByDescending { it["count"] as Int }
+    }
+
+    /** Routes the result of MediaStore favorite and delete requests. */
+    @Deprecated("Activity API used by MediaStore requests")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (!actions.onActivityResult(requestCode, resultCode)) {
+            @Suppress("DEPRECATION")
+            super.onActivityResult(requestCode, resultCode, data)
+        }
     }
 
     /** Stops the worker thread with the activity. */

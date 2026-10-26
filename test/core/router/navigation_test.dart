@@ -4,9 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 import '../../helpers/pump_app.dart';
 
 void main() {
-  testWidgets('shows five icon-only tabs, Photos first', (tester) async {
+  testApp('shows five icon-only tabs, Camera first', (tester) async {
     await pumpTestApp(tester);
-    for (final label in ['Photos', 'Videos', 'Albums', 'Stats', 'Settings']) {
+    for (final label in ['Camera', 'Videos', 'Albums', 'Stats', 'Settings']) {
       expect(find.byTooltip(label), findsOneWidget, reason: label);
     }
     // Labels are not displayed as text in the bar.
@@ -17,10 +17,10 @@ void main() {
       ),
       findsNothing,
     );
-    expect(find.text('Photos'), findsOneWidget); // Page title.
+    expect(find.text('Camera'), findsOneWidget); // Page title.
   });
 
-  testWidgets('tapping Stats shows the reclaimable space', (tester) async {
+  testApp('tapping Stats shows the reclaimable space', (tester) async {
     await pumpTestApp(tester);
     await tester.tap(find.byTooltip('Stats'));
     await tester.pumpAndSettle();
@@ -28,17 +28,17 @@ void main() {
     expect(find.text('Duplicates'), findsOneWidget);
   });
 
-  testWidgets('tapping Photos again returns to Photos', (tester) async {
+  testApp('tapping Camera again returns to Camera', (tester) async {
     await pumpTestApp(tester);
     await tester.tap(find.byTooltip('Settings'));
     await tester.pumpAndSettle();
     expect(find.text('Settings'), findsOneWidget);
-    await tester.tap(find.byTooltip('Photos'));
+    await tester.tap(find.byTooltip('Camera'));
     await tester.pumpAndSettle();
-    expect(find.text('Photos'), findsOneWidget);
+    expect(find.text('Camera'), findsOneWidget);
   });
 
-  testWidgets('tab touch targets are at least 48 dp', (tester) async {
+  testApp('tab touch targets are at least 48 dp', (tester) async {
     await pumpTestApp(tester);
     final handle = tester.ensureSemantics();
     await expectLater(tester, meetsGuideline(androidTapTargetGuideline));

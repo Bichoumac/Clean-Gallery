@@ -2,7 +2,7 @@
 
 The app stores its index, analysis results, trash and settings in a local SQLite database managed by Drift. It runs on a background isolate so queries never block the UI. This file lists the schema, indexes and migration history.
 
-Last updated: 2026-10-25 — Milestone M0
+Last updated: 2026-10-25 — Milestone M2
 
 Source: [tables.dart](../lib/core/database/tables.dart), [app_database.dart](../lib/core/database/app_database.dart).
 
@@ -77,6 +77,8 @@ Primary key: (`asset_a`, `asset_b`).
 
 ### `trash_entries`
 
+Used since M2 by [TrashRepository](../lib/core/database/trash_repository.dart) ([trash.md](features/trash.md)). Trashing an item also inserts a minimal `assets` row (id, folder, path, name, type, kind, size, dimensions, dates, favorite) with `INSERT OR IGNORE`, which satisfies the foreign key before indexing exists (M3) and lets the trash screen show items without querying MediaStore. Deleting an item for good deletes its asset row, which cascades to its trash entry.
+
 The brief calls this table `trash`. The Dart class is `TrashEntries` (table `trash_entries`) so that the plural table and singular row names read naturally (`TrashEntries` / `TrashRow`).
 
 | Column | Type | Notes |
@@ -108,6 +110,15 @@ Known keys are constants in `SettingKeys` ([settings_repository.dart](../lib/cor
 | Key | Type | Meaning |
 | --- | --- | --- |
 | `onboarding_completed` | bool | First-launch flow done |
+| `trash_retention_days` | int, 1–90 | Days before a trashed item expires (default 30) |
+| `remove_gps_on_share` | bool | Default of the share sheet's location switch (default `true`) |
+| `default_columns` | int, 2–6 | Grid columns at launch (default 4) |
+| `theme` | `system` / `light` / `dark` | Theme |
+| `language` | `system` / `english` / `french` | Interface language |
+| `last_purge_check` | ISO 8601 date | Day the expired trash was last offered for purging |
+| `view_sort:<filter>:<folder id>` | `<field>:<asc\|desc>` | Saved sort of one timeline, e.g. `view_sort:photos:` → `size:desc` |
+
+They are read together by `SettingsRepository.loadAppSettings` before the first frame; invalid values fall back to the defaults ([settings.md](features/settings.md)).
 
 ## Indexes
 
