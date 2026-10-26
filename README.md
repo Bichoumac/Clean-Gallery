@@ -2,13 +2,13 @@
 
 A photo and video gallery for Android, built with Flutter, with cleanup tools: a virtual folder of likely duplicates, a swipe-to-sort mode and a trash with a configurable retention period. **Your photos never leave your device.**
 
-Last updated: 2026-10-26 — Milestone M3
+Last updated: 2026-10-27 — Milestone M4
 
 The app is free with two small, unobtrusive ad placements, and a single "Remove ads" in-app purchase. Every feature is available to everyone.
 
 ## Status
 
-Milestones **M0** to **M2** are merged. **M3 — Engine level 1** is complete, awaiting review: the persistent media index (lists show at once at launch), corrected capture dates, exact duplicates and bursts (Duplicates tile and screen), and re-running the analysis from Settings. Stats is still a placeholder. See [docs/progress.md](docs/progress.md) for details and the device checklist.
+Milestones **M0** to **M3** are merged. **M4 — Engine level 2** is complete, awaiting the device test and review: similar photos (perceptual hashes) in the duplicates screen with "Not duplicates", sensitivity settings, and the storage dashboard in the Stats tab. See [docs/progress.md](docs/progress.md) for details and the device checklist.
 
 ## Features
 
@@ -19,8 +19,8 @@ Milestones **M0** to **M2** are merged. **M3 — Engine level 1** is complete, a
 | Library | Camera and video timelines with sorting and date filter, albums, zoomable grid, viewer, video playback; persistent index | M1 ✓, index M3 ✓ |
 | Actions | System favorites, sharing without GPS, multi-select, trash, settings | M2 ✓ |
 | Duplicates | Exact duplicates and bursts in a virtual folder | M3 ✓ |
-| Similar photos | Perceptual hashing, best-shot suggestion, storage dashboard | M4 |
-| Cleanup | Stats tab values, swipe mode, blurry photos, screenshots, large videos | M5 |
+| Similar photos | Perceptual hashing, best-shot suggestion, Not duplicates, sensitivity, storage dashboard | M4 ✓ |
+| Cleanup | Swipe mode, blurry photos, screenshots, large videos | M5 |
 | Editing | Translucent info panel, crop, adjustments, filters | M6 |
 | Exploration | Map, search | M7 |
 | Monetization | Banner (Albums), native card (Stats), consent, "Remove ads" purchase | M8 |

@@ -2,7 +2,7 @@
 
 The app stores its index, analysis results, trash and settings in a local SQLite database managed by Drift. It runs on a background isolate so queries never block the UI. This file lists the schema, indexes and migration history.
 
-Last updated: 2026-10-26 — Milestone M3
+Last updated: 2026-10-27 — Milestone M4
 
 Source: [tables.dart](../lib/core/database/tables.dart), [app_database.dart](../lib/core/database/app_database.dart).
 
@@ -17,7 +17,7 @@ Source: [tables.dart](../lib/core/database/tables.dart), [app_database.dart](../
 
 ### `assets`
 
-The media index: one row per photo or video, keyed by its MediaStore id. Every list of the app reads it; [MediaIndex](../lib/core/media/media_index.dart) keeps it in sync with MediaStore ([ADR 0015](decisions/0015-persistent-media-index.md), [library.md](features/library.md#media-index)). Queries live in [MediaIndexRepository](../lib/core/database/media_index_repository.dart). Analysis columns are filled incrementally by the engine; a sync updates only the metadata columns and resets `analysis_version` when the file changed (modification date or size).
+The media index: one row per photo or video, keyed by its MediaStore id. Every list of the app reads it; [MediaIndex](../lib/core/media/media_index.dart) keeps it in sync with MediaStore ([ADR 0015](decisions/0015-persistent-media-index.md), [library.md](features/library.md#media-index)). Queries live in [MediaIndexRepository](../lib/core/database/media_index_repository.dart). Analysis columns are filled incrementally by the engine; a sync updates only the metadata columns and resets `analysis_version`, `content_hash`, `d_hash` and `p_hash` when the file changed (modification date or size).
 
 | Column | Type | Null | Notes |
 | --- | --- | --- | --- |
@@ -37,7 +37,7 @@ The media index: one row per photo or video, keyed by its MediaStore id. Every l
 | `capture_at` | DATETIME | yes | Resolved capture date (metadata, file name, then file date), written by the index sync ([analysis-engine.md](analysis-engine.md#capture-date)). Timelines use `COALESCE(capture_at, taken_at)` when corrected dates are on |
 | `capture_source` | TEXT | yes | `exif` / `filename` / `file` |
 | `content_hash` | TEXT | yes | SHA-256 of the content (hex), only for items whose size is shared; `''` when the file could not be read; reset when the file changes ([ADR 0017](decisions/0017-exact-duplicates-sha256.md)) |
-| `d_hash`, `p_hash` | INTEGER | yes | 64-bit perceptual hashes |
+| `d_hash`, `p_hash` | INTEGER | yes | 64-bit perceptual hashes of photos, as signed integers, from a grayscale thumbnail; `null` until computed, or when the photo has no readable thumbnail ([ADR 0018](decisions/0018-perceptual-hashes-from-thumbnails.md)). Declared `int64()` until M3; `integer()` since M4 (same SQLite type, a Dart `int` instead of a `BigInt`, no migration) |
 | `blur_score` | REAL | yes | Laplacian variance; higher is sharper |
 | `burst_id` | TEXT | yes | `<relative path>\|<shared part of the name>` for a burst shot, from its file name at index time ([analysis-engine.md](analysis-engine.md#bursts)) |
 | `is_screenshot` | BOOLEAN | no | Default `false` |
@@ -50,7 +50,7 @@ The media index: one row per photo or video, keyed by its MediaStore id. Every l
 
 ### `duplicate_groups`
 
-Used since M3 by [DuplicateRepository](../lib/core/database/duplicate_repository.dart): groups of kind `exact` and `burst` are deleted and rebuilt after each duplicate scan; `duplicate_members.is_suggested_keep` marks the best item of the whole group ([analysis-engine.md](analysis-engine.md#exact-duplicates)).
+Used since M3 by [DuplicateRepository](../lib/core/database/duplicate_repository.dart): groups of kind `exact` and `burst` are deleted and rebuilt after each duplicate scan, then groups of kind `similar` (M4); `duplicate_members.is_suggested_keep` marks the best item of the whole group ([analysis-engine.md](analysis-engine.md#exact-duplicates)). Trashed items stay in their groups; screens leave them out.
 
 | Column | Type | Notes |
 | --- | --- | --- |
@@ -65,13 +65,13 @@ Used since M3 by [DuplicateRepository](../lib/core/database/duplicate_repository
 | `group_id` | INTEGER FK → `duplicate_groups.id` | Cascade delete |
 | `asset_id` | INTEGER FK → `assets.id` | Cascade delete |
 | `is_suggested_keep` | BOOLEAN | The "Best" badge |
-| `score` | REAL | Confidence, 0 to 1 |
+| `score` | REAL | Confidence, 0 to 1: `1` for certain duplicates; for similar photos, the confidence of the member's closest match ([analysis-engine.md](analysis-engine.md#confidence)) |
 
 Primary key: (`group_id`, `asset_id`).
 
 ### `ignored_pairs`
 
-Pairs the user marked as "not duplicates". Always stored with `asset_a < asset_b`.
+Pairs the user marked as "not duplicates" (M4): every pair of a similar group's shown photos. Always stored with `asset_a < asset_b`. The similar photo search never joins them. Kept by *Analyze the library again*; removed with their asset (cascade).
 
 | Column | Type |
 | --- | --- |
@@ -123,6 +123,10 @@ Known keys are constants in `SettingKeys` ([settings_repository.dart](../lib/cor
 | `last_purge_check` | ISO 8601 date | Day the expired trash was last offered for purging |
 | `corrected_dates` | bool | Timelines use the resolved capture date (default `true`) |
 | `index_rules` | int | `indexRulesVersion` the index was built with (capture dates, burst ids); an older value makes the next sync apply the rules to every item again. Was `capture_date_rules` (version 1) before bursts |
+| `similarity_sensitivity` | `low` / `medium` / `high` / `custom` | Similar photo preset (default `medium`); `custom` uses the three keys below |
+| `similarity_strict` | int, 0–10 | Advanced mode: strict pHash distance (default 6) |
+| `similarity_loose` | int, 0–20 | Advanced mode: loose pHash distance (default 12) |
+| `similarity_window` | int, 0–60 | Advanced mode: time window in seconds (default 10) |
 | `media_index_version` | text | MediaStore version (`MediaStore.getVersion`) of the last complete index sync; unset before the first one |
 | `view_sort:<filter>:<folder id>` | `<field>:<asc\|desc>` | Saved sort of one timeline, e.g. `view_sort:photos:` → `size:desc` |
 
@@ -139,7 +143,7 @@ Other indexes (`assets(content_hash)`, `assets(capture_at)`, `trash_entries(expi
 
 ## `analysis_version`
 
-Each asset records the version of the analysis algorithms that produced its analysis columns. When an algorithm changes, `analysisVersion` in [analysis_version.dart](../lib/analysis/analysis_version.dart) is bumped; the incremental indexer then re-analyses every asset with a lower version. This is a data refresh, not a schema migration.
+Each photo records the version of the image analysis that produced its analysis columns: `0` means not analysed (new, changed file, or after *Analyze the library again*); `1` (M4) means its perceptual hashes were computed, or that it has no readable thumbnail. When an algorithm changes, `analysisVersion` in [analysis_version.dart](../lib/analysis/analysis_version.dart) is bumped; the next scan then analyses every photo with a lower version. This is a data refresh, not a schema migration. Videos stay at `0` for now. M4 adds no schema change: the columns and `ignored_pairs` existed since schema version 1.
 
 ## Migrations
 

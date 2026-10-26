@@ -2,7 +2,7 @@
 
 Every documentation file in the repository, with a one-line description. Start with [progress.md](progress.md) to see where the project stands.
 
-Last updated: 2026-10-26 — Milestone M3
+Last updated: 2026-10-27 — Milestone M4
 
 ## Project
 
@@ -22,7 +22,7 @@ Last updated: 2026-10-26 — Milestone M3
 | [design.md](design.md) | Design system: palette, typography, shapes, navigation bar. |
 | [database.md](database.md) | Drift schema, indexes and migration history. |
 | [platform-android.md](platform-android.md) | Permissions and the native Kotlin channel API. |
-| [analysis-engine.md](analysis-engine.md) | Analysis algorithms (capture dates, exact duplicates, best pick), thresholds and rationale. |
+| [analysis-engine.md](analysis-engine.md) | Analysis algorithms (capture dates, exact duplicates, bursts, similar photos, best pick), thresholds, rationale and performance. |
 | [testing.md](testing.md) | Test strategy, commands and fixtures. |
 
 Planned files: `monetization.md` (M8), `release.md` (M9).
@@ -38,7 +38,8 @@ Planned files: `monetization.md` (M8), `release.md` (M9).
 | [features/sharing.md](features/sharing.md) | Share sheet and location removal. |
 | [features/trash.md](features/trash.md) | App trash, retention and purge. |
 | [features/settings.md](features/settings.md) | Settings tab. |
-| [features/duplicates.md](features/duplicates.md) | Duplicates tile and screen: groups, Best badge, cleaning. |
+| [features/duplicates.md](features/duplicates.md) | Duplicates tile and screen: certain and similar groups, Best badge, Not duplicates, cleaning. |
+| [features/stats.md](features/stats.md) | Stats tab: storage dashboard. |
 
 One file per feature is added as each feature is built.
 
@@ -63,3 +64,5 @@ One file per feature is added as each feature is built.
 | [0015](decisions/0015-persistent-media-index.md) | Persistent media index in Drift |
 | [0016](decisions/0016-capture-dates-at-index-time.md) | Capture dates resolved at index time, without reading files |
 | [0017](decisions/0017-exact-duplicates-sha256.md) | Exact duplicates with SHA-256 on size collisions |
+| [0018](decisions/0018-perceptual-hashes-from-thumbnails.md) | Perceptual hashes from grayscale thumbnails, computed in Dart |
+| [0019](decisions/0019-similar-photo-search.md) | Similar photo search with multi-index hashing instead of a BK-tree |

@@ -71,7 +71,7 @@ abstract class SimilarityThresholds with _$SimilarityThresholds {
 
   /// Largest strict distance offered in the advanced mode. Beyond it,
   /// unrelated photos start to match, and the search slows down sharply
-  /// (see `docs/analysis-engine.md#performance-1`).
+  /// (see ADR 0019).
   static const maxStrict = 10;
 
   /// Largest loose distance offered in the advanced mode. Cheap: only

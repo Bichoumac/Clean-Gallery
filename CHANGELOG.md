@@ -2,9 +2,29 @@
 
 All notable changes to this project are documented here, one section per milestone. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-10-26 — Milestone M3
+Last updated: 2026-10-27 — Milestone M4
 
 ## [Unreleased]
+
+## [M4] — 2026-10-27 — Engine level 2
+
+### Added
+
+- Perceptual hashes (dHash, pHash) of every photo, from a 128-pixel grayscale thumbnail of MediaStore's cache, computed in a Dart isolate; incremental, saved every 40 photos, reset when the file changes ([ADR 0018](docs/decisions/0018-perceptual-hashes-from-thumbnails.md)).
+- Native channel method `grayThumbnails`, on the hashing thread.
+- Similar photos: strict rule (distance and aspect ratio) and loose rule (distance within a time window), union-find groups, confidence score, certain duplicates kept apart; strict pairs found by multi-index hashing ([ADR 0019](docs/decisions/0019-similar-photo-search.md), [docs/analysis-engine.md](docs/analysis-engine.md#similar-photos)).
+- Duplicates screen: **Similar photos** section, **Not duplicates** button (pairs stored in `ignored_pairs`, never grouped again).
+- Settings → Analysis: similar photos sensitivity (Low / Medium / High) and an advanced mode with the strict and loose distances and the time window; changes regroup without reading thumbnails.
+- Stats tab: storage dashboard with used space, space that cleaning could free, and certain duplicates, similar photos and trash by count and size, each opening its tool ([docs/features/stats.md](docs/features/stats.md)).
+- `docs/features/stats.md`, ADRs 0018 and 0019.
+- Tests: synthetic photo set generated in memory (dev dependency `image`), perceptual hashes and false positive regression, multi-index search against brute force, rules and groups, similar scan, Not duplicates, sensitivity settings, dashboard (194 tests).
+
+### Changed
+
+- The Duplicates tile reads "N items to review" instead of "N extra copies", since similar photos are not copies; an item in two groups is counted once there and in *Clean all groups*.
+- *Analyze the library again* also recomputes perceptual hashes; pairs marked Not duplicates are kept.
+- `assets.d_hash` and `p_hash` are declared as `integer()` (a Dart `int`) instead of `int64()` (`BigInt`); same SQLite type, no migration.
+- The group buttons of the duplicates screen stack when they do not fit (large text).
 
 ## [M3] — 2026-10-26 — Engine level 1
 
