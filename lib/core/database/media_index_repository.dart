@@ -1,4 +1,5 @@
 import 'package:clean_gallery/analysis/best_picker.dart';
+import 'package:clean_gallery/analysis/burst.dart';
 import 'package:clean_gallery/analysis/capture_date.dart';
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/domain/album.dart';
@@ -39,7 +40,8 @@ final class MediaIndexRepository {
   }
 
   /// Inserts [entries] or updates their metadata, keeping analysis results.
-  /// Their capture date is resolved on the way ([resolveCaptureDate]).
+  /// Their capture date ([resolveCaptureDate]) and burst id ([burstIdOf])
+  /// are worked out on the way.
   ///
   /// When an item's file changed (modification date or size), its
   /// `analysis_version` and content hash are reset so the engine analyses
@@ -73,6 +75,7 @@ final class MediaIndexRepository {
               takenAt: excluded.takenAt,
               captureAt: excluded.captureAt,
               captureSource: excluded.captureSource,
+              burstId: excluded.burstId,
               isFavorite: excluded.isFavorite,
               mediaRevision: excluded.mediaRevision,
               analysisVersion: resetAnalysis
@@ -308,6 +311,11 @@ final class MediaIndexRepository {
       takenAt: item.takenAt,
       captureAt: Value(capture.date),
       captureSource: Value(capture.source),
+      burstId: Value(
+        item.fileName == null
+            ? null
+            : burstIdOf(item.fileName!, folder: item.relativePath ?? ''),
+      ),
       isFavorite: Value(item.isFavorite),
       mediaRevision: Value(entry.revision),
     );

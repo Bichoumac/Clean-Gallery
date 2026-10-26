@@ -122,6 +122,48 @@ void main() {
     expect(await groups(MediaSelection.all), isEmpty);
   });
 
+  test('shots of a burst form a group of their own', () async {
+    final shots = [
+      for (var i = 0; i < 3; i++)
+        testItem(
+          10 + i,
+          sizeBytes: 700 + i,
+          takenAt: DateTime(2026, 2),
+        ).copyWith(fileName: '20260201_101500_00$i.jpg'),
+    ];
+    source.items = [...source.items, ...shots];
+    await syncAndScan();
+    final all = await container
+        .read(mediaIndexRepositoryProvider)
+        .duplicateGroups(MediaSelection.all);
+    final burst = all.singleWhere((g) => g.kind == DuplicateKind.burst);
+    expect(burst.items.map((i) => i.id), unorderedEquals(['10', '11', '12']));
+    // Largest file kept (sharpness comes in M5).
+    expect(burst.best.id, '12');
+    // Different sizes: no file read for them.
+    expect(source.hashCalls.expand((ids) => ids), isNot(contains('10')));
+  });
+
+  test('a burst saved twice is one exact group, not a burst', () async {
+    final first = testItem(
+      10,
+      sizeBytes: 700,
+    ).copyWith(fileName: '20260201_101500_001.jpg');
+    final second = testItem(
+      11,
+      sizeBytes: 700,
+    ).copyWith(fileName: '20260201_101500_002.jpg');
+    source
+      ..items = [first, second]
+      ..hashes['10'] = 'x'
+      ..hashes['11'] = 'x';
+    await syncAndScan();
+    final kinds = [
+      for (final group in await db.select(db.duplicateGroups).get()) group.kind,
+    ];
+    expect(kinds, [DuplicateKind.exact]);
+  });
+
   test('the favorite copy is the one to keep', () async {
     source.items = [camera, copy.copyWith(isFavorite: true), sameSize, unique];
     await syncAndScan();

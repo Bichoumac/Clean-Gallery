@@ -198,5 +198,7 @@
   "duplicatesEmptyHelp": "Identical copies of a photo or video show up here.",
   "duplicatesScanning": "Looking for duplicates…",
   "duplicatesSelect": "Select for the trash",
-  "duplicatesUnselect": "Keep"
+  "duplicatesUnselect": "Keep",
+  "duplicatesKindExact": "Identical copies",
+  "duplicatesKindBurst": "Burst"
 }

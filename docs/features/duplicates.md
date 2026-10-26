@@ -6,13 +6,13 @@ Last updated: 2026-10-26 — Milestone M3
 
 ## Purpose
 
-Find copies of the same photo or video (saved twice, received twice, copied to another folder) and free their space in a few taps, without risking the copy the user wants: the best one is suggested, the others are pre-selected, and everything goes through the trash.
+Find copies of the same photo or video (saved twice, received twice, copied to another folder) and the shots of a burst and free their space in a few taps, without risking the copy the user wants: the best one is suggested, the others are pre-selected, and everything goes through the trash.
 
 ## User flows
 
 1. A grid (Camera, Videos, an album, All media, Favorites) shows a **Duplicates** tile above the photos when its items hold extra copies: "3 extra copies · 12 MB". There is no tile otherwise.
 2. Tapping it opens the duplicates screen for that grid: only duplicates among its items, so All media also finds copies across folders.
-3. Each group shows its items side by side with resolution, size, date and full path (folder and file name, never truncated, since the end of the path is what tells copies apart; asked by the product owner after the first device test). The item to keep has a **Best** badge; the others are **pre-selected** (dimmed, check mark).
+3. Each group says what it is (**Identical copies** or **Burst**) and shows its items side by side with resolution, size, date and full path (folder and file name, never truncated, since the end of the path is what tells copies apart; asked by the product owner after the first device test). The item to keep has a **Best** badge; the others are **pre-selected** (dimmed, check mark).
 4. Tap the round button on a photo to pick or keep it; tap the photo itself to open it full screen and swipe through the group.
 5. **Move N to trash** under a group trashes its picked items, with *Undo*.
 6. **Clean all groups** at the bottom shows a summary ("Move 128 items (1.4 GB) to the trash?"), then trashes every picked item, with *Undo*.
@@ -68,6 +68,6 @@ Detection rules and the "Best" choice are in [analysis-engine.md](../analysis-en
 
 ## Known limitations / future work
 
-- Only exact duplicates for now. Bursts join the "Certain duplicates" section next (M3), similar photos get their own section in M4.
+- Similar photos get their own section in M4.
 - "Not duplicates" (ignored pairs) comes with similar photos in M4; exact copies are identical by definition.
 - The Stats tab's Duplicates card (whole library) comes with the Stats values (M5).

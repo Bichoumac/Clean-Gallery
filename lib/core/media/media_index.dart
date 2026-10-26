@@ -1,4 +1,4 @@
-import 'package:clean_gallery/analysis/capture_date.dart';
+import 'package:clean_gallery/analysis/index_rules.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
@@ -97,9 +97,8 @@ class MediaIndex extends _$MediaIndex {
       indexed: await repository.revisions(),
       current: snapshot.revisions,
       // The platform rebuilt its database (ids may now be other files), or
-      // the capture date rules changed: describe every item again.
-      refreshAll:
-          rebuilt || settings.captureDateRules != captureDateRulesVersion,
+      // the index rules changed: describe every item again.
+      refreshAll: rebuilt || settings.indexRules != indexRulesVersion,
     );
     if (!ref.mounted) return;
 
@@ -132,8 +131,8 @@ class MediaIndex extends _$MediaIndex {
     if (indexedVersion != snapshot.version) {
       await controller.setMediaIndexVersion(snapshot.version);
     }
-    if (settings.captureDateRules != captureDateRulesVersion) {
-      await controller.setCaptureDateRules(captureDateRulesVersion);
+    if (settings.indexRules != indexRulesVersion) {
+      await controller.setIndexRules(indexRulesVersion);
     }
     if (ref.mounted && !state.ready) state = state.copyWith(ready: true);
   }

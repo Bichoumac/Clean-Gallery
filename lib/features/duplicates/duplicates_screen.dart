@@ -7,6 +7,7 @@ import 'package:clean_gallery/core/media/media_thumbnail.dart';
 import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/duplicate_group.dart';
+import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/features/duplicates/duplicate_selection.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
@@ -161,6 +162,14 @@ class _GroupCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+              child: Text(switch (group.kind) {
+                DuplicateKind.exact => l10n.duplicatesKindExact,
+                DuplicateKind.burst => l10n.duplicatesKindBurst,
+                DuplicateKind.similar => '',
+              }, style: Theme.of(context).textTheme.labelLarge),
+            ),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(

@@ -1,6 +1,6 @@
 # Analysis engine
 
-Algorithms that work out facts about photos and videos on the device: capture dates and exact duplicates now, then bursts, similar photos and blur. This file lists each algorithm, its thresholds and their rationale, and performance notes.
+Algorithms that work out facts about photos and videos on the device: capture dates, exact duplicates and bursts now, then similar photos and blur. This file lists each algorithm, its thresholds and their rationale, and performance notes.
 
 Last updated: 2026-10-26 — Milestone M3
 
@@ -10,7 +10,7 @@ Last updated: 2026-10-26 — Milestone M3
 | --- | --- | --- | --- |
 | Capture date | Done (M3) | [capture_date.dart](../lib/analysis/capture_date.dart), applied by the media index sync | `assets.capture_at`, `capture_source` |
 | Exact duplicates | Done (M3) | [duplicates.dart](../lib/core/media/duplicates.dart), hashing in [MediaIndex.kt](../android/app/src/main/kotlin/com/bichoumac/clean_gallery/MediaIndex.kt) | `content_hash`, `duplicate_groups` |
-| Bursts | M3 | — | `burst_id`, `duplicate_groups` |
+| Bursts | Done (M3) | [burst.dart](../lib/analysis/burst.dart), applied by the media index sync; groups by `DuplicateScan` | `burst_id`, `duplicate_groups` |
 | Similar photos | M4 | — | `d_hash`, `p_hash` |
 | Blur | M5 | — | `blur_score` |
 
@@ -54,7 +54,7 @@ Rejected: invalid days (February 30), years before 1990, dates in the future. Ti
 
 ### When dates are resolved
 
-During the media index sync, for each new or changed item, from the metadata the sync reads anyway: no file is opened ([ADR 0016](decisions/0016-capture-dates-at-index-time.md)). `captureDateRulesVersion` versions the rules; when it is bumped, the next sync describes every item again and resolves its date, keeping other analysis results. The version the index was built with is stored in the `capture_date_rules` setting.
+During the media index sync, for each new or changed item, from the metadata the sync reads anyway: no file is opened ([ADR 0016](decisions/0016-capture-dates-at-index-time.md)). `indexRulesVersion` ([index_rules.dart](../lib/analysis/index_rules.dart)) versions the rules applied at index time (capture dates and [burst ids](#bursts)); when it is bumped, the next sync describes every item again and applies them, keeping other analysis results. The version the index was built with is stored in the `index_rules` setting.
 
 ### Performance
 
@@ -78,6 +78,23 @@ Items whose content is byte-for-byte identical ([ADR 0017](decisions/0017-exact-
 - Hashing runs on its own native thread; the 1 MB buffer is reused.
 - Rebuilding the groups is one SQL grouping on `content_hash` plus inserts.
 
+## Bursts
+
+Shots of one burst sequence: the camera saves each shot as a file with a shared part in its name ([burst.dart](../lib/analysis/burst.dart)).
+
+| Camera | File names | Burst id from |
+| --- | --- | --- |
+| Samsung | `20240315_142233_001.jpg`, `20240315_142233_002.jpg`, … | `20240315_142233` |
+| Google Camera | `IMG_20240315_142233_BURST001.jpg`, `IMG_20240315_142233_BURST002_COVER.jpg` | `IMG_20240315_142233` |
+| Older Google Camera | `00000IMG_00000_BURST20190101123456789_COVER.jpg` | `20190101123456789` |
+
+- The folder is part of the id, so shots are grouped only with those saved next to them.
+- The id is worked out when the item is indexed (`assets.burst_id`), from its name: no file is read.
+- After each scan, every burst id held by two items or more is a group of kind `burst`, unless its items are already exactly one exact group (a burst saved twice).
+- Bursts are listed with exact duplicates under **Certain duplicates**; the best shot is chosen by the [best pick](#best-pick): until sharpness is measured (M5), the largest file, which usually holds the most detail.
+
+**Not used**: grouping photos taken less than a second apart without a burst name. Two different photos taken quickly are not certain duplicates; close-in-time look-alikes are found by similar photos (M4), which compare the images. MediaStore has no burst column, and Samsung keeps its burst metadata in a proprietary format.
+
 ## Best pick
 
 `pickBest` ([best_picker.dart](../lib/analysis/best_picker.dart)) chooses the item to keep in a group, by the brief's order:
@@ -99,4 +116,5 @@ For exact duplicates, rules 2 to 4 are equal by definition, so the choice is the
 - [media_index_test.dart](../test/core/media/media_index_test.dart): dates resolved during a sync, rules version, sorting by corrected or platform date.
 - [android_media_source_test.dart](../test/platform/android_media_source_test.dart): when `DATE_TAKEN` counts as metadata.
 - [best_picker_test.dart](../test/analysis/best_picker_test.dart): every rule of the best pick, in order.
-- [duplicates_test.dart](../test/core/media/duplicates_test.dart): only size collisions hashed, groups, no re-read on a second scan, filter by folder, trash and undo, changed file hashed again, favorite kept.
+- [burst_test.dart](../test/analysis/burst_test.dart): burst names of each camera, different bursts and folders, ordinary names.
+- [duplicates_test.dart](../test/core/media/duplicates_test.dart): only size collisions hashed, groups, no re-read on a second scan, filter by folder, trash and undo, changed file hashed again, favorite kept, burst groups, a burst saved twice.

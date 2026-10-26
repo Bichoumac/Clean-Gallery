@@ -68,53 +68,86 @@ final class DuplicateRepository {
         }
       });
 
-  /// Replaces the exact duplicate groups with the current ones: items with
-  /// the same content hash, the item to keep marked ([pickBest]).
+  /// Replaces the exact duplicate and burst groups with the current ones,
+  /// the item to keep marked ([pickBest]):
+  ///
+  /// - `exact`: items with the same content hash;
+  /// - `burst`: items with the same burst id, unless they are all already
+  ///   in one exact group.
   ///
   /// Trashed items stay in their groups; screens leave them out, so undoing
   /// a trash brings the group back.
-  Future<void> rebuildExactGroups({DateTime? now}) => _db.transaction(() async {
+  Future<void> rebuildGroups({DateTime? now}) => _db.transaction(() async {
     final computedAt = now ?? DateTime.now();
-    await (_db.delete(
-      _db.duplicateGroups,
-    )..where((g) => g.kind.equalsValue(DuplicateKind.exact))).go();
+    await (_db.delete(_db.duplicateGroups)..where(
+          (g) =>
+              g.kind.equalsValue(DuplicateKind.exact) |
+              g.kind.equalsValue(DuplicateKind.burst),
+        ))
+        .go();
+    final exact = await _itemsSharing('content_hash', excluded: "''");
+    for (final items in exact) {
+      await _insertGroup(DuplicateKind.exact, items, computedAt);
+    }
+    final exactSets = {for (final items in exact) _key(items)};
+    for (final items in await _itemsSharing('burst_id')) {
+      // A burst saved twice is already an exact group.
+      if (exactSets.contains(_key(items))) {
+        continue;
+      }
+      await _insertGroup(DuplicateKind.burst, items, computedAt);
+    }
+  });
 
+  /// The ids of [items], in order, as one string.
+  static String _key(List<MediaItem> items) =>
+      [for (final item in items) item.id].join(',');
+
+  /// Items grouped by the value of [column], for every value held by two
+  /// items or more; `NULL` and [excluded] (an SQL literal) are skipped.
+  Future<List<List<MediaItem>>> _itemsSharing(
+    String column, {
+    String? excluded,
+  }) async {
+    final skip = excluded == null ? '' : 'AND $column != $excluded ';
     final rows = await _db
         .customSelect(
-          'SELECT * FROM assets WHERE content_hash IN ( '
-          'SELECT content_hash FROM assets '
-          "WHERE content_hash IS NOT NULL AND content_hash != '' "
-          'GROUP BY content_hash HAVING COUNT(*) > 1) '
-          'ORDER BY content_hash, id',
+          'SELECT * FROM assets WHERE $column IN ( '
+          'SELECT $column FROM assets '
+          'WHERE $column IS NOT NULL $skip'
+          'GROUP BY $column HAVING COUNT(*) > 1) '
+          'ORDER BY $column, id',
           readsFrom: {_db.assets},
         )
         .get();
-    final byHash = <String, List<MediaItem>>{};
+    final groups = <String, List<MediaItem>>{};
     for (final row in rows) {
-      final asset = _db.assets.map(row.data);
-      (byHash[asset.contentHash!] ??= []).add(asset.toMediaItem());
+      final key = row.read<String>(column);
+      (groups[key] ??= []).add(_db.assets.map(row.data).toMediaItem());
     }
+    return groups.values.toList();
+  }
 
-    for (final items in byHash.values) {
-      final groupId = await _db
-          .into(_db.duplicateGroups)
-          .insert(
-            DuplicateGroupsCompanion.insert(
-              kind: DuplicateKind.exact,
-              computedAt: computedAt,
-            ),
-          );
-      final best = pickBest(items);
-      await _db.batch((batch) {
-        batch.insertAll(_db.duplicateMembers, [
-          for (final item in items)
-            DuplicateMembersCompanion.insert(
-              groupId: groupId,
-              assetId: int.parse(item.id),
-              isSuggestedKeep: Value(item.id == best.id),
-            ),
-        ]);
-      });
-    }
-  });
+  Future<void> _insertGroup(
+    DuplicateKind kind,
+    List<MediaItem> items,
+    DateTime computedAt,
+  ) async {
+    final groupId = await _db
+        .into(_db.duplicateGroups)
+        .insert(
+          DuplicateGroupsCompanion.insert(kind: kind, computedAt: computedAt),
+        );
+    final best = pickBest(items);
+    await _db.batch((batch) {
+      batch.insertAll(_db.duplicateMembers, [
+        for (final item in items)
+          DuplicateMembersCompanion.insert(
+            groupId: groupId,
+            assetId: int.parse(item.id),
+            isSuggestedKeep: Value(item.id == best.id),
+          ),
+      ]);
+    });
+  }
 }

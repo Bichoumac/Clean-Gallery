@@ -11,7 +11,7 @@ Last updated: 2026-10-26 — Milestone M3
 | M0 | Foundations | Merged into `main` (PR #1) |
 | M1 | Navigation: timelines, albums, grid, viewer, video, sorting, date filter | Merged into `main` (PR #2) |
 | M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Merged into `main` (PR #3) |
-| M3 | Engine level 1: indexing, dates, exact duplicates, bursts | In progress on `m3-engine`: media index, capture dates and exact duplicates done |
+| M3 | Engine level 1: indexing, dates, exact duplicates, bursts | In progress on `m3-engine`: media index, capture dates, exact duplicates and bursts done |
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Not started |
 | M5 | Cleanup: Stats values, swipe mode, blurry, screenshots, large videos | Not started |
 | M6 | Advanced viewer and editing | Not started |
@@ -28,14 +28,15 @@ Last updated: 2026-10-26 — Milestone M3
 - Native `mediaSnapshot` and `mediaDetails` replace `albumSummaries`, `mediaSizes` and `photo_manager` listing ([platform-android.md](platform-android.md#media-access)).
 - **Capture dates**: resolved during the sync from the photo's metadata, then its file name, then the file date; timelines use them unless **Corrected dates** is off in Settings, at the product owner's request ([analysis-engine.md](analysis-engine.md#capture-date), [ADR 0016](decisions/0016-capture-dates-at-index-time.md)).
 - **Exact duplicates**: items sharing their size are hashed (SHA-256, natively, incremental), identical hashes are grouped; a Duplicates tile at the top of every grid opens the groups of that grid, with the Best badge, pre-selected extra copies, per-group and global cleaning to the trash ([features/duplicates.md](features/duplicates.md), [ADR 0017](decisions/0017-exact-duplicates-sha256.md)).
+- **Bursts**: Samsung and Google camera burst names give a burst id at index time; shots of one burst form a group under Certain duplicates, labelled Burst ([analysis-engine.md](analysis-engine.md#bursts)). Close-in-time photos without a burst name are left to similar photos (M4).
 
 ### Verified
 
 | Check | Result |
 | --- | --- |
 | `flutter analyze` | No issues |
-| `flutter test --timeout 60s` | 148 tests pass |
-| Galaxy A54 (release build) | Media index confirmed by the product owner on 2026-10-26: migration of the M2 trash, instant display at launch, changes from other apps picked up on return, scroll position kept ([testing.md](testing.md#m3--media-index-to-verify-on-a-device)). Limited access and a fresh install not tested. Capture dates confirmed on 2026-10-26: received photos at their real date, camera photos unchanged, Corrected dates switch ([testing.md](testing.md#m3--capture-dates-to-verify-on-a-device)). Exact duplicates confirmed working on 2026-10-26; the file path under each copy, added after that test, is to check ([testing.md](testing.md#m3--exact-duplicates-to-verify-on-a-device)). |
+| `flutter test --timeout 60s` | 154 tests pass |
+| Galaxy A54 (release build) | Media index confirmed by the product owner on 2026-10-26: migration of the M2 trash, instant display at launch, changes from other apps picked up on return, scroll position kept ([testing.md](testing.md#m3--media-index-to-verify-on-a-device)). Limited access and a fresh install not tested. Capture dates confirmed on 2026-10-26: received photos at their real date, camera photos unchanged, Corrected dates switch ([testing.md](testing.md#m3--capture-dates-to-verify-on-a-device)). Exact duplicates confirmed working on 2026-10-26, file path under each copy confirmed too ([testing.md](testing.md#m3--exact-duplicates-to-verify-on-a-device)). Bursts not tested yet ([testing.md](testing.md#m3--bursts-to-verify-on-a-device)). |
 
 ### Known issues
 
@@ -43,8 +44,8 @@ Last updated: 2026-10-26 — Milestone M3
 
 ### Next steps
 
-1. Check the file path in the duplicates screen.
-2. Bursts, in the "Certain duplicates" section.
+1. Device test of bursts.
+2. End of M3: milestone summary and review.
 
 ## M2 — Actions
 

@@ -16,11 +16,13 @@ Last updated: 2026-10-26 — Milestone M3
 - `docs/analysis-engine.md`.
 - Exact duplicates: items sharing their size are hashed natively (SHA-256, incremental, resumable, on a thread of its own) after each index sync; identical hashes form groups with a suggested item to keep (favorite, resolution, size, oldest) ([ADR 0017](docs/decisions/0017-exact-duplicates-sha256.md)).
 - Duplicates tile at the top of every grid, filtered by that grid's folder; duplicates screen with Best badge, each copy's full path, pre-selected extra copies, per-group trash and "Clean all groups" with a summary ([docs/features/duplicates.md](docs/features/duplicates.md)).
+- Bursts: Samsung and Google camera burst names give a burst id at index time; shots of one burst form a **Burst** group under Certain duplicates ([docs/analysis-engine.md](docs/analysis-engine.md#bursts)).
 - Native channel method `contentHashes`.
-- Tests: index sync and queries, migration 1 → 2, reload in place, pull-to-refresh, file name dates, corrected dates setting, best pick, exact duplicates and their screen (148 tests).
+- Tests: index sync and queries, migration 1 → 2, reload in place, pull-to-refresh, file name dates, corrected dates setting, best pick, exact duplicates and their screen, bursts (154 tests).
 
 ### Changed
 
+- The index rules version (setting `index_rules`, was `capture_date_rules`) now covers capture dates and burst ids; the first sync after the update applies them to every item.
 - Timelines, album pages, the Albums tab, counts and covers are queried in SQLite instead of MediaStore; sorting and filtering keep the same rules.
 - Lists reload in place when the index changes, keeping the scroll position; an empty list shows a skeleton until the first index is complete.
 - Favorites changed in the app are written to the index at once.

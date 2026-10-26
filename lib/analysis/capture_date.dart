@@ -1,9 +1,5 @@
 import 'package:clean_gallery/domain/enums.dart';
 
-/// Version of the capture date rules below. Bump it when they change: the
-/// next index sync then resolves every item's date again.
-const captureDateRulesVersion = 1;
-
 /// A resolved capture date and where it was read from.
 typedef CaptureDate = ({DateTime date, DateSource source});
 

@@ -178,5 +178,7 @@
   "duplicatesEmptyHelp": "Les copies identiques d'une photo ou d'une vidéo apparaissent ici.",
   "duplicatesScanning": "Recherche de doublons…",
   "duplicatesSelect": "Sélectionner pour la corbeille",
-  "duplicatesUnselect": "Garder"
+  "duplicatesUnselect": "Garder",
+  "duplicatesKindExact": "Copies identiques",
+  "duplicatesKindBurst": "Rafale"
 }

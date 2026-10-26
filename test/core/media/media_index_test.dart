@@ -1,4 +1,4 @@
-import 'package:clean_gallery/analysis/capture_date.dart';
+import 'package:clean_gallery/analysis/index_rules.dart';
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/core/database/media_index_repository.dart';
 import 'package:clean_gallery/core/media/media_index.dart';
@@ -185,18 +185,18 @@ void main() {
       expect(camera.captureSource, DateSource.exif);
     });
 
-    test('new date rules resolve every date again', () async {
+    test('new index rules apply to every item again', () async {
       await index().sync();
       expect(
-        container.read(appSettingsControllerProvider).captureDateRules,
-        captureDateRulesVersion,
+        container.read(appSettingsControllerProvider).indexRules,
+        indexRulesVersion,
       );
       await db
           .update(db.assets)
           .write(const AssetsCompanion(analysisVersion: Value(3)));
       await container
           .read(appSettingsControllerProvider.notifier)
-          .setCaptureDateRules(captureDateRulesVersion - 1);
+          .setIndexRules(indexRulesVersion - 1);
       await index().sync();
       expect(source.describeCalls.last, ['3', '2', '1']);
       // Only dates are refreshed: analysis results are kept.

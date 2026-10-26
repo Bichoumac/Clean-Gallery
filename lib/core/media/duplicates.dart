@@ -34,8 +34,9 @@ abstract class DuplicateScanState with _$DuplicateScanState {
   }) = _DuplicateScanState;
 }
 
-/// Finds exact duplicates: hashes the content of items that share their
-/// size with another item, then groups identical hashes.
+/// Finds certain duplicates: hashes the content of items that share their
+/// size with another item, then groups identical hashes (exact duplicates)
+/// and shots of the same burst.
 ///
 /// Incremental and resumable: hashes are saved after each batch and kept
 /// until the file changes, so only new items are read. Run after each index
@@ -90,7 +91,7 @@ class DuplicateScan extends _$DuplicateScan {
       await repository.saveHashes(batch, hashes);
       state = state.copyWith(hashed: state.hashed + batch.length);
     }
-    await repository.rebuildExactGroups();
+    await repository.rebuildGroups();
     if (ref.mounted) state = state.copyWith(revision: state.revision + 1);
   }
 }

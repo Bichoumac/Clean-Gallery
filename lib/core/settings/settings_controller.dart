@@ -83,9 +83,9 @@ class AppSettingsController extends _$AppSettingsController {
     await _repository.write(SettingKeys.mediaIndexVersion, version);
   }
 
-  /// Records that indexed dates follow the capture date rules [version].
-  Future<void> setCaptureDateRules(int version) async {
-    state = state.copyWith(captureDateRules: version);
-    await _repository.write(SettingKeys.captureDateRules, '$version');
+  /// Records that the index follows the index rules [version].
+  Future<void> setIndexRules(int version) async {
+    state = state.copyWith(indexRules: version);
+    await _repository.write(SettingKeys.indexRules, '$version');
   }
 }

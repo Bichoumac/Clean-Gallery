@@ -39,7 +39,7 @@ The media index: one row per photo or video, keyed by its MediaStore id. Every l
 | `content_hash` | TEXT | yes | SHA-256 of the content (hex), only for items whose size is shared; `''` when the file could not be read; reset when the file changes ([ADR 0017](decisions/0017-exact-duplicates-sha256.md)) |
 | `d_hash`, `p_hash` | INTEGER | yes | 64-bit perceptual hashes |
 | `blur_score` | REAL | yes | Laplacian variance; higher is sharper |
-| `burst_id` | TEXT | yes | |
+| `burst_id` | TEXT | yes | `<relative path>\|<shared part of the name>` for a burst shot, from its file name at index time ([analysis-engine.md](analysis-engine.md#bursts)) |
 | `is_screenshot` | BOOLEAN | no | Default `false` |
 | `is_favorite` | BOOLEAN | no | Default `false`; cached copy of MediaStore `IS_FAVORITE` |
 | `latitude`, `longitude` | REAL | yes | From EXIF GPS |
@@ -50,7 +50,7 @@ The media index: one row per photo or video, keyed by its MediaStore id. Every l
 
 ### `duplicate_groups`
 
-Used since M3 by [DuplicateRepository](../lib/core/database/duplicate_repository.dart): groups of kind `exact` are deleted and rebuilt after each duplicate scan; `duplicate_members.is_suggested_keep` marks the best item of the whole group ([analysis-engine.md](analysis-engine.md#exact-duplicates)).
+Used since M3 by [DuplicateRepository](../lib/core/database/duplicate_repository.dart): groups of kind `exact` and `burst` are deleted and rebuilt after each duplicate scan; `duplicate_members.is_suggested_keep` marks the best item of the whole group ([analysis-engine.md](analysis-engine.md#exact-duplicates)).
 
 | Column | Type | Notes |
 | --- | --- | --- |
@@ -122,7 +122,7 @@ Known keys are constants in `SettingKeys` ([settings_repository.dart](../lib/cor
 | `language` | `system` / `english` / `french` | Interface language |
 | `last_purge_check` | ISO 8601 date | Day the expired trash was last offered for purging |
 | `corrected_dates` | bool | Timelines use the resolved capture date (default `true`) |
-| `capture_date_rules` | int | `captureDateRulesVersion` the indexed dates were resolved with; an older value makes the next sync resolve every date again |
+| `index_rules` | int | `indexRulesVersion` the index was built with (capture dates, burst ids); an older value makes the next sync apply the rules to every item again. Was `capture_date_rules` (version 1) before bursts |
 | `media_index_version` | text | MediaStore version (`MediaStore.getVersion`) of the last complete index sync; unset before the first one |
 | `view_sort:<filter>:<folder id>` | `<field>:<asc\|desc>` | Saved sort of one timeline, e.g. `view_sort:photos:` → `size:desc` |
 

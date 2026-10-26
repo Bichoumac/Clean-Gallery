@@ -63,10 +63,10 @@ abstract class AppSettings with _$AppSettings {
     /// loading state instead of an empty one.
     String? mediaIndexVersion,
 
-    /// `captureDateRulesVersion` the indexed dates were resolved with, or
-    /// `null` before the first index. An older value makes the next sync
-    /// resolve every date again.
-    int? captureDateRules,
+    /// `indexRulesVersion` the index was built with (capture dates, burst
+    /// ids), or `null` before the first index. An older value makes the
+    /// next sync apply the rules to every item again.
+    int? indexRules,
   }) = _AppSettings;
 
   /// Smallest and largest trash retention, in days.

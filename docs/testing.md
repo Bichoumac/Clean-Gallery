@@ -52,7 +52,8 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [timeline_test.dart](../test/domain/timeline_test.dart) | Day and month sections, grid rows, grouping by column count. |
 | [media_providers_test.dart](../test/core/media/media_providers_test.dart) | First chunk then the rest from the index, reload in place without a loading state, column limits, duration format. |
 | [best_picker_test.dart](../test/analysis/best_picker_test.dart) | Each best-pick rule in order, best item first. |
-| [duplicates_test.dart](../test/core/media/duplicates_test.dart) | Only size collisions hashed, exact groups, no re-read, filter by folder, trash and undo, changed file, favorite kept. |
+| [burst_test.dart](../test/analysis/burst_test.dart) | Burst names of Samsung and Google cameras, different bursts and folders, ordinary names. |
+| [duplicates_test.dart](../test/core/media/duplicates_test.dart) | Only size collisions hashed, exact groups, no re-read, filter by folder, trash and undo, changed file, favorite kept, burst groups, a burst saved twice. |
 | [duplicates_flow_test.dart](../test/features/duplicates/duplicates_flow_test.dart) | Duplicates tile and count, screen, clean all with summary, keep every copy, open a photo full screen. |
 | [capture_date_test.dart](../test/analysis/capture_date_test.dart) | File name date patterns, rejected names, date-only names, resolution order. |
 | [android_media_source_test.dart](../test/platform/android_media_source_test.dart) | When MediaStore's `DATE_TAKEN` counts as a metadata date. |
@@ -155,7 +156,18 @@ Before the test, make an exact copy: in Samsung Gallery or My Files, copy a phot
 | 20 | **Clean all groups** | Summary "Move N items (size) to the trash?"; after confirming, the groups disappear, *Undo* brings them back. |
 | 21 | Albums → Trash, then relaunch the app | The trashed copies are in the trash; launching again does not re-read the files (the tile appears at once). |
 
-Exact duplicates status on the Galaxy A54, checked by the product owner on 2026-10-26: duplicates work. Requested: show each copy's file path to help choose; added the same day, to check on the next install.
+Exact duplicates status on the Galaxy A54, checked by the product owner on 2026-10-26: duplicates work. Requested: show each copy's file path to help choose; added the same day and confirmed by the product owner.
+
+### M3 — bursts, to verify on a device
+
+Before the test, take a burst with the Samsung camera: hold the shutter button (or swipe it down, depending on the camera settings) for a second.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 22 | Come back to Clean Gallery, Camera tab | A **Duplicates** tile counting the extra shots of the burst. |
+| 23 | Open it | A group labelled **Burst** with every shot; the largest file marked **Best**, the others picked. |
+| 24 | Two photos taken separately a few seconds apart | Not grouped. |
+| 25 | **Move N to trash** on the burst | Only the best shot remains in the Camera tab; *Undo* brings the others back. |
 
 ### M3 — capture dates, to verify on a device
 
