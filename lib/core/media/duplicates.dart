@@ -88,12 +88,15 @@ class DuplicateScan extends _$DuplicateScan {
   }
 
   /// Marks the items of [group] "Not duplicates": they are never grouped as
-  /// similar photos again. Regroups at once.
+  /// similar photos again. The group goes away at once; the regrouping
+  /// runs in the background, after any scan in progress.
   Future<void> ignore(DuplicateGroup group) async {
-    await ref.read(duplicateRepositoryProvider).ignorePairs([
-      for (final item in group.items) item.id,
-    ]);
-    if (ref.mounted) await run();
+    final repository = ref.read(duplicateRepositoryProvider);
+    await repository.ignorePairs([for (final item in group.items) item.id]);
+    await repository.deleteGroup(group.id);
+    if (!ref.mounted) return;
+    state = state.copyWith(revision: state.revision + 1);
+    unawaited(run());
   }
 
   /// Hashes what is new and rebuilds the groups. A call made while a scan

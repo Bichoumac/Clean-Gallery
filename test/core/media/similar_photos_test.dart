@@ -101,7 +101,9 @@ void main() {
                 .duplicateGroups(MediaSelection.all))
             .single;
     await container.read(duplicateScanProvider.notifier).ignore(group);
-    expect(await groups(), isEmpty);
+    expect(await groups(), isEmpty, reason: 'gone at once');
+    await container.read(duplicateScanProvider.notifier).run();
+    expect(await groups(), isEmpty, reason: 'not grouped again');
     await container.read(duplicateScanProvider.notifier).reanalyze();
     expect(await groups(), isEmpty, reason: 'kept by Analyze again');
   });

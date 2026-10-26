@@ -184,6 +184,10 @@ final class DuplicateRepository {
     });
   }
 
+  /// Deletes the group with [id] and its memberships.
+  Future<void> deleteGroup(int id) =>
+      (_db.delete(_db.duplicateGroups)..where((g) => g.id.equals(id))).go();
+
   /// Group id of every item in an exact or burst group, by item id.
   Future<Map<int, int>> certainGroups() async {
     final members = _db.duplicateMembers;
