@@ -25,7 +25,8 @@ void main() {
     await tester.tap(find.byTooltip('Stats'));
     await tester.pumpAndSettle();
     expect(find.text('Space you could free'), findsOneWidget);
-    expect(find.text('Duplicates'), findsOneWidget);
+    expect(find.text('Certain duplicates'), findsOneWidget);
+    expect(find.text('Similar photos'), findsOneWidget);
   });
 
   testApp('tapping Camera again returns to Camera', (tester) async {

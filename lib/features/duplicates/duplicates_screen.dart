@@ -18,10 +18,12 @@ import 'package:go_router/go_router.dart';
 /// Side of a member's thumbnail in a group, in logical pixels.
 const _thumbSide = 136.0;
 
-/// Duplicate groups of one folder or tab ([scope]): each group shows its
-/// items side by side, the one to keep marked "Best" and the others picked
-/// for the trash. The user can change the picks, trash a group, or clean
-/// every group at once. See `docs/features/duplicates.md`.
+/// Duplicate groups of one folder or tab ([scope]), in two sections:
+/// certain duplicates (identical copies, bursts) and similar photos. Each
+/// group shows its items side by side, the one to keep marked "Best" and
+/// the others picked for the trash. The user can change the picks, trash a
+/// group, mark similar photos "Not duplicates", or clean every group at
+/// once. See `docs/features/duplicates.md`.
 class DuplicatesScreen extends ConsumerWidget {
   /// Creates the screen for the items of [scope].
   const DuplicatesScreen({required this.scope, super.key});
@@ -36,7 +38,11 @@ class DuplicatesScreen extends ConsumerWidget {
     final scanning = ref.watch(duplicateScanProvider.select((s) => s.running));
     final changes = ref.watch(duplicateSelectionProvider(scope));
     final loaded = groups.value ?? const <DuplicateGroup>[];
-    final picked = [for (final group in loaded) ...pickedItems(changes, group)];
+    // An item can be in a certain group and a similar group: count it once.
+    final picked = {
+      for (final group in loaded)
+        for (final item in pickedItems(changes, group)) item.id: item,
+    }.values.toList();
 
     return Scaffold(
       appBar: AppBar(
@@ -53,18 +59,25 @@ class DuplicatesScreen extends ConsumerWidget {
         AsyncData(:final value) => ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
-              child: Semantics(
-                header: true,
-                child: Text(
-                  l10n.duplicatesCertain,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
+            for (final (title, section) in [
+              (
+                l10n.duplicatesCertain,
+                value.where((g) => g.kind != DuplicateKind.similar),
               ),
-            ),
-            for (final group in value)
-              _GroupCard(key: ValueKey(group.id), scope: scope, group: group),
+              (
+                l10n.duplicatesSimilar,
+                value.where((g) => g.kind == DuplicateKind.similar),
+              ),
+            ])
+              if (section.isNotEmpty) ...[
+                _SectionTitle(title),
+                for (final group in section)
+                  _GroupCard(
+                    key: ValueKey(group.id),
+                    scope: scope,
+                    group: group,
+                  ),
+              ],
           ],
         ),
         _ => const Center(child: CircularProgressIndicator()),
@@ -117,7 +130,24 @@ class DuplicatesScreen extends ConsumerWidget {
   }
 }
 
-/// One group: its items side by side and a button to trash the picked ones.
+/// Title of a section of groups.
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.title);
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
+    child: Semantics(
+      header: true,
+      child: Text(title, style: Theme.of(context).textTheme.titleLarge),
+    ),
+  );
+}
+
+/// One group: its items side by side and a button to trash the picked ones;
+/// similar photos also get "Not duplicates".
 class _GroupCard extends ConsumerWidget {
   const _GroupCard({required this.scope, required this.group, super.key});
 
@@ -146,6 +176,14 @@ class _GroupCard extends ConsumerWidget {
     );
   }
 
+  /// Never groups these photos again; the group disappears.
+  Future<void> _notDuplicates(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final message = AppLocalizations.of(context).duplicatesIgnored;
+    await ref.read(duplicateScanProvider.notifier).ignore(group);
+    messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
@@ -162,14 +200,17 @@ class _GroupCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
-              child: Text(switch (group.kind) {
-                DuplicateKind.exact => l10n.duplicatesKindExact,
-                DuplicateKind.burst => l10n.duplicatesKindBurst,
-                DuplicateKind.similar => '',
-              }, style: Theme.of(context).textTheme.labelLarge),
-            ),
+            // Similar groups are named by their section.
+            if (group.kind != DuplicateKind.similar)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
+                child: Text(
+                  group.kind == DuplicateKind.exact
+                      ? l10n.duplicatesKindExact
+                      : l10n.duplicatesKindBurst,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+              ),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -192,15 +233,26 @@ class _GroupCard extends ConsumerWidget {
                 ],
               ),
             ),
-            Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: TextButton.icon(
-                onPressed: toTrash.isEmpty
-                    ? null
-                    : () => trashWithUndo(context, ref, toTrash),
-                icon: const Icon(Icons.delete_outline_rounded),
-                label: Text(l10n.duplicatesTrashGroup(toTrash.length)),
-              ),
+            // Side by side when they fit, stacked otherwise (large text).
+            OverflowBar(
+              alignment: group.kind == DuplicateKind.similar
+                  ? MainAxisAlignment.spaceBetween
+                  : MainAxisAlignment.end,
+              overflowAlignment: OverflowBarAlignment.end,
+              children: [
+                if (group.kind == DuplicateKind.similar)
+                  TextButton(
+                    onPressed: () => _notDuplicates(context, ref),
+                    child: Text(l10n.duplicatesNotDuplicates),
+                  ),
+                TextButton.icon(
+                  onPressed: toTrash.isEmpty
+                      ? null
+                      : () => trashWithUndo(context, ref, toTrash),
+                  icon: const Icon(Icons.delete_outline_rounded),
+                  label: Text(l10n.duplicatesTrashGroup(toTrash.length)),
+                ),
+              ],
             ),
           ],
         ),

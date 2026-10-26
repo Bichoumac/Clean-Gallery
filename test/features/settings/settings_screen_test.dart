@@ -114,6 +114,49 @@ void main() {
     expect(media.describeCalls.length, greaterThan(describes));
   });
 
+  testApp('similar photo sensitivity and advanced mode are saved', (
+    tester,
+  ) async {
+    final db = inMemoryDatabase();
+    addTearDown(db.close);
+    await pumpTestApp(tester, database: db);
+    await openSettings(tester);
+    final repository = SettingsRepository(db);
+
+    /// Scrolls [text] to the top of the page, clear of the floating
+    /// navigation bar.
+    Future<void> reveal(String text) async {
+      await tester.scrollUntilVisible(
+        find.text(text),
+        100,
+        scrollable: find.byType(Scrollable).last,
+      );
+      await tester.ensureVisible(find.text(text));
+      await tester.pumpAndSettle();
+    }
+
+    await reveal('High');
+    await tester.tap(find.text('High'));
+    await tester.pumpAndSettle();
+    expect(await repository.read(SettingKeys.similaritySensitivity), 'high');
+    expect(find.text('Any date: difference up to'), findsNothing);
+
+    await reveal('Advanced mode');
+    await tester.tap(find.text('Advanced mode'));
+    await tester.pumpAndSettle();
+    expect(await repository.read(SettingKeys.similaritySensitivity), 'custom');
+    // The advanced mode starts from the preset in use.
+    expect(await repository.read(SettingKeys.similarityStrict), '8');
+    expect(find.text('Any date: difference up to'), findsOneWidget);
+    expect(find.text('8 / 64'), findsOneWidget);
+    expect(find.text('30 seconds'), findsOneWidget);
+
+    await reveal('Advanced mode');
+    await tester.tap(find.text('Advanced mode'));
+    await tester.pumpAndSettle();
+    expect(await repository.read(SettingKeys.similaritySensitivity), 'medium');
+  });
+
   testApp('permission statuses are shown', (tester) async {
     final permissions = FakePermissionService(result: MediaAccess.limited)
       ..locationGranted = false;

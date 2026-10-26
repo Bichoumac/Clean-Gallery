@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clean_gallery/analysis/similarity.dart';
 import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/media_index.dart';
 import 'package:clean_gallery/core/media/media_providers.dart';
@@ -35,7 +36,7 @@ Future<PermissionStatus> permissionStatus(Ref ref) async {
   );
 }
 
-/// Settings tab: display, trash, sharing and permissions.
+/// Settings tab: display, trash, sharing, analysis and permissions.
 class SettingsScreen extends ConsumerStatefulWidget {
   /// Creates the Settings tab.
   const SettingsScreen({super.key});
@@ -177,7 +178,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   }
 }
 
-/// Re-running the analysis, with its progress.
+/// Similar photo sensitivity and re-running the analysis, with its
+/// progress.
 class _AnalysisSection extends ConsumerWidget {
   const _AnalysisSection();
 
@@ -190,6 +192,7 @@ class _AnalysisSection extends ConsumerWidget {
     return _Section(
       title: l10n.settingsAnalysis,
       children: [
+        const _SimilaritySettings(),
         ListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(l10n.settingsReanalyze),
@@ -211,6 +214,157 @@ class _AnalysisSection extends ConsumerWidget {
                     SnackBar(content: Text(l10n.settingsReanalyzeStarted)),
                   );
                 },
+        ),
+      ],
+    );
+  }
+}
+
+/// Sensitivity presets of the similar photo search and, in the advanced
+/// mode, its three thresholds.
+class _SimilaritySettings extends ConsumerWidget {
+  const _SimilaritySettings();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final settings = ref.watch(appSettingsControllerProvider);
+    final controller = ref.read(appSettingsControllerProvider.notifier);
+    final sensitivity = settings.similaritySensitivity;
+    final advanced = sensitivity == SimilaritySensitivity.custom;
+    final custom = settings.customThresholds;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _Labeled(
+          label: l10n.settingsSimilarity,
+          child: SegmentedButton<SimilaritySensitivity>(
+            showSelectedIcon: false,
+            // No preset is selected in the advanced mode.
+            emptySelectionAllowed: true,
+            segments: [
+              ButtonSegment(
+                value: SimilaritySensitivity.low,
+                label: Text(l10n.sensitivityLow),
+              ),
+              ButtonSegment(
+                value: SimilaritySensitivity.medium,
+                label: Text(l10n.sensitivityMedium),
+              ),
+              ButtonSegment(
+                value: SimilaritySensitivity.high,
+                label: Text(l10n.sensitivityHigh),
+              ),
+            ],
+            selected: {if (!advanced) sensitivity},
+            onSelectionChanged: (value) {
+              if (value.isNotEmpty) {
+                unawaited(controller.setSimilaritySensitivity(value.single));
+              }
+            },
+          ),
+        ),
+        Text(
+          l10n.settingsSimilarityHelp,
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+        SwitchListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(l10n.settingsAdvanced),
+          subtitle: advanced ? Text(l10n.settingsAdvancedHelp) : null,
+          value: advanced,
+          onChanged: (value) => controller.setSimilaritySensitivity(
+            value ? SimilaritySensitivity.custom : SimilaritySensitivity.medium,
+          ),
+        ),
+        if (advanced) ...[
+          _ValueSlider(
+            label: l10n.settingsStrict,
+            value: custom.strict,
+            max: SimilarityThresholds.maxDistance,
+            format: l10n.thresholdDistance,
+            onChanged: (value) =>
+                controller.setCustomThresholds(custom.copyWith(strict: value)),
+          ),
+          _ValueSlider(
+            label: l10n.settingsLoose,
+            value: custom.loose,
+            max: SimilarityThresholds.maxDistance,
+            format: l10n.thresholdDistance,
+            onChanged: (value) =>
+                controller.setCustomThresholds(custom.copyWith(loose: value)),
+          ),
+          _ValueSlider(
+            label: l10n.settingsWindow,
+            value: custom.window.inSeconds,
+            max: SimilarityThresholds.maxWindow.inSeconds,
+            format: l10n.thresholdSeconds,
+            onChanged: (value) => controller.setCustomThresholds(
+              custom.copyWith(window: Duration(seconds: value)),
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// A labelled whole-number slider from 0 to [max]; saved when the finger
+/// is lifted, since each change regroups the similar photos.
+class _ValueSlider extends StatefulWidget {
+  const _ValueSlider({
+    required this.label,
+    required this.value,
+    required this.max,
+    required this.format,
+    required this.onChanged,
+  });
+
+  final String label;
+  final int value;
+  final int max;
+  final String Function(int value) format;
+  final ValueChanged<int> onChanged;
+
+  @override
+  State<_ValueSlider> createState() => _ValueSliderState();
+}
+
+class _ValueSliderState extends State<_ValueSlider> {
+  double? _dragging;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final value = (_dragging ?? widget.value.toDouble()).round();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Expanded(
+              child: Text(widget.label, style: theme.textTheme.bodyMedium),
+            ),
+            Text(widget.format(value), style: theme.textTheme.titleSmall),
+          ],
+        ),
+        SizedBox(
+          height: 48,
+          child: Slider(
+            value: value.toDouble(),
+            max: widget.max.toDouble(),
+            divisions: widget.max,
+            label: widget.format(value),
+            onChanged: (value) => setState(() => _dragging = value),
+            onChangeEnd: (value) {
+              widget.onChanged(value.round());
+              setState(() => _dragging = null);
+            },
+          ),
         ),
       ],
     );

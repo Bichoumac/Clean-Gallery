@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:isolate';
 
 import 'package:clean_gallery/analysis/perceptual_hash.dart';
@@ -27,6 +28,15 @@ const perceptualBatchSize = 40;
 
 /// Side of the grayscale thumbnails perceptual hashes are computed on.
 const perceptualThumbnailSide = 128;
+
+/// Runs CPU-heavy analysis work ([work]) away from the interface.
+typedef AnalysisRunner = Future<R> Function<R>(FutureOr<R> Function() work);
+
+/// Where the scan runs its hashing and grouping: a new isolate for each
+/// call. App-level widget tests run them inline, since their fake clock
+/// cannot wait for an isolate.
+@Riverpod(keepAlive: true)
+AnalysisRunner analysisRunner(Ref ref) => Isolate.run;
 
 /// Progress of the duplicate scan, see [DuplicateScan].
 @freezed
@@ -127,6 +137,7 @@ class DuplicateScan extends _$DuplicateScan {
     if (access == MediaAccess.denied || !ref.mounted) return;
     final repository = ref.read(duplicateRepositoryProvider);
     final source = ref.read(mediaSourceProvider);
+    final runner = ref.read(analysisRunnerProvider);
 
     final toHash =
         await repository.pendingHashCount() +
@@ -155,7 +166,7 @@ class DuplicateScan extends _$DuplicateScan {
         batch,
         side: perceptualThumbnailSide,
       );
-      final hashes = await _hashInIsolate(images);
+      final hashes = await _hashAll(images, runner);
       if (!ref.mounted) return;
       await repository.savePerceptualHashes(batch, hashes);
       state = state.copyWith(hashed: state.hashed + batch.length);
@@ -163,7 +174,8 @@ class DuplicateScan extends _$DuplicateScan {
     final thresholds = ref
         .read(appSettingsControllerProvider)
         .similarityThresholds;
-    final groups = await _groupInIsolate(
+    final groups = await _group(
+      runner,
       await repository.hashedPhotos(),
       thresholds,
       ignored: await repository.ignoredPairs(),
@@ -175,13 +187,14 @@ class DuplicateScan extends _$DuplicateScan {
   }
 }
 
-/// Perceptual hashes of [images], by id, computed in an isolate so the
-/// interface never waits on the DCT.
-Future<Map<String, PerceptualHashes>> _hashInIsolate(
+/// Perceptual hashes of [images], by id, computed by [runner] (in an
+/// isolate) so the interface never waits on the DCT.
+Future<Map<String, PerceptualHashes>> _hashAll(
   Map<String, GrayImage> images,
+  AnalysisRunner runner,
 ) async {
   if (images.isEmpty) return const {};
-  return await Isolate.run(
+  return await runner(
     () => {
       for (final MapEntry(:key, :value) in images.entries)
         key: perceptualHashes(value),
@@ -189,16 +202,17 @@ Future<Map<String, PerceptualHashes>> _hashInIsolate(
   );
 }
 
-/// [findSimilarGroups] in an isolate: with tens of thousands of photos,
-/// the search takes longer than a frame.
-Future<List<SimilarGroup>> _groupInIsolate(
+/// [findSimilarGroups] run by [runner] (in an isolate): with tens of
+/// thousands of photos, the search takes longer than a frame.
+Future<List<SimilarGroup>> _group(
+  AnalysisRunner runner,
   List<HashedPhoto> photos,
   SimilarityThresholds thresholds, {
   required Set<(int, int)> ignored,
   required Map<int, int> certainGroup,
 }) async {
   if (photos.length < 2) return const [];
-  return await Isolate.run(
+  return await runner(
     () => findSimilarGroups(
       photos,
       thresholds,

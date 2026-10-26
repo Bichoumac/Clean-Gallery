@@ -1,5 +1,6 @@
 import 'package:clean_gallery/app.dart';
 import 'package:clean_gallery/core/database/app_database.dart';
+import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/settings/app_settings.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
@@ -45,6 +46,10 @@ Future<void> pumpTestApp(
           onboardingCompleted,
         ),
         initialAppSettingsProvider.overrideWithValue(settings),
+        // The fake clock cannot wait for an isolate.
+        analysisRunnerProvider.overrideWithValue(
+          <R>(work) async => await work(),
+        ),
       ],
       child: const CleanGalleryApp(),
     ),

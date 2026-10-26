@@ -7,8 +7,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-/// The "Duplicates" virtual folder at the top of a grid: how many extra
-/// copies the displayed folder holds and the space they take. Opens the
+/// The "Duplicates" virtual folder at the top of a grid: how many items of
+/// the displayed folder are suggested for the trash (extra copies, burst
+/// shots, similar photos) and the space they take. Opens the
 /// duplicates screen for that folder. Hidden when there is none.
 ///
 /// It exists only in the interface: nothing is created on disk.
@@ -27,7 +28,11 @@ class DuplicatesTile extends ConsumerWidget {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
-    final extras = [for (final group in groups) ...group.extras];
+    // An item can be in a certain group and a similar group: count it once.
+    final extras = {
+      for (final group in groups)
+        for (final item in group.extras) item.id: item,
+    }.values.toList();
     final bytes = extras.fold<int>(0, (sum, item) => sum + item.sizeBytes);
 
     return Padding(
