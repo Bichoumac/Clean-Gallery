@@ -33,7 +33,7 @@ Last updated: 2026-10-26 — Milestone M3
 | --- | --- |
 | `flutter analyze` | No issues |
 | `flutter test --timeout 60s` | 117 tests pass |
-| Galaxy A54 (release build) | Not tested yet: checklist in [testing.md](testing.md#m3--media-index-to-verify-on-a-device) |
+| Galaxy A54 (release build) | Media index confirmed by the product owner on 2026-10-26: migration of the M2 trash, instant display at launch, changes from other apps picked up on return, scroll position kept ([testing.md](testing.md#m3--media-index-to-verify-on-a-device)). Limited access and a fresh install not tested. |
 
 ### Known issues
 
@@ -41,8 +41,7 @@ Last updated: 2026-10-26 — Milestone M3
 
 ### Next steps
 
-1. Device test of the media index.
-2. Capture dates (EXIF, file name), exact duplicates and bursts; virtual folder, comparison screen, batch delete; `docs/analysis-engine.md`.
+1. Capture dates (EXIF, file name), exact duplicates and bursts; virtual folder, comparison screen, batch delete; `docs/analysis-engine.md`.
 
 ## M2 — Actions
 

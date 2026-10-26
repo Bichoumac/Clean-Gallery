@@ -129,6 +129,13 @@ Install over the M2 version (do not uninstall), so the database migration runs o
 | 8 | Sort by size, then by name; date filter "Last 30 days" | Same results as in M2. |
 | 9 | Albums tab | Folders, counts and covers as in M2. |
 
+Media index status on the Galaxy A54 (Android 16), release build installed over M2, checked by the product owner on 2026-10-26:
+
+| Status | Items |
+| --- | --- |
+| Confirmed OK | 1 to 9: M2 trash kept by the migration, instant display at launch, camera photos, deletions and favorites made in Samsung Gallery picked up on return, instant actions, scroll position kept, sorts and filters, Albums tab |
+| Not tested yet | Limited access (Android 14+ partial selection), first launch on a fresh install of a large library |
+
 ### M2 — to verify on a device
 
 | # | Check | Expected |
