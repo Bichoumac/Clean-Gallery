@@ -7,8 +7,20 @@ Last updated: 2026-10-27 — Milestone M4
 ## Where to pick up
 
 - The milestone status lives in [progress.md](progress.md); this section only says what to do first.
-- End of 2026-10-27: M0 to M3 are merged into `main` (M3 as PR #4). M4 is complete on branch `m4-similar`, not pushed, **not tested on the phone**.
-- **First**: device test of M4 ([testing.md](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device)), and the product owner's answers on ADR 0019 (multi-index hashing instead of the BK-tree) and on pre-selecting similar photos.
+- End of 2026-10-27: M0 to M3 are merged into `main` (M3 as PR #4). M4 is complete on branch `m4-similar` (committed locally, not pushed). The M4 release APK was **installed on the Galaxy A54** on the evening of 2026-10-27 (`adb install -r`, over M3, data kept); the product owner has **not tested it yet**.
+- **First, at the start of the next session, ask the product owner these questions again** (they asked for it explicitly), then record the answers in [testing.md](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device) and [progress.md](progress.md):
+  1. First analysis: did the app stay fluid while it ran, and roughly how long did it take for how many photos?
+  2. Albums → All media → **Duplicates** tile: does it read "N items to review", with a **Similar photos** section?
+  3. Is a photo sent to yourself on WhatsApp grouped with its original (original marked **Best**)?
+  4. Are two photos of the same scene taken a few seconds apart grouped?
+  5. **False positives**: is any similar group made of clearly different photos? (the most important point)
+  6. **Not duplicates**: does the group disappear and stay gone after relaunching the app?
+  7. Settings → Analysis → Similar photos: fewer groups with Low, more with High? Advanced mode sliders work?
+  8. Stats tab: values shown (space you could free, used, photos/videos), and the three rows open the right screens?
+  9. Settings → **Analyze the library again** (also M3 item 26): spinner, then the same groups, Not duplicates kept?
+  10. Largest font: *Not duplicates* and *Move N to trash* fit or stack, never cut off?
+  - **Decision A**: approve [ADR 0019](decisions/0019-similar-photo-search.md) (multi-index hashing instead of the brief's BK-tree, which was slower than brute force), or go back to the BK-tree?
+  - **Decision B**: in similar groups, keep pre-selecting every photo but the best (brief), or leave them unselected by default?
 - **Next**: push `m4-similar` when asked, open the pull request, then M5 (swipe mode, blurry photos, screenshots, large videos).
 
 ## Working with the product owner

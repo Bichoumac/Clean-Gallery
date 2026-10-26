@@ -39,7 +39,7 @@ Last updated: 2026-10-27 — Milestone M4
 | `flutter test --timeout 60s` | 194 tests pass |
 | `flutter build apk --release --target-platform android-arm64` | Builds (Kotlin `grayThumbnails` compiles) |
 | Search speed (AOT, development laptop, 30,000 photos) | Grouping 0.6–1.1 s at Medium, 1.4–2.6 s at High; hashing 1–2.5 ms per photo ([analysis-engine.md](analysis-engine.md#performance-2)) |
-| Galaxy A54 | Not tested yet: checklist in [testing.md](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device) |
+| Galaxy A54 | Release APK installed on 2026-10-27 (over M3); not tested yet by the product owner: checklist in [testing.md](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device), questions to ask in [working-notes.md](working-notes.md#where-to-pick-up) |
 
 ### Decisions
 
