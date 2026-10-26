@@ -34,7 +34,7 @@ Last updated: 2026-10-26 — Milestone M3
 | --- | --- |
 | `flutter analyze` | No issues |
 | `flutter test --timeout 60s` | 131 tests pass |
-| Galaxy A54 (release build) | Media index confirmed by the product owner on 2026-10-26: migration of the M2 trash, instant display at launch, changes from other apps picked up on return, scroll position kept ([testing.md](testing.md#m3--media-index-to-verify-on-a-device)). Limited access and a fresh install not tested. Capture dates not tested yet ([testing.md](testing.md#m3--capture-dates-to-verify-on-a-device)). |
+| Galaxy A54 (release build) | Media index confirmed by the product owner on 2026-10-26: migration of the M2 trash, instant display at launch, changes from other apps picked up on return, scroll position kept ([testing.md](testing.md#m3--media-index-to-verify-on-a-device)). Limited access and a fresh install not tested. Capture dates confirmed on 2026-10-26: received photos at their real date, camera photos unchanged, Corrected dates switch ([testing.md](testing.md#m3--capture-dates-to-verify-on-a-device)). |
 
 ### Known issues
 
@@ -42,8 +42,7 @@ Last updated: 2026-10-26 — Milestone M3
 
 ### Next steps
 
-1. Device test of capture dates.
-2. Exact duplicates and bursts; virtual folder, comparison screen, batch delete.
+1. Exact duplicates and bursts; virtual folder, comparison screen, batch delete.
 
 ## M2 — Actions
 

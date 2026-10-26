@@ -148,6 +148,12 @@ Media index status on the Galaxy A54 (Android 16), release build installed over 
 | 13 | Settings → Display → **Corrected dates** off, then back to the timelines | Received photos go back to the day they arrived; on again: back to their real date. Restart: the choice is kept. |
 | 14 | Date filter "Last 30 days" with corrected dates on | Old photos received recently are not in it. |
 
+Capture dates status on the Galaxy A54 (Android 16), release build installed over the media index version, checked by the product owner on 2026-10-26:
+
+| Status | Items |
+| --- | --- |
+| Confirmed OK | 10 to 14: dates resolved after the update without slowing the display, WhatsApp photos grouped by the date in their name, camera photos unchanged, Corrected dates switch (kept after a restart), date filter on corrected dates |
+
 ### M2 — to verify on a device
 
 | # | Check | Expected |
