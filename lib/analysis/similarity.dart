@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:clean_gallery/analysis/bk_tree.dart';
+import 'package:clean_gallery/analysis/hash_index.dart';
 import 'package:clean_gallery/analysis/perceptual_hash.dart';
 import 'package:clean_gallery/analysis/union_find.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
@@ -69,8 +69,14 @@ abstract class SimilarityThresholds with _$SimilarityThresholds {
     window: Duration(seconds: 30),
   );
 
-  /// Largest strict and loose distances offered in the advanced mode.
-  static const maxDistance = 20;
+  /// Largest strict distance offered in the advanced mode. Beyond it,
+  /// unrelated photos start to match, and the search slows down sharply
+  /// (see `docs/analysis-engine.md#performance-1`).
+  static const maxStrict = 10;
+
+  /// Largest loose distance offered in the advanced mode. Cheap: only
+  /// photos taken within the window are compared.
+  static const maxLoose = 20;
 
   /// Longest window offered in the advanced mode.
   static const maxWindow = Duration(seconds: 60);
@@ -138,7 +144,7 @@ typedef SimilarGroup = Map<int, double>;
 /// group id by photo id) are never linked. Similar pairs are joined
 /// transitively (union-find).
 ///
-/// Strict pairs are found with a [BkTree]; loose pairs by walking the
+/// Strict pairs are found with a [HashIndex]; loose pairs by walking the
 /// photos in date order, comparing each only with those of the next
 /// [SimilarityThresholds.window]. Nothing is compared with everything.
 List<SimilarGroup> findSimilarGroups(
@@ -163,15 +169,10 @@ List<SimilarGroup> findSimilarGroups(
     confidence[j] = math.max(confidence[j], score);
   }
 
-  final tree = BkTree();
-  for (var i = 0; i < photos.length; i++) {
-    tree.add(photos[i].hashes.pHash, i);
-  }
-  for (var i = 0; i < photos.length; i++) {
-    tree.search(photos[i].hashes.pHash, thresholds.strict, (j, distance) {
-      if (j > i && _sameAspect(photos[i], photos[j])) link(i, j, distance);
-    });
-  }
+  HashIndex([for (final photo in photos) photo.hashes.pHash])
+      .pairsWithin(thresholds.strict, (i, j, distance) {
+        if (_sameAspect(photos[i], photos[j])) link(i, j, distance);
+      });
 
   final byDate = List.generate(photos.length, (i) => i)
     ..sort((a, b) => photos[a].takenAt.compareTo(photos[b].takenAt));

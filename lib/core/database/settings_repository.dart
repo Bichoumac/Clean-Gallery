@@ -148,13 +148,13 @@ final class SettingsRepository {
           SettingKeys.similarityStrict,
           defaults.customThresholds.strict,
           0,
-          SimilarityThresholds.maxDistance,
+          SimilarityThresholds.maxStrict,
         ),
         loose: intIn(
           SettingKeys.similarityLoose,
           defaults.customThresholds.loose,
           0,
-          SimilarityThresholds.maxDistance,
+          SimilarityThresholds.maxLoose,
         ),
         window: Duration(
           seconds: intIn(

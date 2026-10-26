@@ -1,6 +1,6 @@
 import 'dart:math' as math;
 
-import 'package:clean_gallery/analysis/bk_tree.dart';
+import 'package:clean_gallery/analysis/hash_index.dart';
 import 'package:clean_gallery/analysis/perceptual_hash.dart';
 import 'package:clean_gallery/analysis/similarity.dart';
 import 'package:clean_gallery/analysis/union_find.dart';
@@ -41,39 +41,46 @@ void main() {
       [for (final group in groups) group.keys.toList()..sort()]
         ..sort((a, b) => a.first.compareTo(b.first));
 
-  group('BkTree', () {
-    test('finds exactly the hashes within the radius', () {
+  group('HashIndex', () {
+    /// Every pair `(i, j, distance)` within [radius], by brute force.
+    Set<(int, int, int)> bruteForce(List<int> hashes, int radius) => {
+      for (var i = 0; i < hashes.length; i++)
+        for (var j = i + 1; j < hashes.length; j++)
+          if (hammingDistance(hashes[i], hashes[j]) case final d
+              when d <= radius)
+            (i, j, d),
+    };
+
+    test('finds exactly the pairs within the radius', () {
       final random = math.Random(4);
-      final hashes = [
-        for (var i = 0; i < 500; i++)
-          random.nextInt(1 << 32) << 32 | random.nextInt(1 << 32),
-      ];
-      final tree = BkTree();
-      for (var i = 0; i < hashes.length; i++) {
-        tree.add(hashes[i], i);
-      }
-      for (final query in hashes.take(20)) {
-        for (final radius in [0, 6, 20, 30]) {
-          final found = <int>{};
-          tree.search(query, radius, (index, distance) {
-            expect(distance, hammingDistance(query, hashes[index]));
-            found.add(index);
-          });
-          expect(found, {
-            for (var i = 0; i < hashes.length; i++)
-              if (hammingDistance(query, hashes[i]) <= radius) i,
-          });
+      int next() => random.nextInt(1 << 32) << 32 | random.nextInt(1 << 32);
+      final hashes = [for (var i = 0; i < 300; i++) next()];
+      // Near copies, some differing in the sign bit, so every radius finds
+      // pairs.
+      for (var i = 0; i < 100; i++) {
+        var copy = hashes[random.nextInt(300)];
+        for (var bit = 0; bit < random.nextInt(24); bit++) {
+          copy ^= 1 << random.nextInt(64);
         }
+        hashes.add(copy);
+      }
+      final index = HashIndex(hashes);
+      for (final radius in [0, 3, 6, 12, 20]) {
+        final found = <(int, int, int)>{};
+        var calls = 0;
+        index.pairsWithin(radius, (i, j, d) {
+          calls++;
+          found.add((i, j, d));
+        });
+        expect(found, bruteForce(hashes, radius), reason: 'radius $radius');
+        expect(calls, found.length, reason: 'each pair once');
       }
     });
 
-    test('keeps every value of an identical hash', () {
-      final tree = BkTree()
-        ..add(42, 0)
-        ..add(42, 1);
-      final found = <int>[];
-      tree.search(42, 0, (index, _) => found.add(index));
-      expect(found, [0, 1]);
+    test('pairs identical hashes', () {
+      final pairs = <(int, int, int)>[];
+      HashIndex([42, 7, 42]).pairsWithin(0, (i, j, d) => pairs.add((i, j, d)));
+      expect(pairs, [(0, 2, 0)]);
     });
   });
 

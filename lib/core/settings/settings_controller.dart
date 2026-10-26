@@ -110,8 +110,8 @@ class AppSettingsController extends _$AppSettingsController {
   /// ranges.
   Future<void> setCustomThresholds(SimilarityThresholds thresholds) async {
     final value = SimilarityThresholds(
-      strict: thresholds.strict.clamp(0, SimilarityThresholds.maxDistance),
-      loose: thresholds.loose.clamp(0, SimilarityThresholds.maxDistance),
+      strict: thresholds.strict.clamp(0, SimilarityThresholds.maxStrict),
+      loose: thresholds.loose.clamp(0, SimilarityThresholds.maxLoose),
       window: Duration(
         seconds: thresholds.window.inSeconds.clamp(
           0,

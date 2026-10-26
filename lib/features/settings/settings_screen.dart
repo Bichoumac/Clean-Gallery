@@ -285,7 +285,7 @@ class _SimilaritySettings extends ConsumerWidget {
           _ValueSlider(
             label: l10n.settingsStrict,
             value: custom.strict,
-            max: SimilarityThresholds.maxDistance,
+            max: SimilarityThresholds.maxStrict,
             format: l10n.thresholdDistance,
             onChanged: (value) =>
                 controller.setCustomThresholds(custom.copyWith(strict: value)),
@@ -293,7 +293,7 @@ class _SimilaritySettings extends ConsumerWidget {
           _ValueSlider(
             label: l10n.settingsLoose,
             value: custom.loose,
-            max: SimilarityThresholds.maxDistance,
+            max: SimilarityThresholds.maxLoose,
             format: l10n.thresholdDistance,
             onChanged: (value) =>
                 controller.setCustomThresholds(custom.copyWith(loose: value)),

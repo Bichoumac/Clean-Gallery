@@ -154,8 +154,9 @@ Float64List _resizeAxis(
     for (var i = 0; i < to; i++) {
       final start = i * scale;
       final end = start + scale;
+      final last = math.min(end.ceil(), from);
       var sum = 0.0;
-      for (var s = start.floor(); s < math.min(end.ceil(), from); s++) {
+      for (var s = start.floor(); s < last; s++) {
         final overlap = math.min(end, s + 1.0) - math.max(start, s.toDouble());
         sum += overlap * source[line * sourceLine + s * sourceStep];
       }
