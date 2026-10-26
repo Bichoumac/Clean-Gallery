@@ -2,7 +2,7 @@
 
 The Settings tab: display, trash, sharing and permissions. The rest of the brief's settings arrive with the features they control.
 
-Last updated: 2026-10-25 — Milestone M2
+Last updated: 2026-10-26 — Milestone M3
 
 ## Purpose
 
@@ -21,6 +21,7 @@ Let the user choose how the app looks and behaves, and see and change its permis
 | Display | Theme | System / Light / Dark | System | Whole app |
 | Display | Language | System / English / Français | System | Whole app |
 | Display | Grid columns at launch | 2–6 | 4 | Every grid, at launch and immediately |
+| Display | Corrected dates | On / Off | On | Sort, group, filter and date of every timeline: the date the photo was taken (metadata, then file name) or Android's date ([analysis-engine.md](../analysis-engine.md#capture-date)) |
 | Trash | Keep deleted items for | 1–90 days | 30 | Items trashed afterwards |
 | Sharing | Remove location when sharing | On / Off | On | Default of the share sheet switch |
 | Permissions | Photos and videos | Allowed / Some items only / Not allowed | — | Read-only status + *Change* |

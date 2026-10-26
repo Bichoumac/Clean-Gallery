@@ -137,6 +137,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 },
               ),
             ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.settingsCorrectedDates),
+              subtitle: Text(l10n.settingsCorrectedDatesHelp),
+              value: settings.correctedDates,
+              onChanged: (value) => controller.setCorrectedDates(value: value),
+            ),
           ],
         ),
         _Section(

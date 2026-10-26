@@ -22,9 +22,10 @@ Last updated: 2026-10-26 — Milestone M3
 | [design.md](design.md) | Design system: palette, typography, shapes, navigation bar. |
 | [database.md](database.md) | Drift schema, indexes and migration history. |
 | [platform-android.md](platform-android.md) | Permissions and the native Kotlin channel API. |
+| [analysis-engine.md](analysis-engine.md) | Analysis algorithms (capture dates, then duplicates), thresholds and rationale. |
 | [testing.md](testing.md) | Test strategy, commands and fixtures. |
 
-Planned files: `analysis-engine.md` (M3), `monetization.md` (M8), `release.md` (M9).
+Planned files: `monetization.md` (M8), `release.md` (M9).
 
 ## Features
 
@@ -59,3 +60,4 @@ One file per feature is added as each feature is built.
 | [0013](decisions/0013-trash-purge-without-background-job.md) | Trash purge at launch and resume, without a background job |
 | [0014](decisions/0014-native-sharing.md) | Sharing with native intents instead of `share_plus` |
 | [0015](decisions/0015-persistent-media-index.md) | Persistent media index in Drift |
+| [0016](decisions/0016-capture-dates-at-index-time.md) | Capture dates resolved at index time, without reading files |

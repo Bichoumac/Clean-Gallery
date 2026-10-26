@@ -57,7 +57,7 @@ The brief lists `core/`, `analysis/`, `platform/` and `features/` under `lib/`. 
 | [lib/core/settings/](../lib/core/settings/) | `AppSettings` and `AppSettingsController`. See [features/settings.md](features/settings.md). |
 | [lib/core/theme/app_theme.dart](../lib/core/theme/app_theme.dart) | Theme and brand palette. See [design.md](design.md). |
 | [lib/domain/](../lib/domain/) | `MediaItem`, `Album`, `MediaSelection`, timeline grouping, enums (`MediaKind`, `DateSource`, `DuplicateKind`, `SwipeAction`). |
-| [lib/analysis/](../lib/analysis/) | Analysis engine; currently only `analysisVersion`. |
+| [lib/analysis/](../lib/analysis/) | Analysis engine: `analysisVersion`, capture date rules. See [analysis-engine.md](analysis-engine.md). |
 | [lib/platform/](../lib/platform/) | `MediaSource`, `PlatformBridge`, `PermissionService` interfaces. |
 | [lib/platform/android/](../lib/platform/android/) | Android implementations. See [platform-android.md](platform-android.md). |
 | [lib/features/onboarding/](../lib/features/onboarding/) | Onboarding. See [features/onboarding.md](features/onboarding.md). |

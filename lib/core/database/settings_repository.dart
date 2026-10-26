@@ -25,6 +25,12 @@ abstract final class SettingKeys {
   /// [AppSettings.lastPurgeCheck], as an ISO 8601 date.
   static const lastPurgeCheck = 'last_purge_check';
 
+  /// [AppSettings.correctedDates].
+  static const correctedDates = 'corrected_dates';
+
+  /// [AppSettings.captureDateRules].
+  static const captureDateRules = 'capture_date_rules';
+
   /// [AppSettings.mediaIndexVersion].
   static const mediaIndexVersion = 'media_index_version';
 
@@ -116,7 +122,11 @@ final class SettingsRepository {
       lastPurgeCheck: DateTime.tryParse(
         values[SettingKeys.lastPurgeCheck] ?? '',
       ),
+      correctedDates: values[SettingKeys.correctedDates] != 'false',
       mediaIndexVersion: values[SettingKeys.mediaIndexVersion],
+      captureDateRules: int.tryParse(
+        values[SettingKeys.captureDateRules] ?? '',
+      ),
     );
   }
 }

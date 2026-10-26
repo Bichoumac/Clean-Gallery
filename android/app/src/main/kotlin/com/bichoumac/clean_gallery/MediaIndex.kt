@@ -58,12 +58,14 @@ class MediaIndex(private val context: Context) {
     /**
      * Full metadata of the items with the given [ids], one map per item:
      * `{id, bucketId, bucketName, relativePath, name, mimeType, video,
-     * size, width, height, takenAt, modified, duration, favorite, revision}`.
+     * size, width, height, takenAt, dateTaken, added, modified, duration,
+     * favorite, revision}`.
      *
      * Width and height are swapped for rotated photos. `takenAt` is in
-     * milliseconds (`DATE_TAKEN`, or `DATE_ADDED` when unset), `modified` in
-     * seconds, `duration` in milliseconds. Items that no longer exist are
-     * left out.
+     * milliseconds (`DATE_TAKEN`, or `DATE_ADDED` when unset); `dateTaken`
+     * is the raw `DATE_TAKEN` in milliseconds, 0 when unset; `added` and
+     * `modified` are in seconds, `duration` in milliseconds. Items that no
+     * longer exist are left out.
      */
     fun describe(ids: List<Long>): List<Map<String, Any?>> {
         val projection = arrayOf(
@@ -128,6 +130,8 @@ class MediaIndex(private val context: Context) {
                             "height" to if (rotated) c.getInt(width) else c.getInt(height),
                             // Same capture date as photo_manager's createDateTime.
                             "takenAt" to if (takenAt > 0) takenAt else c.getLong(added) * 1000,
+                            "dateTaken" to takenAt,
+                            "added" to c.getLong(added),
                             "modified" to c.getLong(modified),
                             "duration" to c.getLong(duration),
                             "favorite" to (c.getInt(favorite) == 1),

@@ -34,7 +34,7 @@ The media index: one row per photo or video, keyed by its MediaStore id. Every l
 | `modified_at` | DATETIME | no | File modification date |
 | `taken_at` | DATETIME | no | MediaStore capture date: `DATE_TAKEN`, or `DATE_ADDED` when unset. Timelines sort and group by it |
 | `media_revision` | INTEGER | yes | MediaStore `GENERATION_MODIFIED` when indexed; `null` forces a refresh |
-| `capture_at` | DATETIME | yes | Capture date resolved by the engine |
+| `capture_at` | DATETIME | yes | Resolved capture date (metadata, file name, then file date), written by the index sync ([analysis-engine.md](analysis-engine.md#capture-date)). Timelines use `COALESCE(capture_at, taken_at)` when corrected dates are on |
 | `capture_source` | TEXT | yes | `exif` / `filename` / `file` |
 | `content_hash` | TEXT | yes | xxHash of the content |
 | `d_hash`, `p_hash` | INTEGER | yes | 64-bit perceptual hashes |
@@ -119,6 +119,8 @@ Known keys are constants in `SettingKeys` ([settings_repository.dart](../lib/cor
 | `theme` | `system` / `light` / `dark` | Theme |
 | `language` | `system` / `english` / `french` | Interface language |
 | `last_purge_check` | ISO 8601 date | Day the expired trash was last offered for purging |
+| `corrected_dates` | bool | Timelines use the resolved capture date (default `true`) |
+| `capture_date_rules` | int | `captureDateRulesVersion` the indexed dates were resolved with; an older value makes the next sync resolve every date again |
 | `media_index_version` | text | MediaStore version (`MediaStore.getVersion`) of the last complete index sync; unset before the first one |
 | `view_sort:<filter>:<folder id>` | `<field>:<asc\|desc>` | Saved sort of one timeline, e.g. `view_sort:photos:` → `size:desc` |
 

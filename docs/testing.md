@@ -51,7 +51,9 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [navigation_test.dart](../test/core/router/navigation_test.dart) | Five icon-only tabs, switching tabs, Stats content, 48 dp touch targets. |
 | [timeline_test.dart](../test/domain/timeline_test.dart) | Day and month sections, grid rows, grouping by column count. |
 | [media_providers_test.dart](../test/core/media/media_providers_test.dart) | First chunk then the rest from the index, reload in place without a loading state, column limits, duration format. |
-| [media_index_test.dart](../test/core/media/media_index_test.dart) | Sync plan; first, unchanged and incremental syncs; analysis kept unless the file changed; platform version change; denied and limited access; merged calls; index filters, sorts, date range, folders and trash exclusion. |
+| [capture_date_test.dart](../test/analysis/capture_date_test.dart) | File name date patterns, rejected names, date-only names, resolution order. |
+| [android_media_source_test.dart](../test/platform/android_media_source_test.dart) | When MediaStore's `DATE_TAKEN` counts as a metadata date. |
+| [media_index_test.dart](../test/core/media/media_index_test.dart) | Capture dates resolved during a sync, rules version, sort by corrected or platform date; sync plan; first, unchanged and incremental syncs; analysis kept unless the file changed; platform version change; denied and limited access; merged calls; index filters, sorts, date range, folders and trash exclusion. |
 | [library_test.dart](../test/features/library/library_test.dart) | Timeline headers, photo/video filters, empty, denied and limited states, Albums and folder pages, opening the viewer, pinch gesture, pull-to-refresh indexing new items. |
 | [sort_filter_test.dart](../test/features/library/sort_filter_test.dart) | Date ranges and presets, plain rows, sort by name, date preset and chip removal, empty period, viewer order, per-tab state. |
 | [fast_scroller_test.dart](../test/features/library/fast_scroller_test.dart) | Thumb visibility, drag jump with month bubble, size bubble, short lists, size formatting. |
@@ -61,7 +63,7 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [app_settings_test.dart](../test/core/settings/app_settings_test.dart) | Default, stored and invalid settings; sort encoding; view keys. |
 | [trash_flow_test.dart](../test/features/trash/trash_flow_test.dart) | Trash from the viewer with undo, Trash page, restore, delete for good, declined prompt, expiry offer, silent purge, Trash album count. |
 | [selection_test.dart](../test/features/library/selection_test.dart) | Long press, tap, drag range, trash with undo, favorite, share, back. |
-| [settings_screen_test.dart](../test/features/settings/settings_screen_test.dart) | Theme, language, default columns, permission statuses, sort saved and restored. |
+| [settings_screen_test.dart](../test/features/settings/settings_screen_test.dart) | Theme, language, default columns, corrected dates switch, permission statuses, sort saved and restored. |
 
 App-level widget tests use `pumpTestApp` ([pump_app.dart](../test/helpers/pump_app.dart)): the whole app on a phone-sized screen (1080 × 2400 px at 3×) with all fakes, so tests see what a user would. They are declared with `testApp` instead of `testWidgets`: it unmounts the app at the end, even after a failure, and lets Drift close its stream queries (Drift closes them on a zero-length timer; without this step Flutter reports a pending timer and the run hangs).
 
@@ -135,6 +137,16 @@ Media index status on the Galaxy A54 (Android 16), release build installed over 
 | --- | --- |
 | Confirmed OK | 1 to 9: M2 trash kept by the migration, instant display at launch, camera photos, deletions and favorites made in Samsung Gallery picked up on return, instant actions, scroll position kept, sorts and filters, Albums tab |
 | Not tested yet | Limited access (Android 14+ partial selection), first launch on a fresh install of a large library |
+
+### M3 — capture dates, to verify on a device
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 10 | First launch after the update | Lists show at once; within a few seconds, received photos (WhatsApp, Signal…) move to the day in their file name. |
+| 11 | Albums → WhatsApp Images (or another messaging folder), photos received long after they were taken | Grouped by the date in their name (`IMG-20240315-WA…` → March 15, 2024), not the day they arrived. |
+| 12 | Camera tab | Unchanged: camera photos keep their date and time. |
+| 13 | Settings → Display → **Corrected dates** off, then back to the timelines | Received photos go back to the day they arrived; on again: back to their real date. Restart: the choice is kept. |
+| 14 | Date filter "Last 30 days" with corrected dates on | Old photos received recently are not in it. |
 
 ### M2 — to verify on a device
 

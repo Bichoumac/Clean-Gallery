@@ -2,13 +2,13 @@
 
 A photo and video gallery for Android, built with Flutter, with cleanup tools: a virtual folder of likely duplicates, a swipe-to-sort mode and a trash with a configurable retention period. **Your photos never leave your device.**
 
-Last updated: 2026-10-25 — Milestone M2
+Last updated: 2026-10-26 — Milestone M3
 
 The app is free with two small, unobtrusive ad placements, and a single "Remove ads" in-app purchase. Every feature is available to everyone.
 
 ## Status
 
-Milestones **M0** and **M1** are merged. **M2 — Actions** is built: system favorites, sharing without GPS, multi-select, the app trash and the Settings tab. Stats is still a placeholder. See [docs/progress.md](docs/progress.md) for what is verified. See [docs/progress.md](docs/progress.md) for details and the device checklist.
+Milestones **M0** to **M2** are merged. **M3 — Engine level 1** is in progress: the persistent media index (lists show at once at launch) and corrected capture dates are done; exact duplicates and bursts come next. Stats is still a placeholder. See [docs/progress.md](docs/progress.md) for details and the device checklist.
 
 ## Features
 

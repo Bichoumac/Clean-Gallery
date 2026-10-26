@@ -118,6 +118,8 @@
   "languageEnglish": "English",
   "languageFrench": "Français",
   "settingsColumns": "Grid columns at launch",
+  "settingsCorrectedDates": "Corrected dates",
+  "settingsCorrectedDatesHelp": "Sort photos by the date they were taken, read from the photo or its file name. Off: the date Android shows, often the day a received photo arrived.",
   "settingsTrash": "Trash",
   "settingsRetention": "Keep deleted items for",
   "retentionDays": "{count, plural, =1{1 day} other{{count} days}}",

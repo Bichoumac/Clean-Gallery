@@ -110,6 +110,8 @@
   "languageEnglish": "English",
   "languageFrench": "Français",
   "settingsColumns": "Colonnes de la grille au démarrage",
+  "settingsCorrectedDates": "Dates corrigées",
+  "settingsCorrectedDatesHelp": "Classe les photos par date de prise de vue, lue dans la photo ou son nom de fichier. Désactivé : la date affichée par Android, souvent le jour de réception d'une photo reçue.",
   "settingsTrash": "Corbeille",
   "settingsRetention": "Garder les éléments supprimés",
   "retentionDays": "{count, plural, =1{1 jour} other{{count} jours}}",

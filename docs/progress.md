@@ -11,7 +11,7 @@ Last updated: 2026-10-26 — Milestone M3
 | M0 | Foundations | Merged into `main` (PR #1) |
 | M1 | Navigation: timelines, albums, grid, viewer, video, sorting, date filter | Merged into `main` (PR #2) |
 | M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Merged into `main` (PR #3) |
-| M3 | Engine level 1: indexing, dates, exact duplicates, bursts | In progress on `m3-engine`: media index done |
+| M3 | Engine level 1: indexing, dates, exact duplicates, bursts | In progress on `m3-engine`: media index and capture dates done |
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Not started |
 | M5 | Cleanup: Stats values, swipe mode, blurry, screenshots, large videos | Not started |
 | M6 | Advanced viewer and editing | Not started |
@@ -26,14 +26,15 @@ Last updated: 2026-10-26 — Milestone M3
 - **Persistent media index**: every list reads the `assets` table, so the library shows at once at launch; a sync at launch, on return to the foreground and on pull-to-refresh applies only what changed in MediaStore ([ADR 0015](decisions/0015-persistent-media-index.md), [features/library.md](features/library.md#media-index)).
 - Schema version 2 with a migration that keeps the M2 trash ([database.md](database.md#migrations)).
 - Native `mediaSnapshot` and `mediaDetails` replace `albumSummaries`, `mediaSizes` and `photo_manager` listing ([platform-android.md](platform-android.md#media-access)).
+- **Capture dates**: resolved during the sync from the photo's metadata, then its file name, then the file date; timelines use them unless **Corrected dates** is off in Settings, at the product owner's request ([analysis-engine.md](analysis-engine.md#capture-date), [ADR 0016](decisions/0016-capture-dates-at-index-time.md)).
 
 ### Verified
 
 | Check | Result |
 | --- | --- |
 | `flutter analyze` | No issues |
-| `flutter test --timeout 60s` | 117 tests pass |
-| Galaxy A54 (release build) | Media index confirmed by the product owner on 2026-10-26: migration of the M2 trash, instant display at launch, changes from other apps picked up on return, scroll position kept ([testing.md](testing.md#m3--media-index-to-verify-on-a-device)). Limited access and a fresh install not tested. |
+| `flutter test --timeout 60s` | 131 tests pass |
+| Galaxy A54 (release build) | Media index confirmed by the product owner on 2026-10-26: migration of the M2 trash, instant display at launch, changes from other apps picked up on return, scroll position kept ([testing.md](testing.md#m3--media-index-to-verify-on-a-device)). Limited access and a fresh install not tested. Capture dates not tested yet ([testing.md](testing.md#m3--capture-dates-to-verify-on-a-device)). |
 
 ### Known issues
 
@@ -41,7 +42,8 @@ Last updated: 2026-10-26 — Milestone M3
 
 ### Next steps
 
-1. Capture dates (EXIF, file name), exact duplicates and bursts; virtual folder, comparison screen, batch delete; `docs/analysis-engine.md`.
+1. Device test of capture dates.
+2. Exact duplicates and bursts; virtual folder, comparison screen, batch delete.
 
 ## M2 — Actions
 

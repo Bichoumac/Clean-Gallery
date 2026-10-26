@@ -48,6 +48,10 @@ abstract class AppSettings with _$AppSettings {
     /// Interface language.
     @Default(LanguagePreference.system) LanguagePreference language,
 
+    /// Whether timelines sort and group by the corrected capture date
+    /// (photo metadata, then file name) instead of the platform's date.
+    @Default(true) bool correctedDates,
+
     /// Sort order chosen for each timeline, by [viewKey].
     @Default(<String, MediaSort>{}) Map<String, MediaSort> viewSorts,
 
@@ -58,6 +62,11 @@ abstract class AppSettings with _$AppSettings {
     /// `null` before the first one. While `null`, empty lists show a
     /// loading state instead of an empty one.
     String? mediaIndexVersion,
+
+    /// `captureDateRulesVersion` the indexed dates were resolved with, or
+    /// `null` before the first index. An older value makes the next sync
+    /// resolve every date again.
+    int? captureDateRules,
   }) = _AppSettings;
 
   /// Smallest and largest trash retention, in days.

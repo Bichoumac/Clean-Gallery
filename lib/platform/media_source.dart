@@ -64,6 +64,7 @@ final class IndexedMedia {
     required this.albumId,
     required this.albumName,
     required this.revision,
+    this.hasMetadataDate = true,
   });
 
   /// The item, with its file name, path, size and MIME type.
@@ -77,4 +78,8 @@ final class IndexedMedia {
 
   /// Revision of the item, as in [LibrarySnapshot.revisions].
   final int revision;
+
+  /// Whether [MediaItem.takenAt] was read from the file's metadata (EXIF,
+  /// video creation time) rather than being the date the file was added.
+  final bool hasMetadataDate;
 }

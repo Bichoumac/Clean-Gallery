@@ -65,7 +65,30 @@ final class AndroidMediaSource implements MediaSource {
       albumId: row['bucketId'] as String?,
       albumName: row['bucketName']! as String,
       revision: row['revision']! as int,
+      hasMetadataDate: hasMetadataDate(
+        dateTaken: row['dateTaken']! as int,
+        addedSeconds: row['added']! as int,
+        modifiedSeconds: row['modified']! as int,
+      ),
     );
+  }
+
+  /// Whether MediaStore's `DATE_TAKEN` ([dateTaken], milliseconds, 0 when
+  /// unset) comes from the file's metadata.
+  ///
+  /// MediaStore fills it from EXIF or the video's creation time, but some
+  /// devices copy the file date into it. A value within 2 seconds of the
+  /// file's added or modified date is therefore not trusted, so the file
+  /// name can be tried; for a camera photo saved right away both rules give
+  /// the same date.
+  static bool hasMetadataDate({
+    required int dateTaken,
+    required int addedSeconds,
+    required int modifiedSeconds,
+  }) {
+    if (dateTaken <= 0) return false;
+    bool near(int seconds) => (dateTaken - seconds * 1000).abs() < 2000;
+    return !near(addedSeconds) && !near(modifiedSeconds);
   }
 
   @override

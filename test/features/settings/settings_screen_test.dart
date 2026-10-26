@@ -55,6 +55,38 @@ void main() {
     expect(await SettingsRepository(db).read(SettingKeys.defaultColumns), '2');
   });
 
+  testApp('corrected dates can be turned off and are saved', (tester) async {
+    final db = inMemoryDatabase();
+    addTearDown(db.close);
+    final received = testItem(
+      1,
+      takenAt: DateTime(2026, 9, 1, 8),
+    ).copyWith(fileName: 'IMG-20240315-WA0001.jpg');
+    final media = FakeMediaSource(items: [received])
+      ..withoutMetadataDate.add('1');
+    await pumpTestApp(tester, media: media, database: db);
+    await tester.tap(find.byTooltip('Albums'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('All media'));
+    await tester.pumpAndSettle();
+    DateTime shownDate() =>
+        tester.widget<MediaThumbnail>(find.byType(MediaThumbnail)).item.takenAt;
+    expect(shownDate(), DateTime(2024, 3, 15, 12));
+
+    await openSettings(tester);
+    await tester.ensureVisible(find.text('Corrected dates'));
+    await tester.tap(find.text('Corrected dates'));
+    await tester.pumpAndSettle();
+    expect(
+      await SettingsRepository(db).read(SettingKeys.correctedDates),
+      'false',
+    );
+
+    await tester.tap(find.byTooltip('Albums'));
+    await tester.pumpAndSettle();
+    expect(shownDate(), DateTime(2026, 9, 1, 8));
+  });
+
   testApp('permission statuses are shown', (tester) async {
     final permissions = FakePermissionService(result: MediaAccess.limited)
       ..locationGranted = false;

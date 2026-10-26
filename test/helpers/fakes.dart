@@ -173,6 +173,10 @@ class FakeMediaSource implements MediaSource {
   /// Revision of items by id; items not listed have revision 1.
   final revisions = <String, int>{};
 
+  /// Ids of items whose date is not from their metadata, so the index
+  /// resolves it from the file name.
+  final withoutMetadataDate = <String>{};
+
   /// Ids passed to [describe], per call.
   final describeCalls = <List<String>>[];
 
@@ -207,6 +211,7 @@ class FakeMediaSource implements MediaSource {
       albumId: folder.firstOrNull?.id,
       albumName: folder.firstOrNull?.name ?? '',
       revision: revisions[item.id] ?? 1,
+      hasMetadataDate: !withoutMetadataDate.contains(item.id),
     );
   }
 

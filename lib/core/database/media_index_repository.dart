@@ -1,3 +1,4 @@
+import 'package:clean_gallery/analysis/capture_date.dart';
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/enums.dart';
@@ -11,11 +12,18 @@ import 'package:drift/drift.dart';
 /// `MediaIndex` keeps it in sync with the device; this class only reads and
 /// writes rows. Queries mirror what MediaStore used to answer, so sorting
 /// and filtering behave the same. See `docs/database.md`.
+///
+/// With [correctedDates], items are sorted, filtered and dated by their
+/// resolved capture date (`capture_at`, see `resolveCaptureDate`);
+/// otherwise by the platform's date (`taken_at`).
 final class MediaIndexRepository {
   /// Creates the repository on [_db].
-  const MediaIndexRepository(this._db);
+  const MediaIndexRepository(this._db, {this.correctedDates = true});
 
   final AppDatabase _db;
+
+  /// Whether reads use the resolved capture date.
+  final bool correctedDates;
 
   /// Revision of every indexed item, by id; `null` for rows that were never
   /// indexed (inserted by the trash).
@@ -29,6 +37,7 @@ final class MediaIndexRepository {
   }
 
   /// Inserts [entries] or updates their metadata, keeping analysis results.
+  /// Their capture date is resolved on the way ([resolveCaptureDate]).
   ///
   /// When an item's file changed (modification date or size), its
   /// `analysis_version` is reset so the engine analyses it again. With
@@ -59,6 +68,8 @@ final class MediaIndexRepository {
               durationMs: excluded.durationMs,
               modifiedAt: excluded.modifiedAt,
               takenAt: excluded.takenAt,
+              captureAt: excluded.captureAt,
+              captureSource: excluded.captureSource,
               isFavorite: excluded.isFavorite,
               mediaRevision: excluded.mediaRevision,
               analysisVersion: resetAnalysis
@@ -121,7 +132,7 @@ final class MediaIndexRepository {
       // SQLite needs a LIMIT before an OFFSET; -1 means no limit.
       query.limit(-1, offset: offset);
     }
-    return [for (final row in await query.get()) row.toMediaItem()];
+    return [for (final row in await query.get()) _toItem(row)];
   }
 
   /// Number of items in [selection], leaving out trashed items.
@@ -141,17 +152,19 @@ final class MediaIndexRepository {
       ..where((t) => _matches(t, selection) & _notTrashed(t))
       ..orderBy(_order(MediaSort.newest))
       ..limit(1);
-    return (await query.getSingleOrNull())?.toMediaItem();
+    final row = await query.getSingleOrNull();
+    return row == null ? null : _toItem(row);
   }
 
   /// Device folders with their item count and newest item, largest first,
   /// leaving out trashed items.
   Future<List<Album>> albums() async {
-    // SQLite returns the other columns of the row holding MAX(taken_at), so
+    // SQLite returns the other columns of the row holding the MAX(), so
     // each folder comes with its newest item in one pass.
+    final date = correctedDates ? 'COALESCE(capture_at, taken_at)' : 'taken_at';
     final rows = await _db
         .customSelect(
-          'SELECT *, COUNT(*) AS item_count, MAX(taken_at) '
+          'SELECT *, COUNT(*) AS item_count, MAX($date) '
           'FROM assets '
           'WHERE bucket_id IS NOT NULL '
           'AND id NOT IN (SELECT asset_id FROM trash_entries) '
@@ -169,7 +182,7 @@ final class MediaIndexRepository {
       id: cover.bucketId!,
       name: cover.folder,
       count: row.read<int>('item_count'),
-      cover: cover.toMediaItem(),
+      cover: _toItem(cover),
     );
   }
 
@@ -187,8 +200,8 @@ final class MediaIndexRepository {
         MediaFilter.favorites => t.isFavorite.equals(true),
       },
       if (selection.albumId case final albumId?) t.bucketId.equals(albumId),
-      if (dates?.start case final start?) t.takenAt.isBiggerOrEqualValue(start),
-      if (dates?.end case final end?) t.takenAt.isSmallerThanValue(end),
+      if (dates?.start case final start?) _date(t).isBiggerOrEqualValue(start),
+      if (dates?.end case final end?) _date(t).isSmallerThanValue(end),
     ]);
   }
 
@@ -206,7 +219,7 @@ final class MediaIndexRepository {
     return [
       (t) => OrderingTerm(
         expression: switch (sort.field) {
-          MediaSortField.date => t.takenAt,
+          MediaSortField.date => _date(t),
           MediaSortField.name => t.fileName.lower(),
           MediaSortField.size => t.sizeBytes,
           MediaSortField.duration => coalesce([
@@ -216,15 +229,26 @@ final class MediaIndexRepository {
         },
         mode: mode,
       ),
-      if (sort.field != MediaSortField.date)
-        (t) => OrderingTerm.desc(t.takenAt),
+      if (sort.field != MediaSortField.date) (t) => OrderingTerm.desc(_date(t)),
       (t) => OrderingTerm(expression: t.id, mode: mode),
     ];
   }
 
+  /// Date items are sorted, filtered and dated by.
+  Expression<DateTime> _date($AssetsTable t) =>
+      correctedDates ? coalesce([t.captureAt, t.takenAt]) : t.takenAt;
+
+  MediaItem _toItem(AssetRow row) =>
+      row.toMediaItem(correctedDates: correctedDates);
+
   /// Row inserted for [entry]; analysis columns keep their defaults.
   static AssetsCompanion _row(IndexedMedia entry) {
     final item = entry.item;
+    final capture = resolveCaptureDate(
+      platformDate: item.takenAt,
+      fromMetadata: entry.hasMetadataDate,
+      fileName: item.fileName,
+    );
     return AssetsCompanion.insert(
       id: Value(int.parse(item.id)),
       folder: entry.albumName,
@@ -239,6 +263,8 @@ final class MediaIndexRepository {
       durationMs: Value(item.isVideo ? item.duration.inMilliseconds : null),
       modifiedAt: item.modifiedAt,
       takenAt: item.takenAt,
+      captureAt: Value(capture.date),
+      captureSource: Value(capture.source),
       isFavorite: Value(item.isFavorite),
       mediaRevision: Value(entry.revision),
     );
@@ -251,13 +277,15 @@ const cameraFolder = 'DCIM/Camera/';
 
 /// Conversion of an index row to the domain item shown by screens.
 extension AssetRowToMediaItem on AssetRow {
-  /// This row as a [MediaItem]; empty texts become `null`.
-  MediaItem toMediaItem() => MediaItem(
+  /// This row as a [MediaItem]; empty texts become `null`. Its date is the
+  /// resolved capture date with [correctedDates] (when known), the
+  /// platform's otherwise.
+  MediaItem toMediaItem({bool correctedDates = true}) => MediaItem(
     id: '$id',
     kind: kind,
     width: width,
     height: height,
-    takenAt: takenAt,
+    takenAt: correctedDates ? captureAt ?? takenAt : takenAt,
     modifiedAt: modifiedAt,
     duration: Duration(milliseconds: durationMs ?? 0),
     isFavorite: isFavorite,

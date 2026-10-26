@@ -56,11 +56,12 @@ Lists read the `assets` table, kept in sync with MediaStore by `MediaIndex` ([AD
 
 1. **When**: at launch, when the app returns to the foreground, and on pull-to-refresh. A call during a sync adds one more pass.
 2. **Snapshot**: the id and revision (`GENERATION_MODIFIED`) of every item, newest first, in one query.
-3. **Compare** with the stored revisions: new and changed items are described (full metadata, 1,000 per call) and written; missing items are removed with their trash entries.
+3. **Compare** with the stored revisions: new and changed items are described (full metadata, 1,000 per call), their capture date is resolved ([analysis-engine.md](../analysis-engine.md#capture-date)), and they are written; missing items are removed with their trash entries.
 4. **Refresh lists**: open lists query the index again and replace their content without a loading state. On a long sync, after the first 1,000 items, then at most once a second.
 
 - A favorite changed in the app is written to the index at once; MediaStore confirms it at the next sync.
-- If MediaStore rebuilt its database (its version changed), every item is described again.
+- If MediaStore rebuilt its database (its version changed), or the capture date rules changed, every item is described again.
+- Turning **Corrected dates** off or on in Settings reloads the lists from the index, without a sync.
 - **Limited access**: the index holds only the shared items, but items in the app trash are kept.
 - **Denied access** or a platform error: the sync stops and the index stays as it was.
 
@@ -70,7 +71,7 @@ Every timeline (Photos, Videos, each album) can be sorted and limited to a date 
 
 | Sort by | Directions | Default direction |
 | --- | --- | --- |
-| Date (capture date) | Newest first / Oldest first | Newest first |
+| Date (capture date: corrected or Android's, per Settings) | Newest first / Oldest first | Newest first |
 | Name | A to Z / Z to A | A to Z |
 | Size | Largest first / Smallest first | Largest first |
 | Duration (not on Photos) | Longest first / Shortest first | Longest first |

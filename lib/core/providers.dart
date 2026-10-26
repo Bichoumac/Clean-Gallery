@@ -2,6 +2,7 @@ import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/core/database/media_index_repository.dart';
 import 'package:clean_gallery/core/database/settings_repository.dart';
 import 'package:clean_gallery/core/database/trash_repository.dart';
+import 'package:clean_gallery/core/settings/settings_controller.dart';
 import 'package:clean_gallery/domain/trashed_item.dart';
 import 'package:clean_gallery/platform/android/android_media_source.dart';
 import 'package:clean_gallery/platform/android/android_permission_service.dart';
@@ -9,6 +10,7 @@ import 'package:clean_gallery/platform/android/android_platform_bridge.dart';
 import 'package:clean_gallery/platform/media_source.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
 import 'package:clean_gallery/platform/platform_bridge.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'providers.g.dart';
@@ -29,10 +31,15 @@ SettingsRepository settingsRepository(Ref ref) {
   return SettingsRepository(ref.watch(appDatabaseProvider));
 }
 
-/// The media index stored in the `assets` table.
+/// The media index stored in the `assets` table, read with the date chosen
+/// in Settings.
 @Riverpod(keepAlive: true)
-MediaIndexRepository mediaIndexRepository(Ref ref) =>
-    MediaIndexRepository(ref.watch(appDatabaseProvider));
+MediaIndexRepository mediaIndexRepository(Ref ref) => MediaIndexRepository(
+  ref.watch(appDatabaseProvider),
+  correctedDates: ref.watch(
+    appSettingsControllerProvider.select((s) => s.correctedDates),
+  ),
+);
 
 /// The app trash.
 @Riverpod(keepAlive: true)

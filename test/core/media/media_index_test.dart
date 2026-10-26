@@ -1,8 +1,11 @@
+import 'package:clean_gallery/analysis/capture_date.dart';
 import 'package:clean_gallery/core/database/app_database.dart';
+import 'package:clean_gallery/core/database/media_index_repository.dart';
 import 'package:clean_gallery/core/media/media_index.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
 import 'package:clean_gallery/domain/album.dart';
+import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
 import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -161,6 +164,46 @@ void main() {
       expect(await indexedIds(), unorderedEquals([1, 3]));
     });
 
+    test('resolves capture dates from file names', () async {
+      final received = testItem(
+        4,
+        takenAt: DateTime(2026, 9, 1, 8),
+      ).copyWith(fileName: 'IMG-20240315-WA0001.jpg');
+      source
+        ..items = [received, ...library]
+        ..withoutMetadataDate.add('4');
+      await index().sync();
+      final row = await (db.select(
+        db.assets,
+      )..where((t) => t.id.equals(4))).getSingle();
+      expect(row.captureAt, DateTime(2024, 3, 15, 12));
+      expect(row.captureSource, DateSource.filename);
+      expect(row.takenAt, DateTime(2026, 9, 1, 8));
+      final camera = await (db.select(
+        db.assets,
+      )..where((t) => t.id.equals(1))).getSingle();
+      expect(camera.captureSource, DateSource.exif);
+    });
+
+    test('new date rules resolve every date again', () async {
+      await index().sync();
+      expect(
+        container.read(appSettingsControllerProvider).captureDateRules,
+        captureDateRulesVersion,
+      );
+      await db
+          .update(db.assets)
+          .write(const AssetsCompanion(analysisVersion: Value(3)));
+      await container
+          .read(appSettingsControllerProvider.notifier)
+          .setCaptureDateRules(captureDateRulesVersion - 1);
+      await index().sync();
+      expect(source.describeCalls.last, ['3', '2', '1']);
+      // Only dates are refreshed: analysis results are kept.
+      final rows = await db.select(db.assets).get();
+      expect(rows.map((r) => r.analysisVersion), everyElement(3));
+    });
+
     test('calls during a sync are merged into one more pass', () async {
       final first = index().sync();
       final second = index().sync();
@@ -246,6 +289,29 @@ void main() {
         dates: DateFilter.days(DateTime(2026, 4), DateTime(2026, 4, 30)),
       );
       expect(await ids(april), ['2']);
+    });
+
+    test('sorts by the corrected date, or the platform date', () async {
+      // Item 3 was received in June but taken in January.
+      await db
+          .update(db.assets)
+          .write(AssetsCompanion(captureAt: Value(DateTime(2026, 1, 2))));
+      await (db.update(db.assets)..where((t) => t.id.isNotIn([3]))).write(
+        const AssetsCompanion(captureAt: Value(null)),
+      );
+      await (db.update(db.assets)..where((t) => t.id.equals(3))).write(
+        AssetsCompanion(takenAt: Value(DateTime(2026, 6))),
+      );
+      final corrected = await ids(MediaSelection.all);
+      final platform = [
+        for (final item in await MediaIndexRepository(
+          db,
+          correctedDates: false,
+        ).load(MediaSelection.all))
+          item.id,
+      ];
+      expect(corrected, ['1', '2', '3']);
+      expect(platform, ['3', '1', '2']);
     });
 
     test('albums: counts and newest covers, without trashed items', () async {

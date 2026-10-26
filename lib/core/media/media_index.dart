@@ -1,3 +1,4 @@
+import 'package:clean_gallery/analysis/capture_date.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
@@ -86,16 +87,19 @@ class MediaIndex extends _$MediaIndex {
     if (access == MediaAccess.denied || !ref.mounted) return;
     final source = ref.read(mediaSourceProvider);
     final repository = ref.read(mediaIndexRepositoryProvider);
-    final indexedVersion = ref
-        .read(appSettingsControllerProvider)
-        .mediaIndexVersion;
+    final settings = ref.read(appSettingsControllerProvider);
+    final indexedVersion = settings.mediaIndexVersion;
 
     final snapshot = await source.snapshot();
+    final rebuilt =
+        indexedVersion != null && indexedVersion != snapshot.version;
     final plan = planIndexSync(
       indexed: await repository.revisions(),
       current: snapshot.revisions,
-      // The platform rebuilt its database: ids may now be other files.
-      refreshAll: indexedVersion != null && indexedVersion != snapshot.version,
+      // The platform rebuilt its database (ids may now be other files), or
+      // the capture date rules changed: describe every item again.
+      refreshAll:
+          rebuilt || settings.captureDateRules != captureDateRulesVersion,
     );
     if (!ref.mounted) return;
 
@@ -114,7 +118,7 @@ class MediaIndex extends _$MediaIndex {
       );
       final entries = await source.describe(ids);
       if (!ref.mounted) return;
-      await repository.upsert(entries, resetAnalysis: plan.refreshAll);
+      await repository.upsert(entries, resetAnalysis: rebuilt);
       // The first rows show at once on a first launch, then lists are
       // refreshed about once a second rather than after every chunk.
       final last = start + indexChunkSize >= plan.changed.length;
@@ -124,10 +128,12 @@ class MediaIndex extends _$MediaIndex {
       }
     }
 
+    final controller = ref.read(appSettingsControllerProvider.notifier);
     if (indexedVersion != snapshot.version) {
-      await ref
-          .read(appSettingsControllerProvider.notifier)
-          .setMediaIndexVersion(snapshot.version);
+      await controller.setMediaIndexVersion(snapshot.version);
+    }
+    if (settings.captureDateRules != captureDateRulesVersion) {
+      await controller.setCaptureDateRules(captureDateRulesVersion);
     }
     if (ref.mounted && !state.ready) state = state.copyWith(ready: true);
   }

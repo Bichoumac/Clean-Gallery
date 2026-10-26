@@ -54,6 +54,12 @@ class AppSettingsController extends _$AppSettingsController {
     await _repository.write(SettingKeys.language, language.name);
   }
 
+  /// Sets whether timelines use the corrected capture date.
+  Future<void> setCorrectedDates({required bool value}) async {
+    state = state.copyWith(correctedDates: value);
+    await _repository.writeBool(SettingKeys.correctedDates, value: value);
+  }
+
   /// Remembers [sort] for the timeline of [base].
   Future<void> setViewSort(MediaSelection base, MediaSort sort) async {
     final key = viewKey(base);
@@ -75,5 +81,11 @@ class AppSettingsController extends _$AppSettingsController {
   Future<void> setMediaIndexVersion(String version) async {
     state = state.copyWith(mediaIndexVersion: version);
     await _repository.write(SettingKeys.mediaIndexVersion, version);
+  }
+
+  /// Records that indexed dates follow the capture date rules [version].
+  Future<void> setCaptureDateRules(int version) async {
+    state = state.copyWith(captureDateRules: version);
+    await _repository.write(SettingKeys.captureDateRules, '$version');
   }
 }
