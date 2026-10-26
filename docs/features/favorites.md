@@ -2,7 +2,7 @@
 
 Favorites shared with the system gallery: the heart in Clean Gallery is the same as in Google Photos or Samsung Gallery.
 
-Last updated: 2026-10-25 — Milestone M2
+Last updated: 2026-10-26 — Milestone M3
 
 ## Purpose
 
@@ -27,8 +27,8 @@ Read and write MediaStore's `IS_FAVORITE` flag, so favorites follow the user acr
 ## State and data
 
 - `MediaActions.setFavorite` → `PlatformBridge.setFavorite` → native `setFavorite` (`MediaStore.createFavoriteRequest`), see [platform-android.md](../platform-android.md#native-channel-clean_galleryplatform).
-- Reading: the `IS_FAVORITE` column in every MediaStore query; the Favorites album filters on it.
-- After a change, no list reloads: the change is applied in memory by `visibleMediaListProvider`. The Favorites album list, counts and covers are refreshed.
+- Reading: MediaStore's `IS_FAVORITE` column, copied to `assets.is_favorite` by the media index; the Favorites album filters on it.
+- After a change, no list reloads: the change is applied in memory by `visibleMediaListProvider` and written to the index. The Favorites album list, counts and covers are refreshed.
 
 ## Edge cases and error handling
 

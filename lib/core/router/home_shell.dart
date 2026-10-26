@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:clean_gallery/core/media/duplicates.dart';
+import 'package:clean_gallery/core/media/media_index.dart';
 import 'package:clean_gallery/core/media/selection_bar.dart';
 import 'package:clean_gallery/core/router/compact_nav_bar.dart';
 import 'package:clean_gallery/features/trash/trash_purge.dart';
@@ -15,8 +17,9 @@ import 'package:go_router/go_router.dart';
 /// the bottom of their scrollable content. The bar is hidden while a tab is
 /// selecting items, since the tab then shows its [SelectionBar] there.
 ///
-/// The shell also offers to purge the expired trash once a day, at launch
-/// and when the app comes back to the foreground.
+/// At launch and when the app comes back to the foreground, the shell
+/// brings the media index up to date, then looks for new duplicates, and
+/// offers to purge the expired trash (at most once a day).
 class HomeShell extends ConsumerStatefulWidget {
   /// Creates the shell around the branch navigator provided by go_router.
   const HomeShell({required this.navigationShell, super.key});
@@ -34,8 +37,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
   @override
   void initState() {
     super.initState();
-    _lifecycle = AppLifecycleListener(onResume: _checkTrash);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _checkTrash());
+    _lifecycle = AppLifecycleListener(onResume: _onForeground);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _onForeground());
   }
 
   @override
@@ -44,8 +47,16 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     super.dispose();
   }
 
-  void _checkTrash() {
-    if (mounted) unawaited(offerExpiredTrashPurge(context, ref));
+  void _onForeground() {
+    if (!mounted) return;
+    unawaited(_syncAndScan());
+    unawaited(offerExpiredTrashPurge(context, ref));
+  }
+
+  /// Syncs the media index, then looks for new exact duplicates.
+  Future<void> _syncAndScan() async {
+    await ref.read(mediaIndexProvider.notifier).sync();
+    if (mounted) await ref.read(duplicateScanProvider.notifier).run();
   }
 
   @override

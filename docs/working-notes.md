@@ -2,14 +2,14 @@
 
 How the product owner and the AI assistant work together on Clean Gallery, the constraints of the development machine, and where to pick up. Read it at the start of every session, after [AGENTS.md](../AGENTS.md).
 
-Last updated: 2026-10-25 — Milestone M2
+Last updated: 2026-10-26 — Milestone M3
 
 ## Where to pick up
 
 - The milestone status lives in [progress.md](progress.md); this section only says what to do first.
-- End of 2026-10-25: M0 and M1 are merged into `main`. M2 is pushed on branch `m2-actions`; the product owner opens the pull request.
-- **First**: `git fetch` and check whether `m2-actions` is merged and whether CI passed; then branch `m3-…` from an up-to-date `main`.
-- **Next**: M3, starting with a persistent media index in Drift, so lists show instantly at launch (the product owner asked for caching); then dates, exact duplicates and bursts.
+- End of 2026-10-26: M0 to M2 are merged into `main`. M3 is complete on branch `m3-engine` and tested on the phone, except *Analyze the library again* (item 26 of [testing.md](testing.md#m3--bursts-to-verify-on-a-device)); the pull request is to open.
+- **First**: `git fetch` and check whether `m3-engine` is merged and whether CI passed; then branch `m4-…` from an up-to-date `main`.
+- **Next**: M4, similar photos: perceptual hashes on thumbnails in a Dart isolate, BK-tree, union-find groups in a "Similar photos" section, "Not duplicates" (ignored pairs), sensitivity presets in Settings, storage dashboard.
 
 ## Working with the product owner
 

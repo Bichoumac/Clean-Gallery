@@ -3,15 +3,22 @@ import 'package:drift/drift.dart';
 
 /// Media items indexed from the device, keyed by their MediaStore id.
 ///
-/// Analysis columns are nullable because they are filled incrementally by the
-/// analysis engine. `analysisVersion` records which algorithm produced them.
+/// The media index: every list of the app reads it, and `MediaIndex` keeps it
+/// in sync with MediaStore. Analysis columns are nullable because they are
+/// filled incrementally by the analysis engine. `analysisVersion` records
+/// which algorithm produced them.
 @DataClassName('AssetRow')
+@TableIndex(name: 'assets_taken_at', columns: {#takenAt})
+@TableIndex(name: 'assets_bucket_id', columns: {#bucketId})
 class Assets extends Table {
   /// MediaStore id of the item.
   IntColumn get id => integer()();
 
   /// Folder (album) name as reported by MediaStore.
   TextColumn get folder => text()();
+
+  /// Folder id (MediaStore `BUCKET_ID`); `null` until the item is indexed.
+  TextColumn get bucketId => text().nullable()();
 
   /// Path relative to the storage root, e.g. `DCIM/Camera/`.
   TextColumn get relativePath => text()();
@@ -40,7 +47,15 @@ class Assets extends Table {
   /// Last modification date of the file.
   DateTimeColumn get modifiedAt => dateTime()();
 
-  /// Resolved capture date.
+  /// Capture date as reported by MediaStore: `DATE_TAKEN`, or `DATE_ADDED`
+  /// when unset. Timelines are sorted and grouped by it.
+  DateTimeColumn get takenAt => dateTime()();
+
+  /// MediaStore `GENERATION_MODIFIED` when the row was last indexed. It
+  /// changes whenever the item changes; `null` forces a refresh.
+  IntColumn get mediaRevision => integer().nullable()();
+
+  /// Capture date resolved by the analysis engine (EXIF, file name).
   DateTimeColumn get captureAt => dateTime().nullable()();
 
   /// Where [captureAt] was read from.

@@ -1,7 +1,20 @@
+import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/domain/timeline.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/widgets.dart';
 import 'package:intl/intl.dart';
+
+/// Path of [item] from the storage root, e.g.
+/// `DCIM/Camera/IMG_20240315_142233.jpg`, or `null` when neither its folder
+/// nor its file name is known.
+String? mediaPath(MediaItem item) {
+  final folder = item.relativePath ?? '';
+  final name = item.fileName ?? '';
+  if (folder.isEmpty && name.isEmpty) return null;
+  return folder.isEmpty || folder.endsWith('/')
+      ? '$folder$name'
+      : '$folder/$name';
+}
 
 /// Video length as `m:ss`, or `h:mm:ss` from one hour.
 String formatDuration(Duration duration) {

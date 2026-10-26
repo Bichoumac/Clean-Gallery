@@ -2,7 +2,7 @@
 
 Android-specific configuration: SDK levels, permissions and the native Kotlin MethodChannel. Everything here is reached from Dart through interfaces in `lib/platform/`, so the rest of the app stays platform-agnostic.
 
-Last updated: 2026-10-25 — Milestone M2
+Last updated: 2026-10-26 — Milestone M3
 
 ## SDK levels
 
@@ -49,29 +49,22 @@ When the user chooses "Select photos" in the system prompt, `permission_handler`
 
 ## Media access
 
-`AndroidMediaSource` ([android_media_source.dart](../lib/platform/android/android_media_source.dart)) implements `MediaSource` with `photo_manager` 3.12 ([ADR 0009](decisions/0009-media-access.md)).
+`AndroidMediaSource` ([android_media_source.dart](../lib/platform/android/android_media_source.dart)) implements `MediaSource`. Lists do not query MediaStore: they read the media index in the database, which `MediaIndex` fills from two channel methods ([ADR 0015](decisions/0015-persistent-media-index.md)):
 
-Every query is a custom SQL filter built from the `MediaSelection` ([ADR 0012](decisions/0012-sort-and-date-filter.md)):
+| Step | Channel method | MediaStore query |
+| --- | --- | --- |
+| Snapshot | `mediaSnapshot` | `_ID`, `GENERATION_MODIFIED` of `MEDIA_TYPE IN (1, 3)` on `Files.getContentUri("external")`, newest first |
+| Details | `mediaDetails` | 17 columns of the given ids (below), 1,000 ids per query, ids inlined as numbers to stay clear of SQLite's 999-parameter limit on Android 11 |
 
-| Part | SQL |
-| --- | --- |
-| Photos / Videos / both | `media_type = 1` / `media_type = 3` / `media_type IN (1, 3)` |
-| Camera tab | `media_type = 1 AND relative_path LIKE 'DCIM/Camera/%'` (the camera folder on Samsung and Pixel phones) |
-| Favorites | `AND is_favorite = 1` (Android 11+ column) |
-| Capture date | `CASE WHEN datetaken > 0 THEN datetaken / 1000 ELSE date_added END` (seconds), as `photo_manager` computes `createDateTime` |
-| Date range | `AND <capture date> >= start AND <capture date> < end` |
-| Trash (counts, covers, folder summaries) | `AND _id NOT IN (…)`, ids inlined (numbers) to stay clear of SQLite's 999-parameter limit on Android 11. Timelines filter trashed items in memory instead. |
-| Sort | `<capture date>`, `LOWER(_display_name)`, `_size` or `duration`, then capture date (newest first) and `_id` as tie-breakers |
-| Folder | The `photo_manager` path with that id (a MediaStore bucket), with the same filter. Folder paths are listed once per filter and cached until the Albums tab reloads. |
-
-`photo_manager` drops its media-type condition when a custom `where` is given, so the app always writes it.
-
-- File names come from `DISPLAY_NAME` (`needTitle: true`).
-- `photo_manager`'s own permission check is disabled; permissions are handled by `PermissionService`.
-- Thumbnails and viewer previews come from the `thumbnail` channel method (below), not from `photo_manager`: MediaStore's own thumbnail cache, raw pixels, newest request first.
+- **Capture date**: `DATE_TAKEN` (milliseconds) when set, otherwise `DATE_ADDED`, as `photo_manager` computes `createDateTime`; stored as `assets.taken_at`. The snapshot is ordered by it so the newest items are indexed first.
+- **Dimensions** are swapped when `ORIENTATION` is 90 or 270, so they match the displayed image.
+- **Camera tab**: `relative_path LIKE 'DCIM/Camera/%'`, the camera folder on Samsung and Pixel phones; now an SQLite condition on the index.
+- **Folders**: `BUCKET_ID` and `BUCKET_DISPLAY_NAME`, the folder id and name `photo_manager` also uses.
+- Pending and system-trashed items are left out by MediaStore's default query on Android 11+.
+- `photo_manager` 3.12 ([ADR 0009](decisions/0009-media-access.md)) is now used only for full-resolution files and video URIs. Its own permission check is disabled; permissions are handled by `PermissionService`.
+- Thumbnails and viewer previews come from the `thumbnail` channel method (below): MediaStore's own thumbnail cache, raw pixels, newest request first.
 - Grid thumbnails are requested with their short side at 256 px (512 px at 2–3 columns), so the square crop is never upscaled; previews at the screen's size (at most 2,560 px).
 - Full images are decoded from the file, at most 4,096 px on the longest side, only when zooming in.
-- File sizes come from the `mediaSizes` channel method (below), one query per chunk.
 - Videos play from `getMediaUrl()`, a `content://` URI given to `video_player`.
 - `photo_manager`'s manifest only adds `READ_EXTERNAL_STORAGE` up to Android 12, like ours.
 
@@ -85,11 +78,12 @@ Kotlin side: [MainActivity.kt](../android/app/src/main/kotlin/com/bichoumac/clea
 | `openMediaManagementSettings` | none | `null` | none | Opens `Settings.ACTION_REQUEST_MANAGE_MEDIA` for this package. No-op below Android 12 or if no activity handles the intent. |
 | `sdkVersion` | none | `int` | none | `Build.VERSION.SDK_INT`. |
 | `thumbnail` | `id`: `String`, `video`: `bool`, `width`, `height`: `int` | `{width, height, rowBytes, pixels}`, `pixels` RGBA 8888 | `not_found` (unreadable item), `dropped` (waited behind 200 newer requests), `bad_arguments` | `ContentResolver.loadThumbnail` (MediaStore's thumbnail cache, shared with the system gallery); for a video MediaStore has no thumbnail for, the cover embedded in the file, then the frame at 10 % of its duration (`MediaMetadataRetriever`). On 4 worker threads, **last in, first out**: what is on screen loads before what was scrolled past. Implemented in [ThumbnailLoader.kt](../android/app/src/main/kotlin/com/bichoumac/clean_gallery/ThumbnailLoader.kt). |
-| `albumSummaries` | `excluded`: `List<int>` (trashed ids) | `List` of `{id, name, count, coverId, coverIsVideo, coverWidth, coverHeight, coverModified}`, largest folder first | `permission` | One pass over MediaStore (images and videos, newest first) grouping by `BUCKET_ID`, the folder id `photo_manager` also uses. The first item met in each folder is its cover. Replaces one count call and one path listing per folder in the Albums tab. |
+| `mediaSnapshot` | none | `{version: String, ids: long[], revisions: long[]}`, newest first | `permission` | `MediaStore.getVersion` and the `_ID` and `GENERATION_MODIFIED` of every photo and video, as two arrays of the same length (Dart `Int64List`). One query, on the worker thread. Implemented in [MediaIndex.kt](../android/app/src/main/kotlin/com/bichoumac/clean_gallery/MediaIndex.kt). |
+| `mediaDetails` | `ids`: `List<String>` | `List` of `{id, bucketId, bucketName, relativePath, name, mimeType, video, size, width, height, takenAt, dateTaken, added, modified, duration, favorite, revision}` | `permission` | Full metadata of the given items, by chunks of 1,000 ids; missing ids are left out. `width` and `height` follow the orientation; `takenAt` (`DATE_TAKEN` or `DATE_ADDED`), `dateTaken` (raw, 0 when unset) and `duration` in milliseconds, `added` and `modified` in seconds; `revision` is `GENERATION_MODIFIED`. `dateTaken`, `added` and `modified` tell whether the date comes from the file's metadata ([analysis-engine.md](analysis-engine.md#thresholds-and-rationale)). |
+| `contentHashes` | `items`: `List<{id, video, mimeType}>` | `Map<String, String>` (id → SHA-256, lowercase hex) | `permission` | Reads each file in full through its Images or Video URI, in 1 MB blocks, on a dedicated thread so it never delays other queries. Unreadable items are left out. Used for exact duplicates ([ADR 0017](decisions/0017-exact-duplicates-sha256.md)). |
 | `setFavorite` | `items`: `List<{id, video, mimeType}>`, `favorite`: `bool` | `bool`: applied (`false` if declined) | `busy` (another request open), `request_failed` | `MediaStore.createFavoriteRequest` for the whole batch, launched with `startIntentSenderForResult`; the result arrives in `onActivityResult`. Implemented in [MediaActions.kt](../android/app/src/main/kotlin/com/bichoumac/clean_gallery/MediaActions.kt). |
 | `deleteMedia` | `items`: `List<{id, video, mimeType}>` | `bool`: deleted (`false` if declined) | `busy`, `request_failed` | `MediaStore.createDeleteRequest` for the whole batch: one system confirmation, none with "Media management". Only the trash calls it. |
 | `share` | `items`: `List<{id, video, mimeType}>`, `removeLocation`: `bool` | `null` once the share sheet is open | `share_failed` | MediaStore URIs, or copies without GPS for photos when `removeLocation` ([sharing.md](features/sharing.md)). |
-| `mediaSizes` | `ids`: `List<String>` | `Map<String, int>` (id → bytes) | `permission` if MediaStore refuses | `_SIZE` of each MediaStore item, queried off the main thread by chunks of 500 ids. Missing ids are left out. Used by `AndroidMediaSource` for each chunk of 1,000 items, since `photo_manager` has no file sizes. |
 
 Unknown methods return `notImplemented`, which Dart raises as `MissingPluginException`.
 

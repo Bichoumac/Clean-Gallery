@@ -1,7 +1,11 @@
+import 'package:clean_gallery/core/media/media_providers.dart';
 import 'package:clean_gallery/core/media/media_thumbnail.dart';
 import 'package:clean_gallery/core/media/selection_bar.dart';
 import 'package:clean_gallery/core/router/compact_nav_bar.dart';
+import 'package:clean_gallery/domain/album.dart';
+import 'package:clean_gallery/features/library/media_timeline_view.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/fakes.dart';
@@ -116,9 +120,17 @@ void main() {
   });
 
   testApp('favorite and trash do not reload the lists', (tester) async {
-    final media = source();
-    await pumpTestApp(tester, media: media);
-    final loadsBefore = media.loads.length;
+    await pumpTestApp(tester, media: source());
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(MediaTimelineView)),
+    );
+    final shown = container.read(viewSelectionProvider(MediaSelection.camera));
+    var reloads = 0;
+    final subscription = container.listen(
+      mediaListProvider(shown),
+      (_, _) => reloads++,
+    );
+    addTearDown(subscription.close);
 
     await tester.longPress(thumb(0));
     await tester.pumpAndSettle();
@@ -129,7 +141,7 @@ void main() {
     await tester.tap(find.byTooltip('Move to trash'));
     await tester.pumpAndSettle();
 
-    expect(media.loads.length, loadsBefore);
+    expect(reloads, 0);
     final first = tester.widget<MediaThumbnail>(thumb(0));
     expect(first.item.isFavorite, isTrue);
   });

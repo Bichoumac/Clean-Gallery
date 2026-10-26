@@ -2,9 +2,38 @@
 
 All notable changes to this project are documented here, one section per milestone. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-10-25 — Milestone M2
+Last updated: 2026-10-26 — Milestone M3
 
 ## [Unreleased]
+
+## [M3] — 2026-10-26 — Engine level 1
+
+### Added
+
+- Persistent media index: lists read the `assets` table and show at once at launch; a sync at launch, on return to the foreground and on pull-to-refresh applies only new, changed and deleted items, compared by MediaStore `GENERATION_MODIFIED` ([ADR 0015](docs/decisions/0015-persistent-media-index.md)).
+- Native channel methods `mediaSnapshot` and `mediaDetails` ([MediaIndex.kt](android/app/src/main/kotlin/com/bichoumac/clean_gallery/MediaIndex.kt)).
+- Schema version 2: `assets.bucket_id`, `taken_at`, `media_revision`, indexes on `taken_at` and `bucket_id`; setting `media_index_version`.
+- Capture dates resolved during the index sync: photo metadata (MediaStore `DATE_TAKEN`), then a date in the file name (camera, screenshots, WhatsApp, Signal…), then the file date ([docs/analysis-engine.md](docs/analysis-engine.md), [ADR 0016](docs/decisions/0016-capture-dates-at-index-time.md)).
+- Setting **Corrected dates** (on by default): timelines sort, group and filter by the resolved capture date, or by Android's date when off.
+- `docs/analysis-engine.md`.
+- Exact duplicates: items sharing their size are hashed natively (SHA-256, incremental, resumable, on a thread of its own) after each index sync; identical hashes form groups with a suggested item to keep (favorite, resolution, size, oldest) ([ADR 0017](docs/decisions/0017-exact-duplicates-sha256.md)).
+- Duplicates tile at the top of every grid, filtered by that grid's folder; duplicates screen with Best badge, each copy's full path, pre-selected extra copies, per-group trash and "Clean all groups" with a summary ([docs/features/duplicates.md](docs/features/duplicates.md)).
+- Bursts: Samsung and Google camera burst names give a burst id at index time; shots of one burst form a **Burst** group under Certain duplicates ([docs/analysis-engine.md](docs/analysis-engine.md#bursts)).
+- Native channel method `contentHashes`.
+- Settings → Analysis → **Analyze the library again**: forgets every analysis result and works it out again.
+- Tests: index sync and queries, migration 1 → 2, reload in place, pull-to-refresh, file name dates, corrected dates setting, best pick, exact duplicates and their screen, bursts, analyze again (155 tests).
+
+### Changed
+
+- The index rules version (setting `index_rules`, was `capture_date_rules`) now covers capture dates and burst ids; the first sync after the update applies them to every item.
+- Timelines, album pages, the Albums tab, counts and covers are queried in SQLite instead of MediaStore; sorting and filtering keep the same rules.
+- Lists reload in place when the index changes, keeping the scroll position; an empty list shows a skeleton until the first index is complete.
+- Favorites changed in the app are written to the index at once.
+- Items deleted from the trash by another app are removed from it at the next sync.
+
+### Removed
+
+- Native `albumSummaries` and `mediaSizes`; `photo_manager` is no longer used for listing (still for full images and video URIs).
 
 ## [M2] — 2026-10-25 — Actions
 

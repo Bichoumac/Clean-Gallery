@@ -2,7 +2,7 @@
 
 Clean Gallery uses a layered architecture organized by feature. Platform-specific code sits behind interfaces, so the UI and the analysis engine never depend on Android directly. This file describes the layers, where code lives, how data flows and which dependencies are allowed.
 
-Last updated: 2026-10-25 — Milestone M2
+Last updated: 2026-10-26 — Milestone M3
 
 ## Layers
 
@@ -51,19 +51,20 @@ The brief lists `core/`, `analysis/`, `platform/` and `features/` under `lib/`. 
 | [lib/app.dart](../lib/app.dart) | Root widget: theme, localization, router. |
 | [lib/core/providers.dart](../lib/core/providers.dart) | App-wide providers: database, settings, platform services. |
 | [lib/core/config/app_config.dart](../lib/core/config/app_config.dart) | Build-time configuration (ad unit IDs). |
-| [lib/core/database/](../lib/core/database/) | Tables, database class, settings repository. See [database.md](database.md). |
+| [lib/core/database/](../lib/core/database/) | Tables, database class, repositories (settings, trash, media index). See [database.md](database.md). |
 | [lib/core/router/](../lib/core/router/) | Routes (`AppRoutes`, `AlbumRoutes`, `ViewerArgs`), redirect rules, five-tab shell, `CompactNavBar`, `TabPage`. |
-| [lib/core/media/](../lib/core/media/) | Media layer shared by library, viewer and trash: `mediaListProvider` and related providers, `MediaThumbnail`, formatting, `MediaActions` (trash, restore, favorite, delete for good, share), `SelectionBar` and `SelectionMode`. |
+| [lib/core/media/](../lib/core/media/) | Media layer shared by library, viewer and trash: `MediaIndex` (keeps the `assets` table in sync with the device, [ADR 0015](decisions/0015-persistent-media-index.md)), `mediaListProvider` and related providers reading it, `MediaThumbnail`, formatting, `MediaActions` (trash, restore, favorite, delete for good, share), `SelectionBar` and `SelectionMode`. |
 | [lib/core/settings/](../lib/core/settings/) | `AppSettings` and `AppSettingsController`. See [features/settings.md](features/settings.md). |
 | [lib/core/theme/app_theme.dart](../lib/core/theme/app_theme.dart) | Theme and brand palette. See [design.md](design.md). |
 | [lib/domain/](../lib/domain/) | `MediaItem`, `Album`, `MediaSelection`, timeline grouping, enums (`MediaKind`, `DateSource`, `DuplicateKind`, `SwipeAction`). |
-| [lib/analysis/](../lib/analysis/) | Analysis engine; currently only `analysisVersion`. |
+| [lib/analysis/](../lib/analysis/) | Analysis engine: `analysisVersion`, capture date rules. See [analysis-engine.md](analysis-engine.md). |
 | [lib/platform/](../lib/platform/) | `MediaSource`, `PlatformBridge`, `PermissionService` interfaces. |
 | [lib/platform/android/](../lib/platform/android/) | Android implementations. See [platform-android.md](platform-android.md). |
 | [lib/features/onboarding/](../lib/features/onboarding/) | Onboarding. See [features/onboarding.md](features/onboarding.md). |
 | [lib/features/library/](../lib/features/library/) | Photos and Videos timelines, Albums tab, album pages. See [features/library.md](features/library.md). |
 | [lib/features/viewer/](../lib/features/viewer/) | Full-screen viewer and video player. See [features/viewer.md](features/viewer.md). |
 | [lib/features/trash/](../lib/features/trash/) | Trash page and daily purge offer. See [features/trash.md](features/trash.md). |
+| [lib/features/duplicates/](../lib/features/duplicates/) | Duplicates screen and its selection. See [features/duplicates.md](features/duplicates.md). |
 | [lib/features/settings/](../lib/features/settings/) | Settings tab. See [features/settings.md](features/settings.md). |
 | [lib/features/stats/](../lib/features/stats/) | Stats tab (layout only until M5). |
 | [assets/fonts/manrope/](../assets/fonts/manrope/) | Bundled Manrope variable font and its license. |
@@ -109,6 +110,8 @@ sequenceDiagram
 ```
 
 The flag is read before the first frame, so the router chooses the first screen synchronously, without a loading state. When onboarding completes, the router's `refreshListenable` re-runs the redirect.
+
+Once the tabs are shown, lists read the media index in the database, so the last known library appears at once; the shell then starts a sync with MediaStore (also at each return to the foreground), and open lists refresh in place when it changes something ([library.md](features/library.md#media-index)).
 
 ## Tabs
 

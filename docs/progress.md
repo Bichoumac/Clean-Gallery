@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-10-25 — Milestone M2
+Last updated: 2026-10-26 — Milestone M3
 
 ## Milestones
 
@@ -10,14 +10,54 @@ Last updated: 2026-10-25 — Milestone M2
 | --- | --- | --- |
 | M0 | Foundations | Merged into `main` (PR #1) |
 | M1 | Navigation: timelines, albums, grid, viewer, video, sorting, date filter | Merged into `main` (PR #2) |
-| M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Done, tested on a phone, awaiting PR review |
-| M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Not started |
+| M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Merged into `main` (PR #3) |
+| M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Done on `m3-engine`, tested on a phone, awaiting the pull request |
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Not started |
 | M5 | Cleanup: Stats values, swipe mode, blurry, screenshots, large videos | Not started |
 | M6 | Advanced viewer and editing | Not started |
 | M7 | Exploration: map, search | Not started |
 | M8 | Monetization | Not started |
 | M9 | Polish and release preparation | Not started |
+
+## M3 — Engine level 1
+
+### Done
+
+- **Persistent media index**: every list reads the `assets` table, so the library shows at once at launch; a sync at launch, on return to the foreground and on pull-to-refresh applies only what changed in MediaStore ([ADR 0015](decisions/0015-persistent-media-index.md), [features/library.md](features/library.md#media-index)).
+- Schema version 2 with a migration that keeps the M2 trash ([database.md](database.md#migrations)).
+- Native `mediaSnapshot` and `mediaDetails` replace `albumSummaries`, `mediaSizes` and `photo_manager` listing ([platform-android.md](platform-android.md#media-access)).
+- **Capture dates**: resolved during the sync from the photo's metadata, then its file name, then the file date; timelines use them unless **Corrected dates** is off in Settings, at the product owner's request ([analysis-engine.md](analysis-engine.md#capture-date), [ADR 0016](decisions/0016-capture-dates-at-index-time.md)).
+- **Exact duplicates**: items sharing their size are hashed (SHA-256, natively, incremental), identical hashes are grouped; a Duplicates tile at the top of every grid opens the groups of that grid, with the Best badge, pre-selected extra copies, per-group and global cleaning to the trash ([features/duplicates.md](features/duplicates.md), [ADR 0017](decisions/0017-exact-duplicates-sha256.md)).
+- **Analyze the library again** in Settings: forgets every analysis result and works it out again; it replaces the brief's "clear cache", since the app's only cache is the index ([features/settings.md](features/settings.md)).
+- **Bursts**: Samsung and Google camera burst names give a burst id at index time; shots of one burst form a group under Certain duplicates, labelled Burst ([analysis-engine.md](analysis-engine.md#bursts)). Close-in-time photos without a burst name are left to similar photos (M4).
+
+### Verified
+
+| Check | Result |
+| --- | --- |
+| `flutter analyze` | No issues |
+| `flutter test --timeout 60s` | 155 tests pass |
+| Galaxy A54 (release build) | Media index confirmed by the product owner on 2026-10-26: migration of the M2 trash, instant display at launch, changes from other apps picked up on return, scroll position kept ([testing.md](testing.md#m3--media-index-to-verify-on-a-device)). Limited access and a fresh install not tested. Capture dates confirmed on 2026-10-26: received photos at their real date, camera photos unchanged, Corrected dates switch ([testing.md](testing.md#m3--capture-dates-to-verify-on-a-device)). Exact duplicates confirmed working on 2026-10-26, file path under each copy confirmed too ([testing.md](testing.md#m3--exact-duplicates-to-verify-on-a-device)). Bursts confirmed on 2026-10-26. *Analyze the library again* not tested yet (item 26 of [testing.md](testing.md#m3--bursts-to-verify-on-a-device)). |
+
+### Decisions
+
+- Lists read a persistent index synced with MediaStore by `GENERATION_MODIFIED` ([ADR 0015](decisions/0015-persistent-media-index.md)).
+- Capture dates resolved at index time from MediaStore's metadata date and the file name, no EXIF reading; corrected dates on by default with a setting, as the product owner chose ([ADR 0016](decisions/0016-capture-dates-at-index-time.md)).
+- SHA-256 on size collisions instead of xxHash ([ADR 0017](decisions/0017-exact-duplicates-sha256.md)).
+- No "less than a second apart" burst rule: not certain duplicates ([analysis-engine.md](analysis-engine.md#bursts)).
+
+### Known issues
+
+- Photos taken while the app stays in the foreground appear after pull-to-refresh or the next return to the app.
+- Not verified on a device: limited access (Android 14+ partial selection), a first install on a large library without M2 data, *Analyze the library again*.
+- Burst shots are only recognized by their file name (Samsung, Google Camera); other cameras' bursts are left to similar photos (M4).
+- The best shot of a burst is the largest file until sharpness is measured (M5).
+- "Not duplicates" comes with similar photos in M4, as the brief plans; the Stats tab's Duplicates card in M5.
+
+### Next steps
+
+1. Review and merge the M3 pull request.
+2. M4: perceptual hashes, BK-tree, similar photos, ignored pairs ("Not duplicates"), adjustable thresholds, storage dashboard.
 
 ## M2 — Actions
 
@@ -55,7 +95,7 @@ Last updated: 2026-10-25 — Milestone M2
 
 ### Next steps
 
-1. Review and merge the M2 pull request.
+1. ~~Review and merge the M2 pull request.~~ Merged (PR #3).
 2. M3: persistent media index (cache) so lists show instantly at launch, then dates, exact duplicates and bursts.
 
 ## M1 — Navigation

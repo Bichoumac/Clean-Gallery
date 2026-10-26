@@ -2,7 +2,7 @@
 
 Every documentation file in the repository, with a one-line description. Start with [progress.md](progress.md) to see where the project stands.
 
-Last updated: 2026-10-25 — Milestone M2
+Last updated: 2026-10-26 — Milestone M3
 
 ## Project
 
@@ -22,9 +22,10 @@ Last updated: 2026-10-25 — Milestone M2
 | [design.md](design.md) | Design system: palette, typography, shapes, navigation bar. |
 | [database.md](database.md) | Drift schema, indexes and migration history. |
 | [platform-android.md](platform-android.md) | Permissions and the native Kotlin channel API. |
+| [analysis-engine.md](analysis-engine.md) | Analysis algorithms (capture dates, exact duplicates, best pick), thresholds and rationale. |
 | [testing.md](testing.md) | Test strategy, commands and fixtures. |
 
-Planned files: `analysis-engine.md` (M3), `monetization.md` (M8), `release.md` (M9).
+Planned files: `monetization.md` (M8), `release.md` (M9).
 
 ## Features
 
@@ -37,6 +38,7 @@ Planned files: `analysis-engine.md` (M3), `monetization.md` (M8), `release.md` (
 | [features/sharing.md](features/sharing.md) | Share sheet and location removal. |
 | [features/trash.md](features/trash.md) | App trash, retention and purge. |
 | [features/settings.md](features/settings.md) | Settings tab. |
+| [features/duplicates.md](features/duplicates.md) | Duplicates tile and screen: groups, Best badge, cleaning. |
 
 One file per feature is added as each feature is built.
 
@@ -58,3 +60,6 @@ One file per feature is added as each feature is built.
 | [0012](decisions/0012-sort-and-date-filter.md) | Sorting and date filter in every timeline |
 | [0013](decisions/0013-trash-purge-without-background-job.md) | Trash purge at launch and resume, without a background job |
 | [0014](decisions/0014-native-sharing.md) | Sharing with native intents instead of `share_plus` |
+| [0015](decisions/0015-persistent-media-index.md) | Persistent media index in Drift |
+| [0016](decisions/0016-capture-dates-at-index-time.md) | Capture dates resolved at index time, without reading files |
+| [0017](decisions/0017-exact-duplicates-sha256.md) | Exact duplicates with SHA-256 on size collisions |

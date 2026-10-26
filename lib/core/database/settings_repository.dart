@@ -25,6 +25,15 @@ abstract final class SettingKeys {
   /// [AppSettings.lastPurgeCheck], as an ISO 8601 date.
   static const lastPurgeCheck = 'last_purge_check';
 
+  /// [AppSettings.correctedDates].
+  static const correctedDates = 'corrected_dates';
+
+  /// [AppSettings.indexRules].
+  static const indexRules = 'index_rules';
+
+  /// [AppSettings.mediaIndexVersion].
+  static const mediaIndexVersion = 'media_index_version';
+
   /// Prefix of one [AppSettings.viewSorts] entry: `view_sort:<viewKey>`.
   static const viewSortPrefix = 'view_sort:';
 }
@@ -113,6 +122,9 @@ final class SettingsRepository {
       lastPurgeCheck: DateTime.tryParse(
         values[SettingKeys.lastPurgeCheck] ?? '',
       ),
+      correctedDates: values[SettingKeys.correctedDates] != 'false',
+      mediaIndexVersion: values[SettingKeys.mediaIndexVersion],
+      indexRules: int.tryParse(values[SettingKeys.indexRules] ?? ''),
     );
   }
 }

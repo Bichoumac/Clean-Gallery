@@ -1,3 +1,4 @@
+import 'package:clean_gallery/core/media/media_index.dart';
 import 'package:clean_gallery/core/media/media_providers.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
@@ -52,6 +53,9 @@ final class MediaActions {
           .read(platformBridgeProvider)
           .setFavorite(items, favorite: favorite);
       if (done) {
+        await _ref
+            .read(mediaIndexRepositoryProvider)
+            .setFavorite(ids, favorite: favorite);
         // The Favorites album and its count change; reload only those.
         _ref
           ..invalidate(mediaCountProvider)
@@ -78,10 +82,11 @@ final class MediaActions {
         .read(platformBridgeProvider)
         .deletePermanently(items);
     if (done) {
-      await _ref.read(trashRepositoryProvider).forget([
-        for (final item in items) item.id,
-      ]);
-      _refreshLists();
+      final ids = [for (final item in items) item.id];
+      // Hidden first, so they never reappear when their trash entries go.
+      _ref.read(deletedIdsProvider.notifier).add(ids);
+      await _ref.read(trashRepositoryProvider).forget(ids);
+      _ref.read(mediaIndexProvider.notifier).changed();
     }
     return done;
   }
@@ -91,16 +96,6 @@ final class MediaActions {
       _ref
           .read(platformBridgeProvider)
           .share(items, removeLocation: removeLocation);
-
-  /// Reloads every list after a change MediaStore made (favorites,
-  /// deletion). Trash changes refresh lists by themselves.
-  void _refreshLists() {
-    _ref
-      ..invalidate(mediaListProvider)
-      ..invalidate(albumsProvider)
-      ..invalidate(mediaCountProvider)
-      ..invalidate(albumCoverProvider);
-  }
 }
 
 /// Moves [items] to the trash and shows a snackbar to undo it.

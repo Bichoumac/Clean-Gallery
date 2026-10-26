@@ -112,7 +112,8 @@ void main() {
     await tester.tap(find.byType(MediaThumbnail).at(1));
     await tester.pumpAndSettle();
     expect(find.byType(ViewerScreen), findsOneWidget);
-    expect(find.text('IMG_2.jpg'), findsOneWidget);
+    // Same capture time as IMG_2: ordered by id, newest first.
+    expect(find.text('IMG_1.jpg'), findsOneWidget);
 
     await tester.tap(find.byType(BackButton));
     await tester.pumpAndSettle();
@@ -138,19 +139,19 @@ void main() {
     expect(container.read(gridColumnsProvider), 3);
   });
 
-  testApp('folders with a known cover load nothing more', (tester) async {
-    final media = FakeMediaSource(
-      items: library,
-      folders: [Album(id: 'cam', name: 'Camera', count: 2, cover: library[0])],
-      folderItems: {
-        'cam': [library[0], library[3]],
-      },
-    );
+  testApp('pull-to-refresh indexes new items', (tester) async {
+    final media = source();
     await pumpTestApp(tester, media: media);
-    await tester.tap(find.byTooltip('Albums'));
+    expect(find.byType(MediaThumbnail), findsNWidgets(3));
+
+    media.items = [testItem(5, takenAt: now), ...library];
+    await tester.fling(
+      find.byType(MediaTimelineView),
+      const Offset(0, 400),
+      1000,
+    );
     await tester.pumpAndSettle();
-    expect(find.text('Camera'), findsOneWidget);
-    expect(media.loadedSelections.where((s) => s.albumId == 'cam'), isEmpty);
+    expect(find.byType(MediaThumbnail), findsNWidgets(4));
   });
 
   testApp('Camera tab leaves out screenshots; All media has them', (

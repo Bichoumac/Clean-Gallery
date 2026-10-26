@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import 'package:clean_gallery/core/media/duplicates.dart';
+import 'package:clean_gallery/core/media/media_index.dart';
 import 'package:clean_gallery/core/media/media_providers.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/router/home_shell.dart';
@@ -137,6 +139,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 },
               ),
             ),
+            SwitchListTile(
+              contentPadding: EdgeInsets.zero,
+              title: Text(l10n.settingsCorrectedDates),
+              subtitle: Text(l10n.settingsCorrectedDatesHelp),
+              value: settings.correctedDates,
+              onChanged: (value) => controller.setCorrectedDates(value: value),
+            ),
           ],
         ),
         _Section(
@@ -161,7 +170,48 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           ],
         ),
+        const _AnalysisSection(),
         const _PermissionsSection(),
+      ],
+    );
+  }
+}
+
+/// Re-running the analysis, with its progress.
+class _AnalysisSection extends ConsumerWidget {
+  const _AnalysisSection();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final running = ref.watch(duplicateScanProvider.select((s) => s.running));
+    final syncing = ref.watch(mediaIndexProvider.select((s) => s.syncing));
+    final busy = running || syncing;
+    return _Section(
+      title: l10n.settingsAnalysis,
+      children: [
+        ListTile(
+          contentPadding: EdgeInsets.zero,
+          title: Text(l10n.settingsReanalyze),
+          subtitle: Text(l10n.settingsReanalyzeHelp),
+          trailing: busy
+              ? const SizedBox.square(
+                  dimension: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                )
+              : const Icon(Icons.refresh_rounded),
+          onTap: busy
+              ? null
+              : () {
+                  final messenger = ScaffoldMessenger.of(context);
+                  unawaited(
+                    ref.read(duplicateScanProvider.notifier).reanalyze(),
+                  );
+                  messenger.showSnackBar(
+                    SnackBar(content: Text(l10n.settingsReanalyzeStarted)),
+                  );
+                },
+        ),
       ],
     );
   }

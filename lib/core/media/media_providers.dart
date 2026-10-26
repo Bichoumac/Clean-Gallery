@@ -1,21 +1,21 @@
 import 'dart:async';
-import 'dart:math' as math;
 
+import 'package:clean_gallery/core/media/media_index.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/settings/app_settings.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'media_providers.g.dart';
 
-/// Number of items requested from the media source per call.
+/// Number of items in the first query of a list.
 ///
-/// The first chunk is shown immediately; the rest of the library streams in
-/// behind it, so a 30,000-item timeline starts drawing in well under a
-/// second.
+/// The first chunk is shown immediately; the rest of the list follows in a
+/// second query, so a 30,000-item timeline starts drawing at once.
 const mediaChunkSize = 1000;
 
 /// Smallest and largest grid column counts reachable by pinching.
@@ -29,42 +29,63 @@ const maxGridColumns = 6;
 Future<MediaAccess> mediaAccess(Ref ref) =>
     ref.watch(permissionServiceProvider).mediaAccess();
 
-/// All items of a selection as MediaStore returns them, loaded in chunks.
+/// All items of a selection, read from the media index, trashed items
+/// included.
 ///
-/// The state grows as chunks arrive. Invalidate it to reload, e.g. on
-/// pull-to-refresh. Screens read [visibleMediaListProvider], which applies
-/// the trash and pending favorite changes in memory.
+/// When the index changes ([MediaIndexState.revision]), the list is
+/// reloaded in place, without a loading state, so the grid keeps its scroll
+/// position. Screens read [visibleMediaListProvider], which applies the
+/// trash and pending favorite changes in memory.
 @riverpod
 class MediaList extends _$MediaList {
+  /// Incremented by each load; older loads drop their result.
+  var _generation = 0;
+
   @override
   Future<List<MediaItem>> build(MediaSelection selection) async {
-    final source = ref.watch(mediaSourceProvider);
-    final total = await source.count(selection);
-    final first = await source.load(
-      selection,
-      start: 0,
-      end: math.min(mediaChunkSize, total),
+    ref.listen(
+      mediaIndexProvider.select((s) => s.revision),
+      (_, _) => unawaited(_reload()),
     );
-    if (total > mediaChunkSize) {
-      unawaited(_loadRemaining(first, total));
+    final generation = ++_generation;
+    final first = await ref
+        .watch(mediaIndexRepositoryProvider)
+        .load(selection, limit: mediaChunkSize);
+    // A reload started meanwhile; it sets the newer list.
+    if (generation != _generation) return state.value ?? first;
+    if (first.length == mediaChunkSize) {
+      unawaited(_loadRest(first, generation));
     }
     return first;
   }
 
-  Future<void> _loadRemaining(List<MediaItem> first, int total) async {
-    final source = ref.read(mediaSourceProvider);
-    var items = first;
-    for (var start = mediaChunkSize; start < total; start += mediaChunkSize) {
-      final chunk = await source.load(
-        selection,
-        start: start,
-        end: math.min(start + mediaChunkSize, total),
-      );
-      if (!ref.mounted) return;
-      items = [...items, ...chunk];
-      state = AsyncData(items);
-    }
+  Future<void> _loadRest(List<MediaItem> first, int generation) async {
+    final rest = await ref
+        .read(mediaIndexRepositoryProvider)
+        .load(selection, offset: first.length);
+    if (!ref.mounted || generation != _generation) return;
+    state = AsyncData([...first, ...rest]);
   }
+
+  Future<void> _reload() async {
+    final generation = ++_generation;
+    final items = await ref.read(mediaIndexRepositoryProvider).load(selection);
+    if (!ref.mounted || generation != _generation) return;
+    state = AsyncData(items);
+  }
+}
+
+/// Ids of items deleted for good during this session.
+///
+/// Hidden by every list until the lists reload from the index, so an item
+/// leaving the trash for good never shows again in between.
+@Riverpod(keepAlive: true)
+class DeletedIds extends _$DeletedIds {
+  @override
+  Set<String> build() => const {};
+
+  /// Records [ids] as deleted.
+  void add(Iterable<String> ids) => state = {...state, ...ids};
 }
 
 /// Favorite changes made in the app, by item id, applied before MediaStore
@@ -87,25 +108,32 @@ class FavoriteOverrides extends _$FavoriteOverrides {
 }
 
 /// What screens show for a selection: [mediaListProvider] without trashed
-/// items, with favorite changes applied. Loading and error states are
-/// passed through, and each new chunk is applied as it arrives.
+/// or deleted items, with favorite changes applied. Loading and error
+/// states are passed through, and each new chunk is applied as it arrives.
 ///
-/// Computed in memory, so trashing, undoing or favoriting never queries
-/// MediaStore again; the order stays the same, which keeps viewer indexes in
-/// sync with the grid.
+/// Computed in memory, so trashing, undoing or favoriting never queries the
+/// index again; the order stays the same, which keeps viewer indexes in
+/// sync with the grid. Until the first index is complete, an empty list
+/// stays in the loading state.
 @riverpod
 AsyncValue<List<MediaItem>> visibleMediaList(
   Ref ref,
   MediaSelection selection,
 ) {
   final trashed = ref.watch(trashedIdsProvider).value ?? const <String>{};
+  final deleted = ref.watch(deletedIdsProvider);
   final favorites = ref.watch(favoriteOverridesProvider);
+  final ready = ref.watch(mediaIndexProvider.select((s) => s.ready));
   final onlyFavorites = selection.filter == MediaFilter.favorites;
-  return ref.watch(mediaListProvider(selection)).whenData((items) {
-    if (trashed.isEmpty && favorites.isEmpty) return items;
+  final list = ref.watch(mediaListProvider(selection));
+  if (!ready && list is AsyncData<List<MediaItem>> && list.value.isEmpty) {
+    return const AsyncLoading();
+  }
+  return list.whenData((items) {
+    if (trashed.isEmpty && deleted.isEmpty && favorites.isEmpty) return items;
     final visible = <MediaItem>[];
     for (final item in items) {
-      if (trashed.contains(item.id)) continue;
+      if (trashed.contains(item.id) || deleted.contains(item.id)) continue;
       final favorite = favorites[item.id];
       if (favorite == null) {
         visible.add(item);
@@ -118,28 +146,32 @@ AsyncValue<List<MediaItem>> visibleMediaList(
   });
 }
 
-/// Device folders that contain media, largest first.
+/// Device folders that contain media, largest first, each with its newest
+/// item as cover. Trashed items are neither counted nor used as covers.
 @riverpod
-Future<List<Album>> albums(Ref ref) async {
-  final hidden = await ref.watch(trashedIdsProvider.future);
-  return await ref.watch(mediaSourceProvider).albums(hidden: hidden);
+Future<List<Album>> albums(Ref ref) {
+  ref
+    ..watch(trashedIdsProvider)
+    ..watch(mediaIndexProvider.select((s) => s.revision));
+  return ref.watch(mediaIndexRepositoryProvider).albums();
 }
 
-/// Number of items in a selection, for album tiles.
+/// Number of items in a selection, without trashed items, for album tiles.
 @riverpod
-Future<int> mediaCount(Ref ref, MediaSelection selection) async {
-  final hidden = await ref.watch(trashedIdsProvider.future);
-  return await ref.watch(mediaSourceProvider).count(selection, hidden: hidden);
+Future<int> mediaCount(Ref ref, MediaSelection selection) {
+  ref
+    ..watch(trashedIdsProvider)
+    ..watch(mediaIndexProvider.select((s) => s.revision));
+  return ref.watch(mediaIndexRepositoryProvider).count(selection);
 }
 
 /// Newest item of a selection, used as the album cover.
 @riverpod
-Future<MediaItem?> albumCover(Ref ref, MediaSelection selection) async {
-  final hidden = await ref.watch(trashedIdsProvider.future);
-  final items = await ref
-      .watch(mediaSourceProvider)
-      .load(selection, start: 0, end: 1, hidden: hidden);
-  return items.firstOrNull;
+Future<MediaItem?> albumCover(Ref ref, MediaSelection selection) {
+  ref
+    ..watch(trashedIdsProvider)
+    ..watch(mediaIndexProvider.select((s) => s.revision));
+  return ref.watch(mediaIndexRepositoryProvider).newest(selection);
 }
 
 /// The selection a timeline currently shows: its base selection (a tab or an

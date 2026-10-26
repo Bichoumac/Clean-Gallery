@@ -54,6 +54,12 @@ class AppSettingsController extends _$AppSettingsController {
     await _repository.write(SettingKeys.language, language.name);
   }
 
+  /// Sets whether timelines use the corrected capture date.
+  Future<void> setCorrectedDates({required bool value}) async {
+    state = state.copyWith(correctedDates: value);
+    await _repository.writeBool(SettingKeys.correctedDates, value: value);
+  }
+
   /// Remembers [sort] for the timeline of [base].
   Future<void> setViewSort(MediaSelection base, MediaSort sort) async {
     final key = viewKey(base);
@@ -68,5 +74,18 @@ class AppSettingsController extends _$AppSettingsController {
   Future<void> setLastPurgeCheck(DateTime day) async {
     state = state.copyWith(lastPurgeCheck: day);
     await _repository.write(SettingKeys.lastPurgeCheck, day.toIso8601String());
+  }
+
+  /// Records that the media index is complete for the platform media
+  /// database [version].
+  Future<void> setMediaIndexVersion(String version) async {
+    state = state.copyWith(mediaIndexVersion: version);
+    await _repository.write(SettingKeys.mediaIndexVersion, version);
+  }
+
+  /// Records that the index follows the index rules [version].
+  Future<void> setIndexRules(int version) async {
+    state = state.copyWith(indexRules: version);
+    await _repository.write(SettingKeys.indexRules, '$version');
   }
 }

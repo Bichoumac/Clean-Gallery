@@ -2,7 +2,7 @@
 
 The Settings tab: display, trash, sharing and permissions. The rest of the brief's settings arrive with the features they control.
 
-Last updated: 2026-10-25 — Milestone M2
+Last updated: 2026-10-26 — Milestone M3
 
 ## Purpose
 
@@ -21,15 +21,17 @@ Let the user choose how the app looks and behaves, and see and change its permis
 | Display | Theme | System / Light / Dark | System | Whole app |
 | Display | Language | System / English / Français | System | Whole app |
 | Display | Grid columns at launch | 2–6 | 4 | Every grid, at launch and immediately |
+| Display | Corrected dates | On / Off | On | Sort, group, filter and date of every timeline: the date the photo was taken (metadata, then file name) or Android's date ([analysis-engine.md](../analysis-engine.md#capture-date)) |
 | Trash | Keep deleted items for | 1–90 days | 30 | Items trashed afterwards |
 | Sharing | Remove location when sharing | On / Off | On | Default of the share sheet switch |
+| Analysis | Analyze the library again | Button | — | Forgets dates, burst ids, content hashes and duplicate groups, then syncs and scans again; a spinner shows while it runs. Media, trash and settings are kept |
 | Permissions | Photos and videos | Allowed / Some items only / Not allowed | — | Read-only status + *Change* |
 | Permissions | Location in photos | Allowed / Not allowed | — | Read-only status + *Change* |
 | Permissions | Media management | Allowed / Not allowed | — | Read-only status + *Change* |
 
 The sort order of each tab and album is also saved (see [library.md](library.md#sorting-and-date-filter)); the date filter is not, since presets such as "Last 7 days" would become stale.
 
-Still to come, from the brief: duplicate sensitivity and time window (M4), screenshot age and large video threshold (M5), re-run analysis and clear cache (M3), "Remove ads" / "Restore purchase" and privacy & ad choices (M8), privacy policy and about (M9).
+Still to come, from the brief: duplicate sensitivity and time window (M4), screenshot age and large video threshold (M5), clear cache (merged into *Analyze the library again*: the app's only cache is the media index; thumbnails come from Android's own cache), "Remove ads" / "Restore purchase" and privacy & ad choices (M8), privacy policy and about (M9).
 
 ## Screens and widgets
 

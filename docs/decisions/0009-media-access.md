@@ -2,7 +2,7 @@
 
 How the app reads photos and videos, and why thumbnails do not use `photo_manager_image_provider`.
 
-Last updated: 2026-10-25 — Milestone M1
+Last updated: 2026-10-26 — Milestone M3
 
 - **Status**: Accepted
 - **Date**: 2026-10-25
@@ -32,6 +32,10 @@ Packages checked on pub.dev on 2026-10-25:
 ### Amendment (M1, after the first device test)
 
 The first version rendered thumbnails with `photo_manager`'s `thumbnailDataWithSize` (Glide, JPEG, first-in-first-out queue). It was too slow on a real library, especially after scrolling far. Thumbnails and previews now use the native loader; `photo_manager` is still used for listing, filtering, files and video URIs.
+
+### Amendment (M3, media index)
+
+Lists no longer query MediaStore through `photo_manager`: they read the media index in the database, filled by the app's own `mediaSnapshot` and `mediaDetails` channel methods ([ADR 0015](0015-persistent-media-index.md)). `photo_manager` is now used only for full-resolution files and video URIs. Chunked loading becomes two SQLite queries: the first 1,000 items, then the rest.
 
 ## Alternatives considered
 
