@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/enums.dart';
+import 'package:clean_gallery/domain/gray_image.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/platform/media_source.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
@@ -213,6 +214,21 @@ class FakeMediaSource implements MediaSource {
   Future<Map<String, String>> contentHashes(List<MediaItem> items) async {
     hashCalls.add([for (final item in items) item.id]);
     return {for (final item in items) item.id: hashes[item.id] ?? item.id};
+  }
+
+  /// Grayscale thumbnail of photos by id; photos not listed have none.
+  final grayImages = <String, GrayImage>{};
+
+  /// Ids passed to [grayThumbnails], per call.
+  final grayCalls = <List<String>>[];
+
+  @override
+  Future<Map<String, GrayImage>> grayThumbnails(
+    List<MediaItem> photos, {
+    required int side,
+  }) async {
+    grayCalls.add([for (final photo in photos) photo.id]);
+    return {for (final photo in photos) photo.id: ?grayImages[photo.id]};
   }
 
   IndexedMedia _indexed(MediaItem item) {

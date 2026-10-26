@@ -1,3 +1,4 @@
+import 'package:clean_gallery/domain/gray_image.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/platform/platform_bridge.dart';
 import 'package:flutter/services.dart';
@@ -70,6 +71,32 @@ final class AndroidPlatformBridge implements PlatformBridge {
       {'items': _encode(items)},
     );
     return hashes ?? const {};
+  }
+
+  /// Grayscale thumbnails of the photos with MediaStore [ids], fitting in
+  /// [side] × [side] pixels, by id; photos without a readable thumbnail
+  /// are left out.
+  ///
+  /// Android-only helper used by `AndroidMediaSource.grayThumbnails`. Runs
+  /// on the hashing thread, after any content hashes in progress.
+  Future<Map<String, GrayImage>> grayThumbnails(
+    List<String> ids, {
+    required int side,
+  }) async {
+    if (ids.isEmpty) return const {};
+    final reply = await _channel.invokeMapMethod<String, Object?>(
+      'grayThumbnails',
+      {'ids': ids, 'side': side},
+    );
+    return {
+      for (final MapEntry(:key, :value) in (reply ?? const {}).entries)
+        if (value case final Map<Object?, Object?> image)
+          key: GrayImage(
+            width: image['width']! as int,
+            height: image['height']! as int,
+            pixels: image['pixels']! as Uint8List,
+          ),
+    };
   }
 
   /// Raw RGBA pixels of MediaStore item [id], fitting in [width] × [height],

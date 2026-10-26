@@ -27,8 +27,9 @@ class MainActivity : FlutterActivity() {
     private val worker = Executors.newSingleThreadExecutor()
 
     /**
-     * Hashes file contents for exact duplicates, apart from [worker] so that
-     * long reads never delay index syncs or favorite requests.
+     * Hashes file contents for exact duplicates and renders the thumbnails
+     * of similar photos, apart from [worker] so that long reads never delay
+     * index syncs or favorite requests.
      */
     private val hasher = Executors.newSingleThreadExecutor()
 
@@ -70,6 +71,12 @@ class MainActivity : FlutterActivity() {
                 val items = MediaActions.Item.listFrom(call.argument("items"))
                     .map { it.id to it.isVideo }
                 onWorker(result, hasher) { mediaIndex.contentHashes(items) }
+            }
+            "grayThumbnails" -> {
+                val ids = call.argument<List<String>>("ids").orEmpty()
+                    .mapNotNull { it.toLongOrNull() }
+                val side = call.argument<Int>("side") ?: 128
+                onWorker(result, hasher) { mediaIndex.grayThumbnails(ids, side) }
             }
             "thumbnail" -> {
                 val id = call.argument<String>("id")?.toLongOrNull()

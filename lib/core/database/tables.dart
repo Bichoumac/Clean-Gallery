@@ -61,14 +61,15 @@ class Assets extends Table {
   /// Where [captureAt] was read from.
   TextColumn get captureSource => textEnum<DateSource>().nullable()();
 
-  /// xxHash of the file content, used for exact duplicates.
+  /// SHA-256 of the file content, used for exact duplicates.
   TextColumn get contentHash => text().nullable()();
 
-  /// 64-bit difference hash (dHash), stored as a signed integer.
-  Int64Column get dHash => int64().nullable()();
+  /// 64-bit difference hash (dHash), stored as a signed integer. A Dart
+  /// `int` holds 64 bits on Android, so no `BigInt` is needed.
+  IntColumn get dHash => integer().nullable()();
 
   /// 64-bit perceptual hash (pHash), stored as a signed integer.
-  Int64Column get pHash => int64().nullable()();
+  IntColumn get pHash => integer().nullable()();
 
   /// Sharpness score (variance of the Laplacian). Higher is sharper.
   RealColumn get blurScore => real().nullable()();

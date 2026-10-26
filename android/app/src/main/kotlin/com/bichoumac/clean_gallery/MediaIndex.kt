@@ -2,7 +2,9 @@ package com.bichoumac.clean_gallery
 
 import android.content.ContentUris
 import android.content.Context
+import android.graphics.Bitmap
 import android.provider.MediaStore
+import android.util.Size
 import java.io.IOException
 import java.security.MessageDigest
 
@@ -184,6 +186,60 @@ class MediaIndex(private val context: Context) {
             }
         }
         return hashes
+    }
+
+    /**
+     * Grayscale thumbnails of the photos with MediaStore [ids], fitting in
+     * [side] × [side] pixels, by id: `{width, height, pixels}`, where
+     * `pixels` holds one brightness byte (0–255) per pixel, row by row.
+     * Photos without a readable thumbnail are left out.
+     *
+     * Rendered by MediaStore's thumbnail cache, like the grid: the original
+     * file is never decoded in full. Used for similar photos.
+     */
+    fun grayThumbnails(ids: List<Long>, side: Int): Map<String, Map<String, Any>> {
+        val thumbnails = HashMap<String, Map<String, Any>>(ids.size)
+        for (id in ids) {
+            val itemUri = ContentUris.withAppendedId(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                id,
+            )
+            val loaded = try {
+                resolver.loadThumbnail(itemUri, Size(side, side), null)
+            } catch (e: IOException) {
+                continue
+            } catch (e: SecurityException) {
+                continue
+            } catch (e: IllegalArgumentException) {
+                // Undecodable image.
+                continue
+            }
+            // Hardware bitmaps cannot be read back; copy to a software bitmap.
+            val bitmap = if (loaded.config == Bitmap.Config.ARGB_8888) {
+                loaded
+            } else {
+                loaded.copy(Bitmap.Config.ARGB_8888, false).also { loaded.recycle() }
+            }
+            val width = bitmap.width
+            val height = bitmap.height
+            val colors = IntArray(width * height)
+            bitmap.getPixels(colors, 0, width, 0, 0, width, height)
+            bitmap.recycle()
+            val gray = ByteArray(colors.size)
+            for (i in colors.indices) {
+                val c = colors[i]
+                val r = (c shr 16) and 0xFF
+                val g = (c shr 8) and 0xFF
+                val b = c and 0xFF
+                gray[i] = ((299 * r + 587 * g + 114 * b) / 1000).toByte()
+            }
+            thumbnails[id.toString()] = mapOf(
+                "width" to width,
+                "height" to height,
+                "pixels" to gray,
+            )
+        }
+        return thumbnails
     }
 
     private companion object {

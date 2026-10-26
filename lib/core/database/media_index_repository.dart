@@ -44,8 +44,8 @@ final class MediaIndexRepository {
   /// are worked out on the way.
   ///
   /// When an item's file changed (modification date or size), its
-  /// `analysis_version` and content hash are reset so the engine analyses
-  /// it again. With
+  /// `analysis_version`, content hash and perceptual hashes are reset so
+  /// the engine analyses it again. With
   /// [resetAnalysis], every updated row is reset, e.g. after the platform
   /// rebuilt its database and ids may point to other files.
   Future<void> upsert(
@@ -84,6 +84,12 @@ final class MediaIndexRepository {
               contentHash: resetAnalysis
                   ? const Constant(null)
                   : _keptIfSameFile(old, excluded, old.contentHash, null),
+              dHash: resetAnalysis
+                  ? const Constant(null)
+                  : _keptIfSameFile(old, excluded, old.dHash, null),
+              pHash: resetAnalysis
+                  ? const Constant(null)
+                  : _keptIfSameFile(old, excluded, old.pHash, null),
             ),
           ),
         );
@@ -126,8 +132,8 @@ final class MediaIndexRepository {
 
   /// Forgets every analysis result, so the next sync and scan work out
   /// everything again: dates and burst ids (rows are described again),
-  /// content hashes and duplicate groups. Metadata, the trash and settings
-  /// are kept.
+  /// content and perceptual hashes and duplicate groups. Metadata, the
+  /// trash, settings and the pairs marked "Not duplicates" are kept.
   Future<void> resetAnalysis() => _db.transaction(() async {
     await _db
         .update(_db.assets)
@@ -135,6 +141,8 @@ final class MediaIndexRepository {
           const AssetsCompanion(
             mediaRevision: Value(null),
             contentHash: Value(null),
+            dHash: Value(null),
+            pHash: Value(null),
             analysisVersion: Value(0),
           ),
         );

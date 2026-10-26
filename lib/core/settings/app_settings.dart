@@ -1,3 +1,4 @@
+import 'package:clean_gallery/analysis/similarity.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -67,7 +68,23 @@ abstract class AppSettings with _$AppSettings {
     /// ids), or `null` before the first index. An older value makes the
     /// next sync apply the rules to every item again.
     int? indexRules,
+
+    /// How eager the similar photo search is.
+    @Default(SimilaritySensitivity.medium)
+    SimilaritySensitivity similaritySensitivity,
+
+    /// Thresholds of the advanced mode, used when [similaritySensitivity]
+    /// is [SimilaritySensitivity.custom].
+    @Default(SimilarityThresholds.medium) SimilarityThresholds customThresholds,
   }) = _AppSettings;
+
+  const AppSettings._();
+
+  /// Thresholds the similar photo search uses.
+  SimilarityThresholds get similarityThresholds =>
+      similaritySensitivity == SimilaritySensitivity.custom
+      ? customThresholds
+      : SimilarityThresholds.of(similaritySensitivity);
 
   /// Smallest and largest trash retention, in days.
   static const minRetentionDays = 1;

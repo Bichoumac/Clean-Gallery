@@ -1,4 +1,5 @@
 import 'package:clean_gallery/domain/enums.dart';
+import 'package:clean_gallery/domain/gray_image.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/platform/android/android_platform_bridge.dart';
 import 'package:clean_gallery/platform/android/media_image_providers.dart';
@@ -42,6 +43,12 @@ final class AndroidMediaSource implements MediaSource {
   @override
   Future<Map<String, String>> contentHashes(List<MediaItem> items) =>
       _bridge.contentHashes(items);
+
+  @override
+  Future<Map<String, GrayImage>> grayThumbnails(
+    List<MediaItem> photos, {
+    required int side,
+  }) => _bridge.grayThumbnails([for (final p in photos) p.id], side: side);
 
   /// An item from one map of [AndroidPlatformBridge.mediaDetails].
   static IndexedMedia _toIndexed(Map<String, Object?> row) {

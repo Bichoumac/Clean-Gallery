@@ -1,3 +1,4 @@
+import 'package:clean_gallery/analysis/similarity.dart';
 import 'package:clean_gallery/core/database/settings_repository.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/settings/app_settings.dart';
@@ -87,5 +88,43 @@ class AppSettingsController extends _$AppSettingsController {
   Future<void> setIndexRules(int version) async {
     state = state.copyWith(indexRules: version);
     await _repository.write(SettingKeys.indexRules, '$version');
+  }
+
+  /// Sets the similar photo sensitivity. Choosing
+  /// [SimilaritySensitivity.custom] starts from the thresholds in use.
+  Future<void> setSimilaritySensitivity(
+    SimilaritySensitivity sensitivity,
+  ) async {
+    if (sensitivity == SimilaritySensitivity.custom &&
+        state.similaritySensitivity != SimilaritySensitivity.custom) {
+      await setCustomThresholds(state.similarityThresholds);
+    }
+    state = state.copyWith(similaritySensitivity: sensitivity);
+    await _repository.write(
+      SettingKeys.similaritySensitivity,
+      sensitivity.name,
+    );
+  }
+
+  /// Sets the thresholds of the advanced mode, clamped to the offered
+  /// ranges.
+  Future<void> setCustomThresholds(SimilarityThresholds thresholds) async {
+    final value = SimilarityThresholds(
+      strict: thresholds.strict.clamp(0, SimilarityThresholds.maxDistance),
+      loose: thresholds.loose.clamp(0, SimilarityThresholds.maxDistance),
+      window: Duration(
+        seconds: thresholds.window.inSeconds.clamp(
+          0,
+          SimilarityThresholds.maxWindow.inSeconds,
+        ),
+      ),
+    );
+    state = state.copyWith(customThresholds: value);
+    await _repository.write(SettingKeys.similarityStrict, '${value.strict}');
+    await _repository.write(SettingKeys.similarityLoose, '${value.loose}');
+    await _repository.write(
+      SettingKeys.similarityWindow,
+      '${value.window.inSeconds}',
+    );
   }
 }
