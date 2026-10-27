@@ -78,6 +78,34 @@ void main() {
     expect(find.text('IMG_2.jpg'), findsOneWidget);
   });
 
+  testApp('a pinch whose first finger slides first still zooms', (
+    tester,
+  ) async {
+    await openViewerAt(tester, 0);
+    final center = tester.getCenter(find.byType(PageView));
+
+    // On a phone the first finger often slides a little before the second
+    // one lands, then both move fast.
+    final a = await tester.startGesture(center - const Offset(30, 0));
+    await a.moveBy(const Offset(-12, 0));
+    await tester.pump(const Duration(milliseconds: 16));
+    final b = await tester.startGesture(center + const Offset(30, 0));
+    for (var i = 0; i < 6; i++) {
+      await a.moveBy(const Offset(-20, 0));
+      await b.moveBy(const Offset(20, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await a.up();
+    await b.up();
+    await tester.pumpAndSettle();
+
+    expect(find.text('IMG_1.jpg'), findsOneWidget);
+    // Zoomed: a one-finger drag pans instead of changing page.
+    await tester.drag(find.byType(PageView), const Offset(-250, 0));
+    await tester.pumpAndSettle();
+    expect(find.text('IMG_1.jpg'), findsOneWidget);
+  });
+
   testApp('the top bar only covers the top of the screen', (tester) async {
     await openViewerAt(tester, 0);
     final topBar = find.ancestor(

@@ -162,11 +162,20 @@ Second test on 2026-10-27, after the fixes below (same day, release build instal
 | --- | --- |
 | Confirmed | 1 (progress grows, X and Y consistent; leaving the app and coming back resumes where it stopped), 2 and 3 (similar groups show during the scan), 5 (close shots grouped under Similar photos), 6 (no clearly different photos seen in a group), 7 (Not duplicates, still gone after a relaunch), 8 (fewer groups with Low, more with High), 11 (Stats rows open their section), 14 |
 | Confirmed later the same day | 3 and 11 with the new chips (clearer), 4 (WhatsApp copy grouped, original Best), 12 (cleaning from Stats) |
-| Still failing | Viewer: photos still blurry a moment before turning sharp; improved the same day (fitted preview size), still blurry while a scan ran; the scan now pauses while the viewer is open, to check |
+| Fixed later the same day | Viewer: photos stayed blurry until zoomed in, and pinching did not zoom; see the third round below |
 | Not tested yet | 9, 10, 13 |
 | Requested | Identical copies, bursts and similar photos were mixed on the duplicates screen: choice chips added the same day, to check |
 | Speed | 20,000 photos. About 760 photos a minute with two thumbnail threads, 860 with four, the app staying fluid: about 25 minutes for the first analysis. Four kept |
 | Remarks | The first analysis is long. Similar photos are grouped only on the duplicates screen, not stacked in the timelines: the product owner wants stacking later, see [progress.md](progress.md#m4--engine-level-2) |
+
+Viewer, third round on 2026-10-27. With the product owner's permission, the app logged only durations and image sizes (no names, no ids), read from `logcat` filtered on that tag; the logging was removed afterwards:
+
+| Finding | Detail |
+| --- | --- |
+| Cause of the blur | MediaStore's thumbnail cache stops at 512 px: asked for 1080 × 1440, it returned 384 × 512 in about 30 ms. The viewer showed that, stretched, until the user zoomed in (5 to 10 s or more, as reported). Neither the queue, the channel nor the analysis delayed it. |
+| Fix | Previews decoded from the photo file at the screen's size (`ImageDecoder`): 0.3 to 0.7 s for a 12 MP photo. A first version also decoded wide grid thumbnails (512 × 1109) from the file, 250 to 400 ms each instead of 20 ms; only the viewer does now. Full resolution when zoomed: 0.1 to 0.6 s. |
+| Pinch | Pinching did not zoom (double tap did): reproduced in a widget test, a first finger sliding a little before the second landed went to the page view. The zoom now claims the gesture when the second finger lands. |
+| Confirmed | "Everything is sharp very quickly": photos sharp at once, also when coming back to a photo already seen. |
 
 Fixes for the second test (same checklist): progress "Analyzing: N of M items", groups rebuilt every 1,000 photos, a failing thumbnail batch skipped instead of stopping the scan, native calls that always reply, Stats rows opening their section, two threads rendering thumbnails. The cause of the missing groups is not confirmed: the scan may simply not have reached the end, or a native error may have stopped it.
 

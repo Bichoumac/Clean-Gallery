@@ -265,11 +265,23 @@ class _ZoomableImageState extends ConsumerState<ZoomableImage>
 /// arena against the page view's horizontal drag, which made swiping
 /// between photos impossible. This one only accepts with two fingers, or
 /// with one finger while zoomed (when the page view is locked anyway).
+///
+/// It claims the gesture as soon as a second finger lands: waiting for the
+/// fingers to move let the page view take a pinch whose first finger slid
+/// a little first, and the photo did not zoom.
 class _ZoomGestureRecognizer extends ScaleGestureRecognizer {
   _ZoomGestureRecognizer({required this.isZoomed});
 
   /// Whether the photo is currently zoomed in.
   final bool Function() isZoomed;
+
+  @override
+  void handleEvent(PointerEvent event) {
+    super.handleEvent(event);
+    if (event is PointerDownEvent && pointerCount >= 2) {
+      resolve(GestureDisposition.accepted);
+    }
+  }
 
   @override
   void resolve(GestureDisposition disposition) {

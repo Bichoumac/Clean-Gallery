@@ -54,7 +54,7 @@ Last updated: 2026-10-27 — Milestone M4
 - **First device test: no similar groups.** Fixed on 2026-10-27 (progress shown, groups rebuilt every 1,000 photos, failing thumbnail batches skipped, native calls always reply) and confirmed on the phone; which of the two causes it was is not known.
 - **The first analysis is long**: about 25 minutes for 20,000 photos on the Galaxy A54 (860 photos a minute with four threads, 760 with two), limited by MediaStore's thumbnail rendering. Only once: later scans read new photos only. Embedded JPEG thumbnails could be faster; not tried.
 - **Similar photos are not stacked in the timelines**, only grouped on the duplicates screen. The product owner wants stacking later (M5 or after).
-- Opening a photo in the viewer showed it blurry (the 256-pixel thumbnail, enlarged) until the screen-sized preview was decoded, still after the analysis ended. Improved on 2026-10-27 (preview at the fitted size, shown photo loaded before its neighbours); the product owner still saw it while a scan ran, so the scan now pauses while the viewer is open. To check on the phone.
+- **Viewer blurry until zoomed in**: MediaStore's thumbnail cache stops at 512 px on the Galaxy A54, so the "screen-sized" preview was a 384 × 512 thumbnail stretched. Fixed on 2026-10-27 (preview decoded from the file, 0.3 to 0.7 s) and confirmed on the phone. Pinch zoom, which went to the page view, fixed the same day ([testing.md](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device)).
 - Not verified on a device: the rest of M4, including the time of the first analysis on a large library and the false positive rate on real photos.
 - The camera model and GPS bonuses of the confidence score do not apply yet: those columns are filled in M6 and M7. The score is stored, not shown.
 - A photo whose thumbnail cannot be rendered is not compared until its file changes.
@@ -63,11 +63,11 @@ Last updated: 2026-10-27 — Milestone M4
 
 ### Next steps
 
-1. Finish the [M4 checklist](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device): the new chips (items 3 and 11), WhatsApp copy, cleaning from Stats, *Analyze the library again*, blurry viewer once the scan has ended.
-2. Blurry-then-sharp viewer: check the improvement on the phone.
-4. Review and merge the M4 pull request.
-5. M5: swipe mode, blurry photos (sharpness also refines the best pick), screenshots, large videos.
-6. Later: stack similar photos in the timelines (product owner's request, 2026-10-27).
+1. Finish the [M4 checklist](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device): items 9 and 10, then *Analyze the library again* (13) last.
+2. Pinch zoom in the viewer: confirm on the phone.
+3. Review and merge the M4 pull request.
+4. M5: swipe mode, blurry photos (sharpness also refines the best pick), screenshots, large videos.
+5. Later: stack similar photos in the timelines (product owner's request, 2026-10-27).
 
 ## M3 — Engine level 1
 

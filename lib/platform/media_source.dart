@@ -44,9 +44,9 @@ abstract interface class MediaSource {
   /// Screen-sized image of [item], at most [longestSide] pixels on its
   /// longest side, keeping its proportions.
   ///
-  /// Rendered by the platform's thumbnail pipeline, so it is much faster
-  /// than [fullImage]; the viewer shows it first and loads [fullImage] only
-  /// when the user zooms in.
+  /// Decoded by the platform at that size, so it is much faster than
+  /// [fullImage]; the viewer shows it first and loads [fullImage] only when
+  /// the user zooms in.
   ImageProvider preview(MediaItem item, {required int longestSide});
 
   /// Full-resolution image of [item], decoded at most [maxDimension] pixels

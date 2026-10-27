@@ -120,18 +120,23 @@ final class AndroidMediaSource implements MediaSource {
     final (width, height) = ratio >= 1
         ? (longestSide, (longestSide / ratio).round())
         : ((longestSide * ratio).round(), longestSide);
-    return _native(item, width, height);
+    return _native(item, width, height, fromFile: true);
   }
 
-  NativeThumbnailProvider _native(MediaItem item, int width, int height) =>
-      NativeThumbnailProvider(
-        _bridge,
-        id: item.id,
-        isVideo: item.isVideo,
-        modifiedSecond: item.modifiedAt.millisecondsSinceEpoch ~/ 1000,
-        width: width,
-        height: height,
-      );
+  NativeThumbnailProvider _native(
+    MediaItem item,
+    int width,
+    int height, {
+    bool fromFile = false,
+  }) => NativeThumbnailProvider(
+    _bridge,
+    id: item.id,
+    isVideo: item.isVideo,
+    modifiedSecond: item.modifiedAt.millisecondsSinceEpoch ~/ 1000,
+    width: width,
+    height: height,
+    fromFile: fromFile,
+  );
 
   @override
   ImageProvider fullImage(MediaItem item, {int maxDimension = 4096}) =>

@@ -86,7 +86,8 @@ class MainActivity : FlutterActivity() {
                     result.error("bad_arguments", "id, width and height are required", null)
                 } else {
                     val isVideo = call.argument<Boolean>("video") == true
-                    thumbnails.load(id, isVideo, width, height, result)
+                    val fromFile = call.argument<Boolean>("fromFile") == true
+                    thumbnails.load(id, isVideo, width, height, fromFile, result)
                 }
             }
             "setFavorite" -> actions.setFavorite(

@@ -24,6 +24,7 @@ final class NativeThumbnailProvider
     required this.modifiedSecond,
     required this.width,
     required this.height,
+    this.fromFile = false,
   });
 
   /// Channel to the native loader. Not part of equality.
@@ -44,6 +45,11 @@ final class NativeThumbnailProvider
   /// Requested height in pixels.
   final int height;
 
+  /// Whether a photo is decoded from its file rather than taken from
+  /// MediaStore's cache, whose thumbnails stop at 512 pixels on some
+  /// phones.
+  final bool fromFile;
+
   @override
   Future<NativeThumbnailProvider> obtainKey(ImageConfiguration configuration) =>
       SynchronousFuture(this);
@@ -62,6 +68,7 @@ final class NativeThumbnailProvider
       isVideo: key.isVideo,
       width: key.width,
       height: key.height,
+      fromFile: key.fromFile,
     );
     final buffer = await ui.ImmutableBuffer.fromUint8List(data.pixels);
     final descriptor = ui.ImageDescriptor.raw(
@@ -84,10 +91,11 @@ final class NativeThumbnailProvider
       other.id == id &&
       other.modifiedSecond == modifiedSecond &&
       other.width == width &&
-      other.height == height;
+      other.height == height &&
+      other.fromFile == fromFile;
 
   @override
-  int get hashCode => Object.hash(id, modifiedSecond, width, height);
+  int get hashCode => Object.hash(id, modifiedSecond, width, height, fromFile);
 }
 
 /// Full-resolution image of a MediaStore asset, read from its file and

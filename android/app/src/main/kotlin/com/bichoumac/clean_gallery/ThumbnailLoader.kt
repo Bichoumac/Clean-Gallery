@@ -4,6 +4,7 @@ import android.content.ContentUris
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Handler
@@ -14,11 +15,13 @@ import java.nio.ByteBuffer
 import java.util.concurrent.LinkedBlockingDeque
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.TimeUnit
+import kotlin.math.roundToInt
 
 /**
- * Loads thumbnails and screen-sized previews from MediaStore's own
- * thumbnail cache (`ContentResolver.loadThumbnail`), the cache the system
- * gallery uses, and returns raw RGBA pixels.
+ * Loads grid thumbnails from MediaStore's own thumbnail cache
+ * (`ContentResolver.loadThumbnail`), the cache the system gallery uses, and
+ * the viewer's screen-sized previews from the photo files
+ * (`ImageDecoder`), and returns raw RGBA pixels.
  *
  * Videos without a MediaStore thumbnail fall back to the cover picture
  * embedded in the file, then to the frame at 10 % of the video.
@@ -44,7 +47,8 @@ class ThumbnailLoader(
     /**
      * Loads the image of MediaStore item [id] fitting in [width] × [height]
      * pixels and replies with `{width, height, rowBytes, pixels}`, where
-     * `pixels` is RGBA 8888.
+     * `pixels` is RGBA 8888. With [fromFile], a photo is decoded from its
+     * file instead of MediaStore's cache: slower, but sharp at any size.
      *
      * Errors: `not_found` if the item or its thumbnail cannot be read,
      * `dropped` if the request was dropped from the queue.
@@ -54,9 +58,10 @@ class ThumbnailLoader(
         isVideo: Boolean,
         width: Int,
         height: Int,
+        fromFile: Boolean,
         result: MethodChannel.Result,
     ) {
-        val job = Job(result) { decode(id, isVideo, width, height) }
+        val job = Job(result) { decode(id, isVideo, width, height, fromFile) }
         synchronized(queue) {
             // Newest first: put the job at the head of the queue.
             queue.offerFirst(job)
@@ -73,7 +78,13 @@ class ThumbnailLoader(
         pool.shutdownNow()
     }
 
-    private fun decode(id: Long, isVideo: Boolean, width: Int, height: Int): Map<String, Any> {
+    private fun decode(
+        id: Long,
+        isVideo: Boolean,
+        width: Int,
+        height: Int,
+        fromFile: Boolean,
+    ): Map<String, Any> {
         val collection = if (isVideo) {
             MediaStore.Video.Media.EXTERNAL_CONTENT_URI
         } else {
@@ -81,7 +92,11 @@ class ThumbnailLoader(
         }
         val uri = ContentUris.withAppendedId(collection, id)
         val loaded = try {
-            resolver.loadThumbnail(uri, Size(width, height), null)
+            if (fromFile && !isVideo) {
+                decodeScaled(uri, width, height)
+            } else {
+                resolver.loadThumbnail(uri, Size(width, height), null)
+            }
         } catch (e: Exception) {
             if (!isVideo) throw e
             videoFallback(uri, width, height) ?: throw e
@@ -102,6 +117,30 @@ class ThumbnailLoader(
         )
         bitmap.recycle()
         return reply
+    }
+
+    /**
+     * Photo [uri] decoded from its file so that its longest side matches the
+     * longest side of [width] × [height] (never upscaled), for the viewer.
+     * MediaStore's thumbnails stop at 512 pixels on Samsung phones: asking
+     * `loadThumbnail` for more returns them as they are, blurry once
+     * stretched to the screen.
+     */
+    private fun decodeScaled(uri: Uri, width: Int, height: Int): Bitmap {
+        val source = ImageDecoder.createSource(resolver, uri)
+        return ImageDecoder.decodeBitmap(source) { decoder, info, _ ->
+            decoder.allocator = ImageDecoder.ALLOCATOR_SOFTWARE
+            // Longest sides only: the requested size may not follow the
+            // photo's EXIF rotation, which the decoder applies.
+            val own = maxOf(info.size.width, info.size.height)
+            val scale = minOf(1.0, maxOf(width, height).toDouble() / own)
+            if (scale < 1.0) {
+                decoder.setTargetSize(
+                    maxOf(1, (info.size.width * scale).roundToInt()),
+                    maxOf(1, (info.size.height * scale).roundToInt()),
+                )
+            }
+        }
     }
 
     /**
