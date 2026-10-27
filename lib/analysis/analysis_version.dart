@@ -7,5 +7,7 @@
 /// See `docs/analysis-engine.md`.
 ///
 /// History: 1 perceptual hashes on 128-pixel thumbnails (M4); 2 sharpness
-/// and brightness added, thumbnails of 256 pixels (M5).
-const int analysisVersion = 2;
+/// and brightness added, thumbnails of 256 pixels (M5); 3 contrast added
+/// (M6; the schema 4 migration keeps version 2 photos that are sharp
+/// enough, which do not need it).
+const int analysisVersion = 3;

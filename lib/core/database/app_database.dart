@@ -1,3 +1,4 @@
+import 'package:clean_gallery/analysis/image_quality.dart';
 import 'package:clean_gallery/core/database/tables.dart';
 // Used by the generated part for enum-typed columns.
 import 'package:clean_gallery/domain/enums.dart';
@@ -44,7 +45,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Current schema version. Bump it for every schema change.
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   /// Migration steps, applied in order from the installed version.
   @override
@@ -67,6 +68,7 @@ class AppDatabase extends _$AppDatabase {
               assets.takenAt,
               assets.mediaRevision,
               assets.brightness,
+              assets.contrast,
             ],
             columnTransformer: {
               assets.takenAt: coalesce([assets.captureAt, assets.modifiedAt]),
@@ -81,6 +83,20 @@ class AppDatabase extends _$AppDatabase {
       if (from == 2) {
         // Brightness of photos, measured with their sharpness (M5).
         await m.addColumn(assets, assets.brightness);
+      }
+      if (from >= 2 && from < 4) {
+        // Contrast of photos, telling hazy photos from blurry ones (M6).
+        await m.addColumn(assets, assets.contrast);
+      }
+      if (from == 3) {
+        // Analysis version 3 only adds the contrast, and the contrast only
+        // matters below the blur threshold: photos analysed by version 2
+        // above it are up to date, the others are analysed again.
+        await customStatement(
+          'UPDATE assets SET analysis_version = 3 '
+          'WHERE analysis_version = 2 '
+          'AND (blur_score IS NULL OR blur_score >= $blurryBelow)',
+        );
       }
     },
     beforeOpen: (details) async {

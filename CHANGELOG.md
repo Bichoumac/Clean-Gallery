@@ -11,6 +11,11 @@ Last updated: 2026-10-27 — Milestone M6
 - Viewer: an **info panel** (Details button), sliding up over a blurred, translucent background: date and where it comes from, name, path, resolution, size, duration, camera, lens, ISO, aperture, shutter speed, focal length and location ([docs/features/viewer.md](docs/features/viewer.md#info-panel)).
 - Native method `mediaMetadata`: EXIF of a photo, location of a video.
 - Info panel: the location opens the map app; a button copies the coordinates.
+- Database schema version 4: `assets.contrast`.
+
+### Changed
+
+- **Blurry photos**: hazy photos (mist, fog, night) in focus are no longer listed; a photo is blurry when its sharpness is low for its contrast too ([ADR 0021](docs/decisions/0021-hazy-photos-are-not-blurry.md)). Analysis version 3: only photos below the blur threshold are analysed again.
 
 ## [M5] — 2026-10-27 — Cleanup
 

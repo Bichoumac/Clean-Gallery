@@ -78,6 +78,10 @@ class Assets extends Table {
   /// version 3.
   RealColumn get brightness => real().nullable()();
 
+  /// Contrast of the photo (standard deviation of its pixels, 0–128), from
+  /// schema version 4: tells hazy photos from blurry ones.
+  RealColumn get contrast => real().nullable()();
+
   /// Burst identifier, shared by all photos of one burst sequence.
   TextColumn get burstId => text().nullable()();
 

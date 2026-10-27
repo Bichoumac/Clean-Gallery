@@ -127,6 +127,21 @@ abstract final class PhotoSet {
     return copy;
   }
 
+  /// [image] seen through mist: every pixel pulled towards a light gray,
+  /// keeping [factor] (0–1) of its difference from it. Edges stay in
+  /// place, only fainter.
+  static img.Image hazed(img.Image image, double factor) {
+    final copy = image.clone();
+    int haze(num value) => (200 + (value - 200) * factor).round();
+    for (final pixel in copy) {
+      pixel
+        ..r = haze(pixel.r)
+        ..g = haze(pixel.g)
+        ..b = haze(pixel.b);
+    }
+    return copy;
+  }
+
   /// [image] as the platform hands it to the engine: a grayscale thumbnail
   /// fitting in [side] × [side] (256, as the scan asks for).
   static GrayImage thumbnail(img.Image image, {int side = 256}) {

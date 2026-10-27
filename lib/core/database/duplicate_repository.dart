@@ -123,6 +123,7 @@ final class DuplicateRepository {
           pHash: Value(result?.hashes.pHash),
           blurScore: Value(result?.quality.sharpness),
           brightness: Value(result?.quality.brightness),
+          contrast: Value(result?.quality.contrast),
           analysisVersion: const Value(analysisVersion),
         ),
         where: (t) => t.id.equals(int.parse(photo.id)),

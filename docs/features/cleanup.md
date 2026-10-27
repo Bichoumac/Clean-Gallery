@@ -34,7 +34,7 @@ flowchart TD
 | --- | --- | --- |
 | Old screenshots | Photos recognized as screenshots ([analysis-engine.md](../analysis-engine.md#screenshots)) taken before the day *N* days ago (whole days, by the date the timelines use) | Newest first |
 | Large videos | Videos of at least *M* MB (1 MB = 1,048,576 bytes, as sizes are shown) | Largest first |
-| Blurry photos | Photos, screenshots left out, with a sharpness below 30 or a brightness below 20 ([analysis-engine.md](../analysis-engine.md#blurry-and-dark-photos)) | Newest first |
+| Blurry photos | Photos, screenshots left out, with a sharpness below 30 that is also low for their contrast (hazy photos in focus left out, M6), or a brightness below 20 ([analysis-engine.md](../analysis-engine.md#blurry-and-dark-photos)) | Newest first |
 
 Trashed items are left out. The user can change the sort and limit the dates like on any timeline; the rule itself always applies.
 

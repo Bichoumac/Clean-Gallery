@@ -25,6 +25,7 @@ In parts, each tested on the phone: 1. the info panel; 2. the editor (crop, rota
 
 ### Done
 
+- **Hazy photos are no longer blurry** (M5 follow-up): contrast measured and stored (schema version 4), blurry = sharpness below 30 and relative sharpness below 150, threshold read on the product owner's photos; only photos below 30 are analysed again ([ADR 0021](decisions/0021-hazy-photos-are-not-blurry.md)).
 - **Info panel** (part 1): a Details button in the viewer opens a bottom sheet over a blurred, translucent background with the date and its source, name, path, resolution, size, duration, camera, lens, ISO, aperture, shutter speed, focal length and location; EXIF read by the new native method `mediaMetadata` ([features/viewer.md](features/viewer.md#info-panel)).
 
 ### Decisions
@@ -34,11 +35,10 @@ In parts, each tested on the phone: 1. the info panel; 2. the editor (crop, rota
 ### Known issues
 
 - Part 1 not verified on a device yet ([testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device)).
-- The blur rule lists some hazy night photos (from M5); calibration in progress with values read on the phone.
 
 ### Next steps
 
-1. Device test of part 1, and blur values of a few photos for the calibration.
+1. Device test of part 1 and of the hazy photo rule.
 2. Part 2: the editor.
 
 ## M5 — Cleanup
@@ -66,8 +66,7 @@ Three parts, each committed and tested on the phone: 1. old screenshots and larg
 
 ### Next steps
 
-1. Calibrate the blur rule on real photos (hazy night shots), during M6.
-2. Later: stack similar photos in the timelines (product owner's request).
+1. Later: stack similar photos in the timelines (product owner's request).
 
 ## M4 — Engine level 2
 

@@ -146,6 +146,13 @@ Part 1, info panel. Install over M5 (`adb install -r`).
 | 6 | Swipe the panel down, tap above it, Back | Each closes it; the viewer stays on the same photo. |
 | 7 | Largest font size | The panel scrolls to its last row, above the navigation bar; nothing is cut off. |
 
+Hazy photos (M5 follow-up). The first launch migrates the database (schema version 4) and analyses again only the photos that were below the blur threshold: a few minutes at most.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 8 | Once the analysis is done, Stats → **Blurry photos** | The hazy night photos with lights are gone; the photos really out of focus are still there. |
+| 9 | Duplicates, a group with a hazy photo | No *Blurry* label under it. |
+
 ### M5 — cleanup, to verify on a device
 
 Part 1, cleanup lists. Install over the M4 version (`adb install -r`, do not uninstall). The first launch describes every item again (index rules version 3): a few seconds, no thumbnails read.

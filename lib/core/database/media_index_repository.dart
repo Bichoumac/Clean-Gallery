@@ -108,6 +108,9 @@ final class MediaIndexRepository {
               brightness: resetAnalysis
                   ? const Constant(null)
                   : _keptIfSameFile(old, excluded, old.brightness, null),
+              contrast: resetAnalysis
+                  ? const Constant(null)
+                  : _keptIfSameFile(old, excluded, old.contrast, null),
             ),
           ),
         );
@@ -163,6 +166,7 @@ final class MediaIndexRepository {
             pHash: Value(null),
             blurScore: Value(null),
             brightness: Value(null),
+            contrast: Value(null),
             analysisVersion: Value(0),
           ),
         );
@@ -370,8 +374,7 @@ final class MediaIndexRepository {
         MediaFilter.poorQuality =>
           t.kind.equalsValue(MediaKind.photo) &
               t.isScreenshot.equals(false) &
-              (t.blurScore.isSmallerThanValue(blurryBelow) |
-                  t.brightness.isSmallerThanValue(darkBelow)),
+              (_blurry(t) | t.brightness.isSmallerThanValue(darkBelow)),
       },
       if (selection.takenBefore case final before?)
         _date(t).isSmallerThanValue(before),
@@ -383,6 +386,17 @@ final class MediaIndexRepository {
       if (dates?.start case final start?) _date(t).isBiggerOrEqualValue(start),
       if (dates?.end case final end?) _date(t).isSmallerThanValue(end),
     ]);
+  }
+
+  /// Condition on blurry photos, as [isBlurry]: below [blurryBelow], and
+  /// below [hazyFrom] for their contrast when it is known.
+  Expression<bool> _blurry($AssetsTable t) {
+    final relativeSharpness = t.blurScore * const Constant<double>(1000);
+    final hazyLimit = t.contrast * t.contrast * const Constant(hazyFrom);
+    return t.blurScore.isSmallerThanValue(blurryBelow) &
+        (t.contrast.isNull() |
+            t.contrast.isSmallerOrEqualValue(0) |
+            relativeSharpness.isSmallerThan(hazyLimit));
   }
 
   /// Condition leaving out items in the app trash.
@@ -499,5 +513,6 @@ extension AssetRowToMediaItem on AssetRow {
     relativePath: relativePath.isEmpty ? null : relativePath,
     mimeType: mimeType.isEmpty ? null : mimeType,
     sharpness: blurScore,
+    contrast: contrast,
   );
 }

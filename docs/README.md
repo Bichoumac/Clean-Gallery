@@ -69,3 +69,4 @@ One file per feature is added as each feature is built.
 | [0018](decisions/0018-perceptual-hashes-from-thumbnails.md) | Perceptual hashes from grayscale thumbnails, computed in Dart |
 | [0019](decisions/0019-similar-photo-search.md) | Similar photo search with multi-index hashing instead of a BK-tree |
 | [0020](decisions/0020-blur-and-brightness-with-the-hashes.md) | Blur and brightness measured with the hashes, on 256-pixel thumbnails |
+| [0021](decisions/0021-hazy-photos-are-not-blurry.md) | Hazy photos are not blurry: sharpness relative to contrast |

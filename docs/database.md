@@ -40,6 +40,7 @@ The media index: one row per photo or video, keyed by its MediaStore id. Every l
 | `d_hash`, `p_hash` | INTEGER | yes | 64-bit perceptual hashes of photos, as signed integers, from a grayscale thumbnail; `null` until computed, or when the photo has no readable thumbnail ([ADR 0018](decisions/0018-perceptual-hashes-from-thumbnails.md)). Declared `int64()` until M3; `integer()` since M4 (same SQLite type, a Dart `int` instead of a `BigInt`, no migration) |
 | `blur_score` | REAL | yes | Laplacian variance on the 256-pixel thumbnail; higher is sharper (M5) |
 | `brightness` | REAL | yes | Mean brightness of the thumbnail, 0–255 (schema version 3, M5) |
+| `contrast` | REAL | yes | Standard deviation of the thumbnail's pixels: tells hazy photos from blurry ones (schema version 4, M6, [ADR 0021](decisions/0021-hazy-photos-are-not-blurry.md)) |
 | `burst_id` | TEXT | yes | `<relative path>\|<shared part of the name>` for a burst shot, from its file name at index time ([analysis-engine.md](analysis-engine.md#bursts)) |
 | `is_screenshot` | BOOLEAN | no | Default `false`; set while indexing by `isScreenshot` (M5) |
 | `is_favorite` | BOOLEAN | no | Default `false`; cached copy of MediaStore `IS_FAVORITE` |
@@ -148,7 +149,7 @@ Other indexes (`assets(content_hash)`, `assets(capture_at)`, `trash_entries(expi
 
 ## `analysis_version`
 
-Each photo records the version of the image analysis that produced its analysis columns: `0` means not analysed (new, changed file, or after *Analyze the library again*); `1` (M4) means its perceptual hashes were computed, or that it has no readable thumbnail. When an algorithm changes, `analysisVersion` in [analysis_version.dart](../lib/analysis/analysis_version.dart) is bumped; the next scan then analyses every photo with a lower version. This is a data refresh, not a schema migration. Videos stay at `0` for now. M4 adds no schema change: the columns and `ignored_pairs` existed since schema version 1.
+Each photo records the version of the image analysis that produced its analysis columns: `0` means not analysed (new, changed file, or after *Analyze the library again*); `1` (M4) means its perceptual hashes were computed, or that it has no readable thumbnail. When an algorithm changes, `analysisVersion` in [analysis_version.dart](../lib/analysis/analysis_version.dart) is bumped; the next scan then analyses every photo with a lower version. This is a data refresh, not a schema migration. Version 2 (M5) adds sharpness and brightness on 256-pixel thumbnails, version 3 (M6) the contrast; the schema 4 migration moves the version 2 photos that are sharp enough (or have no readable thumbnail) to version 3, so only photos below the blur threshold are read again. Videos stay at `0` for now. M4 adds no schema change: the columns and `ignored_pairs` existed since schema version 1.
 
 ## Migrations
 
@@ -162,4 +163,5 @@ Every schema change:
 | --- | --- | --- |
 | 1 | M0 | Initial schema. |
 | 3 | M5 | `assets.brightness`. Upgrades from version 1 get it from the version 2 table rebuild, which uses today's columns. |
+| 4 | M6 | `assets.contrast`; from version 3, version 2 photos at a sharpness of 30 or more move to analysis version 3. |
 | 2 | M3 | Media index: `assets.bucket_id`, `taken_at`, `media_revision`; indexes `assets_taken_at`, `assets_bucket_id`. The table is rebuilt (`alterTable`): rows written by the M2 trash move their date from `capture_at` to `taken_at`, since `capture_at` is now reserved for the engine. |

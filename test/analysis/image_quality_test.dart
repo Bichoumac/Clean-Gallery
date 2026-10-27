@@ -32,6 +32,36 @@ void main() {
     }
   });
 
+  test('hazy photos are not blurry, unless they are out of focus too', () {
+    for (final seed in [1, 2, 3, 4, 5]) {
+      final scene = PhotoSet.scene(seed);
+      final hazy = imageQuality(PhotoSet.thumbnail(PhotoSet.hazed(scene, 0.2)));
+      // Faint edges, as low as a blurred photo's, but sharp for the
+      // contrast that is left.
+      expect(hazy.sharpness, lessThan(blurryBelow), reason: '$seed');
+      expect(hazy.contrast, lessThan(10), reason: '$seed');
+      expect(
+        relativeSharpness(sharpness: hazy.sharpness, contrast: hazy.contrast),
+        greaterThanOrEqualTo(hazyFrom),
+        reason: '$seed',
+      );
+      expect(isPoorQuality(hazy), isFalse, reason: '$seed');
+
+      final both = imageQuality(
+        PhotoSet.thumbnail(PhotoSet.hazed(PhotoSet.blurred(scene, 3), 0.2)),
+      );
+      expect(isPoorQuality(both), isTrue, reason: '$seed');
+    }
+  });
+
+  test('without a contrast, the sharpness alone decides', () {
+    expect(isBlurry(sharpness: 12), isTrue);
+    expect(isBlurry(sharpness: 12, contrast: 5), isFalse);
+    expect(isBlurry(sharpness: 12, contrast: 30), isTrue);
+    expect(isBlurry(sharpness: 40, contrast: 30), isFalse);
+    expect(isBlurry(sharpness: 0, contrast: 0), isTrue);
+  });
+
   test('blur lowers the sharpness', () {
     final sharp = measure((p) => p);
     final soft = measure((p) => PhotoSet.blurred(p, 1));
@@ -54,7 +84,11 @@ void main() {
       height: 10,
       pixels: Uint8List(100)..fillRange(0, 100, 128),
     );
-    expect(imageQuality(flat), (sharpness: 0.0, brightness: 128.0));
+    expect(imageQuality(flat), (
+      sharpness: 0.0,
+      brightness: 128.0,
+      contrast: 0.0,
+    ));
     final tiny = GrayImage(width: 2, height: 1, pixels: Uint8List(2));
     expect(imageQuality(tiny).sharpness, 0);
   });

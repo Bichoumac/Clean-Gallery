@@ -437,7 +437,8 @@ class _Member extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text('${item.width} × ${item.height}', style: details),
-          if (item.sharpness case final sharpness? when sharpness < blurryBelow)
+          if (item.sharpness case final sharpness?
+              when isBlurry(sharpness: sharpness, contrast: item.contrast))
             Text(
               l10n.duplicatesBlurry,
               style: details?.copyWith(color: colors.error),

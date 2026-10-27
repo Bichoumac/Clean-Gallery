@@ -16,7 +16,7 @@ Last updated: 2026-10-27 — Milestone M6
 - M4 merged into `main` (PR #5) on 2026-10-27, after a CI fix (the runner's disk was full; the build job now frees space first).
 - **M5 on branch `m5-cleaning`**, in three parts tested one by one on the phone: 1. old screenshots and large videos (confirmed on the phone); 2. blurry and dark photos, one pass on 256-pixel thumbnails (product owner's choice; done, to test); 3. swipe mode, oldest first (product owner's choice; done, to test). On 2026-10-27 the product owner asked to build the rest of M5 in one go, push, and send one report of what to test. See [progress.md](progress.md#m5--cleanup).
 
-- M5 merged into `main` (PR #6) on 2026-10-27. Device test: all good except some **hazy night photos with lights listed as blurry**. Calibrating needs real values: a temporary build (never committed) shows the measures in the info panel, and the product owner reads them on a few photos.
+- M5 merged into `main` (PR #6) on 2026-10-27. Device test: all good except some **hazy night photos with lights listed as blurry**. Calibrated on 2026-10-27 from measures shown by a temporary build (never committed) in the info panel: low sharpness and low relative sharpness mean real blur; the product owner set the hazy threshold at 150 ([ADR 0021](decisions/0021-hazy-photos-are-not-blurry.md)).
 - **M6 on branch `m6-viewer`**: part 1, the info panel, done; then the editor and filters. See [progress.md](progress.md#m6--advanced-viewer-and-editing).
 
 ## Working with the product owner
