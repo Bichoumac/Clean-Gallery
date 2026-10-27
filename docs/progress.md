@@ -13,7 +13,7 @@ Last updated: 2026-10-27 — Milestone M5
 | M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Merged into `main` (PR #3) |
 | M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Merged into `main` (PR #4) |
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Merged into `main` (PR #5) |
-| M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Done on `m5-cleaning` (pushed): part 1 confirmed on the phone, parts 2 and 3 to test |
+| M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Done on `m5-cleaning` (pushed), confirmed on the phone; pull request opened by the product owner |
 | M6 | Advanced viewer and editing | Not started |
 | M7 | Exploration: map, search | Not started |
 | M8 | Monetization | Not started |
@@ -40,14 +40,14 @@ Three parts, each committed and tested on the phone: 1. old screenshots and larg
 
 ### Known issues
 
-- Part 1 confirmed on the Galaxy A54 on 2026-10-27; parts 2 and 3 not verified on a device yet ([testing.md](testing.md#m5--cleanup-to-verify-on-a-device)).
-- The blur (30) and darkness (20) thresholds come from synthetic photos; flat scenes (sky, fog, a wall) may be listed as blurry. To check on real photos.
+- All three parts confirmed on the Galaxy A54 on 2026-10-27 ([testing.md](testing.md#m5--cleanup-to-verify-on-a-device)), with one false positive: some **night photos with lights, hazy from mist**, are listed as blurry. The blur (30) and darkness (20) thresholds come from synthetic photos; flat scenes (sky, fog, a wall) may also be listed.
 
 ### Next steps
 
-1. Device test of parts 2 and 3 ([testing.md](testing.md#m5--cleanup-to-verify-on-a-device)); adjust the blur thresholds if needed.
-2. Pull request of M5, then M6 (advanced viewer and editing).
-3. Later: stack similar photos in the timelines (product owner's request).
+1. Merge the M5 pull request.
+2. Calibrate the blur rule on real photos (hazy night shots); needs measured values, see the product owner.
+3. M6 (advanced viewer and editing).
+4. Later: stack similar photos in the timelines (product owner's request).
 
 ## M4 — Engine level 2
 
@@ -95,7 +95,7 @@ Three parts, each committed and tested on the phone: 1. old screenshots and larg
 
 1. Review and merge the M4 pull request.
 2. M5: swipe mode, blurry photos (sharpness also refines the best pick), screenshots, large videos.
-3. Later: stack similar photos in the timelines (product owner's request, 2026-10-27).
+4. Later: stack similar photos in the timelines (product owner's request, 2026-10-27).
 
 ## M3 — Engine level 1
 

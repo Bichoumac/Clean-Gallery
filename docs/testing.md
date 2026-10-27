@@ -171,6 +171,8 @@ Part 3, sort mode (swipe), and the *Blurry* label. Same install as part 2 if bui
 | 8 | A small month or folder, to the end | "All sorted!" with the counts and the space freed; *Open the trash*, *Start over*, *Done* work. |
 | 9 | Duplicates → a group with a blurry photo | "Blurry" in red under its resolution; the sharp one marked Best. |
 
+Parts 2 and 3 results on the Galaxy A54, reported by the product owner on 2026-10-27: everything confirmed except part 2 item 3, where some night photos with lights, hazy from mist and cold, are listed as blurry (false positives).
+
 ### M4 — similar photos and Stats, to verify on a device
 
 Install the release build over the M3 version (`adb install -r`, do not uninstall), so existing hashes and groups are kept. Before the test, prepare: a photo sent to yourself on WhatsApp and saved (a smaller, recompressed copy), and two photos of the same scene taken a few seconds apart, not as a burst.
