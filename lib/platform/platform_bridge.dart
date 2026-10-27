@@ -38,4 +38,8 @@ abstract interface class PlatformBridge {
   /// GPS data; the originals are not changed. Videos are always shared as
   /// they are.
   Future<void> share(List<MediaItem> items, {required bool removeLocation});
+
+  /// Opens a map app at [latitude], [longitude]. Returns `false` when no
+  /// app can show a location.
+  Future<bool> openMap(double latitude, double longitude);
 }

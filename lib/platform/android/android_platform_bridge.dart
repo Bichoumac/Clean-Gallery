@@ -179,6 +179,15 @@ final class AndroidPlatformBridge implements PlatformBridge {
     });
   }
 
+  @override
+  Future<bool> openMap(double latitude, double longitude) async {
+    final opened = await _channel.invokeMethod<bool>('openMap', {
+      'latitude': latitude,
+      'longitude': longitude,
+    });
+    return opened ?? false;
+  }
+
   /// Items as the native side expects them.
   List<Map<String, Object?>> _encode(List<MediaItem> items) => [
     for (final item in items)

@@ -1,5 +1,6 @@
 package com.bichoumac.clean_gallery
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -113,6 +114,15 @@ class MainActivity : FlutterActivity() {
                 call.argument<Boolean>("removeLocation") == true,
                 result,
             )
+            "openMap" -> {
+                val latitude = call.argument<Double>("latitude")
+                val longitude = call.argument<Double>("longitude")
+                if (latitude == null || longitude == null) {
+                    result.error("bad_arguments", "latitude and longitude are required", null)
+                } else {
+                    result.success(openMap(latitude, longitude))
+                }
+            }
             else -> result.notImplemented()
         }
     }
@@ -141,6 +151,21 @@ class MainActivity : FlutterActivity() {
         }
         if (intent.resolveActivity(packageManager) != null) {
             startActivity(intent)
+        }
+    }
+
+    /**
+     * Opens the user's map app at [latitude], [longitude] with a `geo:` URI,
+     * with a pin. Returns `false` when no app handles it.
+     */
+    private fun openMap(latitude: Double, longitude: Double): Boolean {
+        val point = "$latitude,$longitude"
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("geo:$point?q=$point"))
+        return try {
+            startActivity(intent)
+            true
+        } catch (e: ActivityNotFoundException) {
+            false
         }
     }
 

@@ -107,6 +107,15 @@ class FakePlatformBridge implements PlatformBridge {
   }) async {
     shareRequests.add(([for (final i in items) i.id], removeLocation));
   }
+
+  /// Locations passed to [openMap].
+  final mapRequests = <(double, double)>[];
+
+  @override
+  Future<bool> openMap(double latitude, double longitude) async {
+    mapRequests.add((latitude, longitude));
+    return true;
+  }
 }
 
 /// A 1 × 1 transparent PNG, used as every image of [FakeMediaSource].

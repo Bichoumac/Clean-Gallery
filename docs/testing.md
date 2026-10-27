@@ -140,11 +140,11 @@ Part 1, info panel. Install over M5 (`adb install -r`).
 | --- | --- | --- |
 | 1 | Open a photo taken with the phone, tap ⓘ (Details) | A panel slides up; the photo shows blurred through it. Date with *From the photo's metadata (EXIF)*, name, path, resolution with megapixels, size. |
 | 2 | Same panel, below | Camera (e.g. *samsung Galaxy A54 5G*), then tiles ISO, Aperture, Shutter speed, Focal length with its 35 mm equivalent. |
-| 3 | A photo taken with location on | *Location* with coordinates; long-press selects them, and pasted in a map app they point to the right place. |
+| 3 | A photo taken with location on | Coordinates under *Location · tap to open in a map app*; tapping them opens the map app on the right place; the copy button shows a check and the coordinates paste elsewhere. |
 | 4 | A WhatsApp image or a screenshot | *From the file name* or *File date*; *No camera information in this file.* |
 | 5 | A video | Duration; its location if the camera saved one; no camera tiles. |
 | 6 | Swipe the panel down, tap above it, Back | Each closes it; the viewer stays on the same photo. |
-| 7 | Largest font size | The panel scrolls, nothing is cut off. |
+| 7 | Largest font size | The panel scrolls to its last row, above the navigation bar; nothing is cut off. |
 
 ### M5 — cleanup, to verify on a device
 

@@ -44,11 +44,11 @@ Route: `/viewer`, above the tabs, with `ViewerArgs(selection, initialIndex)` as 
 The brief: "a bottom sheet that slides up with a translucent blurred background over the photo. It shows the date (and its source), file name, path, size, resolution, camera, lens, ISO, aperture, shutter speed, focal length, and GPS location with a mini map."
 
 - Opened with the **details** button (ⓘ) of the top bar; closed by swiping it down, tapping the photo above it, or Back.
-- A modal bottom sheet over a `BackdropFilter` blur (σ 30) and 55 % black, at most 75 % of the screen high, scrolling when longer.
+- A modal bottom sheet over a `BackdropFilter` blur (σ 30) and 55 % black, at most 90 % of the screen high, scrolling when longer. Its content ends above the system navigation bar: the sheet is drawn edge to edge, and on the device the last rows were hidden under that bar at first (75 % high, no bottom inset; product owner, 2026-10-27).
 - What the index already knows shows at once: date, name, path, resolution and megapixels, size, video duration. The rest is read when the panel opens (`mediaInfoProvider` in [media_info.dart](../../lib/features/viewer/media_info.dart)), with a small spinner until then:
   - **Date source**, from the media index (`MediaIndexRepository.dateSource`): *From the photo's metadata (EXIF)*, *From the file name*, or *File date* (also when corrected dates are turned off in Settings, since the date shown is then the system's);
   - **Camera metadata**, from the file's EXIF header (`MediaSource.metadata`, native `mediaMetadata`, [platform-android.md](../platform-android.md#native-channel-clean_galleryplatform)): camera (maker and model, the maker once), lens, then ISO, aperture (`f/1.8`), shutter speed (`1/125 s`) and focal length (`5.4 mm · 24 mm equivalent`) as small tiles;
-  - **Location**, as latitude and longitude with five decimals, selectable to paste into a map app. Videos only have a location.
+  - **Location**, as latitude and longitude with five decimals: tapping it opens the user's map app on that point (a `geo:` intent, `PlatformBridge.openMap`; when no app handles it, the panel closes and a snack bar says so), and a copy button puts the coordinates on the clipboard. Videos only have a location.
 - Missing values are left out. A photo with no camera data at all says *No camera information in this file.*; without the media location permission, the location row says to allow it in Settings (Android hides GPS tags from apps without it).
 - **No mini map yet**: it comes with the map in M7, which adds `flutter_map` and the OpenStreetMap tiles; showing it here first would have meant adding the map library and network access one milestone early.
 
@@ -64,7 +64,7 @@ The brief: "a bottom sheet that slides up with a translucent blurred background 
 
 - [library_test.dart](../../test/features/library/library_test.dart): opening the viewer on the tapped item, showing its file name, closing with back.
 - [viewer_test.dart](../../test/features/viewer/viewer_test.dart): swipe left and right (fling and slow drag), pinch then pan without changing page, double-tap back to fit, top bar height.
-- [info_panel_test.dart](../../test/features/viewer/info_panel_test.dart): the panel with camera settings and location, the notes for missing camera data and location permission, value formats.
+- [info_panel_test.dart](../../test/features/viewer/info_panel_test.dart): the panel with camera settings and location, the location reached at the end and opening a map, the notes for missing camera data and location permission, value formats.
 - [video_controls_test.dart](../../test/features/viewer/video_controls_test.dart): progress bar at the bottom and play button centered, in portrait and landscape (the bar was in the middle of the screen because `Slider` takes all the height it is given).
 - Video playback, zoom gestures and Hero transitions are checked on a device ([testing.md](../testing.md#m1--to-verify-on-a-device)).
 

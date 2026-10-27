@@ -11,8 +11,14 @@ void main() {
     WidgetTester tester,
     FakeMediaSource media, {
     FakePermissionService? permissions,
+    FakePlatformBridge? bridge,
   }) async {
-    await pumpTestApp(tester, media: media, permissions: permissions);
+    await pumpTestApp(
+      tester,
+      media: media,
+      permissions: permissions,
+      bridge: bridge,
+    );
     await tester.tap(find.byType(MediaThumbnail).first);
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Details'));
@@ -23,6 +29,7 @@ void main() {
   testApp('shows the file, the camera settings and the location', (
     tester,
   ) async {
+    final bridge = FakePlatformBridge();
     final media = FakeMediaSource(items: [testItem(1, sizeBytes: 3 << 20)])
       ..metadatas['1'] = const MediaMetadata(
         make: 'samsung',
@@ -35,7 +42,7 @@ void main() {
         latitude: 48.856613,
         longitude: 2.352222,
       );
-    await openInfo(tester, media);
+    await openInfo(tester, media, bridge: bridge);
 
     expect(find.text("From the photo's metadata (EXIF)"), findsOneWidget);
     expect(find.text('IMG_1.jpg'), findsWidgets);
@@ -46,7 +53,14 @@ void main() {
     expect(find.text('f/1.8'), findsOneWidget);
     expect(find.text('1/125 s'), findsOneWidget);
     expect(find.text('5.4 mm · 24 mm equivalent'), findsOneWidget);
-    expect(find.text('48.85661, 2.35222'), findsOneWidget);
+    expect(find.text('Location · tap to open in a map app'), findsOneWidget);
+
+    // The end of the panel can be reached, and the location opens a map.
+    await tester.ensureVisible(find.text('48.85661, 2.35222'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('48.85661, 2.35222'));
+    await tester.pumpAndSettle();
+    expect(bridge.mapRequests, [(48.856613, 2.352222)]);
   });
 
   testApp('says what is missing', (tester) async {

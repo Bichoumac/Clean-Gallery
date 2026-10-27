@@ -1,11 +1,14 @@
 import 'dart:ui';
 
 import 'package:clean_gallery/core/media/media_formatting.dart';
+import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/domain/media_item.dart';
+import 'package:clean_gallery/domain/media_metadata.dart';
 import 'package:clean_gallery/features/viewer/media_info.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
 
@@ -76,10 +79,17 @@ class InfoPanel extends ConsumerWidget {
           color: Colors.black.withValues(alpha: 0.55),
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              maxHeight: MediaQuery.sizeOf(context).height * 0.75,
+              maxHeight: MediaQuery.sizeOf(context).height * 0.9,
             ),
             child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+              // Below the content, room for the system navigation bar: the
+              // sheet is drawn under it, edge to edge.
+              padding: EdgeInsets.fromLTRB(
+                24,
+                12,
+                24,
+                24 + MediaQuery.viewPaddingOf(context).bottom,
+              ),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -179,8 +189,14 @@ class InfoPanel extends ConsumerWidget {
                         metadata.latitude!,
                         metadata.longitude!,
                       ),
-                      label: l10n.infoLocation,
-                      selectable: true,
+                      label: l10n.infoLocationOpen,
+                      onTap: () => _openMap(context, ref, metadata),
+                      trailing: _CopyButton(
+                        text: formatCoordinates(
+                          metadata.latitude!,
+                          metadata.longitude!,
+                        ),
+                      ),
                     )
                   else if (info != null && !info.locationAllowed)
                     _InfoRow(
@@ -207,6 +223,25 @@ class InfoPanel extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Opens the map app at the location of [metadata]; when there is none,
+/// closes the panel and says so.
+Future<void> _openMap(
+  BuildContext context,
+  WidgetRef ref,
+  MediaMetadata metadata,
+) async {
+  final messenger = ScaffoldMessenger.of(context);
+  final navigator = Navigator.of(context);
+  final message = AppLocalizations.of(context).infoNoMapApp;
+  final opened = await ref
+      .read(platformBridgeProvider)
+      .openMap(metadata.latitude!, metadata.longitude!);
+  if (opened) return;
+  // A snack bar would show under the panel.
+  navigator.pop();
+  messenger.showSnackBar(SnackBar(content: Text(message)));
 }
 
 /// Aperture as `f/1.8`.
@@ -240,7 +275,8 @@ class _InfoRow extends StatelessWidget {
     required this.value,
     this.label,
     this.muted = false,
-    this.selectable = false,
+    this.onTap,
+    this.trailing,
   });
 
   final IconData icon;
@@ -250,16 +286,26 @@ class _InfoRow extends StatelessWidget {
   /// Grey text: a note rather than a value.
   final bool muted;
 
-  /// Whether the value can be selected and copied.
-  final bool selectable;
+  /// Called when the row is tapped; the value then reads as a link.
+  final VoidCallback? onTap;
+
+  /// Shown at the end of the row, e.g. a copy button.
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final style = muted
-        ? textTheme.bodyMedium?.copyWith(color: Colors.white70)
-        : textTheme.bodyLarge?.copyWith(color: Colors.white);
-    return Padding(
+    final link = Theme.of(context).colorScheme.primary;
+    final style = switch ((muted, onTap)) {
+      (true, _) => textTheme.bodyMedium?.copyWith(color: Colors.white70),
+      (_, null) => textTheme.bodyLarge?.copyWith(color: Colors.white),
+      _ => textTheme.bodyLarge?.copyWith(
+        color: link,
+        decoration: TextDecoration.underline,
+        decorationColor: link,
+      ),
+    };
+    final row = Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -272,10 +318,7 @@ class _InfoRow extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (selectable)
-                  SelectableText(value, style: style)
-                else
-                  Text(value, style: style),
+                Text(value, style: style),
                 if (label case final label?)
                   Text(
                     label,
@@ -284,10 +327,48 @@ class _InfoRow extends StatelessWidget {
               ],
             ),
           ),
+          ?trailing,
         ],
       ),
     );
+    if (onTap == null) return row;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: row,
+    );
   }
+}
+
+/// Copies [text] to the clipboard; shows a check for a moment after.
+class _CopyButton extends StatefulWidget {
+  const _CopyButton({required this.text});
+
+  final String text;
+
+  @override
+  State<_CopyButton> createState() => _CopyButtonState();
+}
+
+class _CopyButtonState extends State<_CopyButton> {
+  bool _copied = false;
+
+  Future<void> _copy() async {
+    await Clipboard.setData(ClipboardData(text: widget.text));
+    if (!mounted) return;
+    setState(() => _copied = true);
+    await Future<void>.delayed(const Duration(seconds: 2));
+    if (mounted) setState(() => _copied = false);
+  }
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+    tooltip: AppLocalizations.of(context).infoCopy,
+    color: Colors.white70,
+    visualDensity: VisualDensity.compact,
+    onPressed: _copy,
+    icon: Icon(_copied ? Icons.check_rounded : Icons.copy_rounded),
+  );
 }
 
 /// A camera setting (ISO, aperture…) as a small tile: value over label.

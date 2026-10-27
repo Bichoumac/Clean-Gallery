@@ -10,6 +10,7 @@ Last updated: 2026-10-27 — Milestone M6
 
 - Viewer: an **info panel** (Details button), sliding up over a blurred, translucent background: date and where it comes from, name, path, resolution, size, duration, camera, lens, ISO, aperture, shutter speed, focal length and location ([docs/features/viewer.md](docs/features/viewer.md#info-panel)).
 - Native method `mediaMetadata`: EXIF of a photo, location of a video.
+- Info panel: the location opens the map app; a button copies the coordinates.
 
 ## [M5] — 2026-10-27 — Cleanup
 
