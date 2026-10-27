@@ -177,6 +177,8 @@ Viewer, third round on 2026-10-27. With the product owner's permission, the app 
 | Pinch | Pinching did not zoom (double tap did): reproduced in a widget test, a first finger sliding a little before the second landed went to the page view. The zoom now claims the gesture when the second finger lands. |
 | Confirmed | "Everything is sharp very quickly": photos sharp at once, also when coming back to a photo already seen. |
 
+Last round on 2026-10-27, reported as "all good" by the product owner: pinch zoom and one-finger pan once zoomed, item 9 (advanced mode), 10 (Stats tab) and 13 (*Analyze the library again*: same groups, the ones marked Not duplicates stay gone). Every item of the M4 checklist is now confirmed.
+
 Fixes for the second test (same checklist): progress "Analyzing: N of M items", groups rebuilt every 1,000 photos, a failing thumbnail batch skipped instead of stopping the scan, native calls that always reply, Stats rows opening their section, two threads rendering thumbnails. The cause of the missing groups is not confirmed: the scan may simply not have reached the end, or a native error may have stopped it.
 
 ### M3 — media index, to verify on a device

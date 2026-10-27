@@ -55,7 +55,7 @@ Last updated: 2026-10-27 — Milestone M4
 - **The first analysis is long**: about 25 minutes for 20,000 photos on the Galaxy A54 (860 photos a minute with four threads, 760 with two), limited by MediaStore's thumbnail rendering. Only once: later scans read new photos only. Embedded JPEG thumbnails could be faster; not tried.
 - **Similar photos are not stacked in the timelines**, only grouped on the duplicates screen. The product owner wants stacking later (M5 or after).
 - **Viewer blurry until zoomed in**: MediaStore's thumbnail cache stops at 512 px on the Galaxy A54, so the "screen-sized" preview was a 384 × 512 thumbnail stretched. Fixed on 2026-10-27 (preview decoded from the file, 0.3 to 0.7 s) and confirmed on the phone. Pinch zoom, which went to the page view, fixed the same day ([testing.md](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device)).
-- Not verified on a device: the rest of M4, including the time of the first analysis on a large library and the false positive rate on real photos.
+- Every item of the M4 checklist was confirmed on the Galaxy A54 on 2026-10-27, pinch zoom included. The false positive rate was only judged by eye on one library.
 - The camera model and GPS bonuses of the confidence score do not apply yet: those columns are filled in M6 and M7. The score is stored, not shown.
 - A photo whose thumbnail cannot be rendered is not compared until its file changes.
 - Videos are not compared (brief: same duration, resolution and close dates); not part of M4's list.
@@ -63,11 +63,9 @@ Last updated: 2026-10-27 — Milestone M4
 
 ### Next steps
 
-1. Finish the [M4 checklist](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device): items 9 and 10, then *Analyze the library again* (13) last.
-2. Pinch zoom in the viewer: confirm on the phone.
-3. Review and merge the M4 pull request.
-4. M5: swipe mode, blurry photos (sharpness also refines the best pick), screenshots, large videos.
-5. Later: stack similar photos in the timelines (product owner's request, 2026-10-27).
+1. Review and merge the M4 pull request.
+2. M5: swipe mode, blurry photos (sharpness also refines the best pick), screenshots, large videos.
+3. Later: stack similar photos in the timelines (product owner's request, 2026-10-27).
 
 ## M3 — Engine level 1
 

@@ -10,10 +10,10 @@ Last updated: 2026-10-27 — Milestone M4
 - End of 2026-10-27: M0 to M3 are merged into `main` (M3 as PR #4). M4 is on branch `m4-similar` (committed locally, not pushed).
 - **M4 device tests (2026-10-27)**: the first found no similar groups; after the fixes (commit `d07c2fd`) the second confirmed similar groups, progress, resume, Not duplicates, sensitivity and Stats rows. Decisions A (multi-index hashing, ADR 0019) and B (keep the pre-selection) are approved. Results in [testing.md](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device).
 - **Chips on the duplicates screen** (All, Identical copies, Bursts, Similar photos) added at the product owner's request, Stats split the same way; to check on the phone.
-- **Checked on 2026-10-27**: chips clearer, WhatsApp copy grouped with its original marked Best, cleaning from Stats, viewer sharp at once (previews now decoded from the file: MediaStore's cache stops at 512 px on this phone). **Still to check**: pinch zoom in the viewer, M4 items 9 and 10, then *Analyze the library again* last (about 25 minutes).
+- **Checked on 2026-10-27**: chips clearer, WhatsApp copy grouped with its original marked Best, cleaning from Stats, viewer sharp at once (previews now decoded from the file: MediaStore's cache stops at 512 px on this phone). Then pinch zoom, items 9, 10 and 13 (*Analyze the library again*): the whole M4 checklist is confirmed.
 - **Measuring on the phone**: the product owner allowed reading `logcat` lines that hold only durations and sizes, logged under one tag by temporary code that is never committed. Ask again for each new measurement.
 - **Product owner's request**: stack similar photos in the timelines, later (M5 or after).
-- **Next**: finish the M4 checks above, then push `m4-similar` when asked, open the pull request, then M5 (swipe mode, blurry photos, screenshots, large videos).
+- **Next**: `m4-similar` pushed on 2026-10-27; the product owner opens and merges the pull request, then M5 (swipe mode, blurry photos, screenshots, large videos).
 
 ## Working with the product owner
 
