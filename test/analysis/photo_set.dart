@@ -110,10 +110,27 @@ abstract final class PhotoSet {
     );
   }
 
+  /// [image] out of focus: a gaussian blur of [radius] pixels.
+  static img.Image blurred(img.Image image, int radius) =>
+      img.gaussianBlur(image.clone(), radius: radius);
+
+  /// [image] with its brightness scaled by [factor] (0–1): an underexposed
+  /// shot.
+  static img.Image darkened(img.Image image, double factor) {
+    final copy = image.clone();
+    for (final pixel in copy) {
+      pixel
+        ..r = (pixel.r * factor).round()
+        ..g = (pixel.g * factor).round()
+        ..b = (pixel.b * factor).round();
+    }
+    return copy;
+  }
+
   /// [image] as the platform hands it to the engine: a grayscale thumbnail
-  /// fitting in 128 × 128.
-  static GrayImage thumbnail(img.Image image) {
-    final scale = 128 / math.max(image.width, image.height);
+  /// fitting in [side] × [side] (256, as the scan asks for).
+  static GrayImage thumbnail(img.Image image, {int side = 256}) {
+    final scale = side / math.max(image.width, image.height);
     final small = img.copyResize(
       image,
       width: math.max(1, (image.width * scale).round()),

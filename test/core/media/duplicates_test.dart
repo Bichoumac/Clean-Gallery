@@ -138,7 +138,7 @@ void main() {
         .duplicateGroups(MediaSelection.all);
     final burst = all.singleWhere((g) => g.kind == DuplicateKind.burst);
     expect(burst.items.map((i) => i.id), unorderedEquals(['10', '11', '12']));
-    // Largest file kept (sharpness comes in M5).
+    // Largest file kept: no thumbnail here, so no sharpness to compare.
     expect(burst.best.id, '12');
     // Different sizes: no file read for them.
     expect(source.hashCalls.expand((ids) => ids), isNot(contains('10')));

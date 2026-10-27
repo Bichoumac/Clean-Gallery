@@ -5,6 +5,7 @@ import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/core/router/home_shell.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/enums.dart';
+import 'package:clean_gallery/features/cleanup/cleanup_lists.dart';
 import 'package:clean_gallery/features/duplicates/duplicates_screen.dart';
 import 'package:clean_gallery/features/stats/storage_summary.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
@@ -16,8 +17,7 @@ import 'package:go_router/go_router.dart';
 /// much cleaning could free, and that space by category; each category
 /// opens its cleanup tool.
 ///
-/// Blurry photos, screenshots and large videos come with M5; their rows
-/// show "—" until then. See `docs/features/stats.md`.
+/// See `docs/features/stats.md`.
 class StatsScreen extends ConsumerWidget {
   /// Creates the Stats tab.
   const StatsScreen({super.key});
@@ -90,27 +90,51 @@ class StatsScreen extends ConsumerWidget {
         ),
         const SizedBox(height: 16),
         Card(
+          clipBehavior: Clip.antiAlias,
+          child: _CategoryRow(
+            icon: Icons.swipe_rounded,
+            label: l10n.swipeTitle,
+            detail: l10n.swipeEntryHelp,
+            value: '',
+            onTap: () => context.go(SwipeRoutes.sources),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Card(
+          clipBehavior: Clip.antiAlias,
           child: Column(
             children: [
               _CategoryRow(
-                icon: Icons.blur_on_rounded,
-                label: l10n.statsBlurry,
-                detail: l10n.statsLater,
-                value: unknown,
-              ),
-              const Divider(indent: 64),
-              _CategoryRow(
                 icon: Icons.screenshot_rounded,
                 label: l10n.statsScreenshots,
-                detail: l10n.statsLater,
-                value: unknown,
+                detail: summary == null
+                    ? null
+                    : l10n.statsItems(summary.screenshots.count),
+                value: size(summary?.screenshots.bytes),
+                onTap: () =>
+                    context.go(CleanupRoutes.location(CleanupList.screenshots)),
               ),
               const Divider(indent: 64),
               _CategoryRow(
                 icon: Icons.movie_rounded,
                 label: l10n.statsLargeVideos,
-                detail: l10n.statsLater,
-                value: unknown,
+                detail: summary == null
+                    ? null
+                    : l10n.statsItems(summary.largeVideos.count),
+                value: size(summary?.largeVideos.bytes),
+                onTap: () =>
+                    context.go(CleanupRoutes.location(CleanupList.largeVideos)),
+              ),
+              const Divider(indent: 64),
+              _CategoryRow(
+                icon: Icons.blur_on_rounded,
+                label: l10n.statsBlurry,
+                detail: summary == null
+                    ? null
+                    : l10n.statsItems(summary.poorQuality.count),
+                value: size(summary?.poorQuality.bytes),
+                onTap: () =>
+                    context.go(CleanupRoutes.location(CleanupList.poorQuality)),
               ),
             ],
           ),

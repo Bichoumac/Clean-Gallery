@@ -90,6 +90,18 @@ class AppSettingsController extends _$AppSettingsController {
     await _repository.write(SettingKeys.indexRules, '$version');
   }
 
+  /// Sets the age from which screenshots are offered for cleaning.
+  Future<void> setScreenshotAgeDays(int days) async {
+    state = state.copyWith(screenshotAgeDays: days);
+    await _repository.write(SettingKeys.screenshotAgeDays, '$days');
+  }
+
+  /// Sets the size from which videos are offered for cleaning.
+  Future<void> setLargeVideoMegabytes(int megabytes) async {
+    state = state.copyWith(largeVideoMegabytes: megabytes);
+    await _repository.write(SettingKeys.largeVideoMegabytes, '$megabytes');
+  }
+
   /// Sets the similar photo sensitivity. Choosing
   /// [SimilaritySensitivity.custom] starts from the thresholds in use.
   Future<void> setSimilaritySensitivity(

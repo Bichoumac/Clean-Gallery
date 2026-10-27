@@ -2,9 +2,28 @@
 
 All notable changes to this project are documented here, one section per milestone. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-10-27 — Milestone M4
+Last updated: 2026-10-27 — Milestone M5
 
 ## [Unreleased]
+
+### Added
+
+- Cleanup lists, from the Stats tab: **Old screenshots** (older than 30 days by default) and **Large videos** (from 100 MB, largest first), with their rule and total, Select all and move to trash ([docs/features/cleanup.md](docs/features/cleanup.md)).
+- Screenshots recognized while indexing: Screenshots folder, file name, or PNG at the display's size (index rules version 3).
+- Settings → Cleanup: screenshot age and large video size.
+- **Select all** in the selection bar of every grid.
+- Stats: old screenshots and large videos count in the space that could be freed.
+- **Blurry photos** cleanup list and Stats row: photos out of focus or very dark, measured with the perceptual hashes in one pass over 256-pixel thumbnails ([ADR 0020](docs/decisions/0020-blur-and-brightness-with-the-hashes.md)).
+- Database schema version 3: `assets.brightness`.
+- **Sort mode (swipe)** from the Stats tab: all photos, blurry photos, old screenshots, a month or a folder, oldest first; left to trash, right to keep, a heart to keep as a favorite; Undo always visible and multi-level; resumable sessions (`swipe_history`) with progress and an end summary ([docs/features/swipe.md](docs/features/swipe.md)).
+- Duplicates screen: a **Blurry** label under blurry members.
+
+### Changed
+
+- The analysis reads 256-pixel thumbnails instead of 128 and measures sharpness and brightness (analysis version 2): every photo is analysed again once after the update.
+- Best pick: the sharper of two photos of the same resolution is kept (bursts, close shots).
+
+## [M4 follow-ups] — 2026-10-27
 
 ### Fixed
 

@@ -2,7 +2,7 @@
 
 Every documentation file in the repository, with a one-line description. Start with [progress.md](progress.md) to see where the project stands.
 
-Last updated: 2026-10-27 — Milestone M4
+Last updated: 2026-10-27 — Milestone M5
 
 ## Project
 
@@ -40,6 +40,8 @@ Planned files: `monetization.md` (M8), `release.md` (M9).
 | [features/settings.md](features/settings.md) | Settings tab. |
 | [features/duplicates.md](features/duplicates.md) | Duplicates tile and screen: certain and similar groups, Best badge, Not duplicates, cleaning. |
 | [features/stats.md](features/stats.md) | Stats tab: storage dashboard. |
+| [features/cleanup.md](features/cleanup.md) | Cleanup lists: old screenshots, large videos, blurry photos. |
+| [features/swipe.md](features/swipe.md) | Sort mode: swipe left to trash, right to keep, undo, resumable sessions. |
 
 One file per feature is added as each feature is built.
 
@@ -66,3 +68,4 @@ One file per feature is added as each feature is built.
 | [0017](decisions/0017-exact-duplicates-sha256.md) | Exact duplicates with SHA-256 on size collisions |
 | [0018](decisions/0018-perceptual-hashes-from-thumbnails.md) | Perceptual hashes from grayscale thumbnails, computed in Dart |
 | [0019](decisions/0019-similar-photo-search.md) | Similar photo search with multi-index hashing instead of a BK-tree |
+| [0020](decisions/0020-blur-and-brightness-with-the-hashes.md) | Blur and brightness measured with the hashes, on 256-pixel thumbnails |

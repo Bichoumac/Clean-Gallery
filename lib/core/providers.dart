@@ -1,7 +1,10 @@
+import 'dart:ui' show PlatformDispatcher;
+
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/core/database/duplicate_repository.dart';
 import 'package:clean_gallery/core/database/media_index_repository.dart';
 import 'package:clean_gallery/core/database/settings_repository.dart';
+import 'package:clean_gallery/core/database/swipe_repository.dart';
 import 'package:clean_gallery/core/database/trash_repository.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
 import 'package:clean_gallery/domain/trashed_item.dart';
@@ -32,6 +35,15 @@ SettingsRepository settingsRepository(Ref ref) {
   return SettingsRepository(ref.watch(appDatabaseProvider));
 }
 
+/// Size of the device's display in physical pixels, or `null` when the
+/// platform does not report it. Screenshots are recognized by it.
+@Riverpod(keepAlive: true)
+({int width, int height})? screenSize(Ref ref) {
+  final size = PlatformDispatcher.instance.displays.firstOrNull?.size;
+  if (size == null || size.isEmpty) return null;
+  return (width: size.width.round(), height: size.height.round());
+}
+
 /// The media index stored in the `assets` table, read with the date chosen
 /// in Settings.
 @Riverpod(keepAlive: true)
@@ -40,6 +52,7 @@ MediaIndexRepository mediaIndexRepository(Ref ref) => MediaIndexRepository(
   correctedDates: ref.watch(
     appSettingsControllerProvider.select((s) => s.correctedDates),
   ),
+  screen: ref.watch(screenSizeProvider),
 );
 
 /// Hashes and groups of the duplicate detection.
@@ -51,6 +64,11 @@ DuplicateRepository duplicateRepository(Ref ref) =>
 @Riverpod(keepAlive: true)
 TrashRepository trashRepository(Ref ref) =>
     TrashRepository(ref.watch(appDatabaseProvider));
+
+/// Decisions of the swipe sessions.
+@Riverpod(keepAlive: true)
+SwipeRepository swipeRepository(Ref ref) =>
+    SwipeRepository(ref.watch(appDatabaseProvider));
 
 /// Ids of trashed items. Every media list hides them.
 @Riverpod(keepAlive: true)

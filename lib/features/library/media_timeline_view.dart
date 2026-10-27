@@ -39,6 +39,8 @@ class MediaTimelineView extends ConsumerWidget {
     required this.title,
     required this.emptyTitle,
     this.showBackButton = false,
+    this.subtitle,
+    this.summary,
     super.key,
   });
 
@@ -54,6 +56,12 @@ class MediaTimelineView extends ConsumerWidget {
   /// Whether to show a back button before the title (album pages).
   final bool showBackButton;
 
+  /// Line under the title, e.g. the rule of a cleanup list.
+  final String? subtitle;
+
+  /// Second line under the title, e.g. "42 items · 1.2 GB".
+  final String? summary;
+
   Future<void> _refresh(WidgetRef ref) async {
     ref.invalidate(mediaAccessProvider);
     await ref.read(mediaIndexProvider.notifier).sync();
@@ -66,6 +74,8 @@ class MediaTimelineView extends ConsumerWidget {
       base: selection,
       title: title,
       showBackButton: showBackButton,
+      subtitle: subtitle,
+      summary: summary,
     );
     if (access == MediaAccess.denied) {
       return _Scaffolding(
@@ -498,6 +508,14 @@ class _TimelineState extends ConsumerState<_Timeline> {
                     count: picked.length,
                     onClose: _clearSelection,
                     actions: [
+                      if (picked.length < widget.items.length)
+                        SelectionAction(
+                          icon: Icons.select_all_rounded,
+                          label: l10n.selectionSelectAll,
+                          onPressed: () => _setPicked({
+                            for (final item in widget.items) item.id,
+                          }),
+                        ),
                       SelectionAction(
                         icon: Icons.share_rounded,
                         label: l10n.actionShare,
@@ -606,11 +624,15 @@ class _TimelineHeader extends ConsumerWidget {
     required this.base,
     required this.title,
     required this.showBackButton,
+    this.subtitle,
+    this.summary,
   });
 
   final MediaSelection base;
   final String title;
   final bool showBackButton;
+  final String? subtitle;
+  final String? summary;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -653,6 +675,16 @@ class _TimelineHeader extends ConsumerWidget {
                 ),
               ],
             ),
+            for (final line in [?subtitle, ?summary])
+              Padding(
+                padding: EdgeInsets.only(left: showBackButton ? 12 : 0),
+                child: Text(
+                  line,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
+                ),
+              ),
             if (customized)
               Padding(
                 padding: EdgeInsets.only(top: 8, left: showBackButton ? 12 : 0),
@@ -669,12 +701,12 @@ class _TimelineHeader extends ConsumerWidget {
                         onPressed: () => showSortFilterSheet(context, base),
                         onDeleted: () => notifier.setDates(null),
                       ),
-                    if (shown.sort != MediaSort.newest)
+                    if (shown.sort != base.sort)
                       InputChip(
                         avatar: const Icon(Icons.sort_rounded, size: 18),
                         label: Text(sortLabel(context, shown.sort)),
                         onPressed: () => showSortFilterSheet(context, base),
-                        onDeleted: () => notifier.setSort(MediaSort.newest),
+                        onDeleted: () => notifier.setSort(base.sort),
                       ),
                   ],
                 ),

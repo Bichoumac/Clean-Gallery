@@ -1,6 +1,8 @@
 import 'package:clean_gallery/analysis/best_picker.dart';
 import 'package:clean_gallery/analysis/burst.dart';
 import 'package:clean_gallery/analysis/capture_date.dart';
+import 'package:clean_gallery/analysis/image_quality.dart';
+import 'package:clean_gallery/analysis/screenshot.dart';
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/duplicate_group.dart';
@@ -21,12 +23,20 @@ import 'package:drift/drift.dart';
 /// otherwise by the platform's date (`taken_at`).
 final class MediaIndexRepository {
   /// Creates the repository on [_db].
-  const MediaIndexRepository(this._db, {this.correctedDates = true});
+  const MediaIndexRepository(
+    this._db, {
+    this.correctedDates = true,
+    this.screen,
+  });
 
   final AppDatabase _db;
 
   /// Whether reads use the resolved capture date.
   final bool correctedDates;
+
+  /// Display size in physical pixels, to recognize screenshots by their
+  /// size ([isScreenshot]); `null` when unknown.
+  final ({int width, int height})? screen;
 
   /// Revision of every indexed item, by id; `null` for rows that were never
   /// indexed (inserted by the trash).
@@ -40,14 +50,15 @@ final class MediaIndexRepository {
   }
 
   /// Inserts [entries] or updates their metadata, keeping analysis results.
-  /// Their capture date ([resolveCaptureDate]) and burst id ([burstIdOf])
-  /// are worked out on the way.
+  /// Their capture date ([resolveCaptureDate]), burst id ([burstIdOf]) and
+  /// whether they are screenshots ([isScreenshot]) are worked out on the
+  /// way.
   ///
   /// When an item's file changed (modification date or size), its
-  /// `analysis_version`, content hash and perceptual hashes are reset so
-  /// the engine analyses it again. With
-  /// [resetAnalysis], every updated row is reset, e.g. after the platform
-  /// rebuilt its database and ids may point to other files.
+  /// `analysis_version`, content hash, perceptual hashes and quality are
+  /// reset so the engine analyses it again. With [resetAnalysis], every
+  /// updated row is reset, e.g. after the platform rebuilt its database and
+  /// ids may point to other files.
   Future<void> upsert(
     List<IndexedMedia> entries, {
     bool resetAnalysis = false,
@@ -76,6 +87,7 @@ final class MediaIndexRepository {
               captureAt: excluded.captureAt,
               captureSource: excluded.captureSource,
               burstId: excluded.burstId,
+              isScreenshot: excluded.isScreenshot,
               isFavorite: excluded.isFavorite,
               mediaRevision: excluded.mediaRevision,
               analysisVersion: resetAnalysis
@@ -90,6 +102,12 @@ final class MediaIndexRepository {
               pHash: resetAnalysis
                   ? const Constant(null)
                   : _keptIfSameFile(old, excluded, old.pHash, null),
+              blurScore: resetAnalysis
+                  ? const Constant(null)
+                  : _keptIfSameFile(old, excluded, old.blurScore, null),
+              brightness: resetAnalysis
+                  ? const Constant(null)
+                  : _keptIfSameFile(old, excluded, old.brightness, null),
             ),
           ),
         );
@@ -132,8 +150,8 @@ final class MediaIndexRepository {
 
   /// Forgets every analysis result, so the next sync and scan work out
   /// everything again: dates and burst ids (rows are described again),
-  /// content and perceptual hashes and duplicate groups. Metadata, the
-  /// trash, settings and the pairs marked "Not duplicates" are kept.
+  /// content and perceptual hashes, quality and duplicate groups. Metadata,
+  /// the trash, settings and the pairs marked "Not duplicates" are kept.
   Future<void> resetAnalysis() => _db.transaction(() async {
     await _db
         .update(_db.assets)
@@ -143,6 +161,8 @@ final class MediaIndexRepository {
             contentHash: Value(null),
             dHash: Value(null),
             pHash: Value(null),
+            blurScore: Value(null),
+            brightness: Value(null),
             analysisVersion: Value(0),
           ),
         );
@@ -219,6 +239,35 @@ final class MediaIndexRepository {
     return [for (final row in rows) _album(row)];
   }
 
+  /// Months that have photos or videos, newest first, with their item
+  /// count, trashed items left out. Each month is its first day, local
+  /// time.
+  Future<List<({DateTime month, int count})>> months() async {
+    final date = correctedDates ? 'COALESCE(capture_at, taken_at)' : 'taken_at';
+    final rows = await _db
+        .customSelect(
+          "SELECT strftime('%Y-%m', $date, 'unixepoch', 'localtime') AS month, "
+          'COUNT(*) AS n '
+          'FROM assets '
+          'WHERE id NOT IN (SELECT asset_id FROM trash_entries) '
+          'GROUP BY month '
+          'ORDER BY month DESC',
+          readsFrom: {_db.assets, _db.trashEntries},
+        )
+        .get();
+    return [
+      for (final row in rows)
+        if (row.read<String?>('month') case final month?)
+          (
+            month: DateTime(
+              int.parse(month.substring(0, 4)),
+              int.parse(month.substring(5, 7)),
+            ),
+            count: row.read<int>('n'),
+          ),
+    ];
+  }
+
   /// Number and total size of the photos and of the videos, trashed items
   /// left out: the space the library takes on the device.
   Future<MediaTotals> totals() async {
@@ -288,7 +337,8 @@ final class MediaIndexRepository {
     );
   }
 
-  /// Condition selecting the rows of [selection] (filter, folder, dates).
+  /// Condition selecting the rows of [selection] (filter, folder, dates,
+  /// size).
   Expression<bool> _matches($AssetsTable t, MediaSelection selection) {
     final dates = selection.dates;
     return Expression.and([
@@ -300,7 +350,19 @@ final class MediaIndexRepository {
               t.relativePath.like('$cameraFolder%'),
         MediaFilter.videos => t.kind.equalsValue(MediaKind.video),
         MediaFilter.favorites => t.isFavorite.equals(true),
+        MediaFilter.screenshots =>
+          t.kind.equalsValue(MediaKind.photo) & t.isScreenshot.equals(true),
+        MediaFilter.largeVideos => t.kind.equalsValue(MediaKind.video),
+        MediaFilter.poorQuality =>
+          t.kind.equalsValue(MediaKind.photo) &
+              t.isScreenshot.equals(false) &
+              (t.blurScore.isSmallerThanValue(blurryBelow) |
+                  t.brightness.isSmallerThanValue(darkBelow)),
       },
+      if (selection.takenBefore case final before?)
+        _date(t).isSmallerThanValue(before),
+      if (selection.minSizeBytes case final bytes?)
+        t.sizeBytes.isBiggerOrEqualValue(bytes),
       if (selection.albumId case final albumId?) t.bucketId.equals(albumId),
       if (selection.ids case final ids?)
         t.id.isIn([for (final id in ids) ?int.tryParse(id)]),
@@ -346,7 +408,7 @@ final class MediaIndexRepository {
       row.toMediaItem(correctedDates: correctedDates);
 
   /// Row inserted for [entry]; analysis columns keep their defaults.
-  static AssetsCompanion _row(IndexedMedia entry) {
+  AssetsCompanion _row(IndexedMedia entry) {
     final item = entry.item;
     final capture = resolveCaptureDate(
       platformDate: item.takenAt,
@@ -373,6 +435,17 @@ final class MediaIndexRepository {
         item.fileName == null
             ? null
             : burstIdOf(item.fileName!, folder: item.relativePath ?? ''),
+      ),
+      isScreenshot: Value(
+        !item.isVideo &&
+            isScreenshot(
+              relativePath: item.relativePath ?? '',
+              fileName: item.fileName ?? '',
+              mimeType: item.mimeType ?? '',
+              width: item.width,
+              height: item.height,
+              screen: screen,
+            ),
       ),
       isFavorite: Value(item.isFavorite),
       mediaRevision: Value(entry.revision),
@@ -411,5 +484,6 @@ extension AssetRowToMediaItem on AssetRow {
     fileName: fileName.isEmpty ? null : fileName,
     relativePath: relativePath.isEmpty ? null : relativePath,
     mimeType: mimeType.isEmpty ? null : mimeType,
+    sharpness: blurScore,
   );
 }

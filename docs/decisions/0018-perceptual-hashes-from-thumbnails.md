@@ -13,7 +13,7 @@ The brief: "Similar photos: 64-bit dHash and pHash, Hamming distance", with the 
 
 ## Decision
 
-- **Pixels**: a native method `grayThumbnails` asks MediaStore's thumbnail cache (`ContentResolver.loadThumbnail`, the cache the grid already uses) for each photo at most 128 × 128 pixels and returns one brightness byte per pixel (luma, `0.299 R + 0.587 G + 0.114 B`). About 12 KB per photo crosses the channel. It runs on the hashing thread, after any SHA-256 work, 16 photos per call (40 at first; lowered on 2026-10-27 so the scan can pause quickly for the viewer) ([MediaIndex.kt](../../android/app/src/main/kotlin/com/bichoumac/clean_gallery/MediaIndex.kt)).
+- **Pixels**: a native method `grayThumbnails` asks MediaStore's thumbnail cache (`ContentResolver.loadThumbnail`, the cache the grid already uses) for each photo at most 128 × 128 pixels (256 since M5, [ADR 0020](0020-blur-and-brightness-with-the-hashes.md)) and returns one brightness byte per pixel (luma, `0.299 R + 0.587 G + 0.114 B`). About 12 KB per photo crosses the channel. It runs on the hashing thread, after any SHA-256 work, 16 photos per call (40 at first; lowered on 2026-10-27 so the scan can pause quickly for the viewer) ([MediaIndex.kt](../../android/app/src/main/kotlin/com/bichoumac/clean_gallery/MediaIndex.kt)).
 - **Hashes in pure Dart** ([perceptual_hash.dart](../../lib/analysis/perceptual_hash.dart)), in an isolate (`Isolate.run`), so they are testable without a device and identical on every platform:
   - **dHash**: area-average resize to 9 × 8; bit = pixel darker than its right neighbour.
   - **pHash**: area-average resize to 32 × 32, 2D DCT-II, the 8 × 8 lowest frequencies without the DC row and column, bit = coefficient above their median.

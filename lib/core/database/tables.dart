@@ -74,6 +74,10 @@ class Assets extends Table {
   /// Sharpness score (variance of the Laplacian). Higher is sharper.
   RealColumn get blurScore => real().nullable()();
 
+  /// Mean brightness of the photo, 0 (black) to 255 (white), from schema
+  /// version 3.
+  RealColumn get brightness => real().nullable()();
+
   /// Burst identifier, shared by all photos of one burst sequence.
   TextColumn get burstId => text().nullable()();
 

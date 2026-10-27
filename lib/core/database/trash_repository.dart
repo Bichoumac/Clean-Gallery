@@ -27,6 +27,16 @@ final class TrashRepository {
     );
   }
 
+  /// Ids of all trashed items, now.
+  Future<Set<String>> trashedIds() async {
+    final query = _db.selectOnly(_db.trashEntries)
+      ..addColumns([_db.trashEntries.assetId]);
+    return {
+      for (final row in await query.get())
+        '${row.read(_db.trashEntries.assetId)}',
+    };
+  }
+
   /// Trashed items, most recently trashed first, updated on every change.
   Stream<List<TrashedItem>> watchItems() => _itemsQuery().watch().map(
     (rows) => [for (final row in rows) _toTrashed(row)],

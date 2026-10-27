@@ -93,6 +93,33 @@ void main() {
     expect(rows[5]!.analysisVersion, 0, reason: 'videos are not compared');
   });
 
+  test('measures sharpness and brightness with the hashes', () async {
+    source.grayImages['3'] = PhotoSet.thumbnail(
+      PhotoSet.blurred(PhotoSet.scene(2), 3),
+    );
+    await syncAndScan();
+    final rows = {
+      for (final row in await db.select(db.assets).get()) row.id: row,
+    };
+    expect(rows[1]!.blurScore, greaterThan(rows[3]!.blurScore!));
+    expect(rows[1]!.brightness, isNotNull);
+    expect(rows[4]!.blurScore, isNull, reason: 'no thumbnail');
+    final blurry = await container
+        .read(mediaIndexRepositoryProvider)
+        .load(const MediaSelection(filter: MediaFilter.poorQuality));
+    expect(blurry.map((i) => i.id), ['3']);
+  });
+
+  test('the sharper of two look-alikes of the same size is kept', () async {
+    // 2 is 1 slightly brighter and out of focus, same resolution, larger.
+    source.items = [original, edited.copyWith(sizeBytes: 5000)];
+    source.grayImages['2'] = PhotoSet.thumbnail(
+      PhotoSet.blurred(PhotoSet.brightened(beach, 20), 1),
+    );
+    await syncAndScan();
+    expect(await groups(), ['similar: 1,2']);
+  });
+
   test('a failing thumbnail batch is skipped, not retried', () async {
     source.grayFailures.add('3');
     await syncAndScan();

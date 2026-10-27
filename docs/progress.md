@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-10-27 — Milestone M4
+Last updated: 2026-10-27 — Milestone M5
 
 ## Milestones
 
@@ -12,12 +12,42 @@ Last updated: 2026-10-27 — Milestone M4
 | M1 | Navigation: timelines, albums, grid, viewer, video, sorting, date filter | Merged into `main` (PR #2) |
 | M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Merged into `main` (PR #3) |
 | M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Merged into `main` (PR #4) |
-| M4 | Engine level 2: perceptual hashes, similar photos, dashboard | On `m4-similar`; similar photos confirmed on the phone after fixes, a few checks left |
-| M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Not started |
+| M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Merged into `main` (PR #5) |
+| M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Done on `m5-cleaning` (pushed), confirmed on the phone; pull request opened by the product owner |
 | M6 | Advanced viewer and editing | Not started |
 | M7 | Exploration: map, search | Not started |
 | M8 | Monetization | Not started |
 | M9 | Polish and release preparation | Not started |
+
+## M5 — Cleanup
+
+Three parts, each committed and tested on the phone: 1. old screenshots and large videos; 2. blurry and dark photos; 3. swipe mode.
+
+### Done
+
+- **Screenshots** recognized while indexing: a `Screenshots` folder, a "Screenshot…" name, or a PNG at the display's size (index rules version 3, [analysis-engine.md](analysis-engine.md#screenshots)).
+- **Cleanup lists** opened from the Stats tab: *Old screenshots* (older than 30 days by default) and *Large videos* (from 100 MB, largest first), as timelines with their rule and total under the title, **Select all** and move to the trash ([features/cleanup.md](features/cleanup.md)). **Select all** also appears in every grid's selection bar.
+- **Settings → Cleanup**: screenshot age (7 d / 30 d / 90 d / 1 yr) and large video size (50 / 100 / 250 / 500 MB).
+- **Stats**: the two categories count in the space that could be freed, each item once ([features/stats.md](features/stats.md)).
+- **Blurry and dark photos** (part 2): sharpness (variance of the Laplacian) and brightness measured with the perceptual hashes, in one pass over 256-pixel thumbnails; schema version 3 adds `assets.brightness`, analysis version 2 analyses every photo again once ([ADR 0020](decisions/0020-blur-and-brightness-with-the-hashes.md), [analysis-engine.md](analysis-engine.md#blurry-and-dark-photos)). A *Blurry photos* cleanup list and Stats row; screenshots left out.
+- **Best pick** now prefers the sharper of two photos of the same resolution (bursts, close shots); a blurry member of a duplicate group is labelled **Blurry**.
+- **Sort mode (swipe)** (part 3), from the Stats tab: sources (all photos, blurry photos, old screenshots, each month, each folder), oldest first; swipe or buttons to trash, keep or keep as a favorite; **Undo** always visible, as many levels as needed, the card flying back; sessions saved in `swipe_history` and resumed; progress "42 / 300" and an end summary ([features/swipe.md](features/swipe.md)).
+
+### Decisions
+
+- Sharpness and brightness will be measured with the perceptual hashes, in one pass over 256-pixel grayscale thumbnails instead of 128: more reliable blur detection; every photo is read once more (about 25 minutes on the product owner's 20,000 photos). Chosen by the product owner on 2026-10-27.
+- Swipe mode shows the oldest photos first by default (product owner, 2026-10-27).
+
+### Known issues
+
+- All three parts confirmed on the Galaxy A54 on 2026-10-27 ([testing.md](testing.md#m5--cleanup-to-verify-on-a-device)), with one false positive: some **night photos with lights, hazy from mist**, are listed as blurry. The blur (30) and darkness (20) thresholds come from synthetic photos; flat scenes (sky, fog, a wall) may also be listed.
+
+### Next steps
+
+1. Merge the M5 pull request.
+2. Calibrate the blur rule on real photos (hazy night shots); needs measured values, see the product owner.
+3. M6 (advanced viewer and editing).
+4. Later: stack similar photos in the timelines (product owner's request).
 
 ## M4 — Engine level 2
 
@@ -65,7 +95,7 @@ Last updated: 2026-10-27 — Milestone M4
 
 1. Review and merge the M4 pull request.
 2. M5: swipe mode, blurry photos (sharpness also refines the best pick), screenshots, large videos.
-3. Later: stack similar photos in the timelines (product owner's request, 2026-10-27).
+4. Later: stack similar photos in the timelines (product owner's request, 2026-10-27).
 
 ## M3 — Engine level 1
 

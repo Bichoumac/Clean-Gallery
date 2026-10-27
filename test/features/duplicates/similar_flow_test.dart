@@ -42,6 +42,18 @@ void main() {
     expect(find.text('Move 1 to trash'), findsOneWidget);
   });
 
+  testApp('a blurry member is labelled', (tester) async {
+    final media = source();
+    media.grayImages['2'] = PhotoSet.thumbnail(
+      PhotoSet.blurred(PhotoSet.resized(PhotoSet.scene(1), 0.5), 2),
+    );
+    await pumpTestApp(tester, media: media);
+    await tester.tap(find.byType(DuplicatesTile));
+    await tester.pumpAndSettle();
+    expect(find.text('Similar photos'), findsOneWidget);
+    expect(find.text('Blurry'), findsOneWidget);
+  });
+
   testApp('"Not duplicates" removes the group', (tester) async {
     await pumpTestApp(tester, media: source());
     await tester.tap(find.byType(DuplicatesTile));

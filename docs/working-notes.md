@@ -2,7 +2,7 @@
 
 How the product owner and the AI assistant work together on Clean Gallery, the constraints of the development machine, and where to pick up. Read it at the start of every session, after [AGENTS.md](../AGENTS.md).
 
-Last updated: 2026-10-27 — Milestone M4
+Last updated: 2026-10-27 — Milestone M5
 
 ## Where to pick up
 
@@ -13,7 +13,8 @@ Last updated: 2026-10-27 — Milestone M4
 - **Checked on 2026-10-27**: chips clearer, WhatsApp copy grouped with its original marked Best, cleaning from Stats, viewer sharp at once (previews now decoded from the file: MediaStore's cache stops at 512 px on this phone). Then pinch zoom, items 9, 10 and 13 (*Analyze the library again*): the whole M4 checklist is confirmed.
 - **Measuring on the phone**: the product owner allowed reading `logcat` lines that hold only durations and sizes, logged under one tag by temporary code that is never committed. Ask again for each new measurement.
 - **Product owner's request**: stack similar photos in the timelines, later (M5 or after).
-- **Next**: `m4-similar` pushed on 2026-10-27; the product owner opens and merges the pull request, then M5 (swipe mode, blurry photos, screenshots, large videos).
+- M4 merged into `main` (PR #5) on 2026-10-27, after a CI fix (the runner's disk was full; the build job now frees space first).
+- **M5 on branch `m5-cleaning`**, in three parts tested one by one on the phone: 1. old screenshots and large videos (confirmed on the phone); 2. blurry and dark photos, one pass on 256-pixel thumbnails (product owner's choice; done, to test); 3. swipe mode, oldest first (product owner's choice; done, to test). On 2026-10-27 the product owner asked to build the rest of M5 in one go, push, and send one report of what to test. See [progress.md](progress.md#m5--cleanup).
 
 ## Working with the product owner
 

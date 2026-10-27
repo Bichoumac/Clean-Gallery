@@ -4,38 +4,30 @@ import 'package:clean_gallery/domain/media_item.dart';
 ///
 /// 1. a favorite;
 /// 2. the highest resolution;
-/// 3. the sharpest, when [sharpness] is known for both (M5);
+/// 3. the sharpest, when [MediaItem.sharpness] is known for both;
 /// 4. the largest file;
 /// 5. the oldest capture date;
 /// 6. the smallest id, usually the first copy on the device.
 ///
 /// [items] must not be empty. See `docs/analysis-engine.md#best-pick`.
-MediaItem pickBest(
-  List<MediaItem> items, {
-  Map<String, double> sharpness = const {},
-}) {
+MediaItem pickBest(List<MediaItem> items) {
   assert(items.isNotEmpty, 'pickBest needs at least one item');
-  return items.reduce(
-    (best, item) => _better(item, best, sharpness) ? item : best,
-  );
+  return items.reduce((best, item) => _better(item, best) ? item : best);
 }
 
 /// [items] with the best one first, the others in their original order.
-List<MediaItem> bestFirst(
-  List<MediaItem> items, {
-  Map<String, double> sharpness = const {},
-}) {
-  final best = pickBest(items, sharpness: sharpness);
+List<MediaItem> bestFirst(List<MediaItem> items) {
+  final best = pickBest(items);
   return [best, ...items.where((item) => item.id != best.id)];
 }
 
 /// Whether [a] should be kept rather than [b].
-bool _better(MediaItem a, MediaItem b, Map<String, double> sharpness) {
+bool _better(MediaItem a, MediaItem b) {
   if (a.isFavorite != b.isFavorite) return a.isFavorite;
   final pixels = (a.width * a.height).compareTo(b.width * b.height);
   if (pixels != 0) return pixels > 0;
-  final sharpA = sharpness[a.id];
-  final sharpB = sharpness[b.id];
+  final sharpA = a.sharpness;
+  final sharpB = b.sharpness;
   if (sharpA != null && sharpB != null && sharpA != sharpB) {
     return sharpA > sharpB;
   }

@@ -1,6 +1,6 @@
 import 'package:clean_gallery/analysis/analysis_version.dart';
 import 'package:clean_gallery/analysis/best_picker.dart';
-import 'package:clean_gallery/analysis/perceptual_hash.dart';
+import 'package:clean_gallery/analysis/photo_analysis.dart';
 import 'package:clean_gallery/analysis/similarity.dart';
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/core/database/media_index_repository.dart';
@@ -105,21 +105,24 @@ final class DuplicateRepository {
     return row.read<int>('n');
   }
 
-  /// Stores the perceptual [hashes] of [photos], by id, and marks them
-  /// analysed by the current [analysisVersion]. Photos missing from
-  /// [hashes] had no readable thumbnail: they keep no hash, so they are
-  /// never compared, until their file changes.
-  Future<void> savePerceptualHashes(
+  /// Stores the perceptual hashes and quality of [photos] from [results],
+  /// by id, and marks them analysed by the current [analysisVersion].
+  /// Photos missing from [results] had no readable thumbnail: they keep no
+  /// hash and no quality, so they are neither compared nor offered as
+  /// blurry, until their file changes.
+  Future<void> savePhotoAnalysis(
     List<MediaItem> photos,
-    Map<String, PerceptualHashes> hashes,
+    Map<String, PhotoAnalysis> results,
   ) => _db.batch((batch) {
     for (final photo in photos) {
-      final hash = hashes[photo.id];
+      final result = results[photo.id];
       batch.update(
         _db.assets,
         AssetsCompanion(
-          dHash: Value(hash?.dHash),
-          pHash: Value(hash?.pHash),
+          dHash: Value(result?.hashes.dHash),
+          pHash: Value(result?.hashes.pHash),
+          blurScore: Value(result?.quality.sharpness),
+          brightness: Value(result?.quality.brightness),
           analysisVersion: const Value(analysisVersion),
         ),
         where: (t) => t.id.equals(int.parse(photo.id)),
