@@ -12,7 +12,7 @@ Find copies of the same photo or video (saved twice, received twice, copied to a
 
 1. A grid (Camera, Videos, an album, All media, Favorites) shows a **Duplicates** tile above the photos when its items hold duplicates: "3 items to review · 12 MB", the items suggested for the trash and their size (an item in two groups counts once). There is no tile otherwise. The Stats tab opens the same screen for the whole library ([stats.md](stats.md)).
 2. Tapping it opens the duplicates screen for that grid: only duplicates among its items, so All media also finds copies across folders.
-3. Groups come in two sections: **Certain duplicates** (each says **Identical copies** or **Burst**) and **Similar photos**. Each group shows its items side by side with resolution, size, date and full path (folder and file name, never truncated, since the end of the path is what tells copies apart; asked by the product owner after the first device test). The item to keep has a **Best** badge; the others are **pre-selected** (dimmed, check mark).
+3. Choice chips at the top pick what to show: **All · N**, **Identical copies · N**, **Bursts · N**, **Similar photos · N** (N groups; a kind without groups has no chip; no chips at all when there is a single kind). Under **All**, the groups come in one titled section per kind, in that order; under a kind, only its groups, and *Clean all groups* applies to them only. The product owner asked for these chips on 2026-10-27, since one *Certain duplicates* section mixed identical copies and bursts. Each group shows its items side by side with resolution, size, date and full path (folder and file name, never truncated, since the end of the path is what tells copies apart; asked by the product owner after the first device test). The item to keep has a **Best** badge; the others are **pre-selected** (dimmed, check mark).
 4. Tap the round button on a photo to pick or keep it; tap the photo itself to open it full screen and swipe through the group.
 5. **Move N to trash** under a group trashes its picked items, with *Undo*.
 6. **Not duplicates** under a similar group: the group disappears with "These photos won't be grouped again." Its photos are never grouped together again, even after *Analyze the library again* ([analysis-engine.md](../analysis-engine.md#not-duplicates)). Certain duplicates have no such button: they are identical by definition.
@@ -39,7 +39,7 @@ flowchart TD
 | `DuplicatesTile` (in every grid, through `MediaTimelineView`) | [duplicates_tile.dart](../../lib/core/media/duplicates_tile.dart) |
 | `DuplicatesScreen`, group cards | [duplicates_screen.dart](../../lib/features/duplicates/duplicates_screen.dart) |
 
-The screen is a full-screen route above the tabs (`AppRoutes.duplicates`, with the grid's `MediaSelection` as `extra`).
+The screen is a full-screen route above the tabs (`AppRoutes.duplicates`, with the grid's `MediaSelection` as `extra`, and an optional `kind` query parameter for the chip selected at first).
 
 ## State and data
 
@@ -61,7 +61,8 @@ Detection rules and the "Best" choice are in [analysis-engine.md](../analysis-en
 - **Every copy kept**: the group's button is disabled; with nothing picked anywhere, *Clean all groups* is hidden.
 - **Every copy picked**: allowed; the user chose it, and the trash keeps them for the retention period.
 - **Scan still running**: a thin progress bar under the title, filled as items are read; "Looking for duplicates…" and "Analyzing: N of M items" while nothing is found yet. Similar groups appear every 1,000 photos read, not only at the end.
-- **Opened from a Stats category**: only that section shows (Certain duplicates or Similar photos), titled with its name; *Clean all groups* applies to it only.
+- **Opened from a Stats category**: the chip of that kind is selected (`/duplicates?kind=exact|burst|similar`); *All* goes back to every group.
+- **The last group of the chosen kind is cleaned**: its chip stays, at 0, with the empty state, until another chip is chosen.
 - **Unreadable file**: not hashed, so never grouped; it is tried again when its file changes. The same for a photo without a thumbnail.
 - **An item in a certain and a similar group** (a copy that also looks like a third photo): shown in both; *Clean all groups* and the counts take it once.
 - **Not duplicates during the first analysis**: the group goes at once; the regrouping waits for the scan in progress.

@@ -25,7 +25,8 @@ void main() {
     await tester.tap(find.byTooltip('Stats'));
     await tester.pumpAndSettle();
     expect(find.text('Space you could free'), findsOneWidget);
-    expect(find.text('Certain duplicates'), findsOneWidget);
+    expect(find.text('Identical copies'), findsOneWidget);
+    expect(find.text('Bursts'), findsOneWidget);
     expect(find.text('Similar photos'), findsOneWidget);
   });
 

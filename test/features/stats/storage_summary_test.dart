@@ -31,7 +31,8 @@ void main() {
         ),
       ],
     );
-    expect(summary.certain, (count: 2, bytes: 250));
+    expect(summary.exact, (count: 1, bytes: 200));
+    expect(summary.burst, (count: 1, bytes: 50));
     expect(summary.similar, (count: 1, bytes: 100));
     expect(summary.trash, (count: 1, bytes: 1000));
     expect(summary.usedBytes, 14000);

@@ -4,6 +4,7 @@ import 'package:clean_gallery/core/media/media_formatting.dart';
 import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/core/router/home_shell.dart';
 import 'package:clean_gallery/domain/album.dart';
+import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/features/duplicates/duplicates_screen.dart';
 import 'package:clean_gallery/features/stats/storage_summary.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
@@ -31,8 +32,8 @@ class StatsScreen extends ConsumerWidget {
     String size(int? bytes) =>
         bytes == null ? unknown : formatBytes(context, bytes);
 
-    void openDuplicates(DuplicateSection section) => context.push(
-      DuplicatesScreen.location(section),
+    void openDuplicates(DuplicateKind kind) => context.push(
+      DuplicatesScreen.location(kind),
       extra: duplicateScope(MediaSelection.all),
     );
 
@@ -47,22 +48,32 @@ class StatsScreen extends ConsumerWidget {
             children: [
               _CategoryRow(
                 icon: Icons.copy_all_rounded,
-                label: l10n.statsCertain,
+                label: l10n.statsExact,
                 detail: summary == null
                     ? null
-                    : l10n.statsItems(summary.certain.count),
-                value: size(summary?.certain.bytes),
-                onTap: () => openDuplicates(DuplicateSection.certain),
+                    : l10n.statsItems(summary.exact.count),
+                value: size(summary?.exact.bytes),
+                onTap: () => openDuplicates(DuplicateKind.exact),
               ),
               const Divider(indent: 64),
               _CategoryRow(
                 icon: Icons.burst_mode_rounded,
+                label: l10n.statsBursts,
+                detail: summary == null
+                    ? null
+                    : l10n.statsItems(summary.burst.count),
+                value: size(summary?.burst.bytes),
+                onTap: () => openDuplicates(DuplicateKind.burst),
+              ),
+              const Divider(indent: 64),
+              _CategoryRow(
+                icon: Icons.photo_library_outlined,
                 label: l10n.statsSimilar,
                 detail: summary == null
                     ? null
                     : l10n.statsItems(summary.similar.count),
                 value: size(summary?.similar.bytes),
-                onTap: () => openDuplicates(DuplicateSection.similar),
+                onTap: () => openDuplicates(DuplicateKind.similar),
               ),
               const Divider(indent: 64),
               _CategoryRow(

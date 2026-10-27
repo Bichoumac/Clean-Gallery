@@ -25,10 +25,10 @@ Last updated: 2026-10-27 — Milestone M4
 
 - **Perceptual hashes**: dHash and pHash of every photo from a 128-pixel grayscale thumbnail rendered by MediaStore's cache (new native method `grayThumbnails`), computed in a Dart isolate, saved every 40 photos, reset when the file changes ([ADR 0018](decisions/0018-perceptual-hashes-from-thumbnails.md), [analysis-engine.md](analysis-engine.md#similar-photos)).
 - **Similar photos**: the brief's two rules (strict distance and aspect ratio; loose distance within a time window), union-find groups, confidence score; certain duplicates kept apart. Found by multi-index hashing instead of a BK-tree, **a deviation to approve** ([ADR 0019](decisions/0019-similar-photo-search.md)).
-- **Duplicates screen**: sections **Certain duplicates** and **Similar photos**; **Not duplicates** on similar groups (stored in `ignored_pairs`, kept by *Analyze the library again*); an item in two groups counted once; buttons stack with large text ([features/duplicates.md](features/duplicates.md)).
+- **Duplicates screen**: choice chips **All**, **Identical copies**, **Bursts**, **Similar photos** (added after the device test, at the product owner's request), one section per kind under All; **Not duplicates** on similar groups (stored in `ignored_pairs`, kept by *Analyze the library again*); an item in two groups counted once; buttons stack with large text ([features/duplicates.md](features/duplicates.md)).
 - **Best pick** applies to similar groups (favorite, resolution, size, date); sharpness joins it in M5.
 - **Sensitivity** in Settings: Low / Medium / High and an advanced mode with the three thresholds; changes regroup in seconds without reading thumbnails ([features/settings.md](features/settings.md)).
-- **Storage dashboard** in the Stats tab: space used by photos and videos, space that cleaning could free, by category (certain duplicates, similar photos, trash), each opening its tool ([features/stats.md](features/stats.md)).
+- **Storage dashboard** in the Stats tab: space used by photos and videos, space that cleaning could free, by category (identical copies, bursts, similar photos, trash), each opening its tool ([features/stats.md](features/stats.md)).
 - Synthetic test photo set generated in memory (recompressed, resized, brightened, cropped, moved subject, unrelated scenes) with false positive regression tests.
 
 ### Verified
@@ -36,7 +36,7 @@ Last updated: 2026-10-27 — Milestone M4
 | Check | Result |
 | --- | --- |
 | `flutter analyze` | No issues |
-| `flutter test --timeout 60s` | 196 tests pass (after the fixes of 2026-10-27) |
+| `flutter test --timeout 60s` | 197 tests pass (after the fixes and chips of 2026-10-27) |
 | `flutter build apk --release --target-platform android-arm64` | Builds (Kotlin `grayThumbnails` compiles) |
 | Search speed (AOT, development laptop, 30,000 photos) | Grouping 0.6–1.1 s at Medium, 1.4–2.6 s at High; hashing 1–2.5 ms per photo ([analysis-engine.md](analysis-engine.md#performance-2)) |
 | Galaxy A54 | First test on 2026-10-27: no similar photos found. After the fixes, second test the same day: progress, resume after leaving the app, similar groups during the scan, close shots grouped, no false positive seen, Not duplicates, sensitivity and Stats rows confirmed. Not tested yet: WhatsApp copy, cleaning from Stats, *Analyze the library again* ([testing.md](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device)) |
@@ -63,7 +63,7 @@ Last updated: 2026-10-27 — Milestone M4
 
 ### Next steps
 
-1. Finish the [M4 checklist](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device): WhatsApp copy, cleaning from Stats, *Analyze the library again*, blurry viewer once the scan has ended.
+1. Finish the [M4 checklist](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device): the new chips (items 3 and 11), WhatsApp copy, cleaning from Stats, *Analyze the library again*, blurry viewer once the scan has ended.
 2. Blurry-then-sharp viewer: fix if it remains after the scan.
 4. Review and merge the M4 pull request.
 5. M5: swipe mode, blurry photos (sharpness also refines the best pick), screenshots, large videos.

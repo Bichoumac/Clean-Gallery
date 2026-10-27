@@ -134,15 +134,15 @@ Install the release build over the M3 version (`adb install -r`, do not uninstal
 | --- | --- | --- |
 | 1 | Launch and use the app while the first analysis runs (scroll Camera, open photos) | Stays fluid; a bar filling up on the duplicates screen, and "Your library is being analyzed" with "Analyzing: N of M items" on the Stats tab until it ends; similar groups appear every 1,000 photos. Note roughly how long it takes and how many photos the phone has. |
 | 2 | Albums → All media | The **Duplicates** tile reads "N items to review · size". |
-| 3 | Open it | Two sections: **Certain duplicates** (as in M3) and **Similar photos**. |
+| 3 | Open it | Chips **All · N**, **Identical copies · N**, **Bursts · N**, **Similar photos · N** (only kinds that have groups); under All, one titled section per kind. Each chip shows only its groups. |
 | 4 | The WhatsApp copy | Grouped with the original under Similar photos; the original (higher resolution) marked **Best**, the copy picked. |
 | 5 | The two shots taken a few seconds apart | Grouped under Similar photos. |
 | 6 | Look through every similar group | Each group's photos really look alike. **Report any group of clearly different photos** (false positive): the most important feedback of this milestone. |
 | 7 | **Not duplicates** on a group | It disappears with "These photos won't be grouped again."; still gone after relaunching the app. |
 | 8 | Settings → Analysis → Similar photos: **Low**, then **High** | Within seconds, fewer groups with Low, more with High; back to **Medium**. |
 | 9 | **Advanced mode** on | No preset selected; three sliders starting from the current values; moving one regroups. Off: back to Medium. |
-| 10 | Stats tab | **Space you could free** with a value, *Out of … used by your photos and videos*, a bar, *Photos … · Videos …*; rows Certain duplicates, Similar photos and In the trash with counts and sizes; blurry, screenshots and large videos *Coming soon*. |
-| 11 | Tap **Certain duplicates**, then **Similar photos**, then **In the trash** | The first two open the duplicates screen of the whole library on that section only, titled with its name; the third opens the Trash page. |
+| 10 | Stats tab | **Space you could free** with a value, *Out of … used by your photos and videos*, a bar, *Photos … · Videos …*; rows Identical copies, Bursts, Similar photos and In the trash with counts and sizes; blurry, screenshots and large videos *Coming soon*. |
+| 11 | Tap **Identical copies**, **Bursts**, **Similar photos**, then **In the trash** | The first three open the duplicates screen of the whole library with that chip selected; the last opens the Trash page. |
 | 12 | Clean a similar group, then come back to Stats | The reclaimable value drops and **In the trash** grows by the same amount. |
 | 13 | Settings → **Analyze the library again** (also M3 item 26) | Spinner while it runs (longer than in M3: thumbnails are read again); afterwards the same groups, and the groups marked Not duplicates stay gone. |
 | 14 | Largest font size, duplicates screen | *Not duplicates* and *Move N to trash* fit or stack, never cut off. |
@@ -162,6 +162,7 @@ Second test on 2026-10-27, after the fixes below (same day, release build instal
 | --- | --- |
 | Confirmed | 1 (progress grows, X and Y consistent; leaving the app and coming back resumes where it stopped), 2 and 3 (similar groups show during the scan), 5 (close shots grouped under Similar photos), 6 (no clearly different photos seen in a group), 7 (Not duplicates, still gone after a relaunch), 8 (fewer groups with Low, more with High), 11 (Stats rows open their section), 14 |
 | Not tested yet | 4 (WhatsApp copy), 9, 10, 12, 13; blurry viewer once the scan has ended |
+| Requested | Identical copies, bursts and similar photos were mixed on the duplicates screen: choice chips added the same day, to check |
 | Remarks | The first analysis is long (duration and photo count not measured). Similar photos are grouped only on the duplicates screen, not stacked in the timelines: the product owner wants stacking later, see [progress.md](progress.md#m4--engine-level-2) |
 
 Fixes for the second test (same checklist): progress "Analyzing: N of M items", groups rebuilt every 1,000 photos, a failing thumbnail batch skipped instead of stopping the scan, native calls that always reply, Stats rows opening their section, two threads rendering thumbnails. The cause of the missing groups is not confirmed: the scan may simply not have reached the end, or a native error may have stopped it.

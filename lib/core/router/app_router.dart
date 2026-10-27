@@ -1,5 +1,6 @@
 import 'package:clean_gallery/core/router/home_shell.dart';
 import 'package:clean_gallery/domain/album.dart';
+import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/features/duplicates/duplicates_screen.dart';
 import 'package:clean_gallery/features/library/albums_screen.dart';
 import 'package:clean_gallery/features/library/media_timeline_view.dart';
@@ -133,8 +134,8 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.duplicates,
         builder: (context, state) => DuplicatesScreen(
           scope: state.extra! as MediaSelection,
-          section: DuplicateSection.values
-              .asNameMap()[state.uri.queryParameters['section']],
+          kind: DuplicateKind.values
+              .asNameMap()[state.uri.queryParameters['kind']],
         ),
       ),
       StatefulShellRoute.indexedStack(

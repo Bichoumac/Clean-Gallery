@@ -19,7 +19,8 @@
   "statsUsed": "Sur {size} occupés par vos photos et vidéos",
   "statsPhotos": "Photos",
   "statsVideos": "Vidéos",
-  "statsCertain": "Doublons certains",
+  "statsExact": "Copies identiques",
+  "statsBursts": "Rafales",
   "statsSimilar": "Photos similaires",
   "statsTrash": "Dans la corbeille",
   "statsItems": "{count, plural, =0{Rien} =1{1 élément} other{{count} éléments}}",
@@ -191,7 +192,6 @@
 
   "duplicatesTitle": "Doublons",
   "duplicatesTileSummary": "{count, plural, =1{1 élément à trier} other{{count} éléments à trier}} · {size}",
-  "duplicatesCertain": "Doublons certains",
   "duplicatesBest": "Meilleure",
   "duplicatesTrashGroup": "{count, plural, =1{Mettre 1 élément à la corbeille} other{Mettre {count} éléments à la corbeille}}",
   "duplicatesCleanAll": "Nettoyer tous les groupes",
@@ -204,7 +204,8 @@
   "duplicatesSelect": "Sélectionner pour la corbeille",
   "duplicatesUnselect": "Garder",
   "duplicatesKindExact": "Copies identiques",
-  "duplicatesKindBurst": "Rafale",
+  "duplicatesBursts": "Rafales",
+  "duplicatesFilterAll": "Tout",
   "duplicatesSimilar": "Photos similaires",
   "duplicatesNotDuplicates": "Pas des doublons",
   "duplicatesIgnored": "Ces photos ne seront plus regroupées."

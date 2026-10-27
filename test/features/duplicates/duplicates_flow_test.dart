@@ -41,7 +41,6 @@ void main() {
 
     await openDuplicates(tester);
     expect(find.byType(DuplicatesScreen), findsOneWidget);
-    expect(find.text('Certain duplicates'), findsOneWidget);
     expect(find.text('Identical copies'), findsOneWidget);
     expect(find.text('Best'), findsOneWidget);
     expect(find.text('Move 1 to trash'), findsOneWidget);

@@ -95,7 +95,7 @@ Shots of one burst sequence: the camera saves each shot as a file with a shared 
 - The folder is part of the id, so shots are grouped only with those saved next to them.
 - The id is worked out when the item is indexed (`assets.burst_id`), from its name: no file is read.
 - After each scan, every burst id held by two items or more is a group of kind `burst`, unless its items are already exactly one exact group (a burst saved twice).
-- Bursts are listed with exact duplicates under **Certain duplicates**; the best shot is chosen by the [best pick](#best-pick): until sharpness is measured (M5), the largest file, which usually holds the most detail.
+- Bursts have their own **Bursts** chip and section on the duplicates screen (they were listed with exact duplicates under *Certain duplicates* until 2026-10-27); the best shot is chosen by the [best pick](#best-pick): until sharpness is measured (M5), the largest file, which usually holds the most detail.
 
 **Not used**: grouping photos taken less than a second apart without a burst name. Two different photos taken quickly are not certain duplicates; close-in-time look-alikes are found by similar photos (M4), which compare the images. MediaStore has no burst column, and Samsung keeps its burst metadata in a proprietary format.
 

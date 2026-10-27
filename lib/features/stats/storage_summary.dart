@@ -22,7 +22,8 @@ final class StorageSummary {
   /// Creates a summary.
   const StorageSummary({
     required this.totals,
-    required this.certain,
+    required this.exact,
+    required this.burst,
     required this.similar,
     required this.trash,
   });
@@ -30,12 +31,15 @@ final class StorageSummary {
   /// Photos and videos outside the trash.
   final MediaTotals totals;
 
-  /// Items suggested for the trash among certain duplicates (identical
-  /// copies, burst shots).
-  final StorageShare certain;
+  /// Items suggested for the trash among identical copies.
+  final StorageShare exact;
+
+  /// Items suggested for the trash among burst shots, those already counted
+  /// in [exact] left out.
+  final StorageShare burst;
 
   /// Items suggested for the trash among similar photos, those already
-  /// counted in [certain] left out.
+  /// counted in [exact] or [burst] left out.
   final StorageShare similar;
 
   /// Items in the app trash, freed when it is emptied.
@@ -46,30 +50,38 @@ final class StorageSummary {
 
   /// Space that cleaning could free: duplicates, similar photos and the
   /// trash.
-  int get reclaimableBytes => certain.bytes + similar.bytes + trash.bytes;
+  int get reclaimableBytes =>
+      exact.bytes + burst.bytes + similar.bytes + trash.bytes;
 }
 
 /// The summary of [totals], duplicate [groups] of the whole library and
-/// [trashed] items. Each item is counted once: an extra copy that is also
-/// in a similar group counts as a certain duplicate.
+/// [trashed] items. Each item is counted once, in the first of identical
+/// copies, bursts and similar photos it is an extra of.
 StorageSummary summarize({
   required MediaTotals totals,
   required List<DuplicateGroup> groups,
   required List<TrashedItem> trashed,
 }) {
-  final certain = <String, MediaItem>{};
-  final similar = <String, MediaItem>{};
+  final extras = {
+    for (final kind in DuplicateKind.values) kind: <String, MediaItem>{},
+  };
   for (final group in groups) {
-    final target = group.kind == DuplicateKind.similar ? similar : certain;
     for (final item in group.extras) {
-      target[item.id] = item;
+      extras[group.kind]![item.id] = item;
     }
   }
-  similar.removeWhere((id, _) => certain.containsKey(id));
+  final counted = <String>{};
+  StorageShare share(DuplicateKind kind) {
+    final items = extras[kind]!..removeWhere((id, _) => counted.contains(id));
+    counted.addAll(items.keys);
+    return _share(items.values);
+  }
+
   return StorageSummary(
     totals: totals,
-    certain: _share(certain.values),
-    similar: _share(similar.values),
+    exact: share(DuplicateKind.exact),
+    burst: share(DuplicateKind.burst),
+    similar: share(DuplicateKind.similar),
     trash: _share([for (final entry in trashed) entry.item]),
   );
 }

@@ -19,53 +19,68 @@ import 'package:go_router/go_router.dart';
 /// Side of a member's thumbnail in a group, in logical pixels.
 const _thumbSide = 136.0;
 
-/// Duplicate groups of one folder or tab ([scope]), in two sections:
-/// certain duplicates (identical copies, bursts) and similar photos. Each
-/// group shows its items side by side, the one to keep marked "Best" and
-/// the others picked for the trash. The user can change the picks, trash a
-/// group, mark similar photos "Not duplicates", or clean every group at
-/// once. See `docs/features/duplicates.md`.
-///
-/// With a [section], only that section shows (the Stats tab's categories).
-class DuplicatesScreen extends ConsumerWidget {
-  /// Creates the screen for the items of [scope].
-  const DuplicatesScreen({required this.scope, this.section, super.key});
+/// Duplicate groups of one folder or tab ([scope]), of three kinds:
+/// identical copies, bursts and similar photos. Choice chips at the top
+/// show all of them, in one section per kind, or a single kind. Each group
+/// shows its items side by side, the one to keep marked "Best" and the
+/// others picked for the trash. The user can change the picks, trash a
+/// group, mark similar photos "Not duplicates", or clean every group shown
+/// at once. See `docs/features/duplicates.md`.
+class DuplicatesScreen extends ConsumerStatefulWidget {
+  /// Creates the screen for the items of [scope], showing only the groups
+  /// of [kind] at first, or every group when it is `null`.
+  const DuplicatesScreen({required this.scope, this.kind, super.key});
 
   /// Filter and folder the duplicates are looked for in.
   final MediaSelection scope;
 
-  /// The only section shown, or `null` for both.
-  final DuplicateSection? section;
+  /// The kind of groups shown at first, or `null` for all of them.
+  final DuplicateKind? kind;
 
-  /// Route location of the screen showing only [section], to push with the
-  /// scope as `extra`.
-  static String location(DuplicateSection section) =>
-      '${AppRoutes.duplicates}?section=${section.name}';
+  /// Route location of the screen showing only the groups of [kind], to
+  /// push with the scope as `extra`.
+  static String location(DuplicateKind kind) =>
+      '${AppRoutes.duplicates}?kind=${kind.name}';
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DuplicatesScreen> createState() => _DuplicatesScreenState();
+}
+
+class _DuplicatesScreenState extends ConsumerState<DuplicatesScreen> {
+  /// The kind of groups shown, or `null` for all of them.
+  late DuplicateKind? _kind = widget.kind;
+
+  MediaSelection get scope => widget.scope;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final groups = ref.watch(duplicateGroupsProvider(scope));
     final scan = ref.watch(duplicateScanProvider);
     final scanning = scan.running;
     final changes = ref.watch(duplicateSelectionProvider(scope));
-    final loaded = [
-      for (final group in groups.value ?? const <DuplicateGroup>[])
-        if (section == null || section == _sectionOf(group)) group,
+    final all = groups.value ?? const <DuplicateGroup>[];
+    final counts = {
+      for (final kind in DuplicateKind.values)
+        kind: all.where((g) => g.kind == kind).length,
+    };
+    final shown = [
+      for (final group in all)
+        if (_kind == null || group.kind == _kind) group,
     ];
     // An item can be in a certain group and a similar group: count it once.
     final picked = {
-      for (final group in loaded)
+      for (final group in shown)
         for (final item in pickedItems(changes, group)) item.id: item,
     }.values.toList();
+    final kinds = counts.values.where((n) => n > 0).length;
+    // Chips only help when there is more than one kind to choose from, or
+    // to go back to all of them.
+    final filters = kinds > 1 || (_kind != null && kinds > 0);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(switch (section) {
-          null => l10n.duplicatesTitle,
-          DuplicateSection.certain => l10n.duplicatesCertain,
-          DuplicateSection.similar => l10n.duplicatesSimilar,
-        }),
+        title: Text(l10n.duplicatesTitle),
         bottom: scanning
             ? PreferredSize(
                 preferredSize: const Size.fromHeight(2),
@@ -77,29 +92,33 @@ class DuplicatesScreen extends ConsumerWidget {
             : null,
       ),
       body: switch (groups) {
-        AsyncData() when loaded.isEmpty => _Empty(scanning: scanning),
+        AsyncData() when all.isEmpty => _Empty(scanning: scanning),
         AsyncData() => ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
-            for (final (title, groups) in [
-              (
-                l10n.duplicatesCertain,
-                loaded.where((g) => g.kind != DuplicateKind.similar),
+            if (filters) ...[
+              _KindChips(
+                selected: _kind,
+                counts: counts,
+                onSelected: (kind) => setState(() => _kind = kind),
               ),
-              (
-                l10n.duplicatesSimilar,
-                loaded.where((g) => g.kind == DuplicateKind.similar),
-              ),
-            ])
-              if (groups.isNotEmpty) ...[
-                if (section == null) _SectionTitle(title),
-                for (final group in groups)
-                  _GroupCard(
-                    key: ValueKey(group.id),
-                    scope: scope,
-                    group: group,
-                  ),
-              ],
+              const SizedBox(height: 8),
+            ],
+            if (shown.isEmpty)
+              _Empty(scanning: scanning)
+            else
+              for (final kind in DuplicateKind.values)
+                if (shown.where((g) => g.kind == kind).toList()
+                    case final section when section.isNotEmpty) ...[
+                  // A single kind is named by its chip.
+                  if (_kind == null) _SectionTitle(_kindTitle(l10n, kind)),
+                  for (final group in section)
+                    _GroupCard(
+                      key: ValueKey(group.id),
+                      scope: scope,
+                      group: group,
+                    ),
+                ],
           ],
         ),
         _ => const Center(child: CircularProgressIndicator()),
@@ -119,7 +138,8 @@ class DuplicatesScreen extends ConsumerWidget {
     );
   }
 
-  /// Confirms with a summary, then moves every picked item to the trash.
+  /// Confirms with a summary, then moves every picked item shown to the
+  /// trash.
   Future<void> _cleanAll(
     BuildContext context,
     WidgetRef ref,
@@ -153,19 +173,49 @@ class DuplicatesScreen extends ConsumerWidget {
 }
 
 /// Title of a section of groups.
-/// A section of the duplicates screen.
-enum DuplicateSection {
-  /// Identical copies and bursts.
-  certain,
+/// Name of the section and chip of [kind] groups.
+String _kindTitle(AppLocalizations l10n, DuplicateKind kind) => switch (kind) {
+  DuplicateKind.exact => l10n.duplicatesKindExact,
+  DuplicateKind.burst => l10n.duplicatesBursts,
+  DuplicateKind.similar => l10n.duplicatesSimilar,
+};
 
-  /// Similar photos.
-  similar,
+/// "All" and one choice chip per kind of group that has any, with its
+/// number of groups. Wraps onto several lines with large text.
+class _KindChips extends StatelessWidget {
+  const _KindChips({
+    required this.selected,
+    required this.counts,
+    required this.onSelected,
+  });
+
+  final DuplicateKind? selected;
+  final Map<DuplicateKind, int> counts;
+  final ValueChanged<DuplicateKind?> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final total = counts.values.fold(0, (sum, n) => sum + n);
+    ChoiceChip chip(DuplicateKind? kind, String label, int count) => ChoiceChip(
+      label: Text('$label · $count'),
+      selected: selected == kind,
+      showCheckmark: false,
+      onSelected: (_) => onSelected(kind),
+    );
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        chip(null, l10n.duplicatesFilterAll, total),
+        for (final kind in DuplicateKind.values)
+          // The chosen kind keeps its chip once its last group is cleaned.
+          if (counts[kind]! > 0 || kind == selected)
+            chip(kind, _kindTitle(l10n, kind), counts[kind]!),
+      ],
+    );
+  }
 }
-
-DuplicateSection _sectionOf(DuplicateGroup group) =>
-    group.kind == DuplicateKind.similar
-    ? DuplicateSection.similar
-    : DuplicateSection.certain;
 
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.title);
@@ -236,17 +286,6 @@ class _GroupCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Similar groups are named by their section.
-            if (group.kind != DuplicateKind.similar)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
-                child: Text(
-                  group.kind == DuplicateKind.exact
-                      ? l10n.duplicatesKindExact
-                      : l10n.duplicatesKindBurst,
-                  style: Theme.of(context).textTheme.labelLarge,
-                ),
-              ),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(

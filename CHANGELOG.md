@@ -9,14 +9,15 @@ Last updated: 2026-10-27 — Milestone M4
 ### Fixed
 
 - Similar photos never showed on the Galaxy A54: the groups were only built once every photo was read, and one failing native call could stop the scan before that. Groups are now rebuilt every 1,000 photos, a photo or batch whose thumbnail fails is skipped instead of stopping the scan, and native worker calls always reply (`failed` error) instead of possibly leaving Dart waiting.
-- Stats → **Similar photos** and **Certain duplicates** open the duplicates screen on that section only.
 
 ### Added
 
+- Duplicates screen: choice chips **All**, **Identical copies**, **Bursts**, **Similar photos**, with their number of groups; one titled section per kind under All. The per-group *Identical copies* / *Burst* label is gone.
 - Progress of the analysis, "Analyzing: N of M items", on the duplicates screen (also a filled progress bar), the Stats tab and Settings → Analyze the library again.
 
 ### Changed
 
+- Stats: the *Certain duplicates* row is split into **Identical copies** and **Bursts**; each row opens the duplicates screen on its chip.
 - Thumbnails for perceptual hashes are rendered by two native threads instead of one.
 
 ## [M4] — 2026-10-27 — Engine level 2

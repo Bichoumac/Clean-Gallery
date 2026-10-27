@@ -1,4 +1,5 @@
 import 'package:clean_gallery/core/media/duplicates_tile.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../analysis/photo_set.dart';
@@ -33,7 +34,8 @@ void main() {
     await tester.tap(find.byType(DuplicatesTile));
     await tester.pumpAndSettle();
     expect(find.text('Similar photos'), findsOneWidget);
-    expect(find.text('Certain duplicates'), findsNothing);
+    // A single kind of group: no chips.
+    expect(find.byType(ChoiceChip), findsNothing);
     expect(find.text('Best'), findsOneWidget);
     expect(find.text('Not duplicates'), findsOneWidget);
     // The larger file is kept, the other one picked.
@@ -66,29 +68,59 @@ void main() {
     expect(find.text('Not duplicates'), findsOneWidget);
   });
 
-  testApp('a Stats category shows only its section', (tester) async {
-    // 4 and 5 are identical copies: a certain duplicate group.
-    final media = source()
+  /// [source] plus 4 and 5, identical copies.
+  FakeMediaSource withCopies() {
+    final media = source();
+    return media
       ..items = [
-        ...source().items,
+        ...media.items,
         testItem(4, takenAt: now, sizeBytes: 500),
         testItem(5, takenAt: now, sizeBytes: 500),
       ]
       ..hashes.addAll({'4': 'same', '5': 'same'});
-    await pumpTestApp(tester, media: media);
+  }
+
+  testApp('chips show one kind of group at a time', (tester) async {
+    await pumpTestApp(tester, media: withCopies());
+    await tester.tap(find.byType(DuplicatesTile));
+    await tester.pumpAndSettle();
+    expect(find.text('All · 2'), findsOneWidget);
+    // Both sections, each titled.
+    expect(find.text('Identical copies'), findsOneWidget);
+
+    await tester.tap(find.text('Identical copies · 1'));
+    await tester.pumpAndSettle();
+    expect(find.text('Not duplicates'), findsNothing);
+    expect(find.text('Move 1 to trash'), findsOneWidget);
+
+    await tester.tap(find.text('Similar photos · 1'));
+    await tester.pumpAndSettle();
+    expect(find.text('Not duplicates'), findsOneWidget);
+    expect(find.text('Move 1 to trash'), findsOneWidget);
+  });
+
+  testApp('a Stats category opens its kind of group', (tester) async {
+    await pumpTestApp(tester, media: withCopies());
     await tester.tap(find.byTooltip('Stats'));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Similar photos'));
     await tester.pumpAndSettle();
     expect(find.text('Not duplicates'), findsOneWidget);
-    expect(find.text('Identical copies'), findsNothing);
+    expect(
+      tester
+          .widget<ChoiceChip>(
+            find.widgetWithText(ChoiceChip, 'Similar photos · 1'),
+          )
+          .selected,
+      isTrue,
+    );
 
     await tester.pageBack();
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Certain duplicates'));
+    await tester.tap(find.text('Identical copies'));
     await tester.pumpAndSettle();
-    expect(find.text('Identical copies'), findsOneWidget);
     expect(find.text('Not duplicates'), findsNothing);
+    expect(find.text('Move 1 to trash'), findsOneWidget);
   });
 }
