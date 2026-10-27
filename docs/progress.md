@@ -52,7 +52,7 @@ Last updated: 2026-10-27 — Milestone M4
 ### Known issues
 
 - **First device test: no similar groups.** Fixed on 2026-10-27 (progress shown, groups rebuilt every 1,000 photos, failing thumbnail batches skipped, native calls always reply) and confirmed on the phone; which of the two causes it was is not known.
-- **The first analysis is long** on the phone (duration and photo count not measured yet). Thumbnail rendering by MediaStore is the likely cost.
+- **The first analysis is long**: about 25 minutes for 20,000 photos on the Galaxy A54 (860 photos a minute with four threads, 760 with two), limited by MediaStore's thumbnail rendering. Only once: later scans read new photos only. Embedded JPEG thumbnails could be faster; not tried.
 - **Similar photos are not stacked in the timelines**, only grouped on the duplicates screen. The product owner wants stacking later (M5 or after).
 - Opening a photo in the viewer shows it blurry (the 256-pixel grid thumbnail, enlarged) until the screen-sized preview is decoded; reported on 2026-10-27, possibly slowed by the analysis running at the same time. Not fixed yet.
 - Not verified on a device: the rest of M4, including the time of the first analysis on a large library and the false positive rate on real photos.
