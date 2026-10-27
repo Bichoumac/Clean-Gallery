@@ -67,6 +67,15 @@ class MainActivity : FlutterActivity() {
                     .mapNotNull { it.toLongOrNull() }
                 onWorker(result) { mediaIndex.describe(ids) }
             }
+            "mediaMetadata" -> {
+                val id = call.argument<String>("id")?.toLongOrNull()
+                if (id == null) {
+                    result.error("bad_arguments", "id is required", null)
+                } else {
+                    val isVideo = call.argument<Boolean>("video") == true
+                    onWorker(result) { mediaIndex.metadata(id, isVideo) }
+                }
+            }
             "contentHashes" -> {
                 val items = MediaActions.Item.listFrom(call.argument("items"))
                     .map { it.id to it.isVideo }

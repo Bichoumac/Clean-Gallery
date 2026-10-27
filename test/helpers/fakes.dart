@@ -3,6 +3,7 @@ import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/domain/gray_image.dart';
 import 'package:clean_gallery/domain/media_item.dart';
+import 'package:clean_gallery/domain/media_metadata.dart';
 import 'package:clean_gallery/platform/media_source.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
 import 'package:clean_gallery/platform/platform_bridge.dart';
@@ -235,6 +236,13 @@ class FakeMediaSource implements MediaSource {
     }
     return {for (final photo in photos) photo.id: ?grayImages[photo.id]};
   }
+
+  /// Metadata of items by id; items not listed have none.
+  final metadatas = <String, MediaMetadata>{};
+
+  @override
+  Future<MediaMetadata> metadata(MediaItem item) async =>
+      metadatas[item.id] ?? MediaMetadata.empty;
 
   IndexedMedia _indexed(MediaItem item) {
     final folder = folders.where(

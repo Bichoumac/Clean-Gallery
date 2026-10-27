@@ -219,6 +219,20 @@ final class MediaIndexRepository {
     return row == null ? null : _toItem(row);
   }
 
+  /// Where the date shown for item [id] comes from, or `null` when the
+  /// item is not indexed. Without [correctedDates], or before the date is
+  /// resolved, it is the platform's file date ([DateSource.file]).
+  Future<DateSource?> dateSource(String id) async {
+    final key = int.tryParse(id);
+    if (key == null) return null;
+    final row = await (_db.select(
+      _db.assets,
+    )..where((t) => t.id.equals(key))).getSingleOrNull();
+    if (row == null) return null;
+    final resolved = correctedDates && row.captureAt != null;
+    return resolved ? row.captureSource ?? DateSource.file : DateSource.file;
+  }
+
   /// Device folders with their item count and newest item, largest first,
   /// leaving out trashed items.
   Future<List<Album>> albums() async {

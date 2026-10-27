@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-10-27 — Milestone M5
+Last updated: 2026-10-27 — Milestone M6
 
 ## Milestones
 
@@ -13,11 +13,33 @@ Last updated: 2026-10-27 — Milestone M5
 | M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Merged into `main` (PR #3) |
 | M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Merged into `main` (PR #4) |
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Merged into `main` (PR #5) |
-| M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Done on `m5-cleaning` (pushed), confirmed on the phone; pull request opened by the product owner |
-| M6 | Advanced viewer and editing | Not started |
+| M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Merged into `main` (PR #6) |
+| M6 | Advanced viewer and editing | In progress on `m6-viewer`: part 1 (info panel) done, to test |
 | M7 | Exploration: map, search | Not started |
 | M8 | Monetization | Not started |
 | M9 | Polish and release preparation | Not started |
+
+## M6 — Advanced viewer and editing
+
+In parts, each tested on the phone: 1. the info panel; 2. the editor (crop, rotate, flip, adjustments); 3. filters and saving.
+
+### Done
+
+- **Info panel** (part 1): a Details button in the viewer opens a bottom sheet over a blurred, translucent background with the date and its source, name, path, resolution, size, duration, camera, lens, ISO, aperture, shutter speed, focal length and location; EXIF read by the new native method `mediaMetadata` ([features/viewer.md](features/viewer.md#info-panel)).
+
+### Decisions
+
+- The info panel's **mini map moves to M7**, with the map itself (`flutter_map` and OpenStreetMap tiles): the location shows as coordinates until then. A deviation from the brief, to approve.
+
+### Known issues
+
+- Part 1 not verified on a device yet ([testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device)).
+- The blur rule lists some hazy night photos (from M5); calibration in progress with values read on the phone.
+
+### Next steps
+
+1. Device test of part 1, and blur values of a few photos for the calibration.
+2. Part 2: the editor.
 
 ## M5 — Cleanup
 
@@ -44,10 +66,8 @@ Three parts, each committed and tested on the phone: 1. old screenshots and larg
 
 ### Next steps
 
-1. Merge the M5 pull request.
-2. Calibrate the blur rule on real photos (hazy night shots); needs measured values, see the product owner.
-3. M6 (advanced viewer and editing).
-4. Later: stack similar photos in the timelines (product owner's request).
+1. Calibrate the blur rule on real photos (hazy night shots), during M6.
+2. Later: stack similar photos in the timelines (product owner's request).
 
 ## M4 — Engine level 2
 

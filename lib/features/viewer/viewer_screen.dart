@@ -8,6 +8,7 @@ import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/core/theme/app_theme.dart';
 import 'package:clean_gallery/domain/media_item.dart';
+import 'package:clean_gallery/features/viewer/info_panel.dart';
 import 'package:clean_gallery/features/viewer/video_page.dart';
 import 'package:clean_gallery/features/viewer/zoomable_image.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
@@ -184,9 +185,8 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
   }
 }
 
-/// Back button, date and file name over a dark gradient.
-/// Back button, date and file name, and the actions on the current item:
-/// share, favorite, move to trash. Edit and info come in M6.
+/// Back button, date and file name over a dark gradient, and the actions
+/// on the current item: share, favorite, details, move to trash.
 class _TopBar extends ConsumerWidget {
   const _TopBar({required this.item});
 
@@ -253,6 +253,12 @@ class _TopBar extends ConsumerWidget {
                       ? Icons.favorite_rounded
                       : Icons.favorite_border_rounded,
                 ),
+              ),
+              IconButton(
+                tooltip: l10n.actionInfo,
+                color: Colors.white,
+                onPressed: () => showInfoPanel(context, item),
+                icon: const Icon(Icons.info_outline_rounded),
               ),
               IconButton(
                 tooltip: l10n.actionTrash,

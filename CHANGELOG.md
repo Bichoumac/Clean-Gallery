@@ -2,9 +2,16 @@
 
 All notable changes to this project are documented here, one section per milestone. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-10-27 — Milestone M5
+Last updated: 2026-10-27 — Milestone M6
 
 ## [Unreleased]
+
+### Added
+
+- Viewer: an **info panel** (Details button), sliding up over a blurred, translucent background: date and where it comes from, name, path, resolution, size, duration, camera, lens, ISO, aperture, shutter speed, focal length and location ([docs/features/viewer.md](docs/features/viewer.md#info-panel)).
+- Native method `mediaMetadata`: EXIF of a photo, location of a video.
+
+## [M5] — 2026-10-27 — Cleanup
 
 ### Added
 

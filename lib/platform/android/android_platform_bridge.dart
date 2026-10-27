@@ -59,6 +59,22 @@ final class AndroidPlatformBridge implements PlatformBridge {
     ];
   }
 
+  /// Camera and location metadata of the MediaStore item [id], as a map
+  /// whose keys are listed in `docs/platform-android.md`; missing values
+  /// are left out.
+  ///
+  /// Android-only helper used by `AndroidMediaSource.metadata`.
+  Future<Map<String, Object?>> mediaMetadata(
+    String id, {
+    required bool video,
+  }) async {
+    final reply = await _channel.invokeMapMethod<String, Object?>(
+      'mediaMetadata',
+      {'id': id, 'video': video},
+    );
+    return reply ?? const {};
+  }
+
   /// SHA-256 of the content of [items], as lowercase hex, by id; items
   /// that cannot be read are left out.
   ///

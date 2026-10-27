@@ -2,7 +2,7 @@
 
 Full-screen photo and video viewer, opened from any grid.
 
-Last updated: 2026-10-25 — Milestone M2
+Last updated: 2026-10-27 — Milestone M6
 
 ## Purpose
 
@@ -15,7 +15,7 @@ Show one item at a time, full screen, with swiping between the items of the grid
 3. Pinch, or double-tap, to zoom a photo; double-tap again to fit. Swiping is disabled while zoomed.
 4. Tap once to hide or show the controls and the system bars.
 5. Videos start playing when they become the current page and pause when swiped away. Controls: play/pause/replay, progress bar with seeking, mute, rotate. The progress bar follows the finger and the video seeks when it is lifted.
-6. Top bar actions: **share**, **favorite**, **move to trash** (with *Undo*); after trashing, the next item is shown, and the viewer closes when nothing is left.
+6. Top bar actions: **share**, **favorite**, **details** (the [info panel](#info-panel)), **move to trash** (with *Undo*); after trashing, the next item is shown, and the viewer closes when nothing is left.
 7. Back returns to the grid.
 
 ## Screens and widgets
@@ -25,6 +25,7 @@ Show one item at a time, full screen, with swiping between the items of the grid
 | `ViewerScreen` (pages, top bar, system UI) | [viewer_screen.dart](../../lib/features/viewer/viewer_screen.dart) |
 | `ZoomableImage` (photo page) | [zoomable_image.dart](../../lib/features/viewer/zoomable_image.dart) |
 | `VideoPage` and its controls | [video_page.dart](../../lib/features/viewer/video_page.dart) |
+| `InfoPanel`, `showInfoPanel` | [info_panel.dart](../../lib/features/viewer/info_panel.dart) |
 
 Route: `/viewer`, above the tabs, with `ViewerArgs(selection, initialIndex)` as `extra` ([app_router.dart](../../lib/core/router/app_router.dart)). Without arguments (e.g. restored after the process was killed), it redirects to Photos.
 
@@ -38,6 +39,19 @@ Route: `/viewer`, above the tabs, with `ViewerArgs(selection, initialIndex)` as 
 - Zoom: own gesture handling ([ADR 0010](../decisions/0010-photo-zoom.md)): one finger swipes between pages at fit scale and pans once zoomed; two fingers zoom. The zoom claims the gesture as soon as the second finger lands: otherwise a pinch whose first finger slid a little first went to the page view and did not zoom (seen on the device on 2026-10-27).
 - The top bar is pinned to the top with its own height: an earlier full-screen overlay swallowed swipes and the video controls.
 
+## Info panel
+
+The brief: "a bottom sheet that slides up with a translucent blurred background over the photo. It shows the date (and its source), file name, path, size, resolution, camera, lens, ISO, aperture, shutter speed, focal length, and GPS location with a mini map."
+
+- Opened with the **details** button (ⓘ) of the top bar; closed by swiping it down, tapping the photo above it, or Back.
+- A modal bottom sheet over a `BackdropFilter` blur (σ 30) and 55 % black, at most 75 % of the screen high, scrolling when longer.
+- What the index already knows shows at once: date, name, path, resolution and megapixels, size, video duration. The rest is read when the panel opens (`mediaInfoProvider` in [media_info.dart](../../lib/features/viewer/media_info.dart)), with a small spinner until then:
+  - **Date source**, from the media index (`MediaIndexRepository.dateSource`): *From the photo's metadata (EXIF)*, *From the file name*, or *File date* (also when corrected dates are turned off in Settings, since the date shown is then the system's);
+  - **Camera metadata**, from the file's EXIF header (`MediaSource.metadata`, native `mediaMetadata`, [platform-android.md](../platform-android.md#native-channel-clean_galleryplatform)): camera (maker and model, the maker once), lens, then ISO, aperture (`f/1.8`), shutter speed (`1/125 s`) and focal length (`5.4 mm · 24 mm equivalent`) as small tiles;
+  - **Location**, as latitude and longitude with five decimals, selectable to paste into a map app. Videos only have a location.
+- Missing values are left out. A photo with no camera data at all says *No camera information in this file.*; without the media location permission, the location row says to allow it in Settings (Android hides GPS tags from apps without it).
+- **No mini map yet**: it comes with the map in M7, which adds `flutter_map` and the OpenStreetMap tiles; showing it here first would have meant adding the map library and network access one milestone early.
+
 ## Edge cases and error handling
 
 - **Unreadable file or video**: "This item can't be displayed." on that page; other pages still work.
@@ -50,11 +64,12 @@ Route: `/viewer`, above the tabs, with `ViewerArgs(selection, initialIndex)` as 
 
 - [library_test.dart](../../test/features/library/library_test.dart): opening the viewer on the tapped item, showing its file name, closing with back.
 - [viewer_test.dart](../../test/features/viewer/viewer_test.dart): swipe left and right (fling and slow drag), pinch then pan without changing page, double-tap back to fit, top bar height.
+- [info_panel_test.dart](../../test/features/viewer/info_panel_test.dart): the panel with camera settings and location, the notes for missing camera data and location permission, value formats.
 - [video_controls_test.dart](../../test/features/viewer/video_controls_test.dart): progress bar at the bottom and play button centered, in portrait and landscape (the bar was in the middle of the screen because `Slider` takes all the height it is given).
 - Video playback, zoom gestures and Hero transitions are checked on a device ([testing.md](../testing.md#m1--to-verify-on-a-device)).
 
 ## Known limitations / future work
 
-- Edit and the info panel come in M6.
-- The info panel with EXIF data and a mini map comes in M6.
+- Edit comes later in M6.
+- The info panel's mini map comes with the map in M7.
 - Zoom is limited to 5× and to the 4,096 px decoded image.

@@ -132,6 +132,20 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
 
+### M6 — viewer and editing, to verify on a device
+
+Part 1, info panel. Install over M5 (`adb install -r`).
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 1 | Open a photo taken with the phone, tap ⓘ (Details) | A panel slides up; the photo shows blurred through it. Date with *From the photo's metadata (EXIF)*, name, path, resolution with megapixels, size. |
+| 2 | Same panel, below | Camera (e.g. *samsung Galaxy A54 5G*), then tiles ISO, Aperture, Shutter speed, Focal length with its 35 mm equivalent. |
+| 3 | A photo taken with location on | *Location* with coordinates; long-press selects them, and pasted in a map app they point to the right place. |
+| 4 | A WhatsApp image or a screenshot | *From the file name* or *File date*; *No camera information in this file.* |
+| 5 | A video | Duration; its location if the camera saved one; no camera tiles. |
+| 6 | Swipe the panel down, tap above it, Back | Each closes it; the viewer stays on the same photo. |
+| 7 | Largest font size | The panel scrolls, nothing is cut off. |
+
 ### M5 — cleanup, to verify on a device
 
 Part 1, cleanup lists. Install over the M4 version (`adb install -r`, do not uninstall). The first launch describes every item again (index rules version 3): a few seconds, no thumbnails read.
