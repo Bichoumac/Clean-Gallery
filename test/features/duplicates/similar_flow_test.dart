@@ -65,4 +65,30 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Not duplicates'), findsOneWidget);
   });
+
+  testApp('a Stats category shows only its section', (tester) async {
+    // 4 and 5 are identical copies: a certain duplicate group.
+    final media = source()
+      ..items = [
+        ...source().items,
+        testItem(4, takenAt: now, sizeBytes: 500),
+        testItem(5, takenAt: now, sizeBytes: 500),
+      ]
+      ..hashes.addAll({'4': 'same', '5': 'same'});
+    await pumpTestApp(tester, media: media);
+    await tester.tap(find.byTooltip('Stats'));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('Similar photos'));
+    await tester.pumpAndSettle();
+    expect(find.text('Not duplicates'), findsOneWidget);
+    expect(find.text('Identical copies'), findsNothing);
+
+    await tester.pageBack();
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Certain duplicates'));
+    await tester.pumpAndSettle();
+    expect(find.text('Identical copies'), findsOneWidget);
+    expect(find.text('Not duplicates'), findsNothing);
+  });
 }

@@ -93,6 +93,20 @@ void main() {
     expect(rows[5]!.analysisVersion, 0, reason: 'videos are not compared');
   });
 
+  test('a failing thumbnail batch is skipped, not retried', () async {
+    source.grayFailures.add('3');
+    await syncAndScan();
+    expect(container.read(duplicateScanProvider).running, isFalse);
+    expect(await groups(), isEmpty);
+    final rows = {
+      for (final row in await db.select(db.assets).get()) row.id: row,
+    };
+    expect(rows[1]!.analysisVersion, analysisVersion, reason: 'not retried');
+    source.grayCalls.clear();
+    await container.read(duplicateScanProvider.notifier).run();
+    expect(source.grayCalls, isEmpty);
+  });
+
   test('"Not duplicates" splits the group for good', () async {
     await syncAndScan();
     final group =

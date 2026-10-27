@@ -12,6 +12,8 @@
 
   "statsReclaimableTitle": "Space you could free",
   "statsReclaimablePending": "Your library is being analyzed. The value grows as it goes.",
+  "analysisProgress": "Analyzing: {done} of {total} items",
+  "@analysisProgress": {"placeholders": {"done": {"type": "int", "format": "decimalPattern"}, "total": {"type": "int", "format": "decimalPattern"}}},
   "statsBlurry": "Blurry photos",
   "statsScreenshots": "Old screenshots",
   "statsLargeVideos": "Large videos",

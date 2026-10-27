@@ -1,5 +1,3 @@
-import 'dart:typed_data';
-
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/enums.dart';
@@ -10,6 +8,7 @@ import 'package:clean_gallery/platform/permission_service.dart';
 import 'package:clean_gallery/platform/platform_bridge.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter/services.dart';
 
 /// Opens a fresh in-memory database for one test.
 AppDatabase inMemoryDatabase() => AppDatabase(NativeDatabase.memory());
@@ -222,12 +221,18 @@ class FakeMediaSource implements MediaSource {
   /// Ids passed to [grayThumbnails], per call.
   final grayCalls = <List<String>>[];
 
+  /// Photos whose batch fails with a platform error in [grayThumbnails].
+  final grayFailures = <String>{};
+
   @override
   Future<Map<String, GrayImage>> grayThumbnails(
     List<MediaItem> photos, {
     required int side,
   }) async {
     grayCalls.add([for (final photo in photos) photo.id]);
+    if (photos.any((photo) => grayFailures.contains(photo.id))) {
+      throw PlatformException(code: 'failed');
+    }
     return {for (final photo in photos) photo.id: ?grayImages[photo.id]};
   }
 

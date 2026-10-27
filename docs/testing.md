@@ -132,7 +132,7 @@ Install the release build over the M3 version (`adb install -r`, do not uninstal
 
 | # | Check | Expected |
 | --- | --- | --- |
-| 1 | Launch and use the app while the first analysis runs (scroll Camera, open photos) | Stays fluid; a thin bar on the duplicates screen and "Your library is being analyzed" on the Stats tab until it ends. Note roughly how long it takes and how many photos the phone has. |
+| 1 | Launch and use the app while the first analysis runs (scroll Camera, open photos) | Stays fluid; a bar filling up on the duplicates screen, and "Your library is being analyzed" with "Analyzing: N of M items" on the Stats tab until it ends; similar groups appear every 1,000 photos. Note roughly how long it takes and how many photos the phone has. |
 | 2 | Albums → All media | The **Duplicates** tile reads "N items to review · size". |
 | 3 | Open it | Two sections: **Certain duplicates** (as in M3) and **Similar photos**. |
 | 4 | The WhatsApp copy | Grouped with the original under Similar photos; the original (higher resolution) marked **Best**, the copy picked. |
@@ -142,10 +142,21 @@ Install the release build over the M3 version (`adb install -r`, do not uninstal
 | 8 | Settings → Analysis → Similar photos: **Low**, then **High** | Within seconds, fewer groups with Low, more with High; back to **Medium**. |
 | 9 | **Advanced mode** on | No preset selected; three sliders starting from the current values; moving one regroups. Off: back to Medium. |
 | 10 | Stats tab | **Space you could free** with a value, *Out of … used by your photos and videos*, a bar, *Photos … · Videos …*; rows Certain duplicates, Similar photos and In the trash with counts and sizes; blurry, screenshots and large videos *Coming soon*. |
-| 11 | Tap **Certain duplicates**, then **Similar photos**, then **In the trash** | The first two open the duplicates screen of the whole library; the third opens the Trash page. |
+| 11 | Tap **Certain duplicates**, then **Similar photos**, then **In the trash** | The first two open the duplicates screen of the whole library on that section only, titled with its name; the third opens the Trash page. |
 | 12 | Clean a similar group, then come back to Stats | The reclaimable value drops and **In the trash** grows by the same amount. |
 | 13 | Settings → **Analyze the library again** (also M3 item 26) | Spinner while it runs (longer than in M3: thumbnails are read again); afterwards the same groups, and the groups marked Not duplicates stay gone. |
 | 14 | Largest font size, duplicates screen | *Not duplicates* and *Move N to trash* fit or stack, never cut off. |
+
+M4 results on the Galaxy A54, reported by the product owner on 2026-10-27 (release build installed over M3):
+
+| Status | Items |
+| --- | --- |
+| Confirmed | 14 (buttons fit or stack with the largest font) |
+| Failed | 3 and 5 to 9: no Similar photos section; the WhatsApp copy and close shots not grouped; the sensitivity and *Analyze the library again* ran a long time without result. 11: Similar photos opened the duplicates screen at the top, not on similar photos |
+| Not answered yet | 1 (duration, photo count), 4 (WhatsApp copy) |
+| Also reported | Opening a photo shows it blurry for a moment before it turns sharp |
+
+Fixes for a second test (same checklist): progress "Analyzing: N of M items", groups rebuilt every 1,000 photos, a failing thumbnail batch skipped instead of stopping the scan, native calls that always reply, Stats rows opening their section, two threads rendering thumbnails. The cause of the missing groups is not confirmed: the scan may simply not have reached the end, or a native error may have stopped it.
 
 ### M3 — media index, to verify on a device
 

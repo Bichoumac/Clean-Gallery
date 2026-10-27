@@ -58,7 +58,8 @@ The counts follow the default picks, not changes made on the duplicates screen: 
 
 - **While the values load**: every value shows "—".
 - **Empty library or nothing to clean**: 0 B, an empty bar, "Nothing" under each category.
-- **Analysis in progress**: the values grow as groups are found; the hint under the bar says so.
+- **Analysis in progress**: the values grow as groups are found; the hint under the bar says so, followed by "Analyzing: N of M items".
+- **Certain duplicates** and **Similar photos** open the duplicates screen of the whole library showing only that section (`/duplicates?section=certain|similar`).
 
 ## Tests
 

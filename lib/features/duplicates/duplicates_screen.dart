@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clean_gallery/core/media/analysis_progress.dart';
 import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/media_actions.dart';
 import 'package:clean_gallery/core/media/media_formatting.dart';
@@ -24,20 +25,34 @@ const _thumbSide = 136.0;
 /// the others picked for the trash. The user can change the picks, trash a
 /// group, mark similar photos "Not duplicates", or clean every group at
 /// once. See `docs/features/duplicates.md`.
+///
+/// With a [section], only that section shows (the Stats tab's categories).
 class DuplicatesScreen extends ConsumerWidget {
   /// Creates the screen for the items of [scope].
-  const DuplicatesScreen({required this.scope, super.key});
+  const DuplicatesScreen({required this.scope, this.section, super.key});
 
   /// Filter and folder the duplicates are looked for in.
   final MediaSelection scope;
+
+  /// The only section shown, or `null` for both.
+  final DuplicateSection? section;
+
+  /// Route location of the screen showing only [section], to push with the
+  /// scope as `extra`.
+  static String location(DuplicateSection section) =>
+      '${AppRoutes.duplicates}?section=${section.name}';
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final groups = ref.watch(duplicateGroupsProvider(scope));
-    final scanning = ref.watch(duplicateScanProvider.select((s) => s.running));
+    final scan = ref.watch(duplicateScanProvider);
+    final scanning = scan.running;
     final changes = ref.watch(duplicateSelectionProvider(scope));
-    final loaded = groups.value ?? const <DuplicateGroup>[];
+    final loaded = [
+      for (final group in groups.value ?? const <DuplicateGroup>[])
+        if (section == null || section == _sectionOf(group)) group,
+    ];
     // An item can be in a certain group and a similar group: count it once.
     final picked = {
       for (final group in loaded)
@@ -46,32 +61,39 @@ class DuplicatesScreen extends ConsumerWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(l10n.duplicatesTitle),
+        title: Text(switch (section) {
+          null => l10n.duplicatesTitle,
+          DuplicateSection.certain => l10n.duplicatesCertain,
+          DuplicateSection.similar => l10n.duplicatesSimilar,
+        }),
         bottom: scanning
-            ? const PreferredSize(
-                preferredSize: Size.fromHeight(2),
-                child: LinearProgressIndicator(minHeight: 2),
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(2),
+                child: LinearProgressIndicator(
+                  value: analysisFraction(scan),
+                  minHeight: 2,
+                ),
               )
             : null,
       ),
       body: switch (groups) {
-        AsyncData(value: []) => _Empty(scanning: scanning),
-        AsyncData(:final value) => ListView(
+        AsyncData() when loaded.isEmpty => _Empty(scanning: scanning),
+        AsyncData() => ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
-            for (final (title, section) in [
+            for (final (title, groups) in [
               (
                 l10n.duplicatesCertain,
-                value.where((g) => g.kind != DuplicateKind.similar),
+                loaded.where((g) => g.kind != DuplicateKind.similar),
               ),
               (
                 l10n.duplicatesSimilar,
-                value.where((g) => g.kind == DuplicateKind.similar),
+                loaded.where((g) => g.kind == DuplicateKind.similar),
               ),
             ])
-              if (section.isNotEmpty) ...[
-                _SectionTitle(title),
-                for (final group in section)
+              if (groups.isNotEmpty) ...[
+                if (section == null) _SectionTitle(title),
+                for (final group in groups)
                   _GroupCard(
                     key: ValueKey(group.id),
                     scope: scope,
@@ -131,6 +153,20 @@ class DuplicatesScreen extends ConsumerWidget {
 }
 
 /// Title of a section of groups.
+/// A section of the duplicates screen.
+enum DuplicateSection {
+  /// Identical copies and bursts.
+  certain,
+
+  /// Similar photos.
+  similar,
+}
+
+DuplicateSection _sectionOf(DuplicateGroup group) =>
+    group.kind == DuplicateKind.similar
+    ? DuplicateSection.similar
+    : DuplicateSection.certain;
+
 class _SectionTitle extends StatelessWidget {
   const _SectionTitle(this.title);
 
@@ -407,14 +443,18 @@ class _Empty extends StatelessWidget {
               style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
-            if (!scanning) ...[
-              const SizedBox(height: 8),
+            const SizedBox(height: 8),
+            if (scanning)
+              AnalysisProgressText(
+                style: theme.textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              )
+            else
               Text(
                 l10n.duplicatesEmptyHelp,
                 style: theme.textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
-            ],
           ],
         ),
       ),

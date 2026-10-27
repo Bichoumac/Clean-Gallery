@@ -131,8 +131,11 @@ GoRouter appRouter(Ref ref) {
       ),
       GoRoute(
         path: AppRoutes.duplicates,
-        builder: (context, state) =>
-            DuplicatesScreen(scope: state.extra! as MediaSelection),
+        builder: (context, state) => DuplicatesScreen(
+          scope: state.extra! as MediaSelection,
+          section: DuplicateSection.values
+              .asNameMap()[state.uri.queryParameters['section']],
+        ),
       ),
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) =>

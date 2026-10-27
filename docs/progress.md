@@ -12,7 +12,7 @@ Last updated: 2026-10-27 — Milestone M4
 | M1 | Navigation: timelines, albums, grid, viewer, video, sorting, date filter | Merged into `main` (PR #2) |
 | M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Merged into `main` (PR #3) |
 | M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Merged into `main` (PR #4) |
-| M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Done on `m4-similar`, awaiting the device test and approval |
+| M4 | Engine level 2: perceptual hashes, similar photos, dashboard | On `m4-similar`; first device test failed (no similar groups), fixes awaiting a second test |
 | M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Not started |
 | M6 | Advanced viewer and editing | Not started |
 | M7 | Exploration: map, search | Not started |
@@ -36,22 +36,24 @@ Last updated: 2026-10-27 — Milestone M4
 | Check | Result |
 | --- | --- |
 | `flutter analyze` | No issues |
-| `flutter test --timeout 60s` | 194 tests pass |
+| `flutter test --timeout 60s` | 196 tests pass (after the fixes of 2026-10-27) |
 | `flutter build apk --release --target-platform android-arm64` | Builds (Kotlin `grayThumbnails` compiles) |
 | Search speed (AOT, development laptop, 30,000 photos) | Grouping 0.6–1.1 s at Medium, 1.4–2.6 s at High; hashing 1–2.5 ms per photo ([analysis-engine.md](analysis-engine.md#performance-2)) |
-| Galaxy A54 | Release APK installed on 2026-10-27 (over M3); not tested yet by the product owner: checklist in [testing.md](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device), questions to ask in [working-notes.md](working-notes.md#where-to-pick-up) |
+| Galaxy A54 | First test on 2026-10-27: **no similar photos found**, analysis long without result; Stats → Similar photos opened the wrong place; large text OK. Fixes made, second test pending ([testing.md](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device)) |
 
 ### Decisions
 
 - Pixels from MediaStore's thumbnail cache, hashes in Dart ([ADR 0018](decisions/0018-perceptual-hashes-from-thumbnails.md)).
-- Multi-index hashing instead of the brief's BK-tree, which was slower than comparing every pair on pHashes; advanced mode strict threshold capped at 10 ([ADR 0019](decisions/0019-similar-photo-search.md)). **To approve.**
+- Multi-index hashing instead of the brief's BK-tree, which was slower than comparing every pair on pHashes; advanced mode strict threshold capped at 10 ([ADR 0019](decisions/0019-similar-photo-search.md)). Approved by the product owner on 2026-10-27.
 - Presets: Low 4 / 10 / 5 s, Medium 6 / 12 / 10 s (the brief's defaults), High 8 / 14 / 30 s.
 - "Not duplicates" only on similar groups: certain duplicates are identical by definition.
-- Similar groups pre-select every photo but the best, as the brief asks. **To confirm** after the device test: similar photos are not copies.
+- Similar groups pre-select every photo but the best, as the brief asks; kept by the product owner on 2026-10-27.
 
 ### Known issues
 
-- Not verified on a device: everything of M4, including the time of the first analysis on a large library and the false positive rate on real photos.
+- **First device test: no similar groups.** Cause not confirmed (scan not finished, or stopped by a native error). Fixed on 2026-10-27: progress shown, groups rebuilt every 1,000 photos, failing thumbnail batches skipped, native calls always reply. To check again on the phone.
+- Opening a photo in the viewer shows it blurry (the 256-pixel grid thumbnail, enlarged) until the screen-sized preview is decoded; reported on 2026-10-27, possibly slowed by the analysis running at the same time. Not fixed yet.
+- Not verified on a device: the rest of M4, including the time of the first analysis on a large library and the false positive rate on real photos.
 - The camera model and GPS bonuses of the confidence score do not apply yet: those columns are filled in M6 and M7. The score is stored, not shown.
 - A photo whose thumbnail cannot be rendered is not compared until its file changes.
 - Videos are not compared (brief: same duration, resolution and close dates); not part of M4's list.
@@ -59,10 +61,11 @@ Last updated: 2026-10-27 — Milestone M4
 
 ### Next steps
 
-1. Device test with the [M4 checklist](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device), especially false positives.
-2. Product owner's approval of ADR 0019 and of the pre-selection in similar groups.
-3. Review and merge the M4 pull request.
-4. M5: swipe mode, blurry photos (sharpness also refines the best pick), screenshots, large videos.
+1. Second device test with the [M4 checklist](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device), especially false positives; note the photo count and the analysis time shown by the progress.
+2. If groups still do not show, read `logcat` (with the product owner's permission) to find the cause.
+3. Blurry-then-sharp viewer: measure, then fix.
+4. Review and merge the M4 pull request.
+5. M5: swipe mode, blurry photos (sharpness also refines the best pick), screenshots, large videos.
 
 ## M3 — Engine level 1
 

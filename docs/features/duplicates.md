@@ -60,7 +60,8 @@ Detection rules and the "Best" choice are in [analysis-engine.md](../analysis-en
 - **The best item is outside the grid** (e.g. the copy kept in Camera, the grid is WhatsApp): the best is chosen again among the items shown.
 - **Every copy kept**: the group's button is disabled; with nothing picked anywhere, *Clean all groups* is hidden.
 - **Every copy picked**: allowed; the user chose it, and the trash keeps them for the retention period.
-- **Scan still running**: a thin progress bar under the title; "Looking for duplicates…" while nothing is found yet.
+- **Scan still running**: a thin progress bar under the title, filled as items are read; "Looking for duplicates…" and "Analyzing: N of M items" while nothing is found yet. Similar groups appear every 1,000 photos read, not only at the end.
+- **Opened from a Stats category**: only that section shows (Certain duplicates or Similar photos), titled with its name; *Clean all groups* applies to it only.
 - **Unreadable file**: not hashed, so never grouped; it is tried again when its file changes. The same for a photo without a thumbnail.
 - **An item in a certain and a similar group** (a copy that also looks like a third photo): shown in both; *Clean all groups* and the counts take it once.
 - **Not duplicates during the first analysis**: the group goes at once; the regrouping waits for the scan in progress.

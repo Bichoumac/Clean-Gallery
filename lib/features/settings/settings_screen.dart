@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:clean_gallery/analysis/similarity.dart';
+import 'package:clean_gallery/core/media/analysis_progress.dart';
 import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/media_index.dart';
 import 'package:clean_gallery/core/media/media_providers.dart';
@@ -196,7 +197,9 @@ class _AnalysisSection extends ConsumerWidget {
         ListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(l10n.settingsReanalyze),
-          subtitle: Text(l10n.settingsReanalyzeHelp),
+          subtitle: running
+              ? const AnalysisProgressText()
+              : Text(l10n.settingsReanalyzeHelp),
           trailing: busy
               ? const SizedBox.square(
                   dimension: 24,

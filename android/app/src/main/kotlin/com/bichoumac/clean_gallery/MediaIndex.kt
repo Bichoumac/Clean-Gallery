@@ -7,6 +7,9 @@ import android.provider.MediaStore
 import android.util.Size
 import java.io.IOException
 import java.security.MessageDigest
+import java.util.concurrent.Callable
+import java.util.concurrent.ExecutionException
+import java.util.concurrent.Executors
 
 /**
  * Reads MediaStore for the app's media index (`MediaIndex` on the Dart side).
@@ -20,6 +23,9 @@ class MediaIndex(private val context: Context) {
     private val resolver = context.contentResolver
 
     private val uri = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
+
+    /** Renders the thumbnails of [grayThumbnails], several at once. */
+    private val thumbnailPool = Executors.newFixedThreadPool(THUMBNAIL_THREADS)
 
     /**
      * `{version, ids, revisions}`: the MediaStore version and, newest first,
@@ -198,51 +204,80 @@ class MediaIndex(private val context: Context) {
      * file is never decoded in full. Used for similar photos.
      */
     fun grayThumbnails(ids: List<Long>, side: Int): Map<String, Map<String, Any>> {
+        // MediaStore renders missing thumbnails from the full file: a few
+        // threads keep several decodes going at once.
+        val tasks = ids.map { id -> Callable { id to grayThumbnail(id, side) } }
         val thumbnails = HashMap<String, Map<String, Any>>(ids.size)
-        for (id in ids) {
-            val itemUri = ContentUris.withAppendedId(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                id,
-            )
-            val loaded = try {
-                resolver.loadThumbnail(itemUri, Size(side, side), null)
-            } catch (e: IOException) {
-                continue
-            } catch (e: SecurityException) {
-                continue
-            } catch (e: IllegalArgumentException) {
-                // Undecodable image.
+        for (future in thumbnailPool.invokeAll(tasks)) {
+            val (id, image) = try {
+                future.get()
+            } catch (e: ExecutionException) {
                 continue
             }
-            // Hardware bitmaps cannot be read back; copy to a software bitmap.
-            val bitmap = if (loaded.config == Bitmap.Config.ARGB_8888) {
-                loaded
-            } else {
-                loaded.copy(Bitmap.Config.ARGB_8888, false).also { loaded.recycle() }
-            }
-            val width = bitmap.width
-            val height = bitmap.height
-            val colors = IntArray(width * height)
-            bitmap.getPixels(colors, 0, width, 0, 0, width, height)
-            bitmap.recycle()
-            val gray = ByteArray(colors.size)
-            for (i in colors.indices) {
-                val c = colors[i]
-                val r = (c shr 16) and 0xFF
-                val g = (c shr 8) and 0xFF
-                val b = c and 0xFF
-                gray[i] = ((299 * r + 587 * g + 114 * b) / 1000).toByte()
-            }
-            thumbnails[id.toString()] = mapOf(
-                "width" to width,
-                "height" to height,
-                "pixels" to gray,
-            )
+            if (image != null) thumbnails[id.toString()] = image
         }
         return thumbnails
     }
 
+    /**
+     * Grayscale thumbnail of photo [id] for [grayThumbnails], or `null` when
+     * MediaStore cannot render it. Any failure on one photo leaves only that
+     * photo out, so a single odd file never stops the similar photo search.
+     */
+    private fun grayThumbnail(id: Long, side: Int): Map<String, Any>? {
+        val itemUri = ContentUris.withAppendedId(
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+            id,
+        )
+        val loaded = try {
+            resolver.loadThumbnail(itemUri, Size(side, side), null)
+        } catch (e: IOException) {
+            return null
+        } catch (e: RuntimeException) {
+            // SecurityException, undecodable image, provider failure.
+            return null
+        } catch (e: OutOfMemoryError) {
+            return null
+        }
+        // Hardware bitmaps cannot be read back; copy to a software bitmap.
+        val bitmap = if (loaded.config == Bitmap.Config.ARGB_8888) {
+            loaded
+        } else {
+            loaded.copy(Bitmap.Config.ARGB_8888, false).also { loaded.recycle() }
+                ?: return null
+        }
+        val width = bitmap.width
+        val height = bitmap.height
+        val colors = IntArray(width * height)
+        bitmap.getPixels(colors, 0, width, 0, 0, width, height)
+        bitmap.recycle()
+        val gray = ByteArray(colors.size)
+        for (i in colors.indices) {
+            val c = colors[i]
+            val r = (c shr 16) and 0xFF
+            val g = (c shr 8) and 0xFF
+            val b = c and 0xFF
+            gray[i] = ((299 * r + 587 * g + 114 * b) / 1000).toByte()
+        }
+        return mapOf(
+            "width" to width,
+            "height" to height,
+            "pixels" to gray,
+        )
+    }
+
+    /** Stops the threads of [grayThumbnails]. */
+    fun shutdown() {
+        thumbnailPool.shutdownNow()
+    }
+
     private companion object {
+        /**
+         * Thumbnails rendered at once by [grayThumbnails]; kept low so the
+         * grid and the viewer, which use the same MediaStore cache, stay fast.
+         */
+        const val THUMBNAIL_THREADS = 2
+
         /** Ids per MediaStore query in [describe]. */
         const val CHUNK = 1000
 

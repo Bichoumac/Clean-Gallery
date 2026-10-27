@@ -1,8 +1,10 @@
+import 'package:clean_gallery/core/media/analysis_progress.dart';
 import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/media_formatting.dart';
 import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/core/router/home_shell.dart';
 import 'package:clean_gallery/domain/album.dart';
+import 'package:clean_gallery/features/duplicates/duplicates_screen.dart';
 import 'package:clean_gallery/features/stats/storage_summary.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -29,8 +31,8 @@ class StatsScreen extends ConsumerWidget {
     String size(int? bytes) =>
         bytes == null ? unknown : formatBytes(context, bytes);
 
-    void openDuplicates() => context.push(
-      AppRoutes.duplicates,
+    void openDuplicates(DuplicateSection section) => context.push(
+      DuplicatesScreen.location(section),
       extra: duplicateScope(MediaSelection.all),
     );
 
@@ -50,7 +52,7 @@ class StatsScreen extends ConsumerWidget {
                     ? null
                     : l10n.statsItems(summary.certain.count),
                 value: size(summary?.certain.bytes),
-                onTap: openDuplicates,
+                onTap: () => openDuplicates(DuplicateSection.certain),
               ),
               const Divider(indent: 64),
               _CategoryRow(
@@ -60,7 +62,7 @@ class StatsScreen extends ConsumerWidget {
                     ? null
                     : l10n.statsItems(summary.similar.count),
                 value: size(summary?.similar.bytes),
-                onTap: openDuplicates,
+                onTap: () => openDuplicates(DuplicateSection.similar),
               ),
               const Divider(indent: 64),
               _CategoryRow(
@@ -180,6 +182,9 @@ class _HeroCard extends StatelessWidget {
               const SizedBox(height: 8),
               Text(
                 l10n.statsReclaimablePending,
+                style: theme.textTheme.bodySmall?.copyWith(color: faded),
+              ),
+              AnalysisProgressText(
                 style: theme.textTheme.bodySmall?.copyWith(color: faded),
               ),
             ],

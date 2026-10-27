@@ -136,7 +136,8 @@ class MainActivity : FlutterActivity() {
 
     /**
      * Runs a MediaStore query on [executor] (the worker thread by default)
-     * and replies on the main thread. A revoked media permission is reported as a `permission` error.
+     * and replies on the main thread. A revoked media permission is reported as a `permission` error,
+     * any other failure as a `failed` error.
      */
     private fun onWorker(
         result: MethodChannel.Result,
@@ -149,6 +150,9 @@ class MainActivity : FlutterActivity() {
                 mainHandler.post { result.success(value) }
             } catch (e: SecurityException) {
                 mainHandler.post { result.error("permission", e.message, null) }
+            } catch (e: Exception) {
+                // Always reply: a call left unanswered blocks the Dart side.
+                mainHandler.post { result.error("failed", e.message, null) }
             }
         }
     }
@@ -166,6 +170,7 @@ class MainActivity : FlutterActivity() {
     override fun onDestroy() {
         worker.shutdown()
         hasher.shutdownNow()
+        mediaIndex.shutdown()
         thumbnails.shutdown()
         super.onDestroy()
     }

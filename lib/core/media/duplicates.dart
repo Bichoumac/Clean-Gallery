@@ -26,6 +26,10 @@ const hashBatchSize = 20;
 /// perceptual hashes. Thumbnails are small, so batches are larger.
 const perceptualBatchSize = 40;
 
+/// Batches of thumbnails between two groupings of similar photos while the
+/// scan runs, so groups show before the whole library is read.
+const regroupEveryBatches = 25;
+
 /// Side of the grayscale thumbnails perceptual hashes are computed on.
 const perceptualThumbnailSide = 128;
 
@@ -68,8 +72,10 @@ abstract class DuplicateScanState with _$DuplicateScanState {
 ///    the thresholds chosen in Settings.
 ///
 /// Incremental and resumable: hashes are saved after each batch and kept
-/// until the file changes, so only new items are read. Run after each index
-/// sync, and again when the similarity thresholds change. See
+/// until the file changes, so only new items are read. Similar photos are
+/// regrouped every [regroupEveryBatches] batches, so the first groups show
+/// long before a large library is read. Run after each index sync, and
+/// again when the similarity thresholds change. See
 /// `docs/analysis-engine.md#exact-duplicates` and
 /// `docs/analysis-engine.md#similar-photos`.
 @Riverpod(keepAlive: true)
@@ -160,20 +166,40 @@ class DuplicateScan extends _$DuplicateScan {
     if (!ref.mounted) return;
     state = state.copyWith(revision: state.revision + 1);
 
+    var batches = 0;
     while (true) {
       final batch = await repository.perceptualCandidates(
         limit: perceptualBatchSize,
       );
       if (batch.isEmpty || !ref.mounted) break;
-      final images = await source.grayThumbnails(
-        batch,
-        side: perceptualThumbnailSide,
-      );
+      Map<String, GrayImage> images;
+      try {
+        images = await source.grayThumbnails(
+          batch,
+          side: perceptualThumbnailSide,
+        );
+      } on PlatformException catch (e) {
+        if (e.code == 'permission') rethrow;
+        // Saved without hashes, so one failing batch is not read again and
+        // again: those photos are compared once their files change.
+        images = const {};
+      }
       final hashes = await _hashAll(images, runner);
       if (!ref.mounted) return;
       await repository.savePerceptualHashes(batch, hashes);
       state = state.copyWith(hashed: state.hashed + batch.length);
+      if (++batches % regroupEveryBatches == 0) {
+        await _regroup(runner);
+        if (!ref.mounted) return;
+      }
     }
+    await _regroup(runner);
+  }
+
+  /// Groups the photos hashed so far into similar photos, with the
+  /// thresholds chosen in Settings.
+  Future<void> _regroup(AnalysisRunner runner) async {
+    final repository = ref.read(duplicateRepositoryProvider);
     final thresholds = ref
         .read(appSettingsControllerProvider)
         .similarityThresholds;

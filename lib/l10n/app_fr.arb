@@ -11,6 +11,7 @@
 
   "statsReclaimableTitle": "Espace récupérable",
   "statsReclaimablePending": "Analyse de votre bibliothèque en cours. La valeur augmente au fur et à mesure.",
+  "analysisProgress": "Analyse : {done} sur {total} éléments",
   "statsBlurry": "Photos floues",
   "statsScreenshots": "Anciennes captures d'écran",
   "statsLargeVideos": "Grandes vidéos",
