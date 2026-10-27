@@ -2,7 +2,7 @@
 
 Every documentation file in the repository, with a one-line description. Start with [progress.md](progress.md) to see where the project stands.
 
-Last updated: 2026-10-27 — Milestone M4
+Last updated: 2026-10-27 — Milestone M5
 
 ## Project
 
@@ -40,6 +40,7 @@ Planned files: `monetization.md` (M8), `release.md` (M9).
 | [features/settings.md](features/settings.md) | Settings tab. |
 | [features/duplicates.md](features/duplicates.md) | Duplicates tile and screen: certain and similar groups, Best badge, Not duplicates, cleaning. |
 | [features/stats.md](features/stats.md) | Stats tab: storage dashboard. |
+| [features/cleanup.md](features/cleanup.md) | Cleanup lists: old screenshots, large videos. |
 
 One file per feature is added as each feature is built.
 

@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-10-27 — Milestone M4
+Last updated: 2026-10-27 — Milestone M5
 
 ## Milestones
 
@@ -12,12 +12,38 @@ Last updated: 2026-10-27 — Milestone M4
 | M1 | Navigation: timelines, albums, grid, viewer, video, sorting, date filter | Merged into `main` (PR #2) |
 | M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Merged into `main` (PR #3) |
 | M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Merged into `main` (PR #4) |
-| M4 | Engine level 2: perceptual hashes, similar photos, dashboard | On `m4-similar`; similar photos confirmed on the phone after fixes, a few checks left |
-| M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Not started |
+| M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Merged into `main` (PR #5) |
+| M5 | Cleanup: swipe mode, blurry, screenshots, large videos | In progress on `m5-cleaning`: part 1 (screenshots, large videos) done |
 | M6 | Advanced viewer and editing | Not started |
 | M7 | Exploration: map, search | Not started |
 | M8 | Monetization | Not started |
 | M9 | Polish and release preparation | Not started |
+
+## M5 — Cleanup
+
+Three parts, each committed and tested on the phone: 1. old screenshots and large videos; 2. blurry and dark photos; 3. swipe mode.
+
+### Done
+
+- **Screenshots** recognized while indexing: a `Screenshots` folder, a "Screenshot…" name, or a PNG at the display's size (index rules version 3, [analysis-engine.md](analysis-engine.md#screenshots)).
+- **Cleanup lists** opened from the Stats tab: *Old screenshots* (older than 30 days by default) and *Large videos* (from 100 MB, largest first), as timelines with their rule and total under the title, **Select all** and move to the trash ([features/cleanup.md](features/cleanup.md)). **Select all** also appears in every grid's selection bar.
+- **Settings → Cleanup**: screenshot age (7 d / 30 d / 90 d / 1 yr) and large video size (50 / 100 / 250 / 500 MB).
+- **Stats**: the two categories count in the space that could be freed, each item once ([features/stats.md](features/stats.md)).
+
+### Decisions
+
+- Sharpness and brightness will be measured with the perceptual hashes, in one pass over 256-pixel grayscale thumbnails instead of 128: more reliable blur detection; every photo is read once more (about 25 minutes on the product owner's 20,000 photos). Chosen by the product owner on 2026-10-27.
+- Swipe mode shows the oldest photos first by default (product owner, 2026-10-27).
+
+### Known issues
+
+- Not verified on a device yet: part 1 ([testing.md](testing.md#m5--cleanup-to-verify-on-a-device)).
+
+### Next steps
+
+1. Device test of part 1.
+2. Part 2: sharpness and brightness, *Blurry photos* list, sharpness in the best pick.
+3. Part 3: swipe mode.
 
 ## M4 — Engine level 2
 

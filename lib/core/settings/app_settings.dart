@@ -76,6 +76,12 @@ abstract class AppSettings with _$AppSettings {
     /// Thresholds of the advanced mode, used when [similaritySensitivity]
     /// is [SimilaritySensitivity.custom].
     @Default(SimilarityThresholds.medium) SimilarityThresholds customThresholds,
+
+    /// Age from which screenshots are offered for cleaning, in days.
+    @Default(30) int screenshotAgeDays,
+
+    /// Size from which videos are offered for cleaning, in megabytes.
+    @Default(100) int largeVideoMegabytes,
   }) = _AppSettings;
 
   const AppSettings._();
@@ -91,6 +97,12 @@ abstract class AppSettings with _$AppSettings {
 
   /// See [minRetentionDays].
   static const maxRetentionDays = 90;
+
+  /// Screenshot ages offered in Settings, in days.
+  static const screenshotAgeChoices = [7, 30, 90, 365];
+
+  /// Large video sizes offered in Settings, in megabytes.
+  static const largeVideoChoices = [50, 100, 250, 500];
 }
 
 /// Key identifying a timeline (a tab or an album) in

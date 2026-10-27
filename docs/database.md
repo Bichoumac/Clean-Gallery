@@ -2,7 +2,7 @@
 
 The app stores its index, analysis results, trash and settings in a local SQLite database managed by Drift. It runs on a background isolate so queries never block the UI. This file lists the schema, indexes and migration history.
 
-Last updated: 2026-10-27 — Milestone M4
+Last updated: 2026-10-27 — Milestone M5
 
 Source: [tables.dart](../lib/core/database/tables.dart), [app_database.dart](../lib/core/database/app_database.dart).
 
@@ -40,7 +40,7 @@ The media index: one row per photo or video, keyed by its MediaStore id. Every l
 | `d_hash`, `p_hash` | INTEGER | yes | 64-bit perceptual hashes of photos, as signed integers, from a grayscale thumbnail; `null` until computed, or when the photo has no readable thumbnail ([ADR 0018](decisions/0018-perceptual-hashes-from-thumbnails.md)). Declared `int64()` until M3; `integer()` since M4 (same SQLite type, a Dart `int` instead of a `BigInt`, no migration) |
 | `blur_score` | REAL | yes | Laplacian variance; higher is sharper |
 | `burst_id` | TEXT | yes | `<relative path>\|<shared part of the name>` for a burst shot, from its file name at index time ([analysis-engine.md](analysis-engine.md#bursts)) |
-| `is_screenshot` | BOOLEAN | no | Default `false` |
+| `is_screenshot` | BOOLEAN | no | Default `false`; set while indexing by `isScreenshot` (M5) |
 | `is_favorite` | BOOLEAN | no | Default `false`; cached copy of MediaStore `IS_FAVORITE` |
 | `latitude`, `longitude` | REAL | yes | From EXIF GPS |
 | `camera_model` | TEXT | yes | From EXIF |
@@ -122,11 +122,13 @@ Known keys are constants in `SettingKeys` ([settings_repository.dart](../lib/cor
 | `language` | `system` / `english` / `french` | Interface language |
 | `last_purge_check` | ISO 8601 date | Day the expired trash was last offered for purging |
 | `corrected_dates` | bool | Timelines use the resolved capture date (default `true`) |
-| `index_rules` | int | `indexRulesVersion` the index was built with (capture dates, burst ids); an older value makes the next sync apply the rules to every item again. Was `capture_date_rules` (version 1) before bursts |
+| `index_rules` | int | `indexRulesVersion` the index was built with (capture dates, burst ids, screenshots); an older value makes the next sync apply the rules to every item again. Was `capture_date_rules` (version 1) before bursts |
 | `similarity_sensitivity` | `low` / `medium` / `high` / `custom` | Similar photo preset (default `medium`); `custom` uses the three keys below |
 | `similarity_strict` | int, 0–10 | Advanced mode: strict pHash distance (default 6) |
 | `similarity_loose` | int, 0–20 | Advanced mode: loose pHash distance (default 12) |
 | `similarity_window` | int, 0–60 | Advanced mode: time window in seconds (default 10) |
+| `screenshot_age_days` | int, 1–3650 | Age from which screenshots are offered for cleaning (default 30) |
+| `large_video_megabytes` | int, 1–100000 | Size from which videos are offered for cleaning (default 100) |
 | `media_index_version` | text | MediaStore version (`MediaStore.getVersion`) of the last complete index sync; unset before the first one |
 | `view_sort:<filter>:<folder id>` | `<field>:<asc\|desc>` | Saved sort of one timeline, e.g. `view_sort:photos:` → `size:desc` |
 

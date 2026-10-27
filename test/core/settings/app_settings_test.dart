@@ -82,6 +82,26 @@ void main() {
     );
   });
 
+  test('cleanup thresholds are read back, invalid ones not', () async {
+    final db = inMemoryDatabase();
+    addTearDown(db.close);
+    final repository = SettingsRepository(db);
+    expect((await repository.loadAppSettings()).screenshotAgeDays, 30);
+    expect((await repository.loadAppSettings()).largeVideoMegabytes, 100);
+
+    await repository.write(SettingKeys.screenshotAgeDays, '90');
+    await repository.write(SettingKeys.largeVideoMegabytes, '250');
+    var settings = await repository.loadAppSettings();
+    expect(settings.screenshotAgeDays, 90);
+    expect(settings.largeVideoMegabytes, 250);
+
+    await repository.write(SettingKeys.screenshotAgeDays, '0');
+    await repository.write(SettingKeys.largeVideoMegabytes, 'big');
+    settings = await repository.loadAppSettings();
+    expect(settings.screenshotAgeDays, 30);
+    expect(settings.largeVideoMegabytes, 100);
+  });
+
   test('sorts round-trip through their text form', () {
     for (final field in MediaSortField.values) {
       for (final descending in [true, false]) {

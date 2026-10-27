@@ -49,6 +49,12 @@ abstract final class SettingKeys {
 
   /// Prefix of one [AppSettings.viewSorts] entry: `view_sort:<viewKey>`.
   static const viewSortPrefix = 'view_sort:';
+
+  /// [AppSettings.screenshotAgeDays].
+  static const screenshotAgeDays = 'screenshot_age_days';
+
+  /// [AppSettings.largeVideoMegabytes].
+  static const largeVideoMegabytes = 'large_video_megabytes';
 }
 
 /// Reads and writes application settings in the `settings` table.
@@ -164,6 +170,18 @@ final class SettingsRepository {
             SimilarityThresholds.maxWindow.inSeconds,
           ),
         ),
+      ),
+      screenshotAgeDays: intIn(
+        SettingKeys.screenshotAgeDays,
+        defaults.screenshotAgeDays,
+        1,
+        3650,
+      ),
+      largeVideoMegabytes: intIn(
+        SettingKeys.largeVideoMegabytes,
+        defaults.largeVideoMegabytes,
+        1,
+        100000,
       ),
     );
   }

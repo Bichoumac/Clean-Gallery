@@ -2,7 +2,7 @@
 
 The Stats tab: the storage dashboard. How much space the photos and videos take, how much cleaning could free, and that space by category.
 
-Last updated: 2026-10-27 — Milestone M4
+Last updated: 2026-10-27 — Milestone M5
 
 ## Purpose
 
@@ -17,7 +17,7 @@ Show at a glance whether cleaning is worth it, and lead to the tool that does it
    - **Bursts**: burst shots other than the best → the same screen, on *Bursts*.
    - **Similar photos**: photos suggested for the trash among look-alikes → the same screen, on *Similar photos*.
    - **In the trash**: freed when the trash is emptied → the Trash page (Albums tab).
-4. The second card shows the categories of M5 (blurry photos, old screenshots, large videos), marked *Coming soon* with "—".
+4. The second card lists **Old screenshots** and **Large videos** with their count and size, each opening its cleanup list ([cleanup.md](cleanup.md)); **Blurry photos** is still marked *Coming soon* with "—".
 
 ```mermaid
 flowchart TD
@@ -35,8 +35,10 @@ flowchart TD
 | Identical copies | Items suggested for the trash in exact groups of the whole library: every member but the best. |
 | Bursts | The same in burst groups, leaving out items already counted as identical copies. |
 | Similar photos | The same in similar groups, leaving out items already counted above. |
+| Old screenshots | Screenshots older than the age set in Settings, leaving out items already counted above. |
+| Large videos | Videos from the size set in Settings, leaving out items already counted above. |
 | In the trash | Every trashed item. |
-| Space you could free | Identical copies + bursts + similar photos + trash. |
+| Space you could free | Every category above + trash. |
 
 Each item counts once. The bar shows that sum against the used space plus the trash, since trashed items are no longer part of the used space but still take room.
 
@@ -72,6 +74,6 @@ The counts follow the default picks, not changes made on the duplicates screen: 
 
 ## Known limitations / future work
 
-- Blurry photos, old screenshots and large videos come in M5, then the swipe mode entry.
+- Blurry photos come later in M5, then the swipe mode entry.
 - The native ad card (M8) will sit below the categories.
 - Opening the trash switches to the Albums tab, where the Trash page lives.

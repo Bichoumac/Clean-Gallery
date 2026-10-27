@@ -39,6 +39,29 @@ void main() {
     expect(summary.reclaimableBytes, 1350);
   });
 
+  test('screenshots and large videos, without items counted above', () {
+    final shot = testItem(5, sizeBytes: 40);
+    final video = testItem(
+      6,
+      duration: const Duration(seconds: 30),
+      sizeBytes: 7000,
+    );
+    final summary = summarize(
+      totals: totals,
+      groups: [
+        // b, a screenshot, is also an identical copy of a.
+        DuplicateGroup(id: 1, kind: DuplicateKind.exact, items: [a, b]),
+      ],
+      trashed: const [],
+      screenshots: [b, shot],
+      largeVideos: [video],
+    );
+    expect(summary.exact, (count: 1, bytes: 200));
+    expect(summary.screenshots, (count: 1, bytes: 40));
+    expect(summary.largeVideos, (count: 1, bytes: 7000));
+    expect(summary.reclaimableBytes, 7240);
+  });
+
   test('an empty library frees nothing', () {
     final summary = summarize(
       totals: (photos: 0, photoBytes: 0, videos: 0, videoBytes: 0),

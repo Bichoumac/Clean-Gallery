@@ -2,9 +2,19 @@
 
 All notable changes to this project are documented here, one section per milestone. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-10-27 — Milestone M4
+Last updated: 2026-10-27 — Milestone M5
 
 ## [Unreleased]
+
+### Added
+
+- Cleanup lists, from the Stats tab: **Old screenshots** (older than 30 days by default) and **Large videos** (from 100 MB, largest first), with their rule and total, Select all and move to trash ([docs/features/cleanup.md](docs/features/cleanup.md)).
+- Screenshots recognized while indexing: Screenshots folder, file name, or PNG at the display's size (index rules version 3).
+- Settings → Cleanup: screenshot age and large video size.
+- **Select all** in the selection bar of every grid.
+- Stats: old screenshots and large videos count in the space that could be freed.
+
+## [M4 follow-ups] — 2026-10-27
 
 ### Fixed
 

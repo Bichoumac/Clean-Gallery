@@ -146,7 +146,8 @@ class SortFilterSheet extends ConsumerWidget {
       MediaSortField.name,
       MediaSortField.size,
       if (base.filter != MediaFilter.photos &&
-          base.filter != MediaFilter.camera)
+          base.filter != MediaFilter.camera &&
+          base.filter != MediaFilter.screenshots)
         MediaSortField.duration,
     ];
     String direction({required bool descending}) =>

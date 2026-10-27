@@ -37,7 +37,8 @@ Future<PermissionStatus> permissionStatus(Ref ref) async {
   );
 }
 
-/// Settings tab: display, trash, sharing, analysis and permissions.
+/// Settings tab: display, trash, cleanup, sharing, analysis and
+/// permissions.
 class SettingsScreen extends ConsumerStatefulWidget {
   /// Creates the Settings tab.
   const SettingsScreen({super.key});
@@ -156,6 +157,54 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             _RetentionSlider(
               days: settings.trashRetentionDays,
               onChanged: controller.setTrashRetentionDays,
+            ),
+          ],
+        ),
+        _Section(
+          title: l10n.settingsCleanup,
+          children: [
+            _Labeled(
+              label: l10n.settingsScreenshotAge,
+              child: SegmentedButton<int>(
+                showSelectedIcon: false,
+                // A value set elsewhere selects no segment.
+                emptySelectionAllowed: true,
+                segments: [
+                  for (final days in AppSettings.screenshotAgeChoices)
+                    ButtonSegment(
+                      value: days,
+                      label: Text(
+                        days == 365
+                            ? l10n.durationOneYear
+                            : l10n.durationDaysShort(days),
+                      ),
+                    ),
+                ],
+                selected: {settings.screenshotAgeDays},
+                onSelectionChanged: (value) {
+                  if (value.isEmpty) return;
+                  unawaited(controller.setScreenshotAgeDays(value.single));
+                },
+              ),
+            ),
+            _Labeled(
+              label: l10n.settingsLargeVideos,
+              child: SegmentedButton<int>(
+                showSelectedIcon: false,
+                emptySelectionAllowed: true,
+                segments: [
+                  for (final megabytes in AppSettings.largeVideoChoices)
+                    ButtonSegment(
+                      value: megabytes,
+                      label: Text(l10n.sizeMegabytes('$megabytes')),
+                    ),
+                ],
+                selected: {settings.largeVideoMegabytes},
+                onSelectionChanged: (value) {
+                  if (value.isEmpty) return;
+                  unawaited(controller.setLargeVideoMegabytes(value.single));
+                },
+              ),
             ),
           ],
         ),

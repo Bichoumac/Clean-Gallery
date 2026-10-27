@@ -1,6 +1,7 @@
 import 'package:clean_gallery/analysis/best_picker.dart';
 import 'package:clean_gallery/analysis/burst.dart';
 import 'package:clean_gallery/analysis/capture_date.dart';
+import 'package:clean_gallery/analysis/screenshot.dart';
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/duplicate_group.dart';
@@ -21,12 +22,20 @@ import 'package:drift/drift.dart';
 /// otherwise by the platform's date (`taken_at`).
 final class MediaIndexRepository {
   /// Creates the repository on [_db].
-  const MediaIndexRepository(this._db, {this.correctedDates = true});
+  const MediaIndexRepository(
+    this._db, {
+    this.correctedDates = true,
+    this.screen,
+  });
 
   final AppDatabase _db;
 
   /// Whether reads use the resolved capture date.
   final bool correctedDates;
+
+  /// Display size in physical pixels, to recognize screenshots by their
+  /// size ([isScreenshot]); `null` when unknown.
+  final ({int width, int height})? screen;
 
   /// Revision of every indexed item, by id; `null` for rows that were never
   /// indexed (inserted by the trash).
@@ -40,8 +49,9 @@ final class MediaIndexRepository {
   }
 
   /// Inserts [entries] or updates their metadata, keeping analysis results.
-  /// Their capture date ([resolveCaptureDate]) and burst id ([burstIdOf])
-  /// are worked out on the way.
+  /// Their capture date ([resolveCaptureDate]), burst id ([burstIdOf]) and
+  /// whether they are screenshots ([isScreenshot]) are worked out on the
+  /// way.
   ///
   /// When an item's file changed (modification date or size), its
   /// `analysis_version`, content hash and perceptual hashes are reset so
@@ -76,6 +86,7 @@ final class MediaIndexRepository {
               captureAt: excluded.captureAt,
               captureSource: excluded.captureSource,
               burstId: excluded.burstId,
+              isScreenshot: excluded.isScreenshot,
               isFavorite: excluded.isFavorite,
               mediaRevision: excluded.mediaRevision,
               analysisVersion: resetAnalysis
@@ -288,7 +299,8 @@ final class MediaIndexRepository {
     );
   }
 
-  /// Condition selecting the rows of [selection] (filter, folder, dates).
+  /// Condition selecting the rows of [selection] (filter, folder, dates,
+  /// size).
   Expression<bool> _matches($AssetsTable t, MediaSelection selection) {
     final dates = selection.dates;
     return Expression.and([
@@ -300,7 +312,14 @@ final class MediaIndexRepository {
               t.relativePath.like('$cameraFolder%'),
         MediaFilter.videos => t.kind.equalsValue(MediaKind.video),
         MediaFilter.favorites => t.isFavorite.equals(true),
+        MediaFilter.screenshots =>
+          t.kind.equalsValue(MediaKind.photo) & t.isScreenshot.equals(true),
+        MediaFilter.largeVideos => t.kind.equalsValue(MediaKind.video),
       },
+      if (selection.takenBefore case final before?)
+        _date(t).isSmallerThanValue(before),
+      if (selection.minSizeBytes case final bytes?)
+        t.sizeBytes.isBiggerOrEqualValue(bytes),
       if (selection.albumId case final albumId?) t.bucketId.equals(albumId),
       if (selection.ids case final ids?)
         t.id.isIn([for (final id in ids) ?int.tryParse(id)]),
@@ -346,7 +365,7 @@ final class MediaIndexRepository {
       row.toMediaItem(correctedDates: correctedDates);
 
   /// Row inserted for [entry]; analysis columns keep their defaults.
-  static AssetsCompanion _row(IndexedMedia entry) {
+  AssetsCompanion _row(IndexedMedia entry) {
     final item = entry.item;
     final capture = resolveCaptureDate(
       platformDate: item.takenAt,
@@ -373,6 +392,17 @@ final class MediaIndexRepository {
         item.fileName == null
             ? null
             : burstIdOf(item.fileName!, folder: item.relativePath ?? ''),
+      ),
+      isScreenshot: Value(
+        !item.isVideo &&
+            isScreenshot(
+              relativePath: item.relativePath ?? '',
+              fileName: item.fileName ?? '',
+              mimeType: item.mimeType ?? '',
+              width: item.width,
+              height: item.height,
+              screen: screen,
+            ),
       ),
       isFavorite: Value(item.isFavorite),
       mediaRevision: Value(entry.revision),

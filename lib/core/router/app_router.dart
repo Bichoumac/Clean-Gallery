@@ -1,6 +1,8 @@
 import 'package:clean_gallery/core/router/home_shell.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/enums.dart';
+import 'package:clean_gallery/features/cleanup/cleanup_list_screen.dart';
+import 'package:clean_gallery/features/cleanup/cleanup_lists.dart';
 import 'package:clean_gallery/features/duplicates/duplicates_screen.dart';
 import 'package:clean_gallery/features/library/albums_screen.dart';
 import 'package:clean_gallery/features/library/media_timeline_view.dart';
@@ -67,6 +69,15 @@ abstract final class AlbumRoutes {
     allKey => MediaSelection.all,
     favoritesKey => MediaSelection.favorites,
     _ => MediaSelection(albumId: key),
+  };
+}
+
+/// Cleanup lists under the Stats tab.
+abstract final class CleanupRoutes {
+  /// Location of [list].
+  static String location(CleanupList list) => switch (list) {
+    CleanupList.screenshots => '${AppRoutes.stats}/screenshots',
+    CleanupList.largeVideos => '${AppRoutes.stats}/large-videos',
   };
 }
 
@@ -193,6 +204,18 @@ GoRouter appRouter(Ref ref) {
               GoRoute(
                 path: AppRoutes.stats,
                 builder: (context, state) => const StatsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'screenshots',
+                    builder: (context, state) =>
+                        const CleanupListScreen(list: CleanupList.screenshots),
+                  ),
+                  GoRoute(
+                    path: 'large-videos',
+                    builder: (context, state) =>
+                        const CleanupListScreen(list: CleanupList.largeVideos),
+                  ),
+                ],
               ),
             ],
           ),

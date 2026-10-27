@@ -2,7 +2,7 @@
 
 The Settings tab: display, trash, sharing, analysis and permissions. The rest of the brief's settings arrive with the features they control.
 
-Last updated: 2026-10-27 — Milestone M4
+Last updated: 2026-10-27 — Milestone M5
 
 ## Purpose
 
@@ -23,6 +23,8 @@ Let the user choose how the app looks and behaves, and see and change its permis
 | Display | Grid columns at launch | 2–6 | 4 | Every grid, at launch and immediately |
 | Display | Corrected dates | On / Off | On | Sort, group, filter and date of every timeline: the date the photo was taken (metadata, then file name) or Android's date ([analysis-engine.md](../analysis-engine.md#capture-date)) |
 | Trash | Keep deleted items for | 1–90 days | 30 | Items trashed afterwards |
+| Cleanup | Screenshots count as old after | 7 d / 30 d / 90 d / 1 yr | 30 days | The Old screenshots list and its Stats row ([cleanup.md](cleanup.md)) |
+| Cleanup | Videos count as large from | 50 / 100 / 250 / 500 MB | 100 MB | The Large videos list and its Stats row |
 | Sharing | Remove location when sharing | On / Off | On | Default of the share sheet switch |
 | Analysis | Similar photos | Low / Medium / High | Medium | How eager the similar photo search is; changing it regroups at once from the stored hashes ([analysis-engine.md](../analysis-engine.md#sensitivity)) |
 | Analysis | Advanced mode | On / Off, then three sliders | Off | On: no preset selected; *Any date: difference up to* (strict, 0–10 of 64), *Taken close in time: difference up to* (loose, 0–20 of 64), *Close in time means within* (0–60 seconds). Starts from the preset in use; off returns to Medium. Saved when the finger is lifted |
@@ -33,7 +35,7 @@ Let the user choose how the app looks and behaves, and see and change its permis
 
 The sort order of each tab and album is also saved (see [library.md](library.md#sorting-and-date-filter)); the date filter is not, since presets such as "Last 7 days" would become stale.
 
-Still to come, from the brief: screenshot age and large video threshold (M5), clear cache (merged into *Analyze the library again*: the app's only cache is the media index; thumbnails come from Android's own cache), "Remove ads" / "Restore purchase" and privacy & ad choices (M8), privacy policy and about (M9).
+Still to come, from the brief: clear cache (merged into *Analyze the library again*: the app's only cache is the media index; thumbnails come from Android's own cache), "Remove ads" / "Restore purchase" and privacy & ad choices (M8), privacy policy and about (M9).
 
 ## Screens and widgets
 

@@ -1,8 +1,8 @@
 # Analysis engine
 
-Algorithms that work out facts about photos and videos on the device: capture dates, exact duplicates, bursts and similar photos now, blur next. This file lists each algorithm, its thresholds and their rationale, and performance notes.
+Algorithms that work out facts about photos and videos on the device: capture dates, exact duplicates, bursts, similar photos and screenshots now, blur next. This file lists each algorithm, its thresholds and their rationale, and performance notes.
 
-Last updated: 2026-10-27 — Milestone M4
+Last updated: 2026-10-27 — Milestone M5
 
 ## Overview
 
@@ -12,6 +12,7 @@ Last updated: 2026-10-27 — Milestone M4
 | Exact duplicates | Done (M3) | [duplicates.dart](../lib/core/media/duplicates.dart), hashing in [MediaIndex.kt](../android/app/src/main/kotlin/com/bichoumac/clean_gallery/MediaIndex.kt) | `content_hash`, `duplicate_groups` |
 | Bursts | Done (M3) | [burst.dart](../lib/analysis/burst.dart), applied by the media index sync; groups by `DuplicateScan` | `burst_id`, `duplicate_groups` |
 | Similar photos | Done (M4) | [perceptual_hash.dart](../lib/analysis/perceptual_hash.dart), [similarity.dart](../lib/analysis/similarity.dart), [hash_index.dart](../lib/analysis/hash_index.dart); pixels from [MediaIndex.kt](../android/app/src/main/kotlin/com/bichoumac/clean_gallery/MediaIndex.kt) | `d_hash`, `p_hash`, `analysis_version`, `duplicate_groups`, `ignored_pairs` |
+| Screenshots | Done (M5) | [screenshot.dart](../lib/analysis/screenshot.dart), applied by the media index sync | `is_screenshot` |
 | Blur | M5 | — | `blur_score` |
 
 Code in `lib/analysis/` is pure Dart: no Flutter import, so it can run in an isolate and be tested without a device (a test enforces it).
@@ -58,7 +59,7 @@ Rejected: invalid days (February 30), years before 1990, dates in the future. Ti
 
 ### When dates are resolved
 
-During the media index sync, for each new or changed item, from the metadata the sync reads anyway: no file is opened ([ADR 0016](decisions/0016-capture-dates-at-index-time.md)). `indexRulesVersion` ([index_rules.dart](../lib/analysis/index_rules.dart)) versions the rules applied at index time (capture dates and [burst ids](#bursts)); when it is bumped, the next sync describes every item again and applies them, keeping other analysis results. The version the index was built with is stored in the `index_rules` setting.
+During the media index sync, for each new or changed item, from the metadata the sync reads anyway: no file is opened ([ADR 0016](decisions/0016-capture-dates-at-index-time.md)). `indexRulesVersion` ([index_rules.dart](../lib/analysis/index_rules.dart)) versions the rules applied at index time (capture dates, [burst ids](#bursts) and [screenshots](#screenshots)); when it is bumped, the next sync describes every item again and applies them, keeping other analysis results. The version the index was built with is stored in the `index_rules` setting.
 
 ### Performance
 
@@ -98,6 +99,20 @@ Shots of one burst sequence: the camera saves each shot as a file with a shared 
 - Bursts have their own **Bursts** chip and section on the duplicates screen (they were listed with exact duplicates under *Certain duplicates* until 2026-10-27); the best shot is chosen by the [best pick](#best-pick): until sharpness is measured (M5), the largest file, which usually holds the most detail.
 
 **Not used**: grouping photos taken less than a second apart without a burst name. Two different photos taken quickly are not certain duplicates; close-in-time look-alikes are found by similar photos (M4), which compare the images. MediaStore has no burst column, and Samsung keeps its burst metadata in a proprietary format.
+
+## Screenshots
+
+Photos taken of the screen, offered for cleaning once old ([features/cleanup.md](features/cleanup.md)). `isScreenshot` ([screenshot.dart](../lib/analysis/screenshot.dart)) applies the brief's three signs, the first that matches:
+
+| Sign | Example |
+| --- | --- |
+| A folder named `Screenshots` in the path | `DCIM/Screenshots/` (Samsung), `Pictures/Screenshots/` (Pixel) |
+| A file name starting with "Screenshot" (also "Screen shot", "screen_shot") | `Screenshot_20240315-142233_Chrome.jpg` saved elsewhere |
+| A PNG exactly the size of the device's display, in either orientation | A screenshot saved by an app in its own folder |
+
+- Photos only: screen recordings are videos.
+- Worked out when the item is indexed (index rules version 3), from its path, name, type and size: no file is read. The display size comes from Flutter (`screenSizeProvider`), in physical pixels.
+- The size rule needs a PNG: a JPEG at the screen's size is more often a wallpaper or a received picture. A folder named like `Screenshots backup` does not count: only a folder named exactly `Screenshots`, in any case.
 
 ## Similar photos
 

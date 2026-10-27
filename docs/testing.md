@@ -53,13 +53,16 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [media_providers_test.dart](../test/core/media/media_providers_test.dart) | First chunk then the rest from the index, reload in place without a loading state, column limits, duration format. |
 | [best_picker_test.dart](../test/analysis/best_picker_test.dart) | Each best-pick rule in order, best item first. |
 | [burst_test.dart](../test/analysis/burst_test.dart) | Burst names of Samsung and Google cameras, different bursts and folders, ordinary names. |
+| [screenshot_test.dart](../test/analysis/screenshot_test.dart) | Screenshots by folder, name or PNG at the screen size; camera photos and other images are not. |
+| [cleanup_selection_test.dart](../test/core/database/cleanup_selection_test.dart) | Old screenshots and large videos read from the index. |
+| [cleanup_flow_test.dart](../test/features/cleanup/cleanup_flow_test.dart) | Stats rows of the cleanup lists, Select all and move to trash, large video threshold. |
 | [duplicates_test.dart](../test/core/media/duplicates_test.dart) | Only size collisions hashed, exact groups, no re-read, filter by folder, trash and undo, changed file, favorite kept, burst groups, a burst saved twice. |
 | [duplicates_flow_test.dart](../test/features/duplicates/duplicates_flow_test.dart) | Duplicates tile and count, screen, clean all with summary, keep every copy, open a photo full screen. |
 | [perceptual_hash_test.dart](../test/analysis/perceptual_hash_test.dart) | Hamming distance, area resize; the same photo recompressed, resized, brightened, cropped stays close; 40 unrelated scenes stay apart (false positive regression). |
 | [similarity_test.dart](../test/analysis/similarity_test.dart) | Multi-index search against brute force, union-find, strict and loose rules, aspect ratio, chains, ignored pairs, certain groups, presets, confidence, a mixed photo set. |
 | [similar_photos_test.dart](../test/core/media/similar_photos_test.dart) | Similar scan through the media source: groups, photos only, hashes kept, Not duplicates, changed file, new thresholds without re-reading, exact copies stay certain, folder filter. |
 | [similar_flow_test.dart](../test/features/duplicates/similar_flow_test.dart) | Similar photos section, Not duplicates, Stats values and link to the duplicates screen. |
-| [storage_summary_test.dart](../test/features/stats/storage_summary_test.dart) | Dashboard values by category, an item counted once, the trash, an empty library. |
+| [storage_summary_test.dart](../test/features/stats/storage_summary_test.dart) | Dashboard values by category, an item counted once (also across screenshots and large videos), the trash, an empty library. |
 | [capture_date_test.dart](../test/analysis/capture_date_test.dart) | File name date patterns, rejected names, date-only names, resolution order. |
 | [android_media_source_test.dart](../test/platform/android_media_source_test.dart) | When MediaStore's `DATE_TAKEN` counts as a metadata date. |
 | [media_index_test.dart](../test/core/media/media_index_test.dart) | Capture dates resolved during a sync, rules version, sort by corrected or platform date; sync plan; first, unchanged and incremental syncs; analysis kept unless the file changed; platform version change; denied and limited access; merged calls; index filters, sorts, date range, folders and trash exclusion. |
@@ -69,7 +72,7 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [viewer_test.dart](../test/features/viewer/viewer_test.dart) | Swipe both ways, pinch then pan without page change, double-tap back, top bar height. |
 | [video_controls_test.dart](../test/features/viewer/video_controls_test.dart) | Video progress bar at the bottom, play button centered, portrait and landscape. |
 | [trash_repository_test.dart](../test/core/database/trash_repository_test.dart) | Trash order and expiry, live ids, restore, forget, duplicates, days left. |
-| [app_settings_test.dart](../test/core/settings/app_settings_test.dart) | Default, stored and invalid settings, similarity settings; sort encoding; view keys. |
+| [app_settings_test.dart](../test/core/settings/app_settings_test.dart) | Default, stored and invalid settings, similarity and cleanup settings; sort encoding; view keys. |
 | [trash_flow_test.dart](../test/features/trash/trash_flow_test.dart) | Trash from the viewer with undo, Trash page, restore, delete for good, declined prompt, expiry offer, silent purge, Trash album count. |
 | [selection_test.dart](../test/features/library/selection_test.dart) | Long press, tap, drag range, trash with undo, favorite, share, back. |
 | [settings_screen_test.dart](../test/features/settings/settings_screen_test.dart) | Theme, language, default columns, corrected dates switch, sensitivity and advanced mode, permission statuses, sort saved and restored. |
@@ -125,6 +128,19 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 12 | Kill the app mid-onboarding, relaunch | any | Onboarding restarts from the first page. |
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
+
+### M5 — cleanup, to verify on a device
+
+Part 1, cleanup lists. Install over the M4 version (`adb install -r`, do not uninstall). The first launch describes every item again (index rules version 3): a few seconds, no thumbnails read.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 1 | Stats tab, scroll to the second card | **Old screenshots** and **Large videos** with a count and a size; **Blurry photos** still *Coming soon*. The lime card's total grew by about those sizes. |
+| 2 | Tap **Old screenshots** | Title, *Taken more than 30 days ago*, *N items · size*; only screenshots, none from the last 30 days. Report any photo that is not a screenshot. |
+| 3 | Long-press one, then **Select all** (first icon of the bar) | Every item selected; the icon disappears. |
+| 4 | **Move to trash**, then *Undo* | The list empties, then everything comes back. |
+| 5 | Back, **Large videos** | *100 MB or more, largest first*; the largest video on top. |
+| 6 | Settings → **Cleanup**: 7 d, then 500 MB; back to Stats | The screenshot row grows, the large video row shrinks; back to 30 d and 100 MB. |
 
 ### M4 — similar photos and Stats, to verify on a device
 

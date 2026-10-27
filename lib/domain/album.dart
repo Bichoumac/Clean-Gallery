@@ -20,6 +20,12 @@ enum MediaFilter {
 
   /// Items marked as favorites in the system gallery, photos and videos.
   favorites,
+
+  /// Screenshots (cleanup list), see `isScreenshot`.
+  screenshots,
+
+  /// Videos of at least [MediaSelection.minSizeBytes] (cleanup list).
+  largeVideos,
 }
 
 /// Criterion a media list is sorted by.
@@ -102,6 +108,13 @@ abstract class MediaSelection with _$MediaSelection {
     /// Only these items, e.g. a duplicate group opened in the viewer, or
     /// `null` for every item matching the rest of the selection.
     List<String>? ids,
+
+    /// Only items taken before this date, e.g. screenshots older than the
+    /// age chosen in Settings. Unlike [dates], the user cannot change it.
+    DateTime? takenBefore,
+
+    /// Only items of at least this many bytes, e.g. large videos.
+    int? minSizeBytes,
   }) = _MediaSelection;
 
   /// Every photo, newest first.
