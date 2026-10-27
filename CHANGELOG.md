@@ -21,6 +21,7 @@ Last updated: 2026-10-27 — Milestone M4
 
 ### Changed
 
+- CI: the build job frees disk space first (removes preinstalled toolchains it does not use); the runner ran out of space building the release app bundle.
 - Stats: the *Certain duplicates* row is split into **Identical copies** and **Bursts**; each row opens the duplicates screen on its chip.
 - Thumbnails for perceptual hashes are rendered by four native threads instead of one (about 860 photos a minute on the Galaxy A54).
 

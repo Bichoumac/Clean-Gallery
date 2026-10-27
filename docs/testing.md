@@ -356,4 +356,4 @@ Ways forward: test on a USB phone (preferred), or let the emulator use the GPU b
 
 ## Continuous integration
 
-[.github/workflows/ci.yml](../.github/workflows/ci.yml) runs formatting, analysis, tests, APK and AAB builds on every push and pull request, plus a Markdown lint and an offline link check on all documentation.
+[.github/workflows/ci.yml](../.github/workflows/ci.yml) runs formatting, analysis, tests, APK and AAB builds on every push and pull request, plus a Markdown lint and an offline link check on all documentation. The build job first removes preinstalled toolchains it does not use (.NET, Haskell, Swift, CodeQL…): on 2026-10-27 the runner ran out of disk space building the release app bundle after the debug APK.

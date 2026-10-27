@@ -17,6 +17,17 @@ jobs:
     name: Analyze, test, build
     runs-on: ubuntu-latest
     steps:
+      # The runner's disk filled up while building the release app bundle
+      # after the debug APK (M4 pull request). Remove preinstalled toolchains
+      # the job never uses; the Android SDK is kept.
+      - name: Free disk space
+        run: |
+          df -h /
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/node_modules /opt/ghc \
+            /usr/local/.ghcup /usr/share/swift /usr/local/share/boost \
+            /opt/hostedtoolcache/CodeQL /usr/local/share/powershell
+          df -h /
+
       - uses: actions/checkout@v4
 
       - uses: actions/setup-java@v4
