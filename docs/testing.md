@@ -162,7 +162,7 @@ Second test on 2026-10-27, after the fixes below (same day, release build instal
 | --- | --- |
 | Confirmed | 1 (progress grows, X and Y consistent; leaving the app and coming back resumes where it stopped), 2 and 3 (similar groups show during the scan), 5 (close shots grouped under Similar photos), 6 (no clearly different photos seen in a group), 7 (Not duplicates, still gone after a relaunch), 8 (fewer groups with Low, more with High), 11 (Stats rows open their section), 14 |
 | Confirmed later the same day | 3 and 11 with the new chips (clearer), 4 (WhatsApp copy grouped, original Best), 12 (cleaning from Stats) |
-| Still failing | Viewer: photos still blurry a moment before turning sharp after the scan ended; improved the same day, to check |
+| Still failing | Viewer: photos still blurry a moment before turning sharp; improved the same day (fitted preview size), still blurry while a scan ran; the scan now pauses while the viewer is open, to check |
 | Not tested yet | 9, 10, 13 |
 | Requested | Identical copies, bursts and similar photos were mixed on the duplicates screen: choice chips added the same day, to check |
 | Speed | 20,000 photos. About 760 photos a minute with two thumbnail threads, 860 with four, the app staying fluid: about 25 minutes for the first analysis. Four kept |

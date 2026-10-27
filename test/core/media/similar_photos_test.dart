@@ -107,6 +107,22 @@ void main() {
     expect(source.grayCalls, isEmpty);
   });
 
+  test('a paused scan reads nothing until it is resumed', () async {
+    await container.read(mediaIndexProvider.notifier).sync();
+    final scan = container.read(duplicateScanProvider.notifier)
+      ..pause()
+      ..pause();
+    final done = scan.run();
+    await pumpEventQueue();
+    expect(source.grayCalls, isEmpty);
+    scan.resume();
+    await pumpEventQueue();
+    expect(source.grayCalls, isEmpty, reason: 'paused twice');
+    scan.resume();
+    await done;
+    expect(await groups(), ['similar: 1,2']);
+  });
+
   test('"Not duplicates" splits the group for good', () async {
     await syncAndScan();
     final group =

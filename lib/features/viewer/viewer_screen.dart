@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/media_actions.dart';
 import 'package:clean_gallery/core/media/media_formatting.dart';
 import 'package:clean_gallery/core/media/media_providers.dart';
@@ -38,8 +39,20 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
   bool _precachedInitial = false;
   bool _closing = false;
 
+  /// Read in [initState]: `ref` cannot be used in [dispose].
+  late final DuplicateScan _scan;
+
+  @override
+  void initState() {
+    super.initState();
+    // The analysis would compete with the photos for MediaStore's
+    // thumbnail rendering.
+    _scan = ref.read(duplicateScanProvider.notifier)..pause();
+  }
+
   @override
   void dispose() {
+    _scan.resume();
     _pages.dispose();
     // Leave the viewer with system bars and free rotation restored.
     unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));

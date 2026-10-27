@@ -23,12 +23,13 @@ part 'duplicates.g.dart';
 const hashBatchSize = 20;
 
 /// Photos whose thumbnails are read per call to the media source, for
-/// perceptual hashes. Thumbnails are small, so batches are larger.
-const perceptualBatchSize = 40;
+/// perceptual hashes: about a second of work on a phone, so that
+/// [DuplicateScan.pause] takes effect quickly.
+const perceptualBatchSize = 16;
 
 /// Batches of thumbnails between two groupings of similar photos while the
 /// scan runs, so groups show before the whole library is read.
-const regroupEveryBatches = 25;
+const regroupEveryBatches = 60;
 
 /// Side of the grayscale thumbnails perceptual hashes are computed on.
 const perceptualThumbnailSide = 128;
@@ -82,6 +83,32 @@ abstract class DuplicateScanState with _$DuplicateScanState {
 class DuplicateScan extends _$DuplicateScan {
   Future<void>? _running;
   bool _again = false;
+  int _pauses = 0;
+  Completer<void>? _resumed;
+
+  /// Holds the scan before its next batch until [resume] is called as many
+  /// times. The viewer pauses it: MediaStore renders thumbnails almost one
+  /// at a time, so the scan's would delay the photo being opened.
+  void pause() {
+    _pauses++;
+    _resumed ??= Completer<void>();
+  }
+
+  /// Undoes one [pause].
+  void resume() {
+    if (_pauses == 0) return;
+    if (--_pauses == 0) {
+      _resumed?.complete();
+      _resumed = null;
+    }
+  }
+
+  /// Waits while the scan is paused.
+  Future<void> _unlessPaused() async {
+    for (var resumed = _resumed; resumed != null; resumed = _resumed) {
+      await resumed.future;
+    }
+  }
 
   @override
   DuplicateScanState build() {
@@ -154,6 +181,7 @@ class DuplicateScan extends _$DuplicateScan {
     if (!ref.mounted) return;
     state = state.copyWith(running: true, hashed: 0, toHash: toHash);
     while (true) {
+      await _unlessPaused();
       final batch = await repository.hashCandidates(limit: hashBatchSize);
       if (batch.isEmpty || !ref.mounted) break;
       final hashes = await source.contentHashes(batch);
@@ -168,6 +196,7 @@ class DuplicateScan extends _$DuplicateScan {
 
     var batches = 0;
     while (true) {
+      await _unlessPaused();
       final batch = await repository.perceptualCandidates(
         limit: perceptualBatchSize,
       );

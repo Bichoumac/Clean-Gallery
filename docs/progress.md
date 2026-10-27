@@ -23,7 +23,7 @@ Last updated: 2026-10-27 — Milestone M4
 
 ### Done
 
-- **Perceptual hashes**: dHash and pHash of every photo from a 128-pixel grayscale thumbnail rendered by MediaStore's cache (new native method `grayThumbnails`), computed in a Dart isolate, saved every 40 photos, reset when the file changes ([ADR 0018](decisions/0018-perceptual-hashes-from-thumbnails.md), [analysis-engine.md](analysis-engine.md#similar-photos)).
+- **Perceptual hashes**: dHash and pHash of every photo from a 128-pixel grayscale thumbnail rendered by MediaStore's cache (new native method `grayThumbnails`), computed in a Dart isolate, saved every 16 photos (40 until 2026-10-27), reset when the file changes ([ADR 0018](decisions/0018-perceptual-hashes-from-thumbnails.md), [analysis-engine.md](analysis-engine.md#similar-photos)).
 - **Similar photos**: the brief's two rules (strict distance and aspect ratio; loose distance within a time window), union-find groups, confidence score; certain duplicates kept apart. Found by multi-index hashing instead of a BK-tree, **a deviation to approve** ([ADR 0019](decisions/0019-similar-photo-search.md)).
 - **Duplicates screen**: choice chips **All**, **Identical copies**, **Bursts**, **Similar photos** (added after the device test, at the product owner's request), one section per kind under All; **Not duplicates** on similar groups (stored in `ignored_pairs`, kept by *Analyze the library again*); an item in two groups counted once; buttons stack with large text ([features/duplicates.md](features/duplicates.md)).
 - **Best pick** applies to similar groups (favorite, resolution, size, date); sharpness joins it in M5.
@@ -54,7 +54,7 @@ Last updated: 2026-10-27 — Milestone M4
 - **First device test: no similar groups.** Fixed on 2026-10-27 (progress shown, groups rebuilt every 1,000 photos, failing thumbnail batches skipped, native calls always reply) and confirmed on the phone; which of the two causes it was is not known.
 - **The first analysis is long**: about 25 minutes for 20,000 photos on the Galaxy A54 (860 photos a minute with four threads, 760 with two), limited by MediaStore's thumbnail rendering. Only once: later scans read new photos only. Embedded JPEG thumbnails could be faster; not tried.
 - **Similar photos are not stacked in the timelines**, only grouped on the duplicates screen. The product owner wants stacking later (M5 or after).
-- Opening a photo in the viewer showed it blurry (the 256-pixel thumbnail, enlarged) until the screen-sized preview was decoded, still after the analysis ended. Improved on 2026-10-27 (preview at the fitted size, shown photo loaded before its neighbours); to check on the phone.
+- Opening a photo in the viewer showed it blurry (the 256-pixel thumbnail, enlarged) until the screen-sized preview was decoded, still after the analysis ended. Improved on 2026-10-27 (preview at the fitted size, shown photo loaded before its neighbours); the product owner still saw it while a scan ran, so the scan now pauses while the viewer is open. To check on the phone.
 - Not verified on a device: the rest of M4, including the time of the first analysis on a large library and the false positive rate on real photos.
 - The camera model and GPS bonuses of the confidence score do not apply yet: those columns are filled in M6 and M7. The score is stored, not shown.
 - A photo whose thumbnail cannot be rendered is not compared until its file changes.

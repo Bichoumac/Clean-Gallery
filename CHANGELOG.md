@@ -10,7 +10,7 @@ Last updated: 2026-10-27 — Milestone M4
 
 - Similar photos never showed on the Galaxy A54: the groups were only built once every photo was read, and one failing native call could stop the scan before that. Groups are now rebuilt every 1,000 photos, a photo or batch whose thumbnail fails is skipped instead of stopping the scan, and native worker calls always reply (`failed` error) instead of possibly leaving Dart waiting.
 
-- Viewer: a photo turns sharp sooner after opening. The preview is decoded at the photo's fitted size on screen instead of the screen's longest side (about four times fewer pixels for a landscape photo), and the neighbours' previews wait for the shown photo's.
+- Viewer: a photo turns sharp sooner after opening. The preview is decoded at the photo's fitted size on screen instead of the screen's longest side (about four times fewer pixels for a landscape photo), and the neighbours' previews wait for the shown photo's. The analysis pauses while the viewer is open, so its thumbnails do not delay the photo; it now reads 16 photos per batch (about a second) instead of 40 so the pause takes effect quickly.
 
 ### Added
 
