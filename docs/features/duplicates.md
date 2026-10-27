@@ -78,5 +78,5 @@ Detection rules and the "Best" choice are in [analysis-engine.md](../analysis-en
 
 - Similar groups pre-select every photo but the best, as the brief asks; similar photos are not copies, so the product owner may prefer them unselected (to decide after the device test).
 - The confidence score is stored but not shown.
-- Sharpness (M5) will refine the best photo of similar groups and bursts.
+- Sharpness picks the best photo of bursts and similar groups of the same resolution; it is not shown on the cards yet.
 - Similar videos (same duration, resolution and close dates) are not detected yet.

@@ -24,7 +24,6 @@
   "statsSimilar": "Photos similaires",
   "statsTrash": "Dans la corbeille",
   "statsItems": "{count, plural, =0{Rien} =1{1 élément} other{{count} éléments}}",
-  "statsLater": "Bientôt",
 
   "cleanupScreenshotsTitle": "Anciennes captures d'écran",
   "cleanupLargeVideosTitle": "Grandes vidéos",
@@ -33,6 +32,9 @@
   "cleanupSummary": "{count, plural, =1{1 élément · {size}} other{{count} éléments · {size}}}",
   "cleanupScreenshotsEmpty": "Aucune ancienne capture d'écran",
   "cleanupLargeVideosEmpty": "Aucune grande vidéo",
+  "cleanupBlurryTitle": "Photos floues",
+  "cleanupBlurryRule": "Floues ou trop sombres, d'après l'analyse",
+  "cleanupBlurryEmpty": "Aucune photo floue",
 
   "onboardingTitle": "Bienvenue dans Clean Gallery",
   "onboardingPrivacyHeadline": "Vos photos ne quittent jamais votre appareil.",

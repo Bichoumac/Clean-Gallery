@@ -78,6 +78,7 @@ abstract final class CleanupRoutes {
   static String location(CleanupList list) => switch (list) {
     CleanupList.screenshots => '${AppRoutes.stats}/screenshots',
     CleanupList.largeVideos => '${AppRoutes.stats}/large-videos',
+    CleanupList.poorQuality => '${AppRoutes.stats}/blurry',
   };
 }
 
@@ -214,6 +215,11 @@ GoRouter appRouter(Ref ref) {
                     path: 'large-videos',
                     builder: (context, state) =>
                         const CleanupListScreen(list: CleanupList.largeVideos),
+                  ),
+                  GoRoute(
+                    path: 'blurry',
+                    builder: (context, state) =>
+                        const CleanupListScreen(list: CleanupList.poorQuality),
                   ),
                 ],
               ),

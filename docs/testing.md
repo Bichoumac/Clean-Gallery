@@ -54,8 +54,9 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [best_picker_test.dart](../test/analysis/best_picker_test.dart) | Each best-pick rule in order, best item first. |
 | [burst_test.dart](../test/analysis/burst_test.dart) | Burst names of Samsung and Google cameras, different bursts and folders, ordinary names. |
 | [screenshot_test.dart](../test/analysis/screenshot_test.dart) | Screenshots by folder, name or PNG at the screen size; camera photos and other images are not. |
-| [cleanup_selection_test.dart](../test/core/database/cleanup_selection_test.dart) | Old screenshots and large videos read from the index. |
-| [cleanup_flow_test.dart](../test/features/cleanup/cleanup_flow_test.dart) | Stats rows of the cleanup lists, Select all and move to trash, large video threshold. |
+| [cleanup_selection_test.dart](../test/core/database/cleanup_selection_test.dart) | Old screenshots, large videos and blurry photos read from the index. |
+| [image_quality_test.dart](../test/analysis/image_quality_test.dart) | Sharpness and brightness of sharp, recompressed, blurred, dark and flat images. |
+| [cleanup_flow_test.dart](../test/features/cleanup/cleanup_flow_test.dart) | Stats rows of the cleanup lists, Select all and move to trash, large video threshold, blurry photos measured and listed. |
 | [duplicates_test.dart](../test/core/media/duplicates_test.dart) | Only size collisions hashed, exact groups, no re-read, filter by folder, trash and undo, changed file, favorite kept, burst groups, a burst saved twice. |
 | [duplicates_flow_test.dart](../test/features/duplicates/duplicates_flow_test.dart) | Duplicates tile and count, screen, clean all with summary, keep every copy, open a photo full screen. |
 | [perceptual_hash_test.dart](../test/analysis/perceptual_hash_test.dart) | Hamming distance, area resize; the same photo recompressed, resized, brightened, cropped stays close; 40 unrelated scenes stay apart (false positive regression). |
@@ -141,6 +142,18 @@ Part 1, cleanup lists. Install over the M4 version (`adb install -r`, do not uni
 | 4 | **Move to trash**, then *Undo* | The list empties, then everything comes back. |
 | 5 | Back, **Large videos** | *100 MB or more, largest first*; the largest video on top. |
 | 6 | Settings → **Cleanup**: 7 d, then 500 MB; back to Stats | The screenshot row grows, the large video row shrinks; back to 30 d and 100 MB. |
+
+Part 1 results on the Galaxy A54, reported by the product owner on 2026-10-27: all six items confirmed ("all good").
+
+Part 2, blurry and dark photos. Install over part 1. The first launch migrates the database (schema version 3) and starts a full analysis: every photo is read again once (about 25 minutes for 20,000 photos).
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 1 | Use the app while the analysis runs; note how long it takes | Fluid; "Analyzing: N of M items" grows; about as fast as the M4 analysis (around 860 photos a minute). |
+| 2 | Stats → **Blurry photos**, during and after the analysis | The row and the list fill in as photos are analysed. |
+| 3 | Look through the list | Mostly out-of-focus, shaken or very dark photos. **Report sharp photos in the list** (false positives, e.g. sky, fog, a plain wall) and **blurry photos you know of that are missing**. |
+| 4 | Duplicates → **Similar photos** and **Bursts** | Same groups as before, or nearly; in a group of close shots, the photo marked **Best** is the sharpest one. |
+| 5 | Select some blurry photos, **Move to trash**, *Undo* | As in the other lists. |
 
 ### M4 — similar photos and Stats, to verify on a device
 

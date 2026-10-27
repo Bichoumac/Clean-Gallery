@@ -1,7 +1,9 @@
 import 'package:clean_gallery/core/media/media_thumbnail.dart';
+import 'package:clean_gallery/domain/media_item.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../analysis/photo_set.dart';
 import '../../helpers/fakes.dart';
 import '../../helpers/pump_app.dart';
 
@@ -84,5 +86,33 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('100 MB or more, largest first'), findsOneWidget);
     expect(shownIds(tester), ['5']);
+  });
+
+  testApp('blurry photos: measured by the analysis, listed from Stats', (
+    tester,
+  ) async {
+    final sharp = testItem(7, takenAt: old, sizeBytes: 3000);
+    final blurred = testItem(8, takenAt: old, sizeBytes: 2000);
+    final media = FakeMediaSource(items: <MediaItem>[sharp, blurred])
+      ..grayImages.addAll({
+        '7': PhotoSet.thumbnail(PhotoSet.scene(4)),
+        '8': PhotoSet.thumbnail(PhotoSet.blurred(PhotoSet.scene(5), 3)),
+      });
+    await pumpTestApp(tester, media: media);
+    await tester.tap(find.byTooltip('Stats'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.text('Blurry photos'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Blurry photos'));
+    await tester.pumpAndSettle();
+    expect(
+      find.text('Out of focus or too dark, as the analysis measured them'),
+      findsOneWidget,
+    );
+    expect(shownIds(tester), ['8']);
   });
 }

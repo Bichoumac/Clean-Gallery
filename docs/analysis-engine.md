@@ -1,6 +1,6 @@
 # Analysis engine
 
-Algorithms that work out facts about photos and videos on the device: capture dates, exact duplicates, bursts, similar photos and screenshots now, blur next. This file lists each algorithm, its thresholds and their rationale, and performance notes.
+Algorithms that work out facts about photos and videos on the device: capture dates, exact duplicates, bursts, similar photos, screenshots, and blurry or dark photos. This file lists each algorithm, its thresholds and their rationale, and performance notes.
 
 Last updated: 2026-10-27 — Milestone M5
 
@@ -13,13 +13,13 @@ Last updated: 2026-10-27 — Milestone M5
 | Bursts | Done (M3) | [burst.dart](../lib/analysis/burst.dart), applied by the media index sync; groups by `DuplicateScan` | `burst_id`, `duplicate_groups` |
 | Similar photos | Done (M4) | [perceptual_hash.dart](../lib/analysis/perceptual_hash.dart), [similarity.dart](../lib/analysis/similarity.dart), [hash_index.dart](../lib/analysis/hash_index.dart); pixels from [MediaIndex.kt](../android/app/src/main/kotlin/com/bichoumac/clean_gallery/MediaIndex.kt) | `d_hash`, `p_hash`, `analysis_version`, `duplicate_groups`, `ignored_pairs` |
 | Screenshots | Done (M5) | [screenshot.dart](../lib/analysis/screenshot.dart), applied by the media index sync | `is_screenshot` |
-| Blur | M5 | — | `blur_score` |
+| Blurry and dark photos | Done (M5) | [image_quality.dart](../lib/analysis/image_quality.dart), measured with the hashes | `blur_score`, `brightness` |
 
 Code in `lib/analysis/` is pure Dart: no Flutter import, so it can run in an isolate and be tested without a device (a test enforces it).
 
 **Where the work runs.** The brief asks for an engine in an isolate, incremental and resumable. SQL (grouping, candidates) runs in Drift's background isolate; file hashing and thumbnail rendering on a native thread; perceptual hashes and the similar photo search in a Dart isolate (`Isolate.run`, through `analysisRunnerProvider`). What runs on the UI isolate is per-item rule matching during a sync (two regular expressions on a file name), well under a millisecond per item. Results are saved as they go, so an interrupted sync or scan resumes; **Settings → Analyze the library again** forgets them all and starts over (pairs marked "Not duplicates" are kept: they are the user's decisions).
 
-**Order of a scan** (`DuplicateScan`, after each index sync): content hashes of size collisions → exact and burst groups (shown at once) → perceptual hashes of new photos → similar groups.
+**Order of a scan** (`DuplicateScan`, after each index sync): content hashes of size collisions → exact and burst groups (shown at once) → perceptual hashes, sharpness and brightness of new photos → similar groups.
 
 ## Capture date
 
@@ -96,7 +96,7 @@ Shots of one burst sequence: the camera saves each shot as a file with a shared 
 - The folder is part of the id, so shots are grouped only with those saved next to them.
 - The id is worked out when the item is indexed (`assets.burst_id`), from its name: no file is read.
 - After each scan, every burst id held by two items or more is a group of kind `burst`, unless its items are already exactly one exact group (a burst saved twice).
-- Bursts have their own **Bursts** chip and section on the duplicates screen (they were listed with exact duplicates under *Certain duplicates* until 2026-10-27); the best shot is chosen by the [best pick](#best-pick): until sharpness is measured (M5), the largest file, which usually holds the most detail.
+- Bursts have their own **Bursts** chip and section on the duplicates screen (they were listed with exact duplicates under *Certain duplicates* until 2026-10-27); the best shot is chosen by the [best pick](#best-pick): the sharpest once measured, otherwise the largest file, which usually holds the most detail.
 
 **Not used**: grouping photos taken less than a second apart without a burst name. Two different photos taken quickly are not certain duplicates; close-in-time look-alikes are found by similar photos (M4), which compare the images. MediaStore has no burst column, and Samsung keeps its burst metadata in a proprietary format.
 
@@ -120,7 +120,7 @@ Photos that look alike without being identical files: the same photo resized or 
 
 ### Hashes
 
-Each photo gets two 64-bit perceptual hashes, computed from a grayscale thumbnail of at most 128 × 128 pixels rendered by MediaStore's thumbnail cache. The original file is never decoded.
+Each photo gets two 64-bit perceptual hashes, computed from a grayscale thumbnail of at most 256 × 256 pixels (128 until M5) rendered by MediaStore's thumbnail cache, the same one the [quality](#blurry-and-dark-photos) is measured on. The original file is never decoded.
 
 | Hash | How | Robust to | Used for |
 | --- | --- | --- | --- |
@@ -181,6 +181,20 @@ On the phone, rendering the thumbnail (MediaStore) costs more than hashing it; t
 
 **Search**: strict pairs are found by multi-index hashing (four 16-bit blocks of the pHash; two hashes within *r* bits share a block within ⌊r / 4⌋ bits), loose pairs by walking the photos in date order. The brief asked for a BK-tree; on pHashes it was slower than comparing every pair, see [ADR 0019](decisions/0019-similar-photo-search.md).
 
+## Blurry and dark photos
+
+Photos out of focus, shaken, or too dark to show anything (a pocket shot, a covered lens), offered in the *Blurry photos* list ([features/cleanup.md](features/cleanup.md), [ADR 0020](decisions/0020-blur-and-brightness-with-the-hashes.md)).
+
+| Measure | How | Stored in | Offered below |
+| --- | --- | --- | --- |
+| Sharpness | Variance of the 4-neighbour Laplacian over the inner pixels of the 256-pixel grayscale thumbnail | `blur_score` | 30 |
+| Brightness | Mean of the thumbnail's pixels, 0 to 255 | `brightness` | 20 |
+
+- Measured in the same isolate call as the perceptual hashes (`analyzePhoto`), so no photo is read twice; a photo without a readable thumbnail is not measured and never offered.
+- Screenshots are left out: flat backgrounds would look blurry.
+- **Thresholds**: a thumbnail is much sharper than its full-size photo, so the usual thresholds (around 100 at full size) do not apply. On the synthetic test photos ([photo_set.dart](../test/analysis/photo_set.dart)), sharp scenes score 54 to 250, recompressed ones included, and the same scenes blurred by 0.6 % of their width 7 to 19; 30 sits between. To check on real photos: a flat scene (sky, fog, a wall) can score low without being blurry.
+- Sharpness also refines the [best pick](#best-pick).
+
 ## Best pick
 
 `pickBest` ([best_picker.dart](../lib/analysis/best_picker.dart)) chooses the item to keep in a group, by the brief's order:
@@ -189,7 +203,7 @@ On the phone, rendering the thumbnail (MediaStore) costs more than hashing it; t
 | --- | --- | --- |
 | 1 | A favorite | The user already chose it. |
 | 2 | Highest resolution | More detail. |
-| 3 | Sharpest, when known for both | Blur scores come in M5; until then a similar group keeps the highest resolution, then the largest file. |
+| 3 | Sharpest, when known for both | Burst shots and close shots have the same resolution: the one in focus is kept. Measured since M5 ([blurry and dark photos](#blurry-and-dark-photos)). |
 | 4 | Largest file | Less compression. |
 | 5 | Oldest capture date | Most likely the original. |
 | 6 | Smallest id | Usually the first copy on the device; makes the choice stable. |
@@ -204,7 +218,8 @@ For exact duplicates, rules 2 to 4 are equal by definition, so the choice is the
 - [best_picker_test.dart](../test/analysis/best_picker_test.dart): every rule of the best pick, in order.
 - [burst_test.dart](../test/analysis/burst_test.dart): burst names of each camera, different bursts and folders, ordinary names.
 - [duplicates_test.dart](../test/core/media/duplicates_test.dart): only size collisions hashed, groups, no re-read on a second scan, filter by folder, trash and undo, changed file hashed again, favorite kept, burst groups, a burst saved twice.
+- [image_quality_test.dart](../test/analysis/image_quality_test.dart): sharp, recompressed, blurred, dark and flat images.
 - [perceptual_hash_test.dart](../test/analysis/perceptual_hash_test.dart): Hamming distance, area resize, the same photo recompressed, resized, brightened, cropped; false positive regression on 40 unrelated scenes.
 - [similarity_test.dart](../test/analysis/similarity_test.dart): multi-index search against brute force, union-find, strict and loose rules, aspect ratio, chains, ignored pairs, certain groups, presets, confidence, a mixed test photo set.
-- [similar_photos_test.dart](../test/core/media/similar_photos_test.dart): scan through the media source: groups, photos only, hashes kept, Not duplicates kept by Analyze again, changed file, new thresholds without re-reading, exact copies, folder filter.
+- [similar_photos_test.dart](../test/core/media/similar_photos_test.dart): scan through the media source: groups, photos only, hashes kept, sharpness and brightness measured, the sharper look-alike kept, Not duplicates kept by Analyze again, changed file, new thresholds without re-reading, exact copies, folder filter.
 - [photo_set.dart](../test/analysis/photo_set.dart): the synthetic test photos (seeded scenes, recompressed, resized, brightened, cropped, moved subject), made in memory.

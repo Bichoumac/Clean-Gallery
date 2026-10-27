@@ -17,8 +17,7 @@ import 'package:go_router/go_router.dart';
 /// much cleaning could free, and that space by category; each category
 /// opens its cleanup tool.
 ///
-/// Blurry photos come later in M5; their row shows "—" until then. See
-/// `docs/features/stats.md`.
+/// See `docs/features/stats.md`.
 class StatsScreen extends ConsumerWidget {
   /// Creates the Stats tab.
   const StatsScreen({super.key});
@@ -119,8 +118,12 @@ class StatsScreen extends ConsumerWidget {
               _CategoryRow(
                 icon: Icons.blur_on_rounded,
                 label: l10n.statsBlurry,
-                detail: l10n.statsLater,
-                value: unknown,
+                detail: summary == null
+                    ? null
+                    : l10n.statsItems(summary.poorQuality.count),
+                value: size(summary?.poorQuality.bytes),
+                onTap: () =>
+                    context.go(CleanupRoutes.location(CleanupList.poorQuality)),
               ),
             ],
           ),

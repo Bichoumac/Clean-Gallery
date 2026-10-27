@@ -1,4 +1,9 @@
+import 'package:clean_gallery/analysis/image_quality.dart';
+import 'package:clean_gallery/analysis/perceptual_hash.dart';
+import 'package:clean_gallery/core/database/app_database.dart';
+import 'package:clean_gallery/core/database/duplicate_repository.dart';
 import 'package:clean_gallery/core/database/media_index_repository.dart';
+import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/features/cleanup/cleanup_lists.dart';
 import 'package:clean_gallery/platform/media_source.dart';
@@ -13,10 +18,11 @@ void main() {
   final recent = DateTime(2026, 10, 20);
   const megabyte = 1024 * 1024;
 
+  late AppDatabase db;
   late MediaIndexRepository repository;
 
   Future<void> index(List<MediaItem> items) async {
-    final db = inMemoryDatabase();
+    db = inMemoryDatabase();
     addTearDown(db.close);
     repository = MediaIndexRepository(db, screen: screen);
     await repository.upsert([
@@ -34,6 +40,7 @@ void main() {
     for (final item in await repository.load(switch (list) {
       CleanupList.screenshots => oldScreenshots(ageDays: 30, today: today),
       CleanupList.largeVideos => largeVideos(megabytes: 100),
+      CleanupList.poorQuality => poorQualityPhotos,
     }))
       item.id,
   ];
@@ -84,5 +91,33 @@ void main() {
       testItem(5, sizeBytes: 200 * megabyte),
     ]);
     expect(await ids(CleanupList.largeVideos), ['2', '1', '3']);
+  });
+
+  test('blurry photos: low sharpness or very dark, not screenshots', () async {
+    final photos = [
+      testItem(1),
+      testItem(2),
+      testItem(3),
+      testItem(4, relativePath: 'DCIM/Screenshots/'),
+      testItem(5),
+    ];
+    await index(photos);
+    ({PerceptualHashes hashes, ImageQuality quality}) result(
+      double sharpness,
+      double brightness,
+    ) => (
+      hashes: (dHash: 0, pHash: 0),
+      quality: (sharpness: sharpness, brightness: brightness),
+    );
+    await DuplicateRepository(db).savePhotoAnalysis(photos, {
+      '1': result(500, 120),
+      '2': result(5, 120),
+      '3': result(500, 4),
+      '4': result(5, 120),
+      // 5 had no readable thumbnail: not measured, not offered.
+    });
+    expect(await ids(CleanupList.poorQuality), unorderedEquals(['2', '3']));
+    final sharp = await repository.load(const MediaSelection(ids: ['1']));
+    expect(sharp.single.sharpness, 500);
   });
 }

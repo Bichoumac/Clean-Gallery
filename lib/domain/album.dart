@@ -26,6 +26,10 @@ enum MediaFilter {
 
   /// Videos of at least [MediaSelection.minSizeBytes] (cleanup list).
   largeVideos,
+
+  /// Blurry or very dark photos, screenshots left out (cleanup list), see
+  /// `isPoorQuality`.
+  poorQuality,
 }
 
 /// Criterion a media list is sorted by.

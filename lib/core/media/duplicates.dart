@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'dart:isolate';
 
-import 'package:clean_gallery/analysis/perceptual_hash.dart';
+import 'package:clean_gallery/analysis/photo_analysis.dart';
 import 'package:clean_gallery/analysis/similarity.dart';
 import 'package:clean_gallery/core/media/media_index.dart';
 import 'package:clean_gallery/core/providers.dart';
@@ -23,7 +23,7 @@ part 'duplicates.g.dart';
 const hashBatchSize = 20;
 
 /// Photos whose thumbnails are read per call to the media source, for
-/// perceptual hashes: about a second of work on a phone, so that
+/// perceptual hashes and quality: about a second of work on a phone, so that
 /// [DuplicateScan.pause] takes effect quickly.
 const perceptualBatchSize = 16;
 
@@ -31,8 +31,10 @@ const perceptualBatchSize = 16;
 /// scan runs, so groups show before the whole library is read.
 const regroupEveryBatches = 60;
 
-/// Side of the grayscale thumbnails perceptual hashes are computed on.
-const perceptualThumbnailSide = 128;
+/// Side of the grayscale thumbnails perceptual hashes and quality are
+/// computed on: 256 pixels, as blur shows better than at 128 (M4) and
+/// MediaStore renders both from the same cached thumbnail.
+const perceptualThumbnailSide = 256;
 
 /// Runs CPU-heavy analysis work ([work]) away from the interface.
 typedef AnalysisRunner = Future<R> Function<R>(FutureOr<R> Function() work);
@@ -68,9 +70,10 @@ abstract class DuplicateScanState with _$DuplicateScanState {
 /// 1. certain duplicates: hashes the content of items that share their
 ///    size with another item, then groups identical hashes (exact
 ///    duplicates) and shots of the same burst;
-/// 2. similar photos: computes the perceptual hashes of new photos from
-///    grayscale thumbnails, in an isolate, then groups similar photos with
-///    the thresholds chosen in Settings.
+/// 2. similar photos: computes the perceptual hashes and the quality
+///    (sharpness, brightness) of new photos from grayscale thumbnails, in
+///    an isolate, then groups similar photos with the thresholds chosen in
+///    Settings.
 ///
 /// Incremental and resumable: hashes are saved after each batch and kept
 /// until the file changes, so only new items are read. Similar photos are
@@ -213,9 +216,9 @@ class DuplicateScan extends _$DuplicateScan {
         // again: those photos are compared once their files change.
         images = const {};
       }
-      final hashes = await _hashAll(images, runner);
+      final results = await _analyzeAll(images, runner);
       if (!ref.mounted) return;
-      await repository.savePerceptualHashes(batch, hashes);
+      await repository.savePhotoAnalysis(batch, results);
       state = state.copyWith(hashed: state.hashed + batch.length);
       if (++batches % regroupEveryBatches == 0) {
         await _regroup(runner);
@@ -245,9 +248,9 @@ class DuplicateScan extends _$DuplicateScan {
   }
 }
 
-/// Perceptual hashes of [images], by id, computed by [runner] (in an
+/// Hashes and quality of [images], by id, computed by [runner] (in an
 /// isolate) so the interface never waits on the DCT.
-Future<Map<String, PerceptualHashes>> _hashAll(
+Future<Map<String, PhotoAnalysis>> _analyzeAll(
   Map<String, GrayImage> images,
   AnalysisRunner runner,
 ) async {
@@ -255,7 +258,7 @@ Future<Map<String, PerceptualHashes>> _hashAll(
   return await runner(
     () => {
       for (final MapEntry(:key, :value) in images.entries)
-        key: perceptualHashes(value),
+        key: analyzePhoto(value),
     },
   );
 }

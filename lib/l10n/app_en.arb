@@ -28,7 +28,6 @@
   "statsTrash": "In the trash",
   "statsItems": "{count, plural, =0{Nothing} =1{1 item} other{{count} items}}",
   "@statsItems": {"placeholders": {"count": {"type": "int"}}},
-  "statsLater": "Coming soon",
 
   "cleanupScreenshotsTitle": "Old screenshots",
   "cleanupLargeVideosTitle": "Large videos",
@@ -40,6 +39,9 @@
   "@cleanupSummary": {"placeholders": {"count": {"type": "int"}, "size": {"type": "String"}}},
   "cleanupScreenshotsEmpty": "No old screenshots",
   "cleanupLargeVideosEmpty": "No large videos",
+  "cleanupBlurryTitle": "Blurry photos",
+  "cleanupBlurryRule": "Out of focus or too dark, as the analysis measured them",
+  "cleanupBlurryEmpty": "No blurry photos",
 
   "onboardingTitle": "Welcome to Clean Gallery",
   "onboardingPrivacyHeadline": "Your photos never leave your device.",

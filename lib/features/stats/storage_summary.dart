@@ -28,6 +28,7 @@ final class StorageSummary {
     required this.similar,
     required this.screenshots,
     required this.largeVideos,
+    required this.poorQuality,
     required this.trash,
   });
 
@@ -51,6 +52,9 @@ final class StorageSummary {
   /// Large videos, those already counted above left out.
   final StorageShare largeVideos;
 
+  /// Blurry or very dark photos, those already counted above left out.
+  final StorageShare poorQuality;
+
   /// Items in the app trash, freed when it is emptied.
   final StorageShare trash;
 
@@ -64,19 +68,22 @@ final class StorageSummary {
       similar.bytes +
       screenshots.bytes +
       largeVideos.bytes +
+      poorQuality.bytes +
       trash.bytes;
 }
 
 /// The summary of [totals], duplicate [groups] of the whole library, old
-/// [screenshots], [largeVideos] and [trashed] items. Each item is counted
-/// once, in the first category it belongs to: identical copies, bursts,
-/// similar photos, screenshots, large videos.
+/// [screenshots], [largeVideos], [poorQuality] photos and [trashed] items.
+/// Each item is counted once, in the first category it belongs to:
+/// identical copies, bursts, similar photos, screenshots, large videos,
+/// blurry photos.
 StorageSummary summarize({
   required MediaTotals totals,
   required List<DuplicateGroup> groups,
   required List<TrashedItem> trashed,
   List<MediaItem> screenshots = const [],
   List<MediaItem> largeVideos = const [],
+  List<MediaItem> poorQuality = const [],
 }) {
   final extras = {
     for (final kind in DuplicateKind.values) kind: <String, MediaItem>{},
@@ -103,6 +110,7 @@ StorageSummary summarize({
     similar: share(extras[DuplicateKind.similar]!.values),
     screenshots: share(screenshots),
     largeVideos: share(largeVideos),
+    poorQuality: share(poorQuality),
     trash: _share([for (final entry in trashed) entry.item]),
   );
 }
@@ -136,5 +144,6 @@ Future<StorageSummary> storageSummary(Ref ref) async {
     trashed: trashed,
     screenshots: await outsideTrash(CleanupList.screenshots),
     largeVideos: await outsideTrash(CleanupList.largeVideos),
+    poorQuality: await outsideTrash(CleanupList.poorQuality),
   );
 }

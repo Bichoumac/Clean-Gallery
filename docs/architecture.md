@@ -120,7 +120,7 @@ Once the tabs are shown, lists read the media index in the database, so the last
 | Camera | `/camera` | Timeline of the camera's photos (`DCIM/Camera/`) | M1 ✓, camera-only since M2 |
 | Videos | `/videos` | Video timeline | M1 ✓ |
 | Albums | `/albums`, `/albums/<key>?name=`, `/albums/trash` | All media, Favorites, Trash, folders | M1–M2 ✓ |
-| Stats | `/stats` | Storage dashboard: used and reclaimable space, entry to cleanup tools | Layout in M0, duplicates, similar photos and trash in M4, other categories in M5 |
+| Stats | `/stats` | Storage dashboard: used and reclaimable space, entry to cleanup tools | Layout in M0, duplicates, similar photos and trash in M4, screenshots, large videos and blurry photos in M5 |
 | Settings | `/settings` | Settings | M2 ✓ |
 
 The viewer (`/viewer`) sits above the tabs, without the navigation bar.

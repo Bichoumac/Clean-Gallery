@@ -44,7 +44,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Current schema version. Bump it for every schema change.
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   /// Migration steps, applied in order from the installed version.
   @override
@@ -60,7 +60,14 @@ class AppDatabase extends _$AppDatabase {
         await m.alterTable(
           TableMigration(
             assets,
-            newColumns: [assets.bucketId, assets.takenAt, assets.mediaRevision],
+            // The table is rebuilt with today's columns: list every column
+            // added since version 1, later ones included.
+            newColumns: [
+              assets.bucketId,
+              assets.takenAt,
+              assets.mediaRevision,
+              assets.brightness,
+            ],
             columnTransformer: {
               assets.takenAt: coalesce([assets.captureAt, assets.modifiedAt]),
               assets.captureAt: const Constant<DateTime>(null),
@@ -69,6 +76,11 @@ class AppDatabase extends _$AppDatabase {
         );
         await m.createIndex(assetsTakenAt);
         await m.createIndex(assetsBucketId);
+      }
+      // From version 1, the table rebuilt above already has the column.
+      if (from == 2) {
+        // Brightness of photos, measured with their sharpness (M5).
+        await m.addColumn(assets, assets.brightness);
       }
     },
     beforeOpen: (details) async {

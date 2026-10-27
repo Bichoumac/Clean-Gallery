@@ -1,6 +1,7 @@
 import 'package:clean_gallery/analysis/best_picker.dart';
 import 'package:clean_gallery/analysis/burst.dart';
 import 'package:clean_gallery/analysis/capture_date.dart';
+import 'package:clean_gallery/analysis/image_quality.dart';
 import 'package:clean_gallery/analysis/screenshot.dart';
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/domain/album.dart';
@@ -54,10 +55,10 @@ final class MediaIndexRepository {
   /// way.
   ///
   /// When an item's file changed (modification date or size), its
-  /// `analysis_version`, content hash and perceptual hashes are reset so
-  /// the engine analyses it again. With
-  /// [resetAnalysis], every updated row is reset, e.g. after the platform
-  /// rebuilt its database and ids may point to other files.
+  /// `analysis_version`, content hash, perceptual hashes and quality are
+  /// reset so the engine analyses it again. With [resetAnalysis], every
+  /// updated row is reset, e.g. after the platform rebuilt its database and
+  /// ids may point to other files.
   Future<void> upsert(
     List<IndexedMedia> entries, {
     bool resetAnalysis = false,
@@ -101,6 +102,12 @@ final class MediaIndexRepository {
               pHash: resetAnalysis
                   ? const Constant(null)
                   : _keptIfSameFile(old, excluded, old.pHash, null),
+              blurScore: resetAnalysis
+                  ? const Constant(null)
+                  : _keptIfSameFile(old, excluded, old.blurScore, null),
+              brightness: resetAnalysis
+                  ? const Constant(null)
+                  : _keptIfSameFile(old, excluded, old.brightness, null),
             ),
           ),
         );
@@ -143,8 +150,8 @@ final class MediaIndexRepository {
 
   /// Forgets every analysis result, so the next sync and scan work out
   /// everything again: dates and burst ids (rows are described again),
-  /// content and perceptual hashes and duplicate groups. Metadata, the
-  /// trash, settings and the pairs marked "Not duplicates" are kept.
+  /// content and perceptual hashes, quality and duplicate groups. Metadata,
+  /// the trash, settings and the pairs marked "Not duplicates" are kept.
   Future<void> resetAnalysis() => _db.transaction(() async {
     await _db
         .update(_db.assets)
@@ -154,6 +161,8 @@ final class MediaIndexRepository {
             contentHash: Value(null),
             dHash: Value(null),
             pHash: Value(null),
+            blurScore: Value(null),
+            brightness: Value(null),
             analysisVersion: Value(0),
           ),
         );
@@ -315,6 +324,11 @@ final class MediaIndexRepository {
         MediaFilter.screenshots =>
           t.kind.equalsValue(MediaKind.photo) & t.isScreenshot.equals(true),
         MediaFilter.largeVideos => t.kind.equalsValue(MediaKind.video),
+        MediaFilter.poorQuality =>
+          t.kind.equalsValue(MediaKind.photo) &
+              t.isScreenshot.equals(false) &
+              (t.blurScore.isSmallerThanValue(blurryBelow) |
+                  t.brightness.isSmallerThanValue(darkBelow)),
       },
       if (selection.takenBefore case final before?)
         _date(t).isSmallerThanValue(before),
@@ -441,5 +455,6 @@ extension AssetRowToMediaItem on AssetRow {
     fileName: fileName.isEmpty ? null : fileName,
     relativePath: relativePath.isEmpty ? null : relativePath,
     mimeType: mimeType.isEmpty ? null : mimeType,
+    sharpness: blurScore,
   );
 }

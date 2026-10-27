@@ -38,7 +38,8 @@ The media index: one row per photo or video, keyed by its MediaStore id. Every l
 | `capture_source` | TEXT | yes | `exif` / `filename` / `file` |
 | `content_hash` | TEXT | yes | SHA-256 of the content (hex), only for items whose size is shared; `''` when the file could not be read; reset when the file changes ([ADR 0017](decisions/0017-exact-duplicates-sha256.md)) |
 | `d_hash`, `p_hash` | INTEGER | yes | 64-bit perceptual hashes of photos, as signed integers, from a grayscale thumbnail; `null` until computed, or when the photo has no readable thumbnail ([ADR 0018](decisions/0018-perceptual-hashes-from-thumbnails.md)). Declared `int64()` until M3; `integer()` since M4 (same SQLite type, a Dart `int` instead of a `BigInt`, no migration) |
-| `blur_score` | REAL | yes | Laplacian variance; higher is sharper |
+| `blur_score` | REAL | yes | Laplacian variance on the 256-pixel thumbnail; higher is sharper (M5) |
+| `brightness` | REAL | yes | Mean brightness of the thumbnail, 0–255 (schema version 3, M5) |
 | `burst_id` | TEXT | yes | `<relative path>\|<shared part of the name>` for a burst shot, from its file name at index time ([analysis-engine.md](analysis-engine.md#bursts)) |
 | `is_screenshot` | BOOLEAN | no | Default `false`; set while indexing by `isScreenshot` (M5) |
 | `is_favorite` | BOOLEAN | no | Default `false`; cached copy of MediaStore `IS_FAVORITE` |
@@ -158,4 +159,5 @@ Every schema change:
 | Version | Milestone | Change |
 | --- | --- | --- |
 | 1 | M0 | Initial schema. |
+| 3 | M5 | `assets.brightness`. Upgrades from version 1 get it from the version 2 table rebuild, which uses today's columns. |
 | 2 | M3 | Media index: `assets.bucket_id`, `taken_at`, `media_revision`; indexes `assets_taken_at`, `assets_bucket_id`. The table is rebuilt (`alterTable`): rows written by the M2 trash move their date from `capture_at` to `taken_at`, since `capture_at` is now reserved for the engine. |

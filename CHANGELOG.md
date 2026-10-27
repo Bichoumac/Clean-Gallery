@@ -13,6 +13,13 @@ Last updated: 2026-10-27 — Milestone M5
 - Settings → Cleanup: screenshot age and large video size.
 - **Select all** in the selection bar of every grid.
 - Stats: old screenshots and large videos count in the space that could be freed.
+- **Blurry photos** cleanup list and Stats row: photos out of focus or very dark, measured with the perceptual hashes in one pass over 256-pixel thumbnails ([ADR 0020](docs/decisions/0020-blur-and-brightness-with-the-hashes.md)).
+- Database schema version 3: `assets.brightness`.
+
+### Changed
+
+- The analysis reads 256-pixel thumbnails instead of 128 and measures sharpness and brightness (analysis version 2): every photo is analysed again once after the update.
+- Best pick: the sharper of two photos of the same resolution is kept (bursts, close shots).
 
 ## [M4 follow-ups] — 2026-10-27
 

@@ -7,8 +7,9 @@ import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// A cleanup list opened from the Stats tab: old screenshots or large
-/// videos, as a timeline with its item count and size under the title.
+/// A cleanup list opened from the Stats tab: old screenshots, large videos
+/// or blurry photos, as a timeline with its item count and size under the
+/// title.
 ///
 /// Long-press to select, **Select all**, then move to the trash; see
 /// `docs/features/cleanup.md`.
@@ -32,6 +33,7 @@ class CleanupListScreen extends ConsumerWidget {
       title: switch (list) {
         CleanupList.screenshots => l10n.cleanupScreenshotsTitle,
         CleanupList.largeVideos => l10n.cleanupLargeVideosTitle,
+        CleanupList.poorQuality => l10n.cleanupBlurryTitle,
       },
       subtitle: switch (list) {
         CleanupList.screenshots => l10n.cleanupScreenshotsRule(
@@ -40,6 +42,7 @@ class CleanupListScreen extends ConsumerWidget {
         CleanupList.largeVideos => l10n.cleanupLargeVideosRule(
           settings.largeVideoMegabytes,
         ),
+        CleanupList.poorQuality => l10n.cleanupBlurryRule,
       },
       summary: items == null || items.isEmpty
           ? null
@@ -47,6 +50,7 @@ class CleanupListScreen extends ConsumerWidget {
       emptyTitle: switch (list) {
         CleanupList.screenshots => l10n.cleanupScreenshotsEmpty,
         CleanupList.largeVideos => l10n.cleanupLargeVideosEmpty,
+        CleanupList.poorQuality => l10n.cleanupBlurryEmpty,
       },
       showBackButton: true,
     );

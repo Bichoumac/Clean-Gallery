@@ -14,7 +14,7 @@ Last updated: 2026-10-27 — Milestone M5
 - **Measuring on the phone**: the product owner allowed reading `logcat` lines that hold only durations and sizes, logged under one tag by temporary code that is never committed. Ask again for each new measurement.
 - **Product owner's request**: stack similar photos in the timelines, later (M5 or after).
 - M4 merged into `main` (PR #5) on 2026-10-27, after a CI fix (the runner's disk was full; the build job now frees space first).
-- **M5 on branch `m5-cleaning`**, in three parts tested one by one on the phone: 1. old screenshots and large videos (done, to test); 2. blurry and dark photos, one pass on 256-pixel thumbnails (product owner's choice); 3. swipe mode, oldest first (product owner's choice). See [progress.md](progress.md#m5--cleanup).
+- **M5 on branch `m5-cleaning`**, in three parts tested one by one on the phone: 1. old screenshots and large videos (confirmed on the phone); 2. blurry and dark photos, one pass on 256-pixel thumbnails (product owner's choice; done, to test); 3. swipe mode, oldest first (product owner's choice). See [progress.md](progress.md#m5--cleanup).
 
 ## Working with the product owner
 

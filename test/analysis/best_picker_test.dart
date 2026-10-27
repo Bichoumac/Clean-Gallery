@@ -17,9 +17,9 @@ void main() {
   });
 
   test('then the sharpest, when known for both', () {
-    final other = base.copyWith(id: '9');
-    expect(pickBest([base, other], sharpness: {'5': 10, '9': 80}).id, '9');
-    expect(pickBest([base, other], sharpness: {'9': 80}).id, '5');
+    final other = base.copyWith(id: '9', sharpness: 80);
+    expect(pickBest([base.copyWith(sharpness: 10), other]).id, '9');
+    expect(pickBest([base, other]).id, '5');
   });
 
   test('then the largest file', () {

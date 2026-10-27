@@ -50,6 +50,11 @@ abstract class MediaItem with _$MediaItem {
 
     /// MIME type, e.g. `image/jpeg`.
     String? mimeType,
+
+    /// Sharpness measured by the analysis engine (variance of the
+    /// Laplacian on a thumbnail), higher is sharper; `null` until measured
+    /// and for videos.
+    double? sharpness,
   }) = _MediaItem;
 
   const MediaItem._();

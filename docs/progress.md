@@ -13,7 +13,7 @@ Last updated: 2026-10-27 — Milestone M5
 | M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Merged into `main` (PR #3) |
 | M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Merged into `main` (PR #4) |
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Merged into `main` (PR #5) |
-| M5 | Cleanup: swipe mode, blurry, screenshots, large videos | In progress on `m5-cleaning`: part 1 (screenshots, large videos) done |
+| M5 | Cleanup: swipe mode, blurry, screenshots, large videos | In progress on `m5-cleaning`: part 1 confirmed on the phone, part 2 (blurry photos) done |
 | M6 | Advanced viewer and editing | Not started |
 | M7 | Exploration: map, search | Not started |
 | M8 | Monetization | Not started |
@@ -29,6 +29,8 @@ Three parts, each committed and tested on the phone: 1. old screenshots and larg
 - **Cleanup lists** opened from the Stats tab: *Old screenshots* (older than 30 days by default) and *Large videos* (from 100 MB, largest first), as timelines with their rule and total under the title, **Select all** and move to the trash ([features/cleanup.md](features/cleanup.md)). **Select all** also appears in every grid's selection bar.
 - **Settings → Cleanup**: screenshot age (7 d / 30 d / 90 d / 1 yr) and large video size (50 / 100 / 250 / 500 MB).
 - **Stats**: the two categories count in the space that could be freed, each item once ([features/stats.md](features/stats.md)).
+- **Blurry and dark photos** (part 2): sharpness (variance of the Laplacian) and brightness measured with the perceptual hashes, in one pass over 256-pixel thumbnails; schema version 3 adds `assets.brightness`, analysis version 2 analyses every photo again once ([ADR 0020](decisions/0020-blur-and-brightness-with-the-hashes.md), [analysis-engine.md](analysis-engine.md#blurry-and-dark-photos)). A *Blurry photos* cleanup list and Stats row; screenshots left out.
+- **Best pick** now prefers the sharper of two photos of the same resolution (bursts, close shots).
 
 ### Decisions
 
@@ -37,13 +39,13 @@ Three parts, each committed and tested on the phone: 1. old screenshots and larg
 
 ### Known issues
 
-- Not verified on a device yet: part 1 ([testing.md](testing.md#m5--cleanup-to-verify-on-a-device)).
+- Part 1 confirmed on the Galaxy A54 on 2026-10-27; part 2 not verified on a device yet ([testing.md](testing.md#m5--cleanup-to-verify-on-a-device)).
+- The blur (30) and darkness (20) thresholds come from synthetic photos; flat scenes (sky, fog, a wall) may be listed as blurry. To check on real photos.
 
 ### Next steps
 
-1. Device test of part 1.
-2. Part 2: sharpness and brightness, *Blurry photos* list, sharpness in the best pick.
-3. Part 3: swipe mode.
+1. Device test of part 2, then adjust the thresholds if needed.
+2. Part 3: swipe mode.
 
 ## M4 — Engine level 2
 

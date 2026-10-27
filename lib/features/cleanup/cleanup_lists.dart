@@ -13,6 +13,9 @@ enum CleanupList {
 
   /// Videos larger than the size chosen in Settings, largest first.
   largeVideos,
+
+  /// Blurry or very dark photos.
+  poorQuality,
 }
 
 /// Bytes in a megabyte, as `formatBytes` shows sizes.
@@ -34,6 +37,9 @@ MediaSelection largeVideos({required int megabytes}) => MediaSelection(
   sort: const MediaSort(field: MediaSortField.size),
 );
 
+/// Blurry or very dark photos, newest first.
+const poorQualityPhotos = MediaSelection(filter: MediaFilter.poorQuality);
+
 /// Selection shown by [list], with the thresholds chosen in Settings.
 ///
 /// Screenshot ages count in whole days, so the selection stays the same
@@ -49,5 +55,6 @@ MediaSelection cleanupSelection(Ref ref, CleanupList list) {
     CleanupList.largeVideos => largeVideos(
       megabytes: settings.largeVideoMegabytes,
     ),
+    CleanupList.poorQuality => poorQualityPhotos,
   };
 }
