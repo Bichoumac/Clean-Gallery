@@ -1,3 +1,4 @@
+import 'package:clean_gallery/analysis/similarity.dart';
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/core/settings/app_settings.dart';
 import 'package:clean_gallery/domain/album.dart';
@@ -33,6 +34,18 @@ abstract final class SettingKeys {
 
   /// [AppSettings.mediaIndexVersion].
   static const mediaIndexVersion = 'media_index_version';
+
+  /// [AppSettings.similaritySensitivity], by name.
+  static const similaritySensitivity = 'similarity_sensitivity';
+
+  /// Strict pHash distance of [AppSettings.customThresholds].
+  static const similarityStrict = 'similarity_strict';
+
+  /// Loose pHash distance of [AppSettings.customThresholds].
+  static const similarityLoose = 'similarity_loose';
+
+  /// Time window of [AppSettings.customThresholds], in seconds.
+  static const similarityWindow = 'similarity_window';
 
   /// Prefix of one [AppSettings.viewSorts] entry: `view_sort:<viewKey>`.
   static const viewSortPrefix = 'view_sort:';
@@ -125,6 +138,33 @@ final class SettingsRepository {
       correctedDates: values[SettingKeys.correctedDates] != 'false',
       mediaIndexVersion: values[SettingKeys.mediaIndexVersion],
       indexRules: int.tryParse(values[SettingKeys.indexRules] ?? ''),
+      similaritySensitivity: byName(
+        SimilaritySensitivity.values,
+        SettingKeys.similaritySensitivity,
+        defaults.similaritySensitivity,
+      ),
+      customThresholds: SimilarityThresholds(
+        strict: intIn(
+          SettingKeys.similarityStrict,
+          defaults.customThresholds.strict,
+          0,
+          SimilarityThresholds.maxStrict,
+        ),
+        loose: intIn(
+          SettingKeys.similarityLoose,
+          defaults.customThresholds.loose,
+          0,
+          SimilarityThresholds.maxLoose,
+        ),
+        window: Duration(
+          seconds: intIn(
+            SettingKeys.similarityWindow,
+            defaults.customThresholds.window.inSeconds,
+            0,
+            SimilarityThresholds.maxWindow.inSeconds,
+          ),
+        ),
+      ),
     );
   }
 }

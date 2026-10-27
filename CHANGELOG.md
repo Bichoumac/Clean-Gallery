@@ -2,9 +2,48 @@
 
 All notable changes to this project are documented here, one section per milestone. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-10-26 — Milestone M3
+Last updated: 2026-10-27 — Milestone M4
 
 ## [Unreleased]
+
+### Fixed
+
+- Similar photos never showed on the Galaxy A54: the groups were only built once every photo was read, and one failing native call could stop the scan before that. Groups are now rebuilt every 1,000 photos, a photo or batch whose thumbnail fails is skipped instead of stopping the scan, and native worker calls always reply (`failed` error) instead of possibly leaving Dart waiting.
+
+- Viewer: a photo turns sharp sooner after opening. The preview is decoded at the photo's fitted size on screen instead of the screen's longest side (about four times fewer pixels for a landscape photo), and the neighbours' previews wait for the shown photo's. The analysis pauses while the viewer is open, so its thumbnails do not delay the photo; it now reads 16 photos per batch (about a second) instead of 40 so the pause takes effect quickly.
+- Viewer: photos stayed blurry until zoomed in. MediaStore's thumbnail cache, which the preview came from, stops at 512 px on the Galaxy A54 (asked for 1080 × 1440, it returned 384 × 512). The preview is now decoded from the photo file at the screen's size (native `thumbnail` call with `fromFile`), sharp in 0.3 to 0.7 s; grid thumbnails still come from the cache.
+- Viewer: pinching often did not zoom, since a first finger sliding a little before the second landed was taken as a page swipe. The zoom now claims the gesture as soon as a second finger touches the screen.
+
+### Added
+
+- Duplicates screen: choice chips **All**, **Identical copies**, **Bursts**, **Similar photos**, with their number of groups; one titled section per kind under All. The per-group *Identical copies* / *Burst* label is gone.
+- Progress of the analysis, "Analyzing: N of M items", on the duplicates screen (also a filled progress bar), the Stats tab and Settings → Analyze the library again.
+
+### Changed
+
+- CI: the build job frees disk space first (removes preinstalled toolchains it does not use); the runner ran out of space building the release app bundle.
+- Stats: the *Certain duplicates* row is split into **Identical copies** and **Bursts**; each row opens the duplicates screen on its chip.
+- Thumbnails for perceptual hashes are rendered by four native threads instead of one (about 860 photos a minute on the Galaxy A54).
+
+## [M4] — 2026-10-27 — Engine level 2
+
+### Added
+
+- Perceptual hashes (dHash, pHash) of every photo, from a 128-pixel grayscale thumbnail of MediaStore's cache, computed in a Dart isolate; incremental, saved every 40 photos, reset when the file changes ([ADR 0018](docs/decisions/0018-perceptual-hashes-from-thumbnails.md)).
+- Native channel method `grayThumbnails`, on the hashing thread.
+- Similar photos: strict rule (distance and aspect ratio) and loose rule (distance within a time window), union-find groups, confidence score, certain duplicates kept apart; strict pairs found by multi-index hashing ([ADR 0019](docs/decisions/0019-similar-photo-search.md), [docs/analysis-engine.md](docs/analysis-engine.md#similar-photos)).
+- Duplicates screen: **Similar photos** section, **Not duplicates** button (pairs stored in `ignored_pairs`, never grouped again).
+- Settings → Analysis: similar photos sensitivity (Low / Medium / High) and an advanced mode with the strict and loose distances and the time window; changes regroup without reading thumbnails.
+- Stats tab: storage dashboard with used space, space that cleaning could free, and certain duplicates, similar photos and trash by count and size, each opening its tool ([docs/features/stats.md](docs/features/stats.md)).
+- `docs/features/stats.md`, ADRs 0018 and 0019.
+- Tests: synthetic photo set generated in memory (dev dependency `image`), perceptual hashes and false positive regression, multi-index search against brute force, rules and groups, similar scan, Not duplicates, sensitivity settings, dashboard (194 tests).
+
+### Changed
+
+- The Duplicates tile reads "N items to review" instead of "N extra copies", since similar photos are not copies; an item in two groups is counted once there and in *Clean all groups*.
+- *Analyze the library again* also recomputes perceptual hashes; pairs marked Not duplicates are kept.
+- `assets.d_hash` and `p_hash` are declared as `integer()` (a Dart `int`) instead of `int64()` (`BigInt`); same SQLite type, no migration.
+- The group buttons of the duplicates screen stack when they do not fit (large text).
 
 ## [M3] — 2026-10-26 — Engine level 1
 

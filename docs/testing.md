@@ -2,7 +2,7 @@
 
 How Clean Gallery is tested: test layers, commands, fakes and fixtures. Every milestone adds tests for what it builds; a milestone is not done until the suite passes.
 
-Last updated: 2026-10-26 — Milestone M3
+Last updated: 2026-10-27 — Milestone M4
 
 ## Commands
 
@@ -40,7 +40,7 @@ Shared fakes live in [test/helpers/fakes.dart](../test/helpers/fakes.dart):
 
 Fakes are injected by overriding providers in a `ProviderScope` or `ProviderContainer`. Prefer hand-written fakes for interfaces that are used in many tests; use `mocktail` for one-off interactions.
 
-## Current coverage (M0)
+## Current coverage
 
 | File | What it checks |
 | --- | --- |
@@ -55,6 +55,11 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [burst_test.dart](../test/analysis/burst_test.dart) | Burst names of Samsung and Google cameras, different bursts and folders, ordinary names. |
 | [duplicates_test.dart](../test/core/media/duplicates_test.dart) | Only size collisions hashed, exact groups, no re-read, filter by folder, trash and undo, changed file, favorite kept, burst groups, a burst saved twice. |
 | [duplicates_flow_test.dart](../test/features/duplicates/duplicates_flow_test.dart) | Duplicates tile and count, screen, clean all with summary, keep every copy, open a photo full screen. |
+| [perceptual_hash_test.dart](../test/analysis/perceptual_hash_test.dart) | Hamming distance, area resize; the same photo recompressed, resized, brightened, cropped stays close; 40 unrelated scenes stay apart (false positive regression). |
+| [similarity_test.dart](../test/analysis/similarity_test.dart) | Multi-index search against brute force, union-find, strict and loose rules, aspect ratio, chains, ignored pairs, certain groups, presets, confidence, a mixed photo set. |
+| [similar_photos_test.dart](../test/core/media/similar_photos_test.dart) | Similar scan through the media source: groups, photos only, hashes kept, Not duplicates, changed file, new thresholds without re-reading, exact copies stay certain, folder filter. |
+| [similar_flow_test.dart](../test/features/duplicates/similar_flow_test.dart) | Similar photos section, Not duplicates, Stats values and link to the duplicates screen. |
+| [storage_summary_test.dart](../test/features/stats/storage_summary_test.dart) | Dashboard values by category, an item counted once, the trash, an empty library. |
 | [capture_date_test.dart](../test/analysis/capture_date_test.dart) | File name date patterns, rejected names, date-only names, resolution order. |
 | [android_media_source_test.dart](../test/platform/android_media_source_test.dart) | When MediaStore's `DATE_TAKEN` counts as a metadata date. |
 | [media_index_test.dart](../test/core/media/media_index_test.dart) | Capture dates resolved during a sync, rules version, sort by corrected or platform date; sync plan; first, unchanged and incremental syncs; analysis kept unless the file changed; platform version change; denied and limited access; merged calls; index filters, sorts, date range, folders and trash exclusion. |
@@ -64,10 +69,10 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [viewer_test.dart](../test/features/viewer/viewer_test.dart) | Swipe both ways, pinch then pan without page change, double-tap back, top bar height. |
 | [video_controls_test.dart](../test/features/viewer/video_controls_test.dart) | Video progress bar at the bottom, play button centered, portrait and landscape. |
 | [trash_repository_test.dart](../test/core/database/trash_repository_test.dart) | Trash order and expiry, live ids, restore, forget, duplicates, days left. |
-| [app_settings_test.dart](../test/core/settings/app_settings_test.dart) | Default, stored and invalid settings; sort encoding; view keys. |
+| [app_settings_test.dart](../test/core/settings/app_settings_test.dart) | Default, stored and invalid settings, similarity settings; sort encoding; view keys. |
 | [trash_flow_test.dart](../test/features/trash/trash_flow_test.dart) | Trash from the viewer with undo, Trash page, restore, delete for good, declined prompt, expiry offer, silent purge, Trash album count. |
 | [selection_test.dart](../test/features/library/selection_test.dart) | Long press, tap, drag range, trash with undo, favorite, share, back. |
-| [settings_screen_test.dart](../test/features/settings/settings_screen_test.dart) | Theme, language, default columns, corrected dates switch, permission statuses, sort saved and restored. |
+| [settings_screen_test.dart](../test/features/settings/settings_screen_test.dart) | Theme, language, default columns, corrected dates switch, sensitivity and advanced mode, permission statuses, sort saved and restored. |
 
 App-level widget tests use `pumpTestApp` ([pump_app.dart](../test/helpers/pump_app.dart)): the whole app on a phone-sized screen (1080 × 2400 px at 3×) with all fakes, so tests see what a user would. They are declared with `testApp` instead of `testWidgets`: it unmounts the app at the end, even after a failure, and lets Drift close its stream queries (Drift closes them on a zero-length timer; without this step Flutter reports a pending timer and the run hangs).
 
@@ -75,7 +80,9 @@ Run the suite with a per-test timeout so a hang fails fast: `flutter test --time
 
 ## Fixtures
 
-From M3, the analysis engine is tested against a small photo set in `test/fixtures/`: exact duplicates, recompressed and resized copies, bursts, and close-but-different photos for false-positive regression tests. Fixtures are small (a few kilobytes each) and generated or freely licensed.
+The similar photo engine is tested against a synthetic photo set generated in memory by [photo_set.dart](../test/analysis/photo_set.dart) with the `image` package (dev dependency): seeded scenes (gradient, shapes, grain), and variants recompressed as JPEG, resized, brightened, cropped, or with the subject moved. No image file is stored in the repository and no personal photo is used. Exact duplicates and bursts are tested with fake hashes and file names through `FakeMediaSource`.
+
+The scan runs hashing and grouping in isolates; app-level widget tests replace `analysisRunnerProvider` with an inline runner in `pumpTestApp`, since the fake clock of `testWidgets` cannot wait for an isolate. Unit tests (`ProviderContainer`) keep real isolates.
 
 ## Manual verification on a device
 
@@ -118,6 +125,61 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 12 | Kill the app mid-onboarding, relaunch | any | Onboarding restarts from the first page. |
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
+
+### M4 — similar photos and Stats, to verify on a device
+
+Install the release build over the M3 version (`adb install -r`, do not uninstall), so existing hashes and groups are kept. Before the test, prepare: a photo sent to yourself on WhatsApp and saved (a smaller, recompressed copy), and two photos of the same scene taken a few seconds apart, not as a burst.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 1 | Launch and use the app while the first analysis runs (scroll Camera, open photos) | Stays fluid; a bar filling up on the duplicates screen, and "Your library is being analyzed" with "Analyzing: N of M items" on the Stats tab until it ends; similar groups appear every 1,000 photos. Note roughly how long it takes and how many photos the phone has. |
+| 2 | Albums → All media | The **Duplicates** tile reads "N items to review · size". |
+| 3 | Open it | Chips **All · N**, **Identical copies · N**, **Bursts · N**, **Similar photos · N** (only kinds that have groups); under All, one titled section per kind. Each chip shows only its groups. |
+| 4 | The WhatsApp copy | Grouped with the original under Similar photos; the original (higher resolution) marked **Best**, the copy picked. |
+| 5 | The two shots taken a few seconds apart | Grouped under Similar photos. |
+| 6 | Look through every similar group | Each group's photos really look alike. **Report any group of clearly different photos** (false positive): the most important feedback of this milestone. |
+| 7 | **Not duplicates** on a group | It disappears with "These photos won't be grouped again."; still gone after relaunching the app. |
+| 8 | Settings → Analysis → Similar photos: **Low**, then **High** | Within seconds, fewer groups with Low, more with High; back to **Medium**. |
+| 9 | **Advanced mode** on | No preset selected; three sliders starting from the current values; moving one regroups. Off: back to Medium. |
+| 10 | Stats tab | **Space you could free** with a value, *Out of … used by your photos and videos*, a bar, *Photos … · Videos …*; rows Identical copies, Bursts, Similar photos and In the trash with counts and sizes; blurry, screenshots and large videos *Coming soon*. |
+| 11 | Tap **Identical copies**, **Bursts**, **Similar photos**, then **In the trash** | The first three open the duplicates screen of the whole library with that chip selected; the last opens the Trash page. |
+| 12 | Clean a similar group, then come back to Stats | The reclaimable value drops and **In the trash** grows by the same amount. |
+| 13 | Settings → **Analyze the library again** (also M3 item 26) | Spinner while it runs (longer than in M3: thumbnails are read again); afterwards the same groups, and the groups marked Not duplicates stay gone. |
+| 14 | Largest font size, duplicates screen | *Not duplicates* and *Move N to trash* fit or stack, never cut off. |
+
+M4 results on the Galaxy A54, reported by the product owner on 2026-10-27 (release build installed over M3):
+
+| Status | Items |
+| --- | --- |
+| Confirmed | 14 (buttons fit or stack with the largest font) |
+| Failed | 3 and 5 to 9: no Similar photos section; the WhatsApp copy and close shots not grouped; the sensitivity and *Analyze the library again* ran a long time without result. 11: Similar photos opened the duplicates screen at the top, not on similar photos |
+| Not answered yet | 1 (duration, photo count), 4 (WhatsApp copy) |
+| Also reported | Opening a photo shows it blurry for a moment before it turns sharp |
+
+Second test on 2026-10-27, after the fixes below (same day, release build installed over the first):
+
+| Status | Items |
+| --- | --- |
+| Confirmed | 1 (progress grows, X and Y consistent; leaving the app and coming back resumes where it stopped), 2 and 3 (similar groups show during the scan), 5 (close shots grouped under Similar photos), 6 (no clearly different photos seen in a group), 7 (Not duplicates, still gone after a relaunch), 8 (fewer groups with Low, more with High), 11 (Stats rows open their section), 14 |
+| Confirmed later the same day | 3 and 11 with the new chips (clearer), 4 (WhatsApp copy grouped, original Best), 12 (cleaning from Stats) |
+| Fixed later the same day | Viewer: photos stayed blurry until zoomed in, and pinching did not zoom; see the third round below |
+| Not tested yet | 9, 10, 13 |
+| Requested | Identical copies, bursts and similar photos were mixed on the duplicates screen: choice chips added the same day, to check |
+| Speed | 20,000 photos. About 760 photos a minute with two thumbnail threads, 860 with four, the app staying fluid: about 25 minutes for the first analysis. Four kept |
+| Remarks | The first analysis is long. Similar photos are grouped only on the duplicates screen, not stacked in the timelines: the product owner wants stacking later, see [progress.md](progress.md#m4--engine-level-2) |
+
+Viewer, third round on 2026-10-27. With the product owner's permission, the app logged only durations and image sizes (no names, no ids), read from `logcat` filtered on that tag; the logging was removed afterwards:
+
+| Finding | Detail |
+| --- | --- |
+| Cause of the blur | MediaStore's thumbnail cache stops at 512 px: asked for 1080 × 1440, it returned 384 × 512 in about 30 ms. The viewer showed that, stretched, until the user zoomed in (5 to 10 s or more, as reported). Neither the queue, the channel nor the analysis delayed it. |
+| Fix | Previews decoded from the photo file at the screen's size (`ImageDecoder`): 0.3 to 0.7 s for a 12 MP photo. A first version also decoded wide grid thumbnails (512 × 1109) from the file, 250 to 400 ms each instead of 20 ms; only the viewer does now. Full resolution when zoomed: 0.1 to 0.6 s. |
+| Pinch | Pinching did not zoom (double tap did): reproduced in a widget test, a first finger sliding a little before the second landed went to the page view. The zoom now claims the gesture when the second finger lands. |
+| Confirmed | "Everything is sharp very quickly": photos sharp at once, also when coming back to a photo already seen. |
+
+Last round on 2026-10-27, reported as "all good" by the product owner: pinch zoom and one-finger pan once zoomed, item 9 (advanced mode), 10 (Stats tab) and 13 (*Analyze the library again*: same groups, the ones marked Not duplicates stay gone). Every item of the M4 checklist is now confirmed.
+
+Fixes for the second test (same checklist): progress "Analyzing: N of M items", groups rebuilt every 1,000 photos, a failing thumbnail batch skipped instead of stopping the scan, native calls that always reply, Stats rows opening their section, two threads rendering thumbnails. The cause of the missing groups is not confirmed: the scan may simply not have reached the end, or a native error may have stopped it.
 
 ### M3 — media index, to verify on a device
 
@@ -166,7 +228,7 @@ Before the test, take a burst with the Samsung camera: hold the shutter button (
 | --- | --- | --- |
 | 22 | Come back to Clean Gallery, Camera tab | A **Duplicates** tile counting the extra shots of the burst. |
 | 23 | Open it | A group labelled **Burst** with every shot; the largest file marked **Best**, the others picked. |
-| 24 | Two photos taken separately a few seconds apart | Not grouped. |
+| 24 | Two photos taken separately a few seconds apart | Not in a Burst group (from M4 they may appear under Similar photos). |
 | 25 | **Move N to trash** on the burst | Only the best shot remains in the Camera tab; *Undo* brings the others back. |
 
 Bursts status on the Galaxy A54, checked by the product owner on 2026-10-26: burst detection works.
@@ -294,4 +356,4 @@ Ways forward: test on a USB phone (preferred), or let the emulator use the GPU b
 
 ## Continuous integration
 
-[.github/workflows/ci.yml](../.github/workflows/ci.yml) runs formatting, analysis, tests, APK and AAB builds on every push and pull request, plus a Markdown lint and an offline link check on all documentation.
+[.github/workflows/ci.yml](../.github/workflows/ci.yml) runs formatting, analysis, tests, APK and AAB builds on every push and pull request, plus a Markdown lint and an offline link check on all documentation. The build job first removes preinstalled toolchains it does not use (.NET, Haskell, Swift, CodeQL…): on 2026-10-27 the runner ran out of disk space building the release app bundle after the debug APK.

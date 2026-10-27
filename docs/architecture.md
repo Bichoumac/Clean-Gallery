@@ -2,7 +2,7 @@
 
 Clean Gallery uses a layered architecture organized by feature. Platform-specific code sits behind interfaces, so the UI and the analysis engine never depend on Android directly. This file describes the layers, where code lives, how data flows and which dependencies are allowed.
 
-Last updated: 2026-10-26 — Milestone M3
+Last updated: 2026-10-27 — Milestone M4
 
 ## Layers
 
@@ -39,7 +39,7 @@ flowchart TD
 | Presentation | `lib/features/`, `lib/core/router/`, `lib/core/theme/` | Widgets ([design system](design.md)), Riverpod controllers, routes. |
 | Domain | `lib/domain/` | Entities and enums shared by every layer. |
 | Data | `lib/core/database/`, `lib/platform/` | Drift database, platform interfaces and their Android implementations. |
-| Analysis engine | `lib/analysis/` | Detection algorithms, pure Dart, run in an isolate (from M3). |
+| Analysis engine | `lib/analysis/` | Detection algorithms, pure Dart; the image work (perceptual hashes, similar photo search) runs in an isolate (from M4). |
 
 The brief lists `core/`, `analysis/`, `platform/` and `features/` under `lib/`. `lib/domain/` is added so that the engine and the database share types without the engine depending on `core/` (see [ADR 0002](decisions/0002-layered-architecture.md)).
 
@@ -56,8 +56,8 @@ The brief lists `core/`, `analysis/`, `platform/` and `features/` under `lib/`. 
 | [lib/core/media/](../lib/core/media/) | Media layer shared by library, viewer and trash: `MediaIndex` (keeps the `assets` table in sync with the device, [ADR 0015](decisions/0015-persistent-media-index.md)), `mediaListProvider` and related providers reading it, `MediaThumbnail`, formatting, `MediaActions` (trash, restore, favorite, delete for good, share), `SelectionBar` and `SelectionMode`. |
 | [lib/core/settings/](../lib/core/settings/) | `AppSettings` and `AppSettingsController`. See [features/settings.md](features/settings.md). |
 | [lib/core/theme/app_theme.dart](../lib/core/theme/app_theme.dart) | Theme and brand palette. See [design.md](design.md). |
-| [lib/domain/](../lib/domain/) | `MediaItem`, `Album`, `MediaSelection`, timeline grouping, enums (`MediaKind`, `DateSource`, `DuplicateKind`, `SwipeAction`). |
-| [lib/analysis/](../lib/analysis/) | Analysis engine: `analysisVersion`, capture date rules. See [analysis-engine.md](analysis-engine.md). |
+| [lib/domain/](../lib/domain/) | `MediaItem`, `Album`, `MediaSelection`, `DuplicateGroup`, `GrayImage`, timeline grouping, enums (`MediaKind`, `DateSource`, `DuplicateKind`, `SwipeAction`). |
+| [lib/analysis/](../lib/analysis/) | Analysis engine: `analysisVersion`, capture date and burst rules, best pick, perceptual hashes, similar photo search (`HashIndex`, `UnionFind`, `findSimilarGroups`). See [analysis-engine.md](analysis-engine.md). |
 | [lib/platform/](../lib/platform/) | `MediaSource`, `PlatformBridge`, `PermissionService` interfaces. |
 | [lib/platform/android/](../lib/platform/android/) | Android implementations. See [platform-android.md](platform-android.md). |
 | [lib/features/onboarding/](../lib/features/onboarding/) | Onboarding. See [features/onboarding.md](features/onboarding.md). |
@@ -66,7 +66,7 @@ The brief lists `core/`, `analysis/`, `platform/` and `features/` under `lib/`. 
 | [lib/features/trash/](../lib/features/trash/) | Trash page and daily purge offer. See [features/trash.md](features/trash.md). |
 | [lib/features/duplicates/](../lib/features/duplicates/) | Duplicates screen and its selection. See [features/duplicates.md](features/duplicates.md). |
 | [lib/features/settings/](../lib/features/settings/) | Settings tab. See [features/settings.md](features/settings.md). |
-| [lib/features/stats/](../lib/features/stats/) | Stats tab (layout only until M5). |
+| [lib/features/stats/](../lib/features/stats/) | Stats tab: storage dashboard and its summary ([stats.md](features/stats.md)). |
 | [assets/fonts/manrope/](../assets/fonts/manrope/) | Bundled Manrope variable font and its license. |
 | [lib/l10n/](../lib/l10n/) | ARB files for English and French. |
 
@@ -120,7 +120,7 @@ Once the tabs are shown, lists read the media index in the database, so the last
 | Camera | `/camera` | Timeline of the camera's photos (`DCIM/Camera/`) | M1 ✓, camera-only since M2 |
 | Videos | `/videos` | Video timeline | M1 ✓ |
 | Albums | `/albums`, `/albums/<key>?name=`, `/albums/trash` | All media, Favorites, Trash, folders | M1–M2 ✓ |
-| Stats | `/stats` | Reclaimable space, entry to cleanup tools | Layout in M0, values in M5 |
+| Stats | `/stats` | Storage dashboard: used and reclaimable space, entry to cleanup tools | Layout in M0, duplicates, similar photos and trash in M4, other categories in M5 |
 | Settings | `/settings` | Settings | M2 ✓ |
 
 The viewer (`/viewer`) sits above the tabs, without the navigation bar.

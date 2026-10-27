@@ -2,14 +2,18 @@
 
 How the product owner and the AI assistant work together on Clean Gallery, the constraints of the development machine, and where to pick up. Read it at the start of every session, after [AGENTS.md](../AGENTS.md).
 
-Last updated: 2026-10-26 — Milestone M3
+Last updated: 2026-10-27 — Milestone M4
 
 ## Where to pick up
 
 - The milestone status lives in [progress.md](progress.md); this section only says what to do first.
-- End of 2026-10-26: M0 to M2 are merged into `main`. M3 is complete on branch `m3-engine` and tested on the phone, except *Analyze the library again* (item 26 of [testing.md](testing.md#m3--bursts-to-verify-on-a-device)); the pull request is to open.
-- **First**: `git fetch` and check whether `m3-engine` is merged and whether CI passed; then branch `m4-…` from an up-to-date `main`.
-- **Next**: M4, similar photos: perceptual hashes on thumbnails in a Dart isolate, BK-tree, union-find groups in a "Similar photos" section, "Not duplicates" (ignored pairs), sensitivity presets in Settings, storage dashboard.
+- End of 2026-10-27: M0 to M3 are merged into `main` (M3 as PR #4). M4 is on branch `m4-similar` (committed locally, not pushed).
+- **M4 device tests (2026-10-27)**: the first found no similar groups; after the fixes (commit `d07c2fd`) the second confirmed similar groups, progress, resume, Not duplicates, sensitivity and Stats rows. Decisions A (multi-index hashing, ADR 0019) and B (keep the pre-selection) are approved. Results in [testing.md](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device).
+- **Chips on the duplicates screen** (All, Identical copies, Bursts, Similar photos) added at the product owner's request, Stats split the same way; to check on the phone.
+- **Checked on 2026-10-27**: chips clearer, WhatsApp copy grouped with its original marked Best, cleaning from Stats, viewer sharp at once (previews now decoded from the file: MediaStore's cache stops at 512 px on this phone). Then pinch zoom, items 9, 10 and 13 (*Analyze the library again*): the whole M4 checklist is confirmed.
+- **Measuring on the phone**: the product owner allowed reading `logcat` lines that hold only durations and sizes, logged under one tag by temporary code that is never committed. Ask again for each new measurement.
+- **Product owner's request**: stack similar photos in the timelines, later (M5 or after).
+- **Next**: `m4-similar` pushed on 2026-10-27; the product owner opens and merges the pull request, then M5 (swipe mode, blurry photos, screenshots, large videos).
 
 ## Working with the product owner
 
@@ -38,6 +42,8 @@ This follows the product owner's request and the app's own promise: "Your photos
 | Gradle memory | Heap set to 3 GB in `android/gradle.properties`; the template's 8 GB was killed by the kernel. Stop the Gradle daemon (`./gradlew --stop`) before running the emulator or the analyzer at the same time. |
 | Emulator | Installed (AVD `cg_api34`) but unusable: no GPU access, software rendering too slow. Test on the phone instead. |
 | Phone | Samsung Galaxy A54, Android 16, French. Its USB device needs `sudo setfacl -m u:claude:rw /dev/bus/usb/<bus>/<device>` (from `lsusb`); the access is lost when the phone is unplugged or the session resets. The screen locks after 30 s; ask before changing that setting. |
+| CPU throttling | On 2026-10-26/27 the CPU ran at 600 MHz (`grep MHz /proc/cpuinfo`) instead of up to 3.1 GHz: `flutter test` took about 3 minutes instead of 1, benchmarks varied by 2×. A Gradle daemon left running also filled the swap; stop it after builds (`android/gradlew --stop`). |
+| Benchmarks | Pure Dart code of `lib/analysis/` can be timed AOT without a device: `dart compile exe -p .dart_tool/package_config.json <script>` from the project root, script in the scratchpad. `flutter test` runs JIT and gives misleading numbers. |
 | Speed tests | Always on a release build (`flutter build apk --release --target-platform android-arm64`); debug builds are several times slower and were judged unusable. |
 | System packages | Avoid installing new system packages when a workaround exists (an `apt install` was declined once). |
 | Docs lint | `markdownlint-cli2` 0.18.1 and `lychee` (offline) as in CI; portable copies of Node.js and `lychee` were downloaded to the assistant's temporary folder and may need downloading again. |

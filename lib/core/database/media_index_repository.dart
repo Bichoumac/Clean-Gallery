@@ -44,8 +44,8 @@ final class MediaIndexRepository {
   /// are worked out on the way.
   ///
   /// When an item's file changed (modification date or size), its
-  /// `analysis_version` and content hash are reset so the engine analyses
-  /// it again. With
+  /// `analysis_version`, content hash and perceptual hashes are reset so
+  /// the engine analyses it again. With
   /// [resetAnalysis], every updated row is reset, e.g. after the platform
   /// rebuilt its database and ids may point to other files.
   Future<void> upsert(
@@ -84,6 +84,12 @@ final class MediaIndexRepository {
               contentHash: resetAnalysis
                   ? const Constant(null)
                   : _keptIfSameFile(old, excluded, old.contentHash, null),
+              dHash: resetAnalysis
+                  ? const Constant(null)
+                  : _keptIfSameFile(old, excluded, old.dHash, null),
+              pHash: resetAnalysis
+                  ? const Constant(null)
+                  : _keptIfSameFile(old, excluded, old.pHash, null),
             ),
           ),
         );
@@ -126,8 +132,8 @@ final class MediaIndexRepository {
 
   /// Forgets every analysis result, so the next sync and scan work out
   /// everything again: dates and burst ids (rows are described again),
-  /// content hashes and duplicate groups. Metadata, the trash and settings
-  /// are kept.
+  /// content and perceptual hashes and duplicate groups. Metadata, the
+  /// trash, settings and the pairs marked "Not duplicates" are kept.
   Future<void> resetAnalysis() => _db.transaction(() async {
     await _db
         .update(_db.assets)
@@ -135,6 +141,8 @@ final class MediaIndexRepository {
           const AssetsCompanion(
             mediaRevision: Value(null),
             contentHash: Value(null),
+            dHash: Value(null),
+            pHash: Value(null),
             analysisVersion: Value(0),
           ),
         );
@@ -209,6 +217,39 @@ final class MediaIndexRepository {
         )
         .get();
     return [for (final row in rows) _album(row)];
+  }
+
+  /// Number and total size of the photos and of the videos, trashed items
+  /// left out: the space the library takes on the device.
+  Future<MediaTotals> totals() async {
+    final rows = await _db
+        .customSelect(
+          'SELECT kind, COUNT(*) AS n, COALESCE(SUM(size_bytes), 0) AS bytes '
+          'FROM assets '
+          'WHERE id NOT IN (SELECT asset_id FROM trash_entries) '
+          'GROUP BY kind',
+          readsFrom: {_db.assets, _db.trashEntries},
+        )
+        .get();
+    var totals = (photos: 0, photoBytes: 0, videos: 0, videoBytes: 0);
+    for (final row in rows) {
+      final count = row.read<int>('n');
+      final bytes = row.read<int>('bytes');
+      totals = row.read<String>('kind') == MediaKind.video.name
+          ? (
+              photos: totals.photos,
+              photoBytes: totals.photoBytes,
+              videos: count,
+              videoBytes: bytes,
+            )
+          : (
+              photos: count,
+              photoBytes: bytes,
+              videos: totals.videos,
+              videoBytes: totals.videoBytes,
+            );
+    }
+    return totals;
   }
 
   /// Duplicate groups among the items of [selection], trashed items left
@@ -338,6 +379,15 @@ final class MediaIndexRepository {
     );
   }
 }
+
+/// Number and total size in bytes of the photos and of the videos, see
+/// [MediaIndexRepository.totals].
+typedef MediaTotals = ({
+  int photos,
+  int photoBytes,
+  int videos,
+  int videoBytes,
+});
 
 /// Folder the device camera saves to, as a `relative_path` prefix. The same
 /// on Samsung and Pixel phones.

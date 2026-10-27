@@ -1,14 +1,14 @@
-import 'dart:typed_data';
-
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/enums.dart';
+import 'package:clean_gallery/domain/gray_image.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/platform/media_source.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
 import 'package:clean_gallery/platform/platform_bridge.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/painting.dart';
+import 'package:flutter/services.dart';
 
 /// Opens a fresh in-memory database for one test.
 AppDatabase inMemoryDatabase() => AppDatabase(NativeDatabase.memory());
@@ -213,6 +213,27 @@ class FakeMediaSource implements MediaSource {
   Future<Map<String, String>> contentHashes(List<MediaItem> items) async {
     hashCalls.add([for (final item in items) item.id]);
     return {for (final item in items) item.id: hashes[item.id] ?? item.id};
+  }
+
+  /// Grayscale thumbnail of photos by id; photos not listed have none.
+  final grayImages = <String, GrayImage>{};
+
+  /// Ids passed to [grayThumbnails], per call.
+  final grayCalls = <List<String>>[];
+
+  /// Photos whose batch fails with a platform error in [grayThumbnails].
+  final grayFailures = <String>{};
+
+  @override
+  Future<Map<String, GrayImage>> grayThumbnails(
+    List<MediaItem> photos, {
+    required int side,
+  }) async {
+    grayCalls.add([for (final photo in photos) photo.id]);
+    if (photos.any((photo) => grayFailures.contains(photo.id))) {
+      throw PlatformException(code: 'failed');
+    }
+    return {for (final photo in photos) photo.id: ?grayImages[photo.id]};
   }
 
   IndexedMedia _indexed(MediaItem item) {

@@ -1,3 +1,4 @@
+import 'package:clean_gallery/analysis/similarity.dart';
 import 'package:clean_gallery/core/database/settings_repository.dart';
 import 'package:clean_gallery/core/settings/app_settings.dart';
 import 'package:clean_gallery/domain/album.dart';
@@ -51,6 +52,34 @@ void main() {
     expect(settings.defaultColumns, 4);
     expect(settings.theme, ThemePreference.system);
     expect(settings.viewSorts, isEmpty);
+  });
+
+  test('similarity settings are read back, out of range ones not', () async {
+    final db = inMemoryDatabase();
+    addTearDown(db.close);
+    final repository = SettingsRepository(db);
+    expect(
+      (await repository.loadAppSettings()).similarityThresholds,
+      SimilarityThresholds.medium,
+    );
+    await repository.write(SettingKeys.similaritySensitivity, 'custom');
+    await repository.write(SettingKeys.similarityStrict, '3');
+    await repository.write(SettingKeys.similarityLoose, '99');
+    await repository.write(SettingKeys.similarityWindow, '20');
+    final settings = await repository.loadAppSettings();
+    expect(
+      settings.similarityThresholds,
+      const SimilarityThresholds(
+        strict: 3,
+        loose: 12,
+        window: Duration(seconds: 20),
+      ),
+    );
+    await repository.write(SettingKeys.similaritySensitivity, 'high');
+    expect(
+      (await repository.loadAppSettings()).similarityThresholds,
+      SimilarityThresholds.high,
+    );
   });
 
   test('sorts round-trip through their text form', () {

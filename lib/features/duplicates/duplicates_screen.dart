@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clean_gallery/core/media/analysis_progress.dart';
 import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/media_actions.dart';
 import 'package:clean_gallery/core/media/media_formatting.dart';
@@ -18,53 +19,106 @@ import 'package:go_router/go_router.dart';
 /// Side of a member's thumbnail in a group, in logical pixels.
 const _thumbSide = 136.0;
 
-/// Duplicate groups of one folder or tab ([scope]): each group shows its
-/// items side by side, the one to keep marked "Best" and the others picked
-/// for the trash. The user can change the picks, trash a group, or clean
-/// every group at once. See `docs/features/duplicates.md`.
-class DuplicatesScreen extends ConsumerWidget {
-  /// Creates the screen for the items of [scope].
-  const DuplicatesScreen({required this.scope, super.key});
+/// Duplicate groups of one folder or tab ([scope]), of three kinds:
+/// identical copies, bursts and similar photos. Choice chips at the top
+/// show all of them, in one section per kind, or a single kind. Each group
+/// shows its items side by side, the one to keep marked "Best" and the
+/// others picked for the trash. The user can change the picks, trash a
+/// group, mark similar photos "Not duplicates", or clean every group shown
+/// at once. See `docs/features/duplicates.md`.
+class DuplicatesScreen extends ConsumerStatefulWidget {
+  /// Creates the screen for the items of [scope], showing only the groups
+  /// of [kind] at first, or every group when it is `null`.
+  const DuplicatesScreen({required this.scope, this.kind, super.key});
 
   /// Filter and folder the duplicates are looked for in.
   final MediaSelection scope;
 
+  /// The kind of groups shown at first, or `null` for all of them.
+  final DuplicateKind? kind;
+
+  /// Route location of the screen showing only the groups of [kind], to
+  /// push with the scope as `extra`.
+  static String location(DuplicateKind kind) =>
+      '${AppRoutes.duplicates}?kind=${kind.name}';
+
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<DuplicatesScreen> createState() => _DuplicatesScreenState();
+}
+
+class _DuplicatesScreenState extends ConsumerState<DuplicatesScreen> {
+  /// The kind of groups shown, or `null` for all of them.
+  late DuplicateKind? _kind = widget.kind;
+
+  MediaSelection get scope => widget.scope;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final groups = ref.watch(duplicateGroupsProvider(scope));
-    final scanning = ref.watch(duplicateScanProvider.select((s) => s.running));
+    final scan = ref.watch(duplicateScanProvider);
+    final scanning = scan.running;
     final changes = ref.watch(duplicateSelectionProvider(scope));
-    final loaded = groups.value ?? const <DuplicateGroup>[];
-    final picked = [for (final group in loaded) ...pickedItems(changes, group)];
+    final all = groups.value ?? const <DuplicateGroup>[];
+    final counts = {
+      for (final kind in DuplicateKind.values)
+        kind: all.where((g) => g.kind == kind).length,
+    };
+    final shown = [
+      for (final group in all)
+        if (_kind == null || group.kind == _kind) group,
+    ];
+    // An item can be in a certain group and a similar group: count it once.
+    final picked = {
+      for (final group in shown)
+        for (final item in pickedItems(changes, group)) item.id: item,
+    }.values.toList();
+    final kinds = counts.values.where((n) => n > 0).length;
+    // Chips only help when there is more than one kind to choose from, or
+    // to go back to all of them.
+    final filters = kinds > 1 || (_kind != null && kinds > 0);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.duplicatesTitle),
         bottom: scanning
-            ? const PreferredSize(
-                preferredSize: Size.fromHeight(2),
-                child: LinearProgressIndicator(minHeight: 2),
+            ? PreferredSize(
+                preferredSize: const Size.fromHeight(2),
+                child: LinearProgressIndicator(
+                  value: analysisFraction(scan),
+                  minHeight: 2,
+                ),
               )
             : null,
       ),
       body: switch (groups) {
-        AsyncData(value: []) => _Empty(scanning: scanning),
-        AsyncData(:final value) => ListView(
+        AsyncData() when all.isEmpty => _Empty(scanning: scanning),
+        AsyncData() => ListView(
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
-              child: Semantics(
-                header: true,
-                child: Text(
-                  l10n.duplicatesCertain,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
+            if (filters) ...[
+              _KindChips(
+                selected: _kind,
+                counts: counts,
+                onSelected: (kind) => setState(() => _kind = kind),
               ),
-            ),
-            for (final group in value)
-              _GroupCard(key: ValueKey(group.id), scope: scope, group: group),
+              const SizedBox(height: 8),
+            ],
+            if (shown.isEmpty)
+              _Empty(scanning: scanning)
+            else
+              for (final kind in DuplicateKind.values)
+                if (shown.where((g) => g.kind == kind).toList()
+                    case final section when section.isNotEmpty) ...[
+                  // A single kind is named by its chip.
+                  if (_kind == null) _SectionTitle(_kindTitle(l10n, kind)),
+                  for (final group in section)
+                    _GroupCard(
+                      key: ValueKey(group.id),
+                      scope: scope,
+                      group: group,
+                    ),
+                ],
           ],
         ),
         _ => const Center(child: CircularProgressIndicator()),
@@ -84,7 +138,8 @@ class DuplicatesScreen extends ConsumerWidget {
     );
   }
 
-  /// Confirms with a summary, then moves every picked item to the trash.
+  /// Confirms with a summary, then moves every picked item shown to the
+  /// trash.
   Future<void> _cleanAll(
     BuildContext context,
     WidgetRef ref,
@@ -117,7 +172,68 @@ class DuplicatesScreen extends ConsumerWidget {
   }
 }
 
-/// One group: its items side by side and a button to trash the picked ones.
+/// Title of a section of groups.
+/// Name of the section and chip of [kind] groups.
+String _kindTitle(AppLocalizations l10n, DuplicateKind kind) => switch (kind) {
+  DuplicateKind.exact => l10n.duplicatesKindExact,
+  DuplicateKind.burst => l10n.duplicatesBursts,
+  DuplicateKind.similar => l10n.duplicatesSimilar,
+};
+
+/// "All" and one choice chip per kind of group that has any, with its
+/// number of groups. Wraps onto several lines with large text.
+class _KindChips extends StatelessWidget {
+  const _KindChips({
+    required this.selected,
+    required this.counts,
+    required this.onSelected,
+  });
+
+  final DuplicateKind? selected;
+  final Map<DuplicateKind, int> counts;
+  final ValueChanged<DuplicateKind?> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final total = counts.values.fold(0, (sum, n) => sum + n);
+    ChoiceChip chip(DuplicateKind? kind, String label, int count) => ChoiceChip(
+      label: Text('$label · $count'),
+      selected: selected == kind,
+      showCheckmark: false,
+      onSelected: (_) => onSelected(kind),
+    );
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        chip(null, l10n.duplicatesFilterAll, total),
+        for (final kind in DuplicateKind.values)
+          // The chosen kind keeps its chip once its last group is cleaned.
+          if (counts[kind]! > 0 || kind == selected)
+            chip(kind, _kindTitle(l10n, kind), counts[kind]!),
+      ],
+    );
+  }
+}
+
+class _SectionTitle extends StatelessWidget {
+  const _SectionTitle(this.title);
+
+  final String title;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(4, 8, 4, 12),
+    child: Semantics(
+      header: true,
+      child: Text(title, style: Theme.of(context).textTheme.titleLarge),
+    ),
+  );
+}
+
+/// One group: its items side by side and a button to trash the picked ones;
+/// similar photos also get "Not duplicates".
 class _GroupCard extends ConsumerWidget {
   const _GroupCard({required this.scope, required this.group, super.key});
 
@@ -146,6 +262,14 @@ class _GroupCard extends ConsumerWidget {
     );
   }
 
+  /// Never groups these photos again; the group disappears.
+  Future<void> _notDuplicates(BuildContext context, WidgetRef ref) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final message = AppLocalizations.of(context).duplicatesIgnored;
+    await ref.read(duplicateScanProvider.notifier).ignore(group);
+    messenger.showSnackBar(SnackBar(content: Text(message)));
+  }
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
@@ -162,14 +286,6 @@ class _GroupCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 0, 4, 8),
-              child: Text(switch (group.kind) {
-                DuplicateKind.exact => l10n.duplicatesKindExact,
-                DuplicateKind.burst => l10n.duplicatesKindBurst,
-                DuplicateKind.similar => '',
-              }, style: Theme.of(context).textTheme.labelLarge),
-            ),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
@@ -192,15 +308,26 @@ class _GroupCard extends ConsumerWidget {
                 ],
               ),
             ),
-            Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: TextButton.icon(
-                onPressed: toTrash.isEmpty
-                    ? null
-                    : () => trashWithUndo(context, ref, toTrash),
-                icon: const Icon(Icons.delete_outline_rounded),
-                label: Text(l10n.duplicatesTrashGroup(toTrash.length)),
-              ),
+            // Side by side when they fit, stacked otherwise (large text).
+            OverflowBar(
+              alignment: group.kind == DuplicateKind.similar
+                  ? MainAxisAlignment.spaceBetween
+                  : MainAxisAlignment.end,
+              overflowAlignment: OverflowBarAlignment.end,
+              children: [
+                if (group.kind == DuplicateKind.similar)
+                  TextButton(
+                    onPressed: () => _notDuplicates(context, ref),
+                    child: Text(l10n.duplicatesNotDuplicates),
+                  ),
+                TextButton.icon(
+                  onPressed: toTrash.isEmpty
+                      ? null
+                      : () => trashWithUndo(context, ref, toTrash),
+                  icon: const Icon(Icons.delete_outline_rounded),
+                  label: Text(l10n.duplicatesTrashGroup(toTrash.length)),
+                ),
+              ],
             ),
           ],
         ),
@@ -355,14 +482,18 @@ class _Empty extends StatelessWidget {
               style: theme.textTheme.titleMedium,
               textAlign: TextAlign.center,
             ),
-            if (!scanning) ...[
-              const SizedBox(height: 8),
+            const SizedBox(height: 8),
+            if (scanning)
+              AnalysisProgressText(
+                style: theme.textTheme.bodyMedium,
+                textAlign: TextAlign.center,
+              )
+            else
               Text(
                 l10n.duplicatesEmptyHelp,
                 style: theme.textTheme.bodyMedium,
                 textAlign: TextAlign.center,
               ),
-            ],
           ],
         ),
       ),

@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/media_actions.dart';
 import 'package:clean_gallery/core/media/media_formatting.dart';
 import 'package:clean_gallery/core/media/media_providers.dart';
@@ -38,8 +39,20 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
   bool _precachedInitial = false;
   bool _closing = false;
 
+  /// Read in [initState]: `ref` cannot be used in [dispose].
+  late final DuplicateScan _scan;
+
+  @override
+  void initState() {
+    super.initState();
+    // The analysis would compete with the photos for MediaStore's
+    // thumbnail rendering.
+    _scan = ref.read(duplicateScanProvider.notifier)..pause();
+  }
+
   @override
   void dispose() {
+    _scan.resume();
     _pages.dispose();
     // Leave the viewer with system bars and free rotation restored.
     unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
@@ -49,18 +62,26 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
 
   /// Starts loading the previews of the photos around [index], so swiping
   /// shows a ready image instead of the thumbnail placeholder.
-  void _precacheNeighbors(List<MediaItem> items, int index) {
+  ///
+  /// Waits for the preview of the photo shown first: the native loader
+  /// serves the newest request first, so neighbors asked at once would
+  /// delay it.
+  Future<void> _precacheNeighbors(List<MediaItem> items, int index) async {
     final source = ref.read(mediaSourceProvider);
-    final side = viewerPreviewSide(context);
-    for (final i in [index + 1, index - 1, index + 2]) {
-      if (i < 0 || i >= items.length || items[i].isVideo) continue;
-      unawaited(
-        precacheImage(
-          source.preview(items[i], longestSide: side),
-          context,
-          onError: (_, _) {},
-        ),
+    Future<void> precache(int i) async {
+      if (i < 0 || i >= items.length || items[i].isVideo || !mounted) return;
+      final side = viewerPreviewSide(context, items[i]);
+      await precacheImage(
+        source.preview(items[i], longestSide: side),
+        context,
+        onError: (_, _) {},
       );
+    }
+
+    await precache(index);
+    if (!mounted || _index != index) return;
+    for (final i in [index + 1, index - 1, index + 2]) {
+      unawaited(precache(i));
     }
   }
 
@@ -94,7 +115,7 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
     if (!_precachedInitial && items.isNotEmpty) {
       _precachedInitial = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _precacheNeighbors(items, index);
+        if (mounted) unawaited(_precacheNeighbors(items, index));
       });
     }
 
@@ -119,7 +140,7 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
                           _index = i;
                           _zoomed = false;
                         });
-                        _precacheNeighbors(items, i);
+                        unawaited(_precacheNeighbors(items, i));
                       },
                       itemBuilder: (context, i) {
                         final item = items[i];

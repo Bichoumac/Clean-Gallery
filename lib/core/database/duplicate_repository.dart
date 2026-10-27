@@ -1,4 +1,7 @@
+import 'package:clean_gallery/analysis/analysis_version.dart';
 import 'package:clean_gallery/analysis/best_picker.dart';
+import 'package:clean_gallery/analysis/perceptual_hash.dart';
+import 'package:clean_gallery/analysis/similarity.dart';
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/core/database/media_index_repository.dart';
 import 'package:clean_gallery/domain/enums.dart';
@@ -9,11 +12,13 @@ import 'package:drift/drift.dart';
 /// tried again until its file changes. Never grouped.
 const unreadableHash = '';
 
-/// Writes of the duplicate detection: content hashes in `assets` and the
-/// groups in `duplicate_groups` and `duplicate_members`.
+/// Writes of the duplicate detection: content and perceptual hashes in
+/// `assets`, the groups in `duplicate_groups` and `duplicate_members`, and
+/// the pairs the user marked "Not duplicates" in `ignored_pairs`.
 ///
 /// Reads for screens are in `MediaIndexRepository.duplicateGroups`. See
-/// `docs/analysis-engine.md#exact-duplicates`.
+/// `docs/analysis-engine.md#exact-duplicates` and
+/// `docs/analysis-engine.md#similar-photos`.
 final class DuplicateRepository {
   /// Creates the repository on [_db].
   const DuplicateRepository(this._db);
@@ -27,6 +32,12 @@ final class DuplicateRepository {
       'AND a.id NOT IN (SELECT asset_id FROM trash_entries) '
       'AND a.size_bytes IN (SELECT size_bytes FROM assets '
       'WHERE size_bytes > 0 GROUP BY size_bytes HAVING COUNT(*) > 1)';
+
+  /// Condition on `assets` (aliased `a`) selecting photos whose perceptual
+  /// hashes were not computed by the current [analysisVersion].
+  static const _perceptualCandidate =
+      "a.kind = 'photo' AND a.analysis_version < $analysisVersion "
+      'AND a.id NOT IN (SELECT asset_id FROM trash_entries)';
 
   /// Up to [limit] items to hash, smallest files first so progress shows
   /// early. Trashed items are skipped.
@@ -67,6 +78,154 @@ final class DuplicateRepository {
           );
         }
       });
+
+  /// Up to [limit] photos whose perceptual hashes are to compute, newest
+  /// first so recent photos are compared first. Trashed items are skipped.
+  Future<List<MediaItem>> perceptualCandidates({required int limit}) async {
+    final rows = await _db
+        .customSelect(
+          'SELECT a.* FROM assets a WHERE $_perceptualCandidate '
+          'ORDER BY COALESCE(a.capture_at, a.taken_at) DESC, a.id DESC '
+          'LIMIT ?',
+          variables: [Variable.withInt(limit)],
+          readsFrom: {_db.assets, _db.trashEntries},
+        )
+        .get();
+    return [for (final row in rows) _db.assets.map(row.data).toMediaItem()];
+  }
+
+  /// Number of photos whose perceptual hashes are to compute.
+  Future<int> pendingPerceptualCount() async {
+    final row = await _db
+        .customSelect(
+          'SELECT COUNT(*) AS n FROM assets a WHERE $_perceptualCandidate',
+          readsFrom: {_db.assets, _db.trashEntries},
+        )
+        .getSingle();
+    return row.read<int>('n');
+  }
+
+  /// Stores the perceptual [hashes] of [photos], by id, and marks them
+  /// analysed by the current [analysisVersion]. Photos missing from
+  /// [hashes] had no readable thumbnail: they keep no hash, so they are
+  /// never compared, until their file changes.
+  Future<void> savePerceptualHashes(
+    List<MediaItem> photos,
+    Map<String, PerceptualHashes> hashes,
+  ) => _db.batch((batch) {
+    for (final photo in photos) {
+      final hash = hashes[photo.id];
+      batch.update(
+        _db.assets,
+        AssetsCompanion(
+          dHash: Value(hash?.dHash),
+          pHash: Value(hash?.pHash),
+          analysisVersion: const Value(analysisVersion),
+        ),
+        where: (t) => t.id.equals(int.parse(photo.id)),
+      );
+    }
+  });
+
+  /// Every photo with perceptual hashes, trashed ones included, dated by
+  /// its resolved capture date when known.
+  Future<List<HashedPhoto>> hashedPhotos() async {
+    final a = _db.assets;
+    final query = _db.selectOnly(a)
+      ..addColumns([
+        a.id,
+        a.dHash,
+        a.pHash,
+        a.width,
+        a.height,
+        a.captureAt,
+        a.takenAt,
+        a.cameraModel,
+        a.latitude,
+        a.longitude,
+      ])
+      ..where(a.kind.equalsValue(MediaKind.photo) & a.pHash.isNotNull());
+    return [
+      for (final row in await query.get())
+        HashedPhoto(
+          id: row.read(a.id)!,
+          hashes: (dHash: row.read(a.dHash) ?? 0, pHash: row.read(a.pHash)!),
+          width: row.read(a.width)!,
+          height: row.read(a.height)!,
+          takenAt: row.read(a.captureAt) ?? row.read(a.takenAt)!,
+          cameraModel: row.read(a.cameraModel),
+          latitude: row.read(a.latitude),
+          longitude: row.read(a.longitude),
+        ),
+    ];
+  }
+
+  /// Pairs the user marked "Not duplicates", as `(a, b)` with `a < b`.
+  Future<Set<(int, int)>> ignoredPairs() async => {
+    for (final row in await _db.select(_db.ignoredPairs).get())
+      (row.assetA, row.assetB),
+  };
+
+  /// Marks every pair of the items with [ids] "Not duplicates": they are
+  /// never grouped as similar photos again.
+  Future<void> ignorePairs(List<String> ids) {
+    final keys = [for (final id in ids) int.parse(id)]..sort();
+    return _db.batch((batch) {
+      for (var i = 0; i < keys.length; i++) {
+        for (var j = i + 1; j < keys.length; j++) {
+          if (keys[i] == keys[j]) continue;
+          batch.insert(
+            _db.ignoredPairs,
+            IgnoredPairsCompanion.insert(assetA: keys[i], assetB: keys[j]),
+            mode: InsertMode.insertOrIgnore,
+          );
+        }
+      }
+    });
+  }
+
+  /// Deletes the group with [id] and its memberships.
+  Future<void> deleteGroup(int id) =>
+      (_db.delete(_db.duplicateGroups)..where((g) => g.id.equals(id))).go();
+
+  /// Group id of every item in an exact or burst group, by item id.
+  Future<Map<int, int>> certainGroups() async {
+    final members = _db.duplicateMembers;
+    final groups = _db.duplicateGroups;
+    final query = _db.select(members).join([
+      innerJoin(groups, groups.id.equalsExp(members.groupId)),
+    ])..where(groups.kind.equalsValue(DuplicateKind.similar).not());
+    return {
+      for (final row in await query.get())
+        row.readTable(members).assetId: row.readTable(members).groupId,
+    };
+  }
+
+  /// Replaces the similar photo groups with [groups] (ids and confidence of
+  /// each member, see `findSimilarGroups`), the item to keep marked
+  /// ([pickBest]).
+  Future<void> replaceSimilarGroups(
+    List<SimilarGroup> groups, {
+    DateTime? now,
+  }) => _db.transaction(() async {
+    final computedAt = now ?? DateTime.now();
+    await (_db.delete(
+      _db.duplicateGroups,
+    )..where((g) => g.kind.equalsValue(DuplicateKind.similar))).go();
+    for (final group in groups) {
+      final rows = await (_db.select(
+        _db.assets,
+      )..where((t) => t.id.isIn(group.keys))).get();
+      final items = [for (final row in rows) row.toMediaItem()];
+      if (items.length < 2) continue;
+      await _insertGroup(
+        DuplicateKind.similar,
+        items,
+        computedAt,
+        scores: group,
+      );
+    }
+  });
 
   /// Replaces the exact duplicate and burst groups with the current ones,
   /// the item to keep marked ([pickBest]):
@@ -131,8 +290,9 @@ final class DuplicateRepository {
   Future<void> _insertGroup(
     DuplicateKind kind,
     List<MediaItem> items,
-    DateTime computedAt,
-  ) async {
+    DateTime computedAt, {
+    Map<int, double> scores = const {},
+  }) async {
     final groupId = await _db
         .into(_db.duplicateGroups)
         .insert(
@@ -146,6 +306,7 @@ final class DuplicateRepository {
             groupId: groupId,
             assetId: int.parse(item.id),
             isSuggestedKeep: Value(item.id == best.id),
+            score: Value(scores[int.parse(item.id)] ?? 1),
           ),
       ]);
     });

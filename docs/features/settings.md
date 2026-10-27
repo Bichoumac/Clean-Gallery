@@ -1,8 +1,8 @@
 # Settings
 
-The Settings tab: display, trash, sharing and permissions. The rest of the brief's settings arrive with the features they control.
+The Settings tab: display, trash, sharing, analysis and permissions. The rest of the brief's settings arrive with the features they control.
 
-Last updated: 2026-10-26 — Milestone M3
+Last updated: 2026-10-27 — Milestone M4
 
 ## Purpose
 
@@ -24,14 +24,16 @@ Let the user choose how the app looks and behaves, and see and change its permis
 | Display | Corrected dates | On / Off | On | Sort, group, filter and date of every timeline: the date the photo was taken (metadata, then file name) or Android's date ([analysis-engine.md](../analysis-engine.md#capture-date)) |
 | Trash | Keep deleted items for | 1–90 days | 30 | Items trashed afterwards |
 | Sharing | Remove location when sharing | On / Off | On | Default of the share sheet switch |
-| Analysis | Analyze the library again | Button | — | Forgets dates, burst ids, content hashes and duplicate groups, then syncs and scans again; a spinner shows while it runs. Media, trash and settings are kept |
+| Analysis | Similar photos | Low / Medium / High | Medium | How eager the similar photo search is; changing it regroups at once from the stored hashes ([analysis-engine.md](../analysis-engine.md#sensitivity)) |
+| Analysis | Advanced mode | On / Off, then three sliders | Off | On: no preset selected; *Any date: difference up to* (strict, 0–10 of 64), *Taken close in time: difference up to* (loose, 0–20 of 64), *Close in time means within* (0–60 seconds). Starts from the preset in use; off returns to Medium. Saved when the finger is lifted |
+| Analysis | Analyze the library again | Button | — | Forgets dates, burst ids, content and perceptual hashes and duplicate groups, then syncs and scans again; a spinner and "Analyzing: N of M items" show while it runs. Media, trash, settings and pairs marked "Not duplicates" are kept |
 | Permissions | Photos and videos | Allowed / Some items only / Not allowed | — | Read-only status + *Change* |
 | Permissions | Location in photos | Allowed / Not allowed | — | Read-only status + *Change* |
 | Permissions | Media management | Allowed / Not allowed | — | Read-only status + *Change* |
 
 The sort order of each tab and album is also saved (see [library.md](library.md#sorting-and-date-filter)); the date filter is not, since presets such as "Last 7 days" would become stale.
 
-Still to come, from the brief: duplicate sensitivity and time window (M4), screenshot age and large video threshold (M5), clear cache (merged into *Analyze the library again*: the app's only cache is the media index; thumbnails come from Android's own cache), "Remove ads" / "Restore purchase" and privacy & ad choices (M8), privacy policy and about (M9).
+Still to come, from the brief: screenshot age and large video threshold (M5), clear cache (merged into *Analyze the library again*: the app's only cache is the media index; thumbnails come from Android's own cache), "Remove ads" / "Restore purchase" and privacy & ad choices (M8), privacy policy and about (M9).
 
 ## Screens and widgets
 
@@ -53,14 +55,14 @@ Keys are listed in [database.md](../database.md#settings).
 
 ## Edge cases and error handling
 
-- **Invalid stored value** (e.g. retention 500): the default is used.
+- **Invalid stored value** (e.g. retention 500, a strict threshold above 10): the default is used.
 - **Permission changed in the system settings**: the status refreshes when the app resumes.
 - **Language "System" with an unsupported system language**: English.
 
 ## Tests
 
-- [app_settings_test.dart](../../test/core/settings/app_settings_test.dart): defaults, stored values, invalid values, sort encoding, view keys.
-- [settings_screen_test.dart](../../test/features/settings/settings_screen_test.dart): theme, language, default columns, permission statuses, sort saved and restored.
+- [app_settings_test.dart](../../test/core/settings/app_settings_test.dart): defaults, stored values, invalid values, similarity settings, sort encoding, view keys.
+- [settings_screen_test.dart](../../test/features/settings/settings_screen_test.dart): theme, language, default columns, sensitivity and advanced mode, permission statuses, sort saved and restored.
 
 ## Known limitations / future work
 

@@ -32,14 +32,15 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  testApp('the tile counts extra copies and opens the screen', (tester) async {
+  testApp('the tile counts items to review and opens the screen', (
+    tester,
+  ) async {
     await pumpTestApp(tester, media: source());
     expect(find.text('Duplicates'), findsOneWidget);
-    expect(find.textContaining('1 extra copy'), findsOneWidget);
+    expect(find.textContaining('1 item to review'), findsOneWidget);
 
     await openDuplicates(tester);
     expect(find.byType(DuplicatesScreen), findsOneWidget);
-    expect(find.text('Certain duplicates'), findsOneWidget);
     expect(find.text('Identical copies'), findsOneWidget);
     expect(find.text('Best'), findsOneWidget);
     expect(find.text('Move 1 to trash'), findsOneWidget);

@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-10-26 — Milestone M3
+Last updated: 2026-10-27 — Milestone M4
 
 ## Milestones
 
@@ -11,13 +11,61 @@ Last updated: 2026-10-26 — Milestone M3
 | M0 | Foundations | Merged into `main` (PR #1) |
 | M1 | Navigation: timelines, albums, grid, viewer, video, sorting, date filter | Merged into `main` (PR #2) |
 | M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Merged into `main` (PR #3) |
-| M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Done on `m3-engine`, tested on a phone, awaiting the pull request |
-| M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Not started |
-| M5 | Cleanup: Stats values, swipe mode, blurry, screenshots, large videos | Not started |
+| M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Merged into `main` (PR #4) |
+| M4 | Engine level 2: perceptual hashes, similar photos, dashboard | On `m4-similar`; similar photos confirmed on the phone after fixes, a few checks left |
+| M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Not started |
 | M6 | Advanced viewer and editing | Not started |
 | M7 | Exploration: map, search | Not started |
 | M8 | Monetization | Not started |
 | M9 | Polish and release preparation | Not started |
+
+## M4 — Engine level 2
+
+### Done
+
+- **Perceptual hashes**: dHash and pHash of every photo from a 128-pixel grayscale thumbnail rendered by MediaStore's cache (new native method `grayThumbnails`), computed in a Dart isolate, saved every 16 photos (40 until 2026-10-27), reset when the file changes ([ADR 0018](decisions/0018-perceptual-hashes-from-thumbnails.md), [analysis-engine.md](analysis-engine.md#similar-photos)).
+- **Similar photos**: the brief's two rules (strict distance and aspect ratio; loose distance within a time window), union-find groups, confidence score; certain duplicates kept apart. Found by multi-index hashing instead of a BK-tree, **a deviation to approve** ([ADR 0019](decisions/0019-similar-photo-search.md)).
+- **Duplicates screen**: choice chips **All**, **Identical copies**, **Bursts**, **Similar photos** (added after the device test, at the product owner's request), one section per kind under All; **Not duplicates** on similar groups (stored in `ignored_pairs`, kept by *Analyze the library again*); an item in two groups counted once; buttons stack with large text ([features/duplicates.md](features/duplicates.md)).
+- **Best pick** applies to similar groups (favorite, resolution, size, date); sharpness joins it in M5.
+- **Sensitivity** in Settings: Low / Medium / High and an advanced mode with the three thresholds; changes regroup in seconds without reading thumbnails ([features/settings.md](features/settings.md)).
+- **Storage dashboard** in the Stats tab: space used by photos and videos, space that cleaning could free, by category (identical copies, bursts, similar photos, trash), each opening its tool ([features/stats.md](features/stats.md)).
+- Synthetic test photo set generated in memory (recompressed, resized, brightened, cropped, moved subject, unrelated scenes) with false positive regression tests.
+
+### Verified
+
+| Check | Result |
+| --- | --- |
+| `flutter analyze` | No issues |
+| `flutter test --timeout 60s` | 197 tests pass (after the fixes and chips of 2026-10-27) |
+| `flutter build apk --release --target-platform android-arm64` | Builds (Kotlin `grayThumbnails` compiles) |
+| Search speed (AOT, development laptop, 30,000 photos) | Grouping 0.6–1.1 s at Medium, 1.4–2.6 s at High; hashing 1–2.5 ms per photo ([analysis-engine.md](analysis-engine.md#performance-2)) |
+| Galaxy A54 | First test on 2026-10-27: no similar photos found. After the fixes, second test the same day: progress, resume after leaving the app, similar groups during the scan, close shots grouped, no false positive seen, Not duplicates, sensitivity and Stats rows confirmed. Not tested yet: WhatsApp copy, cleaning from Stats, *Analyze the library again* ([testing.md](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device)) |
+
+### Decisions
+
+- Pixels from MediaStore's thumbnail cache, hashes in Dart ([ADR 0018](decisions/0018-perceptual-hashes-from-thumbnails.md)).
+- Multi-index hashing instead of the brief's BK-tree, which was slower than comparing every pair on pHashes; advanced mode strict threshold capped at 10 ([ADR 0019](decisions/0019-similar-photo-search.md)). Approved by the product owner on 2026-10-27.
+- Presets: Low 4 / 10 / 5 s, Medium 6 / 12 / 10 s (the brief's defaults), High 8 / 14 / 30 s.
+- "Not duplicates" only on similar groups: certain duplicates are identical by definition.
+- Similar groups pre-select every photo but the best, as the brief asks; kept by the product owner on 2026-10-27.
+
+### Known issues
+
+- **First device test: no similar groups.** Fixed on 2026-10-27 (progress shown, groups rebuilt every 1,000 photos, failing thumbnail batches skipped, native calls always reply) and confirmed on the phone; which of the two causes it was is not known.
+- **The first analysis is long**: about 25 minutes for 20,000 photos on the Galaxy A54 (860 photos a minute with four threads, 760 with two), limited by MediaStore's thumbnail rendering. Only once: later scans read new photos only. Embedded JPEG thumbnails could be faster; not tried.
+- **Similar photos are not stacked in the timelines**, only grouped on the duplicates screen. The product owner wants stacking later (M5 or after).
+- **Viewer blurry until zoomed in**: MediaStore's thumbnail cache stops at 512 px on the Galaxy A54, so the "screen-sized" preview was a 384 × 512 thumbnail stretched. Fixed on 2026-10-27 (preview decoded from the file, 0.3 to 0.7 s) and confirmed on the phone. Pinch zoom, which went to the page view, fixed the same day ([testing.md](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device)).
+- Every item of the M4 checklist was confirmed on the Galaxy A54 on 2026-10-27, pinch zoom included. The false positive rate was only judged by eye on one library.
+- The camera model and GPS bonuses of the confidence score do not apply yet: those columns are filled in M6 and M7. The score is stored, not shown.
+- A photo whose thumbnail cannot be rendered is not compared until its file changes.
+- Videos are not compared (brief: same duration, resolution and close dates); not part of M4's list.
+- The development laptop's CPU was throttled to 600 MHz during this milestone: tests took about 3 minutes instead of 1, and benchmark times vary by about 2×.
+
+### Next steps
+
+1. Review and merge the M4 pull request.
+2. M5: swipe mode, blurry photos (sharpness also refines the best pick), screenshots, large videos.
+3. Later: stack similar photos in the timelines (product owner's request, 2026-10-27).
 
 ## M3 — Engine level 1
 
@@ -56,8 +104,8 @@ Last updated: 2026-10-26 — Milestone M3
 
 ### Next steps
 
-1. Review and merge the M3 pull request.
-2. M4: perceptual hashes, BK-tree, similar photos, ignored pairs ("Not duplicates"), adjustable thresholds, storage dashboard.
+1. ~~Review and merge the M3 pull request.~~ Merged (PR #4).
+2. ~~M4: perceptual hashes, BK-tree, similar photos, ignored pairs ("Not duplicates"), adjustable thresholds, storage dashboard.~~ Done, see M4.
 
 ## M2 — Actions
 

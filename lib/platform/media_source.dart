@@ -1,3 +1,4 @@
+import 'package:clean_gallery/domain/gray_image.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:flutter/widgets.dart';
 
@@ -27,15 +28,25 @@ abstract interface class MediaSource {
   /// duplicates, i.e. that share their size with another item.
   Future<Map<String, String>> contentHashes(List<MediaItem> items);
 
+  /// Grayscale thumbnails of [photos], fitting in [side] × [side] pixels,
+  /// by id; photos without a readable thumbnail are left out.
+  ///
+  /// Rendered from the platform's thumbnail cache, never from the full
+  /// file: input of the similar photo hashes.
+  Future<Map<String, GrayImage>> grayThumbnails(
+    List<MediaItem> photos, {
+    required int side,
+  });
+
   /// Small square thumbnail of [item], about [size] pixels wide.
   ImageProvider thumbnail(MediaItem item, {required int size});
 
   /// Screen-sized image of [item], at most [longestSide] pixels on its
   /// longest side, keeping its proportions.
   ///
-  /// Rendered by the platform's thumbnail pipeline, so it is much faster
-  /// than [fullImage]; the viewer shows it first and loads [fullImage] only
-  /// when the user zooms in.
+  /// Decoded by the platform at that size, so it is much faster than
+  /// [fullImage]; the viewer shows it first and loads [fullImage] only when
+  /// the user zooms in.
   ImageProvider preview(MediaItem item, {required int longestSide});
 
   /// Full-resolution image of [item], decoded at most [maxDimension] pixels
