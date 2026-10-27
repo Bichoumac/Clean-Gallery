@@ -17,15 +17,23 @@ const _maxScale = 5.0;
 /// Zoom from which the full-resolution image replaces the preview.
 const _fullResolutionScale = 1.3;
 
-/// Longest side, in pixels, of the preview shown by the viewer: the screen's
-/// longest side in physical pixels, capped at 2,560.
-int viewerPreviewSide(BuildContext context) {
-  final screen = MediaQuery.sizeOf(context);
-  final pixelRatio = MediaQuery.devicePixelRatioOf(context);
-  return math.min(
-    (math.max(screen.width, screen.height) * pixelRatio).round(),
-    2560,
-  );
+/// Longest side, in pixels, of the preview of [item] shown by the viewer:
+/// the photo fitted in the screen, in physical pixels, capped at 2,560 and at
+/// the photo's own size.
+///
+/// A landscape photo on a portrait screen only needs the screen's width:
+/// asking for the screen's longest side decoded and copied about four times
+/// the pixels, and the photo stayed blurry longer before turning sharp.
+int viewerPreviewSide(BuildContext context, MediaItem item) {
+  final screen =
+      MediaQuery.sizeOf(context) * MediaQuery.devicePixelRatioOf(context);
+  final ratio = item.aspectRatio;
+  // Fitted size: bound by the width when the photo is wider than the screen.
+  final fitted = ratio >= screen.width / screen.height
+      ? Size(screen.width, screen.width / ratio)
+      : Size(screen.height * ratio, screen.height);
+  final own = math.max(item.width, item.height);
+  return [fitted.longestSide.round(), 2560, if (own > 0) own].reduce(math.min);
 }
 
 /// A photo filling the screen, with pinch-to-zoom, panning and double-tap
@@ -168,7 +176,7 @@ class _ZoomableImageState extends ConsumerState<ZoomableImage>
   Widget build(BuildContext context) {
     final source = ref.watch(mediaSourceProvider);
     final item = widget.item;
-    final longestSide = viewerPreviewSide(context);
+    final longestSide = viewerPreviewSide(context, item);
     final placeholder = Image(
       image: source.thumbnail(item, size: 256),
       fit: BoxFit.contain,

@@ -49,18 +49,26 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
 
   /// Starts loading the previews of the photos around [index], so swiping
   /// shows a ready image instead of the thumbnail placeholder.
-  void _precacheNeighbors(List<MediaItem> items, int index) {
+  ///
+  /// Waits for the preview of the photo shown first: the native loader
+  /// serves the newest request first, so neighbors asked at once would
+  /// delay it.
+  Future<void> _precacheNeighbors(List<MediaItem> items, int index) async {
     final source = ref.read(mediaSourceProvider);
-    final side = viewerPreviewSide(context);
-    for (final i in [index + 1, index - 1, index + 2]) {
-      if (i < 0 || i >= items.length || items[i].isVideo) continue;
-      unawaited(
-        precacheImage(
-          source.preview(items[i], longestSide: side),
-          context,
-          onError: (_, _) {},
-        ),
+    Future<void> precache(int i) async {
+      if (i < 0 || i >= items.length || items[i].isVideo || !mounted) return;
+      final side = viewerPreviewSide(context, items[i]);
+      await precacheImage(
+        source.preview(items[i], longestSide: side),
+        context,
+        onError: (_, _) {},
       );
+    }
+
+    await precache(index);
+    if (!mounted || _index != index) return;
+    for (final i in [index + 1, index - 1, index + 2]) {
+      unawaited(precache(i));
     }
   }
 
@@ -94,7 +102,7 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
     if (!_precachedInitial && items.isNotEmpty) {
       _precachedInitial = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) _precacheNeighbors(items, index);
+        if (mounted) unawaited(_precacheNeighbors(items, index));
       });
     }
 
@@ -119,7 +127,7 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
                           _index = i;
                           _zoomed = false;
                         });
-                        _precacheNeighbors(items, i);
+                        unawaited(_precacheNeighbors(items, i));
                       },
                       itemBuilder: (context, i) {
                         final item = items[i];
