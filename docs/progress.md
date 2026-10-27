@@ -12,7 +12,7 @@ Last updated: 2026-10-27 — Milestone M4
 | M1 | Navigation: timelines, albums, grid, viewer, video, sorting, date filter | Merged into `main` (PR #2) |
 | M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Merged into `main` (PR #3) |
 | M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Merged into `main` (PR #4) |
-| M4 | Engine level 2: perceptual hashes, similar photos, dashboard | On `m4-similar`; first device test failed (no similar groups), fixes awaiting a second test |
+| M4 | Engine level 2: perceptual hashes, similar photos, dashboard | On `m4-similar`; similar photos confirmed on the phone after fixes, a few checks left |
 | M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Not started |
 | M6 | Advanced viewer and editing | Not started |
 | M7 | Exploration: map, search | Not started |
@@ -39,7 +39,7 @@ Last updated: 2026-10-27 — Milestone M4
 | `flutter test --timeout 60s` | 196 tests pass (after the fixes of 2026-10-27) |
 | `flutter build apk --release --target-platform android-arm64` | Builds (Kotlin `grayThumbnails` compiles) |
 | Search speed (AOT, development laptop, 30,000 photos) | Grouping 0.6–1.1 s at Medium, 1.4–2.6 s at High; hashing 1–2.5 ms per photo ([analysis-engine.md](analysis-engine.md#performance-2)) |
-| Galaxy A54 | First test on 2026-10-27: **no similar photos found**, analysis long without result; Stats → Similar photos opened the wrong place; large text OK. Fixes made, second test pending ([testing.md](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device)) |
+| Galaxy A54 | First test on 2026-10-27: no similar photos found. After the fixes, second test the same day: progress, resume after leaving the app, similar groups during the scan, close shots grouped, no false positive seen, Not duplicates, sensitivity and Stats rows confirmed. Not tested yet: WhatsApp copy, cleaning from Stats, *Analyze the library again* ([testing.md](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device)) |
 
 ### Decisions
 
@@ -51,7 +51,9 @@ Last updated: 2026-10-27 — Milestone M4
 
 ### Known issues
 
-- **First device test: no similar groups.** Cause not confirmed (scan not finished, or stopped by a native error). Fixed on 2026-10-27: progress shown, groups rebuilt every 1,000 photos, failing thumbnail batches skipped, native calls always reply. To check again on the phone.
+- **First device test: no similar groups.** Fixed on 2026-10-27 (progress shown, groups rebuilt every 1,000 photos, failing thumbnail batches skipped, native calls always reply) and confirmed on the phone; which of the two causes it was is not known.
+- **The first analysis is long** on the phone (duration and photo count not measured yet). Thumbnail rendering by MediaStore is the likely cost.
+- **Similar photos are not stacked in the timelines**, only grouped on the duplicates screen. The product owner wants stacking later (M5 or after).
 - Opening a photo in the viewer shows it blurry (the 256-pixel grid thumbnail, enlarged) until the screen-sized preview is decoded; reported on 2026-10-27, possibly slowed by the analysis running at the same time. Not fixed yet.
 - Not verified on a device: the rest of M4, including the time of the first analysis on a large library and the false positive rate on real photos.
 - The camera model and GPS bonuses of the confidence score do not apply yet: those columns are filled in M6 and M7. The score is stored, not shown.
@@ -61,11 +63,11 @@ Last updated: 2026-10-27 — Milestone M4
 
 ### Next steps
 
-1. Second device test with the [M4 checklist](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device), especially false positives; note the photo count and the analysis time shown by the progress.
-2. If groups still do not show, read `logcat` (with the product owner's permission) to find the cause.
-3. Blurry-then-sharp viewer: measure, then fix.
+1. Finish the [M4 checklist](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device): WhatsApp copy, cleaning from Stats, *Analyze the library again*, blurry viewer once the scan has ended.
+2. Blurry-then-sharp viewer: fix if it remains after the scan.
 4. Review and merge the M4 pull request.
 5. M5: swipe mode, blurry photos (sharpness also refines the best pick), screenshots, large videos.
+6. Later: stack similar photos in the timelines (product owner's request, 2026-10-27).
 
 ## M3 — Engine level 1
 

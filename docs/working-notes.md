@@ -8,11 +8,10 @@ Last updated: 2026-10-27 — Milestone M4
 
 - The milestone status lives in [progress.md](progress.md); this section only says what to do first.
 - End of 2026-10-27: M0 to M3 are merged into `main` (M3 as PR #4). M4 is on branch `m4-similar` (committed locally, not pushed).
-- **First M4 device test (2026-10-27) failed**: no similar groups, the analysis ran long without result, Stats → Similar photos opened the wrong place; large text OK. Decisions A (multi-index hashing, ADR 0019) and B (keep the pre-selection) are approved. Results in [testing.md](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device).
-- **Fixes made the same day, to install and test**: progress "Analyzing: N of M items", groups rebuilt every 1,000 photos, failing thumbnail batches skipped, native calls always reply, Stats rows open their section, two threads for thumbnails. The cause of the missing groups is **not confirmed**.
-- **Still to ask**: how many photos the phone has and how long the analysis ran (question 1), the WhatsApp copy (question 3), and permission to read `logcat` if groups still do not show.
-- **Also reported**: a photo opened in the viewer stays blurry a moment before turning sharp; not fixed yet ([progress.md](progress.md#known-issues)).
-- **Next**: second device test, then push `m4-similar` when asked, open the pull request, then M5 (swipe mode, blurry photos, screenshots, large videos).
+- **M4 device tests (2026-10-27)**: the first found no similar groups; after the fixes (commit `d07c2fd`) the second confirmed similar groups, progress, resume, Not duplicates, sensitivity and Stats rows. Decisions A (multi-index hashing, ADR 0019) and B (keep the pre-selection) are approved. Results in [testing.md](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device).
+- **Still to ask**: the WhatsApp copy (grouped with its original, original marked Best?), whether a photo opened in the viewer is still blurry before turning sharp once the scan has ended, and the photo count and duration of the first analysis (the product owner finds it long).
+- **Product owner's request**: stack similar photos in the timelines, later (M5 or after).
+- **Next**: finish the M4 checks above, then push `m4-similar` when asked, open the pull request, then M5 (swipe mode, blurry photos, screenshots, large videos).
 
 ## Working with the product owner
 

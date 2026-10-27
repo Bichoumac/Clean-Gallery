@@ -156,7 +156,15 @@ M4 results on the Galaxy A54, reported by the product owner on 2026-10-27 (relea
 | Not answered yet | 1 (duration, photo count), 4 (WhatsApp copy) |
 | Also reported | Opening a photo shows it blurry for a moment before it turns sharp |
 
-Fixes for a second test (same checklist): progress "Analyzing: N of M items", groups rebuilt every 1,000 photos, a failing thumbnail batch skipped instead of stopping the scan, native calls that always reply, Stats rows opening their section, two threads rendering thumbnails. The cause of the missing groups is not confirmed: the scan may simply not have reached the end, or a native error may have stopped it.
+Second test on 2026-10-27, after the fixes below (same day, release build installed over the first):
+
+| Status | Items |
+| --- | --- |
+| Confirmed | 1 (progress grows, X and Y consistent; leaving the app and coming back resumes where it stopped), 2 and 3 (similar groups show during the scan), 5 (close shots grouped under Similar photos), 6 (no clearly different photos seen in a group), 7 (Not duplicates, still gone after a relaunch), 8 (fewer groups with Low, more with High), 11 (Stats rows open their section), 14 |
+| Not tested yet | 4 (WhatsApp copy), 9, 10, 12, 13; blurry viewer once the scan has ended |
+| Remarks | The first analysis is long (duration and photo count not measured). Similar photos are grouped only on the duplicates screen, not stacked in the timelines: the product owner wants stacking later, see [progress.md](progress.md#m4--engine-level-2) |
+
+Fixes for the second test (same checklist): progress "Analyzing: N of M items", groups rebuilt every 1,000 photos, a failing thumbnail batch skipped instead of stopping the scan, native calls that always reply, Stats rows opening their section, two threads rendering thumbnails. The cause of the missing groups is not confirmed: the scan may simply not have reached the end, or a native error may have stopped it.
 
 ### M3 — media index, to verify on a device
 
