@@ -50,6 +50,7 @@ The brief: "a bottom sheet that slides up with a translucent blurred background 
   - **Camera metadata**, from the file's EXIF header (`MediaSource.metadata`, native `mediaMetadata`, [platform-android.md](../platform-android.md#native-channel-clean_galleryplatform)): camera (maker and model, the maker once), lens, then ISO, aperture (`f/1.8`), shutter speed (`1/125 s`) and focal length (`5.4 mm · 24 mm equivalent`) as small tiles;
   - **Location**, as latitude and longitude with five decimals: tapping it opens the user's map app on that point (a `geo:` intent, `PlatformBridge.openMap`; when no app handles it, the panel closes and a snack bar says so), and a copy button puts the coordinates on the clipboard. Videos only have a location.
 - Missing values are left out. A photo with no camera data at all says *No camera information in this file.*; without the media location permission, the location row says to allow it in Settings (Android hides GPS tags from apps without it).
+- **Quality** (photos): the last row shows the analysis engine's measures on the photo's 256-pixel grayscale thumbnail, read when the panel opens (`photoQualityProvider`): `S 42 · N 180 · B 35 · C 22` for sharpness, relative sharpness, brightness and contrast ([analysis-engine.md](../analysis-engine.md#blurry-and-dark-photos)), and under it whether the photo is offered as blurry or too dark. Asked by the product owner after the blur calibration, to check the thresholds on real photos.
 - **No mini map yet**: it comes with the map in M7, which adds `flutter_map` and the OpenStreetMap tiles; showing it here first would have meant adding the map library and network access one milestone early.
 
 ## Edge cases and error handling
@@ -64,7 +65,7 @@ The brief: "a bottom sheet that slides up with a translucent blurred background 
 
 - [library_test.dart](../../test/features/library/library_test.dart): opening the viewer on the tapped item, showing its file name, closing with back.
 - [viewer_test.dart](../../test/features/viewer/viewer_test.dart): swipe left and right (fling and slow drag), pinch then pan without changing page, double-tap back to fit, top bar height.
-- [info_panel_test.dart](../../test/features/viewer/info_panel_test.dart): the panel with camera settings and location, the location reached at the end and opening a map, the notes for missing camera data and location permission, value formats.
+- [info_panel_test.dart](../../test/features/viewer/info_panel_test.dart): the panel with camera settings and location, the location reached at the end and opening a map, the notes for missing camera data and location permission, the quality row, value formats.
 - [video_controls_test.dart](../../test/features/viewer/video_controls_test.dart): progress bar at the bottom and play button centered, in portrait and landscape (the bar was in the middle of the screen because `Slider` takes all the height it is given).
 - Video playback, zoom gestures and Hero transitions are checked on a device ([testing.md](../testing.md#m1--to-verify-on-a-device)).
 

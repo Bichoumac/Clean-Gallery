@@ -152,6 +152,9 @@ Hazy photos (M5 follow-up). The first launch migrates the database (schema versi
 | --- | --- | --- |
 | 8 | Once the analysis is done, Stats → **Blurry photos** | The hazy night photos with lights are gone; the photos really out of focus are still there. |
 | 9 | Duplicates, a group with a hazy photo | No *Blurry* label under it. |
+| 10 | A photo, ⓘ, last row | *S … · N … · B … · C …* and *Quality: …*; *offered as blurry* only when the photo is in the Blurry photos list. |
+
+Part 1 results on the Galaxy A54, reported by the product owner on 2026-10-27: first test, the end of the panel was hidden (fixed: room above the navigation bar, 90 % high) and the coordinates were not clickable (fixed: they open the map app). Second test, with the hazy photo rule: all good; the product owner read the temporary measures and set the hazy threshold at 150. Item 10 added afterwards, at the product owner's request; not seen on the device yet.
 
 ### M5 — cleanup, to verify on a device
 

@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:clean_gallery/analysis/image_quality.dart';
 import 'package:clean_gallery/core/media/media_formatting.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/domain/enums.dart';
@@ -204,6 +205,24 @@ class InfoPanel extends ConsumerWidget {
                       value: l10n.infoLocationNotAllowed,
                       muted: true,
                     ),
+                  if (!item.isVideo)
+                    if (ref.watch(photoQualityProvider(item)).value
+                        case final quality?)
+                      _InfoRow(
+                        icon: Icons.blur_on_rounded,
+                        value: formatQuality(quality),
+                        label: switch ((
+                          isBlurry(
+                            sharpness: quality.sharpness,
+                            contrast: quality.contrast,
+                          ),
+                          quality.brightness < darkBelow,
+                        )) {
+                          (true, _) => l10n.infoQualityBlurry,
+                          (_, true) => l10n.infoQualityDark,
+                          _ => l10n.infoQuality,
+                        },
+                      ),
                   if (info == null)
                     Padding(
                       padding: const EdgeInsets.only(left: 40, top: 4),
@@ -242,6 +261,22 @@ Future<void> _openMap(
   // A snack bar would show under the panel.
   navigator.pop();
   messenger.showSnackBar(SnackBar(content: Text(message)));
+}
+
+/// The analysis engine's measures, as `S 42 · N 180 · B 35 · C 22`:
+/// sharpness, relative sharpness, brightness and contrast
+/// ([analysis-engine.md](../../../docs/analysis-engine.md)).
+String formatQuality(ImageQuality quality) {
+  final relative = relativeSharpness(
+    sharpness: quality.sharpness,
+    contrast: quality.contrast,
+  );
+  return [
+    'S ${quality.sharpness.round()}',
+    'N ${relative.round()}',
+    'B ${quality.brightness.round()}',
+    'C ${quality.contrast.round()}',
+  ].join(' · ');
 }
 
 /// Aperture as `f/1.8`.

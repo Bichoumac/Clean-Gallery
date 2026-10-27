@@ -1,3 +1,5 @@
+import 'package:clean_gallery/analysis/image_quality.dart';
+import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/domain/media_item.dart';
@@ -29,4 +31,17 @@ Future<MediaInfo> mediaInfo(Ref ref, MediaItem item) async {
     metadata: metadata,
     locationAllowed: locationAllowed,
   );
+}
+
+/// [ImageQuality] of photo [item], measured when its info panel opens on
+/// the same thumbnail and by the same code as the analysis engine, or
+/// `null` without a readable thumbnail. Shown so the blur thresholds can
+/// be checked on real photos.
+@riverpod
+Future<ImageQuality?> photoQuality(Ref ref, MediaItem item) async {
+  final thumbnails = await ref.watch(mediaSourceProvider).grayThumbnails([
+    item,
+  ], side: perceptualThumbnailSide);
+  final thumbnail = thumbnails[item.id];
+  return thumbnail == null ? null : imageQuality(thumbnail);
 }

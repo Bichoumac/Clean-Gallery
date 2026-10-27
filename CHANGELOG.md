@@ -12,6 +12,7 @@ Last updated: 2026-10-27 — Milestone M6
 - Native method `mediaMetadata`: EXIF of a photo, location of a video.
 - Info panel: the location opens the map app; a button copies the coordinates.
 - Database schema version 4: `assets.contrast`.
+- Info panel: the photo's quality measures (sharpness, relative sharpness, brightness, contrast) and whether it is offered as blurry or too dark.
 
 ### Changed
 

@@ -14,7 +14,7 @@ Last updated: 2026-10-27 — Milestone M6
 | M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Merged into `main` (PR #4) |
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Merged into `main` (PR #5) |
 | M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Merged into `main` (PR #6) |
-| M6 | Advanced viewer and editing | In progress on `m6-viewer`: part 1 (info panel) done, to test |
+| M6 | Advanced viewer and editing | In progress on `m6-viewer` (pushed): part 1 (info panel) and the hazy photo rule confirmed on the phone; parts 2 and 3 to do |
 | M7 | Exploration: map, search | Not started |
 | M8 | Monetization | Not started |
 | M9 | Polish and release preparation | Not started |
@@ -26,7 +26,8 @@ In parts, each tested on the phone: 1. the info panel; 2. the editor (crop, rota
 ### Done
 
 - **Hazy photos are no longer blurry** (M5 follow-up): contrast measured and stored (schema version 4), blurry = sharpness below 30 and relative sharpness below 150, threshold read on the product owner's photos; only photos below 30 are analysed again ([ADR 0021](decisions/0021-hazy-photos-are-not-blurry.md)).
-- **Info panel** (part 1): a Details button in the viewer opens a bottom sheet over a blurred, translucent background with the date and its source, name, path, resolution, size, duration, camera, lens, ISO, aperture, shutter speed, focal length and location; EXIF read by the new native method `mediaMetadata` ([features/viewer.md](features/viewer.md#info-panel)).
+- **Info panel** (part 1): a Details button in the viewer opens a bottom sheet over a blurred, translucent background with the date and its source, name, path, resolution, size, duration, camera, lens, ISO, aperture, shutter speed, focal length and location; EXIF read by the new native method `mediaMetadata` ([features/viewer.md](features/viewer.md#info-panel)). After the first device test: the panel ends above the navigation bar and takes up to 90 % of the screen; the location opens the map app (`openMap`), a button copies it.
+- **Quality measures in the info panel**, at the product owner's request: sharpness (S), relative sharpness (N), brightness (B) and contrast (C) of the photo, measured by the engine's own code, and whether it is offered as blurry or too dark. Kept so the thresholds can be checked on real photos.
 
 ### Decisions
 
@@ -34,12 +35,27 @@ In parts, each tested on the phone: 1. the info panel; 2. the editor (crop, rota
 
 ### Known issues
 
-- Part 1 not verified on a device yet ([testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device)).
+- Part 1 and the hazy photo rule confirmed on the Galaxy A54 on 2026-10-27 ("all good", [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device)). The quality row added afterwards is covered by a test, not seen on the device yet.
+- The hazy threshold (150) comes from a handful of photos; the quality row lets the product owner report others.
 
 ### Next steps
 
-1. Device test of part 1 and of the hazy photo rule.
-2. Part 2: the editor.
+Plan to resume, in order. Each part ends with a commit, a release build installed on the phone, and a numbered checklist for the product owner.
+
+1. **Part 2, the editor** (`lib/features/editor/`, the brief's "Editing and filters"):
+   - an **Edit** button in the viewer's top bar (photos only), opening a full-screen editor route above the tabs, dark like the viewer, no ads;
+   - **crop** with handles and ratios free, 1:1, 4:3, 16:9 (and their portrait forms), **rotate** by 90°, **flip** horizontally;
+   - **adjustments** with sliders: brightness, contrast, saturation, exposure, warmth; previewed live on a screen-sized image with a `ColorFilter.matrix` (one 5 × 4 color matrix composed from all sliders), so moving a slider never re-encodes the photo;
+   - the edit described as plain data in `lib/domain/` (crop rectangle, quarter turns, flip, adjustment values, later the filter), with the matrix math in pure Dart (`lib/analysis/` or `lib/domain/`, no Flutter import) and unit tests;
+   - Cancel asks before dropping changes; an ADR for the approach (preview with color matrices, saving natively).
+2. **Part 3, filters and saving**:
+   - about ten **filters** with thumbnail previews: Black & White, Sepia, Vintage, Warm, Cool, Vivid, Fade, Dramatic, Noir, Soft, each a color matrix combined with the adjustments;
+   - **saving natively** (new `PlatformBridge`/`MediaSource` method, Kotlin): decode the full photo, apply crop, rotation, flip and the color matrix (`ColorMatrixColorFilter` on a `Canvas`), encode JPEG, insert it with MediaStore in the same folder; **Save as copy** by default; **Replace original** puts the original in the app trash (never deleted directly);
+   - **EXIF kept**: copy the original's tags with `ExifInterface`, orientation set to normal, new width and height;
+   - the new photo indexed at once and shown in the viewer.
+3. **End of M6**: summary, test instructions and known issues; `CHANGELOG.md` section, pull request file (title and description) and the link `https://github.com/Bichoumac/Clean-Gallery/pull/new/m6-viewer`.
+4. **M7**: map (`flutter_map`, OpenStreetMap tiles with a proper user agent and attribution, marker clusters with thumbnails), the info panel's **mini map**, search with combinable filters.
+5. Later: stack similar photos in the timelines (product owner's request); sort mode entry from album pages.
 
 ## M5 — Cleanup
 

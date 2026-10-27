@@ -1,4 +1,7 @@
+import 'dart:typed_data';
+
 import 'package:clean_gallery/core/media/media_thumbnail.dart';
+import 'package:clean_gallery/domain/gray_image.dart';
 import 'package:clean_gallery/domain/media_metadata.dart';
 import 'package:clean_gallery/features/viewer/info_panel.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -77,6 +80,20 @@ void main() {
       find.text('Allow location access in Settings to see where it was taken.'),
       findsOneWidget,
     );
+  });
+
+  testApp('shows the quality measures of a photo', (tester) async {
+    final media = FakeMediaSource(items: [testItem(1)])
+      // A flat dark thumbnail: no edges, too dark.
+      ..grayImages['1'] = GrayImage(
+        width: 8,
+        height: 8,
+        pixels: Uint8List(64)..fillRange(0, 64, 10),
+      );
+    await openInfo(tester, media);
+
+    await tester.ensureVisible(find.text('S 0 · N 0 · B 10 · C 0'));
+    expect(find.text('Quality: offered as blurry'), findsOneWidget);
   });
 
   test('formats camera settings', () {
