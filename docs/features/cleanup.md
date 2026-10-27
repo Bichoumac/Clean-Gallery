@@ -77,5 +77,5 @@ Routes: `/stats/screenshots`, `/stats/large-videos` and `/stats/blurry` (`Cleanu
 ## Known limitations / future work
 
 - The blur and darkness thresholds are fixed, from synthetic photos; a setting may follow once checked on real photos.
-- The swipe mode entry comes in part 3 of M5.
+- To sort a list one photo at a time, the [sort mode](swipe.md) offers blurry photos and old screenshots as sources.
 - Only the four offered thresholds can be picked; other values are kept if stored, with no segment selected.

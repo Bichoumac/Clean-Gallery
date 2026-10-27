@@ -56,6 +56,8 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [screenshot_test.dart](../test/analysis/screenshot_test.dart) | Screenshots by folder, name or PNG at the screen size; camera photos and other images are not. |
 | [cleanup_selection_test.dart](../test/core/database/cleanup_selection_test.dart) | Old screenshots, large videos and blurry photos read from the index. |
 | [image_quality_test.dart](../test/analysis/image_quality_test.dart) | Sharpness and brightness of sharp, recompressed, blurred, dark and flat images. |
+| [swipe_session_test.dart](../test/features/swipe/swipe_session_test.dart) | Swipe sessions: order, the three actions, multi-level undo, resume, start over, source keys, months. |
+| [swipe_flow_test.dart](../test/features/swipe/swipe_flow_test.dart) | Sort mode from the Stats tab: swipe, fling, short drag, buttons, undo, summary, resume. |
 | [cleanup_flow_test.dart](../test/features/cleanup/cleanup_flow_test.dart) | Stats rows of the cleanup lists, Select all and move to trash, large video threshold, blurry photos measured and listed. |
 | [duplicates_test.dart](../test/core/media/duplicates_test.dart) | Only size collisions hashed, exact groups, no re-read, filter by folder, trash and undo, changed file, favorite kept, burst groups, a burst saved twice. |
 | [duplicates_flow_test.dart](../test/features/duplicates/duplicates_flow_test.dart) | Duplicates tile and count, screen, clean all with summary, keep every copy, open a photo full screen. |
@@ -154,6 +156,20 @@ Part 2, blurry and dark photos. Install over part 1. The first launch migrates t
 | 3 | Look through the list | Mostly out-of-focus, shaken or very dark photos. **Report sharp photos in the list** (false positives, e.g. sky, fog, a plain wall) and **blurry photos you know of that are missing**. |
 | 4 | Duplicates → **Similar photos** and **Bursts** | Same groups as before, or nearly; in a group of close shots, the photo marked **Best** is the sharpest one. |
 | 5 | Select some blurry photos, **Move to trash**, *Undo* | As in the other lists. |
+
+Part 3, sort mode (swipe), and the *Blurry* label. Same install as part 2 if built together.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 1 | Stats → **Sort mode** | The sources page: help text, *All photos*, *Blurry photos*, *Old screenshots*, then months and folders with their counts. |
+| 2 | **All photos** | Full screen, oldest photo first, "0 / N" and an empty bar; *Undo* greyed out. |
+| 3 | Swipe a card left, then one right | A *TRASH* / *KEEP* stamp while dragging; the card flies away; "2 / N". The first one is in Albums → Trash. |
+| 4 | A short drag, released | The card springs back. |
+| 5 | The three buttons (bin, heart, check) | Same as swiping; the heart asks the system to add a favorite. |
+| 6 | **Undo** three times | The cards come back one by one from the side they left; the trashed photo leaves the trash, the new favorite is unmarked. |
+| 7 | × to close, then the same source again | The sources page shows "*N sorted · resume*"; the session resumes at the next card. |
+| 8 | A small month or folder, to the end | "All sorted!" with the counts and the space freed; *Open the trash*, *Start over*, *Done* work. |
+| 9 | Duplicates → a group with a blurry photo | "Blurry" in red under its resolution; the sharp one marked Best. |
 
 ### M4 — similar photos and Stats, to verify on a device
 

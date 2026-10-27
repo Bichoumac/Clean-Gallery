@@ -4,6 +4,7 @@ import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/core/database/duplicate_repository.dart';
 import 'package:clean_gallery/core/database/media_index_repository.dart';
 import 'package:clean_gallery/core/database/settings_repository.dart';
+import 'package:clean_gallery/core/database/swipe_repository.dart';
 import 'package:clean_gallery/core/database/trash_repository.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
 import 'package:clean_gallery/domain/trashed_item.dart';
@@ -63,6 +64,11 @@ DuplicateRepository duplicateRepository(Ref ref) =>
 @Riverpod(keepAlive: true)
 TrashRepository trashRepository(Ref ref) =>
     TrashRepository(ref.watch(appDatabaseProvider));
+
+/// Decisions of the swipe sessions.
+@Riverpod(keepAlive: true)
+SwipeRepository swipeRepository(Ref ref) =>
+    SwipeRepository(ref.watch(appDatabaseProvider));
 
 /// Ids of trashed items. Every media list hides them.
 @Riverpod(keepAlive: true)

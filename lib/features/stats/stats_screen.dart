@@ -91,6 +91,17 @@ class StatsScreen extends ConsumerWidget {
         const SizedBox(height: 16),
         Card(
           clipBehavior: Clip.antiAlias,
+          child: _CategoryRow(
+            icon: Icons.swipe_rounded,
+            label: l10n.swipeTitle,
+            detail: l10n.swipeEntryHelp,
+            value: '',
+            onTap: () => context.go(SwipeRoutes.sources),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Card(
+          clipBehavior: Clip.antiAlias,
           child: Column(
             children: [
               _CategoryRow(

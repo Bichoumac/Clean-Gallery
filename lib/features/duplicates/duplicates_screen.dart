@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clean_gallery/analysis/image_quality.dart';
 import 'package:clean_gallery/core/media/analysis_progress.dart';
 import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/media_actions.dart';
@@ -337,7 +338,7 @@ class _GroupCard extends ConsumerWidget {
 }
 
 /// One item of a group: thumbnail, "Best" badge or pick button, then its
-/// resolution, size and date.
+/// resolution, "Blurry" when it is, size and date.
 class _Member extends StatelessWidget {
   const _Member({
     required this.item,
@@ -436,6 +437,11 @@ class _Member extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text('${item.width} × ${item.height}', style: details),
+          if (item.sharpness case final sharpness? when sharpness < blurryBelow)
+            Text(
+              l10n.duplicatesBlurry,
+              style: details?.copyWith(color: colors.error),
+            ),
           Text(formatBytes(context, item.sizeBytes), style: details),
           Text(
             formatMediaDate(context, item.takenAt),

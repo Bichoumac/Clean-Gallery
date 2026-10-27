@@ -17,7 +17,8 @@ Show at a glance whether cleaning is worth it, and lead to the tool that does it
    - **Bursts**: burst shots other than the best → the same screen, on *Bursts*.
    - **Similar photos**: photos suggested for the trash among look-alikes → the same screen, on *Similar photos*.
    - **In the trash**: freed when the trash is emptied → the Trash page (Albums tab).
-4. The second card lists **Old screenshots**, **Large videos** and **Blurry photos** with their count and size, each opening its cleanup list ([cleanup.md](cleanup.md)).
+4. The **Sort mode** card opens the swipe mode ([swipe.md](swipe.md)).
+5. The last card lists **Old screenshots**, **Large videos** and **Blurry photos** with their count and size, each opening its cleanup list ([cleanup.md](cleanup.md)).
 
 ```mermaid
 flowchart TD
@@ -25,6 +26,7 @@ flowchart TD
     S --> B[Bursts] --> D
     S --> P[Similar photos] --> D
     S --> T[In the trash] --> R[Trash page]
+    S --> W[Sort mode] --> X[Swipe sources]
 ```
 
 ## What is counted
@@ -75,6 +77,5 @@ The counts follow the default picks, not changes made on the duplicates screen: 
 
 ## Known limitations / future work
 
-- The swipe mode entry comes in part 3 of M5.
 - The native ad card (M8) will sit below the categories.
 - Opening the trash switches to the Albums tab, where the Trash page lives.

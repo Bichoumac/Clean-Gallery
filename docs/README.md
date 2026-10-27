@@ -41,6 +41,7 @@ Planned files: `monetization.md` (M8), `release.md` (M9).
 | [features/duplicates.md](features/duplicates.md) | Duplicates tile and screen: certain and similar groups, Best badge, Not duplicates, cleaning. |
 | [features/stats.md](features/stats.md) | Stats tab: storage dashboard. |
 | [features/cleanup.md](features/cleanup.md) | Cleanup lists: old screenshots, large videos, blurry photos. |
+| [features/swipe.md](features/swipe.md) | Sort mode: swipe left to trash, right to keep, undo, resumable sessions. |
 
 One file per feature is added as each feature is built.
 

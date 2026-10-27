@@ -239,6 +239,35 @@ final class MediaIndexRepository {
     return [for (final row in rows) _album(row)];
   }
 
+  /// Months that have photos or videos, newest first, with their item
+  /// count, trashed items left out. Each month is its first day, local
+  /// time.
+  Future<List<({DateTime month, int count})>> months() async {
+    final date = correctedDates ? 'COALESCE(capture_at, taken_at)' : 'taken_at';
+    final rows = await _db
+        .customSelect(
+          "SELECT strftime('%Y-%m', $date, 'unixepoch', 'localtime') AS month, "
+          'COUNT(*) AS n '
+          'FROM assets '
+          'WHERE id NOT IN (SELECT asset_id FROM trash_entries) '
+          'GROUP BY month '
+          'ORDER BY month DESC',
+          readsFrom: {_db.assets, _db.trashEntries},
+        )
+        .get();
+    return [
+      for (final row in rows)
+        if (row.read<String?>('month') case final month?)
+          (
+            month: DateTime(
+              int.parse(month.substring(0, 4)),
+              int.parse(month.substring(5, 7)),
+            ),
+            count: row.read<int>('n'),
+          ),
+    ];
+  }
+
   /// Number and total size of the photos and of the videos, trashed items
   /// left out: the space the library takes on the device.
   Future<MediaTotals> totals() async {

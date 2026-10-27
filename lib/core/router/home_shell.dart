@@ -111,10 +111,18 @@ class _HomeShellState extends ConsumerState<HomeShell> {
 /// Page layout shared by the tabs: a large title, then [children].
 class TabPage extends StatelessWidget {
   /// Creates a tab page titled [title].
-  const TabPage({required this.title, required this.children, super.key});
+  const TabPage({
+    required this.title,
+    required this.children,
+    this.showBackButton = false,
+    super.key,
+  });
 
   /// Large page title.
   final String title;
+
+  /// Whether a back button precedes the title (pages under a tab).
+  final bool showBackButton;
 
   /// Content below the title.
   final List<Widget> children;
@@ -131,7 +139,21 @@ class TabPage extends StatelessWidget {
           CompactNavBar.contentInset(context),
         ),
         children: [
-          Text(title, style: Theme.of(context).textTheme.displaySmall),
+          if (showBackButton)
+            Row(
+              children: [
+                const BackButton(),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    title,
+                    style: Theme.of(context).textTheme.headlineMedium,
+                  ),
+                ),
+              ],
+            )
+          else
+            Text(title, style: Theme.of(context).textTheme.displaySmall),
           const SizedBox(height: 24),
           ...children,
         ],

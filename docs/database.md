@@ -99,10 +99,12 @@ The brief calls this table `trash`. The Dart class is `TrashEntries` (table `tra
 | Column | Type | Notes |
 | --- | --- | --- |
 | `id` | INTEGER PK autoincrement | |
-| `session` | TEXT | Session id |
-| `order` | INTEGER | Card position |
-| `asset_id` | INTEGER FK → `assets.id` | |
+| `session` | TEXT | Session id: the swipe source's key (`all`, `blurry`, `screenshots`, `month:2024-03`, `folder:<id>`) |
+| `order` | INTEGER | Position of the decision in the session |
+| `asset_id` | INTEGER FK → `assets.id` | Cascade: a deleted item leaves its session |
 | `action` | TEXT | `keep` / `trash` / `favorite` |
+
+Written by `SwipeRepository` since M5: one row per decision, the last row removed on *Undo*, every row of a session removed on *Start over* ([features/swipe.md](features/swipe.md)).
 
 ### `settings`
 

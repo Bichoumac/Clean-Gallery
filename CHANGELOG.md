@@ -15,6 +15,8 @@ Last updated: 2026-10-27 — Milestone M5
 - Stats: old screenshots and large videos count in the space that could be freed.
 - **Blurry photos** cleanup list and Stats row: photos out of focus or very dark, measured with the perceptual hashes in one pass over 256-pixel thumbnails ([ADR 0020](docs/decisions/0020-blur-and-brightness-with-the-hashes.md)).
 - Database schema version 3: `assets.brightness`.
+- **Sort mode (swipe)** from the Stats tab: all photos, blurry photos, old screenshots, a month or a folder, oldest first; left to trash, right to keep, a heart to keep as a favorite; Undo always visible and multi-level; resumable sessions (`swipe_history`) with progress and an end summary ([docs/features/swipe.md](docs/features/swipe.md)).
+- Duplicates screen: a **Blurry** label under blurry members.
 
 ### Changed
 

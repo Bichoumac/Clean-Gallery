@@ -10,6 +10,9 @@ import 'package:clean_gallery/features/onboarding/onboarding_controller.dart';
 import 'package:clean_gallery/features/onboarding/onboarding_screen.dart';
 import 'package:clean_gallery/features/settings/settings_screen.dart';
 import 'package:clean_gallery/features/stats/stats_screen.dart';
+import 'package:clean_gallery/features/swipe/swipe_screen.dart';
+import 'package:clean_gallery/features/swipe/swipe_source.dart';
+import 'package:clean_gallery/features/swipe/swipe_sources_screen.dart';
 import 'package:clean_gallery/features/trash/trash_screen.dart';
 import 'package:clean_gallery/features/viewer/viewer_screen.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
@@ -45,6 +48,9 @@ abstract final class AppRoutes {
   /// Duplicates of one folder or tab, above the tabs. Requires the
   /// [MediaSelection] to look in as `extra`.
   static const duplicates = '/duplicates';
+
+  /// A swipe session, above the tabs: `/swipe?source=<key>&name=<title>`.
+  static const swipe = '/swipe';
 }
 
 /// Album pages under the Albums tab: `/albums/<key>?name=<title>`.
@@ -80,6 +86,18 @@ abstract final class CleanupRoutes {
     CleanupList.largeVideos => '${AppRoutes.stats}/large-videos',
     CleanupList.poorQuality => '${AppRoutes.stats}/blurry',
   };
+}
+
+/// Sort mode (swipe).
+abstract final class SwipeRoutes {
+  /// The list of sources, under the Stats tab.
+  static const sources = '${AppRoutes.stats}/swipe';
+
+  /// The session of [source], titled [title].
+  static String location(SwipeSource source, String title) => Uri(
+    path: AppRoutes.swipe,
+    queryParameters: {'source': source.key, 'name': title},
+  ).toString();
 }
 
 /// What the viewer opens: a selection and the index of the first item.
@@ -127,6 +145,11 @@ GoRouter appRouter(Ref ref) {
           state.extra is! MediaSelection) {
         return AppRoutes.camera;
       }
+      if (state.matchedLocation == AppRoutes.swipe &&
+          SwipeSource.parse(state.uri.queryParameters['source'] ?? '') ==
+              null) {
+        return AppRoutes.stats;
+      }
       return null;
     },
     routes: [
@@ -148,6 +171,13 @@ GoRouter appRouter(Ref ref) {
           scope: state.extra! as MediaSelection,
           kind: DuplicateKind.values
               .asNameMap()[state.uri.queryParameters['kind']],
+        ),
+      ),
+      GoRoute(
+        path: AppRoutes.swipe,
+        builder: (context, state) => SwipeScreen(
+          source: SwipeSource.parse(state.uri.queryParameters['source']!)!,
+          title: state.uri.queryParameters['name'] ?? '',
         ),
       ),
       StatefulShellRoute.indexedStack(
@@ -215,6 +245,10 @@ GoRouter appRouter(Ref ref) {
                     path: 'large-videos',
                     builder: (context, state) =>
                         const CleanupListScreen(list: CleanupList.largeVideos),
+                  ),
+                  GoRoute(
+                    path: 'swipe',
+                    builder: (context, state) => const SwipeSourcesScreen(),
                   ),
                   GoRoute(
                     path: 'blurry',
