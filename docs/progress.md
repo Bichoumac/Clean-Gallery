@@ -29,7 +29,7 @@ In parts, each tested on the phone: 1. the info panel; 2. the editor (crop, rota
 
 ### Decisions
 
-- The info panel's **mini map moves to M7**, with the map itself (`flutter_map` and OpenStreetMap tiles): the location shows as coordinates until then. A deviation from the brief, to approve.
+- The info panel's **mini map moves to M7**, with the map itself (`flutter_map` and OpenStreetMap tiles): the location shows as coordinates until then. A deviation from the brief, approved by the product owner on 2026-10-27.
 
 ### Known issues
 
