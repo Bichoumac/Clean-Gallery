@@ -136,6 +136,8 @@
   "mediaPhotoLabel": "Photo, {date}",
   "mediaVideoLabel": "Vidéo, {duration}, {date}",
   "mediaFavoriteLabel": "Favori",
+  "mediaStackLabel": "{count, plural, =1{pile de 1 élément} other{pile de {count} éléments similaires}}, toucher pour les afficher",
+  "timelineFoldStack": "Replier la pile",
 
   "viewerLoadError": "Impossible d'afficher cet élément.",
   "videoPlay": "Lire",

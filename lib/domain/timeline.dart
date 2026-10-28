@@ -126,3 +126,110 @@ DateTime _bucket(DateTime local, TimelineGrouping grouping) =>
       TimelineGrouping.day => DateTime(local.year, local.month, local.day),
       TimelineGrouping.month => DateTime(local.year, local.month),
     };
+
+/// A cell of a timeline grid: one item, or a folded stack of consecutive
+/// duplicates shown as one thumbnail (its cover).
+///
+/// A cell covers items `[start, start + length)` of the source list, so
+/// cells keep the source order and selecting a folded stack selects every
+/// item under it.
+final class TimelineCell {
+  /// Creates a cell over `[start, start + length)` showing [cover].
+  const TimelineCell({
+    required this.start,
+    required this.cover,
+    this.length = 1,
+    this.stack,
+    this.stackSize = 1,
+    this.leads = false,
+  });
+
+  /// Index in the source list of the first item under this cell.
+  final int start;
+
+  /// Number of items under this cell: more than one for a folded stack.
+  final int length;
+
+  /// Index in the source list of the item shown.
+  final int cover;
+
+  /// Key of the stack this cell belongs to, folded or unfolded, or `null`
+  /// for an item outside any stack.
+  final String? stack;
+
+  /// Number of items in the stack, or 1 outside a stack.
+  final int stackSize;
+
+  /// Whether this cell folds or unfolds its stack: the folded stack itself,
+  /// or the cover of an unfolded one.
+  final bool leads;
+
+  /// Whether this cell stands for several items.
+  bool get folded => length > 1;
+}
+
+/// Cells of [items], sorted newest first, with each run of consecutive
+/// items of the same duplicate group taken on the same day folded into one
+/// cell, unless its key is in [unfolded].
+///
+/// [stackOf] gives the key of an item's group by item id; [coverOf] the id
+/// of the item to show for a key (the group's best pick). A run without
+/// that item shows its first. Runs never cross midnight, so a stack stays
+/// in its date section.
+List<TimelineCell> buildCells(
+  List<MediaItem> items, {
+  Map<String, String> stackOf = const {},
+  Map<String, String> coverOf = const {},
+  Set<String> unfolded = const {},
+}) {
+  final cells = <TimelineCell>[];
+  var i = 0;
+  while (i < items.length) {
+    final key = stackOf[items[i].id];
+    var end = i + 1;
+    if (key != null) {
+      final day = _bucket(items[i].takenAt.toLocal(), TimelineGrouping.day);
+      while (end < items.length &&
+          stackOf[items[end].id] == key &&
+          _bucket(items[end].takenAt.toLocal(), TimelineGrouping.day) == day) {
+        end++;
+      }
+    }
+    final size = end - i;
+    if (key == null || size < 2) {
+      cells.add(TimelineCell(start: i, cover: i));
+      i = end;
+      continue;
+    }
+    var cover = i;
+    for (var j = i; j < end; j++) {
+      if (items[j].id == coverOf[key]) cover = j;
+    }
+    if (unfolded.contains(key)) {
+      for (var j = i; j < end; j++) {
+        cells.add(
+          TimelineCell(
+            start: j,
+            cover: j,
+            stack: key,
+            stackSize: size,
+            leads: j == cover,
+          ),
+        );
+      }
+    } else {
+      cells.add(
+        TimelineCell(
+          start: i,
+          length: size,
+          cover: cover,
+          stack: key,
+          stackSize: size,
+          leads: true,
+        ),
+      );
+    }
+    i = end;
+  }
+  return cells;
+}

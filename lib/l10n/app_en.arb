@@ -155,6 +155,9 @@
   "mediaVideoLabel": "Video, {duration}, {date}",
   "@mediaVideoLabel": {"placeholders": {"duration": {"type": "String"}, "date": {"type": "String"}}},
   "mediaFavoriteLabel": "Favorite",
+  "mediaStackLabel": "{count, plural, =1{stack of 1 item} other{stack of {count} similar items}}, tap to show them",
+  "@mediaStackLabel": {"placeholders": {"count": {"type": "int"}}},
+  "timelineFoldStack": "Fold the stack",
 
   "viewerLoadError": "This item can't be displayed.",
   "videoPlay": "Play",

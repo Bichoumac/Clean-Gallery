@@ -2,7 +2,7 @@
 
 Browsing the device's photos and videos: the Camera and Videos timelines, the Albums tab and album pages.
 
-Last updated: 2026-10-26 — Milestone M3
+Last updated: 2026-10-28 — Milestone M6
 
 ## Purpose
 
@@ -17,6 +17,21 @@ Show every photo and video on the device, newest first, grouped by day or month,
 5. **Albums tab**: "All media" and "Favorites", then "Folders" sorted by size. Tapping one opens its timeline, with a back button.
 6. **Sort and filter**: the button next to the title opens a sheet (see below).
 7. **Duplicates**: when a grid holds extra copies, a tile above the photos opens them ([duplicates.md](duplicates.md)).
+8. **Stacks**: duplicates taken one after the other show as one thumbnail (see below).
+
+## Stacks
+
+In date order, consecutive items of one duplicate group (identical copies, a burst or similar photos) taken the same day fold into one thumbnail, a **stack**: the group's best pick on top, a lime badge with the number of items in the top right corner.
+
+- **Tap** a stack: it unfolds in place, its items in their usual order, a lime line under each. A photo of an unfolded stack opens the viewer; the round button on the best pick's thumbnail folds the stack again.
+- **Select**: a long press or a tap in selection mode selects every item of a folded stack; a drag over it too. Unfolded, each item is selected on its own.
+- Only items next to each other stack: a group member taken between two unrelated photos stays alone, and a stack never crosses midnight, so it stays in its date section.
+- An item in a certain group (copies, burst) and a similar group stacks with its certain group.
+- Stacks are keyed by their best pick, so a stack stays unfolded while the analysis regroups; they all fold again when the page is left.
+- The viewer still shows every item, stacked or not, one after the other.
+- No stacks when the grid is sorted by name, size or duration, nor in the cleanup lists, where every item is a candidate for the trash.
+
+Code: `buildCells` in [timeline.dart](../../lib/domain/timeline.dart) (pure Dart), used by `_Timeline` in [media_timeline_view.dart](../../lib/features/library/media_timeline_view.dart); the groups come from `duplicateGroupsProvider`, like the Duplicates tile.
 
 ## Selection and actions
 
@@ -151,7 +166,8 @@ Tables: `assets` (the index), `trash_entries`, `settings` (`media_index_version`
 
 ## Tests
 
-- [timeline_test.dart](../../test/domain/timeline_test.dart): day and month sections, row building, grouping by column count.
+- [timeline_test.dart](../../test/domain/timeline_test.dart): day and month sections, row building, grouping by column count, stack cells (runs, cover, midnight, unfolded).
+- [stack_test.dart](../../test/features/library/stack_test.dart): a stack folds two copies, unfolds on tap, opens the viewer unfolded, folds back, and selects all its items.
 - [media_providers_test.dart](../../test/core/media/media_providers_test.dart): first chunk then the rest, reload in place, column limits, duration formatting.
 - [media_index_test.dart](../../test/core/media/media_index_test.dart): sync plan, first and incremental syncs, analysis kept or reset, platform version change, denied and limited access, merged calls, index queries (filters, sorts, date range, folders, trash).
 - [library_test.dart](../../test/features/library/library_test.dart): headers, photo/video filters, empty, denied and limited states, albums and folder pages, opening the viewer, pinch gesture.

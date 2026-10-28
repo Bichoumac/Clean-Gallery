@@ -154,6 +154,18 @@ Hazy photos (M5 follow-up). The first launch migrates the database (schema versi
 | 9 | Duplicates, a group with a hazy photo | No *Blurry* label under it. |
 | 10 | A photo, ⓘ, last row | *S … · N … · B … · C …* and *Quality: …*; *offered as blurry* only when the photo is in the Blurry photos list. |
 
+Stacks in the timelines (product owner's request, built before the editor). Install over part 1.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 11 | Photos tab, a day with a burst or several shots of the same scene | One thumbnail with a lime badge (e.g. ⧉ 4) instead of the series; the cover is the photo marked *Best* in Duplicates. |
+| 12 | Tap the stack | It unfolds in place; a lime line under each photo; a round button on the cover. |
+| 13 | Tap a photo of the unfolded stack, then swipe in the viewer | It opens on that photo; swiping goes through every photo, stacked ones included. |
+| 14 | Back, tap the round button | The stack folds again. |
+| 15 | Long-press a folded stack | *4 selected* (all its photos); a tap on it deselects them. |
+| 16 | Sort by size; then Stats → Old screenshots | No stacks: every item shows. |
+| 17 | Photos taken between two shots of one scene, or a series around midnight | Separate thumbnails where the series is interrupted; no stack spans two days. |
+
 Part 1 results on the Galaxy A54, reported by the product owner on 2026-10-27: first test, the end of the panel was hidden (fixed: room above the navigation bar, 90 % high) and the coordinates were not clickable (fixed: they open the map app). Second test, with the hazy photo rule: all good; the product owner read the temporary measures and set the hazy threshold at 150. Item 10 added afterwards, at the product owner's request; not seen on the device yet.
 
 ### M5 — cleanup, to verify on a device

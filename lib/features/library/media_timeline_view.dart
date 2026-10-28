@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/duplicates_tile.dart';
 import 'package:clean_gallery/core/media/media_actions.dart';
 import 'package:clean_gallery/core/media/media_formatting.dart';
@@ -11,6 +12,8 @@ import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/core/router/compact_nav_bar.dart';
 import 'package:clean_gallery/domain/album.dart';
+import 'package:clean_gallery/domain/duplicate_group.dart';
+import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/domain/timeline.dart';
 import 'package:clean_gallery/features/library/fast_scroller.dart';
@@ -41,6 +44,7 @@ class MediaTimelineView extends ConsumerWidget {
     this.showBackButton = false,
     this.subtitle,
     this.summary,
+    this.stackDuplicates = true,
     super.key,
   });
 
@@ -61,6 +65,11 @@ class MediaTimelineView extends ConsumerWidget {
 
   /// Second line under the title, e.g. "42 items · 1.2 GB".
   final String? summary;
+
+  /// Whether consecutive duplicates fold into one thumbnail while the grid
+  /// is in date order. Off for cleanup lists, where every item is a
+  /// candidate for the trash.
+  final bool stackDuplicates;
 
   Future<void> _refresh(WidgetRef ref) async {
     ref.invalidate(mediaAccessProvider);
@@ -114,6 +123,7 @@ class MediaTimelineView extends ConsumerWidget {
             selection: shown,
             items: value,
             columns: columns,
+            stackDuplicates: stackDuplicates,
           ),
           AsyncError() => _Scaffolding(
             header: header,
@@ -129,6 +139,11 @@ class MediaTimelineView extends ConsumerWidget {
 /// The loaded grid: title, optional banner, then header and item rows, with
 /// a fast-scroll thumb on the right.
 ///
+/// In date order, consecutive items of one duplicate group taken the same
+/// day fold into one cell, a stack, that unfolds in place when tapped. Rows
+/// are made of cells; a cell covers one item, or every item of a folded
+/// stack.
+///
 /// Every row has a known height (headers a fixed one, item rows a cell), so
 /// the list is a [SliverVariedExtentList]: jumping far with the thumb never
 /// lays out the rows in between, and thumbnails one screen ahead are
@@ -140,6 +155,7 @@ class _Timeline extends ConsumerStatefulWidget {
     required this.selection,
     required this.items,
     required this.columns,
+    required this.stackDuplicates,
   });
 
   final Widget header;
@@ -147,6 +163,7 @@ class _Timeline extends ConsumerStatefulWidget {
   final MediaSelection selection;
   final List<MediaItem> items;
   final int columns;
+  final bool stackDuplicates;
 
   @override
   ConsumerState<_Timeline> createState() => _TimelineState();
@@ -167,8 +184,19 @@ class _TimelineState extends ConsumerState<_Timeline> {
   Offset? _dragPosition;
   Timer? _autoScroll;
 
-  /// Layout of the grid, computed once per list, column count, order, text
-  /// size and width; also used to find the item under a finger.
+  /// Keys of the stacks the user unfolded.
+  Set<String> _unfolded = const {};
+
+  /// Stack key by item id and cover id by stack key, from the duplicate
+  /// groups; recomputed when the groups change.
+  Map<String, String> _stackOf = const {};
+  Map<String, String> _coverOf = const {};
+  List<DuplicateGroup>? _stackGroups;
+
+  /// Layout of the grid, computed once per list, groups, unfolded stacks,
+  /// column count, order, text size and width; also used to find the cell
+  /// under a finger. Rows index [_cells].
+  List<TimelineCell> _cells = const [];
   List<TimelineRow> _rows = const [];
   List<double> _extents = const [];
   List<double> _offsets = const [];
@@ -212,10 +240,57 @@ class _TimelineState extends ConsumerState<_Timeline> {
     _syncSelectionMode();
   }
 
-  void _toggle(MediaItem item) {
+  /// Ids of the items under [cell]: one, or every item of a folded stack.
+  Iterable<String> _idsOf(TimelineCell cell) => [
+    for (var i = cell.start; i < cell.start + cell.length; i++)
+      widget.items[i].id,
+  ];
+
+  /// Selects the items under [cell], or deselects them if all were.
+  void _toggle(TimelineCell cell) {
+    final ids = _idsOf(cell);
     final picked = {..._picked.value};
-    if (!picked.remove(item.id)) picked.add(item.id);
+    if (picked.containsAll(ids)) {
+      picked.removeAll(ids);
+    } else {
+      picked.addAll(ids);
+    }
     _setPicked(picked);
+  }
+
+  /// Folds or unfolds the stack [key].
+  void _toggleStack(String key) {
+    unawaited(HapticFeedback.selectionClick());
+    setState(() {
+      _unfolded = _unfolded.contains(key)
+          ? ({..._unfolded}..remove(key))
+          : {..._unfolded, key};
+    });
+  }
+
+  /// Stack keys and covers of [groups]. An item in a certain group and a
+  /// similar one stacks with its certain group. A group is keyed by its
+  /// best pick, which outlives regroupings that renumber groups.
+  void _updateStacks(List<DuplicateGroup> groups) {
+    if (identical(groups, _stackGroups)) return;
+    _stackGroups = groups;
+    final stackOf = <String, String>{};
+    final coverOf = <String, String>{};
+    final ordered = [
+      for (final group in groups)
+        if (group.kind == DuplicateKind.similar) group,
+      for (final group in groups)
+        if (group.kind != DuplicateKind.similar) group,
+    ];
+    for (final group in ordered) {
+      final key = group.best.id;
+      coverOf[key] = key;
+      for (final item in group.items) {
+        stackOf[item.id] = key;
+      }
+    }
+    _stackOf = stackOf;
+    _coverOf = coverOf;
   }
 
   void _clearSelection() => _setPicked({});
@@ -241,7 +316,7 @@ class _TimelineState extends ConsumerState<_Timeline> {
     return box?.size.height ?? 0;
   }
 
-  /// Index in the items of the thumbnail under [local], a position in the
+  /// Index in [_cells] of the thumbnail under [local], a position in the
   /// scroll view, or `null` over a header or a gap.
   int? _indexAt(Offset local) {
     if (_rows.isEmpty) return null;
@@ -260,7 +335,7 @@ class _TimelineState extends ConsumerState<_Timeline> {
     unawaited(HapticFeedback.selectionClick());
     _dragAnchor = index;
     _pickedAtDragStart = {..._picked.value};
-    _dragAdds = !_picked.value.contains(widget.items[index].id);
+    _dragAdds = !_picked.value.containsAll(_idsOf(_cells[index]));
     _dragPosition = details.localPosition;
     _selectRangeTo(index);
   }
@@ -282,13 +357,17 @@ class _TimelineState extends ConsumerState<_Timeline> {
     _dragPosition = null;
   }
 
-  /// Selects (or deselects) every item between the drag anchor and [index].
+  /// Selects (or deselects) every item between the drag anchor and [index],
+  /// both cells, folded stacks included.
   void _selectRangeTo(int index) {
     final anchor = _dragAnchor;
     if (anchor == null) return;
-    final low = anchor < index ? anchor : index;
-    final high = anchor < index ? index : anchor;
-    final range = {for (var i = low; i <= high; i++) widget.items[i].id};
+    final low = _cells[anchor < index ? anchor : index];
+    final high = _cells[anchor < index ? index : anchor];
+    final range = {
+      for (var i = low.start; i < high.start + high.length; i++)
+        widget.items[i].id,
+    };
     _setPicked(
       _dragAdds
           ? _pickedAtDragStart.union(range)
@@ -325,9 +404,11 @@ class _TimelineState extends ConsumerState<_Timeline> {
       if (ids.contains(item.id)) item,
   ];
 
-  /// Recomputes rows, extents and offsets when what they depend on changed.
+  /// Recomputes cells, rows, extents and offsets when what they depend on
+  /// changed.
   void _updateLayout({
     required List<MediaItem> items,
+    required bool stacked,
     required int columns,
     required bool chronological,
     required double headerExtent,
@@ -336,6 +417,8 @@ class _TimelineState extends ConsumerState<_Timeline> {
     final key = (
       identityHashCode(items),
       items.length,
+      stacked ? identityHashCode(_stackOf) : null,
+      stacked ? identityHashCode(_unfolded) : null,
       columns,
       chronological,
       headerExtent,
@@ -344,10 +427,25 @@ class _TimelineState extends ConsumerState<_Timeline> {
     if (key == _layoutKey) return;
     _layoutKey = key;
     final grouping = groupingForColumns(columns);
-    // Date headers only make sense when the list is in date order.
+    _cells = stacked
+        ? buildCells(
+            items,
+            stackOf: _stackOf,
+            coverOf: _coverOf,
+            unfolded: _unfolded,
+          )
+        : [
+            for (var i = 0; i < items.length; i++)
+              TimelineCell(start: i, cover: i),
+          ];
+    // Date headers only make sense when the list is in date order. A stack
+    // never crosses midnight, so its cover's date is its own.
     _rows = chronological
-        ? buildRows(groupByDate(items, grouping), columns)
-        : buildFlatRows(items.length, columns);
+        ? buildRows(
+            groupByDate([for (final c in _cells) items[c.cover]], grouping),
+            columns,
+          )
+        : buildFlatRows(_cells.length, columns);
     _cell = (width - _gap * (columns - 1)) / columns;
     _extents = [
       for (final row in _rows)
@@ -368,13 +466,22 @@ class _TimelineState extends ConsumerState<_Timeline> {
     final selection = widget.selection;
     final grouping = groupingForColumns(columns);
     final screen = MediaQuery.sizeOf(context);
+    final stacked = widget.stackDuplicates && selection.sort.isChronological;
+    if (stacked) {
+      _updateStacks(
+        ref.watch(duplicateGroupsProvider(duplicateScope(selection))).value ??
+            const [],
+      );
+    }
     _updateLayout(
       items: items,
+      stacked: stacked,
       columns: columns,
       chronological: selection.sort.isChronological,
       headerExtent: sectionHeaderExtent(context),
       width: screen.width,
     );
+    final cells = _cells;
     final rows = _rows;
     final extents = _extents;
     final cell = _cell;
@@ -387,7 +494,7 @@ class _TimelineState extends ConsumerState<_Timeline> {
         TimelineHeader(:final section) => section.start,
         TimelineItems(:final start) => start,
       };
-      final item = items[index];
+      final item = items[cells[index].cover];
       return switch (selection.sort.field) {
         MediaSortField.date => formatMonth(context, item.takenAt),
         MediaSortField.size => formatBytes(context, item.sizeBytes),
@@ -400,28 +507,41 @@ class _TimelineState extends ConsumerState<_Timeline> {
     }
 
     Widget thumbnail(int index) {
-      final item = items[index];
+      final cell = cells[index];
+      final item = items[cell.cover];
+      final stack = cell.stack;
       // Only this cell rebuilds when the selection changes.
       return ValueListenableBuilder<Set<String>>(
         valueListenable: _picked,
         builder: (context, picked, _) {
           final selecting = picked.isNotEmpty;
-          return _Selectable(
-            selected: selecting ? picked.contains(item.id) : null,
-            child: MediaThumbnail(
-              item: item,
-              pixelSize: pixelSize,
-              hero: !selecting,
-              onTap: selecting
-                  ? () => _toggle(item)
-                  : () => context.push(
-                      AppRoutes.viewer,
-                      extra: ViewerArgs(
-                        selection: selection,
-                        initialIndex: index,
-                      ),
+          final Widget image = MediaThumbnail(
+            item: item,
+            pixelSize: pixelSize,
+            hero: !selecting,
+            stackSize: cell.folded ? cell.length : null,
+            onTap: selecting
+                ? () => _toggle(cell)
+                : cell.folded
+                ? () => _toggleStack(stack!)
+                : () => context.push(
+                    AppRoutes.viewer,
+                    extra: ViewerArgs(
+                      selection: selection,
+                      initialIndex: cell.cover,
                     ),
-            ),
+                  ),
+          );
+          return _Selectable(
+            selected: selecting ? picked.containsAll(_idsOf(cell)) : null,
+            child: stack == null || cell.folded
+                ? image
+                : _UnfoldedStackMember(
+                    onFold: cell.leads && !selecting
+                        ? () => _toggleStack(stack)
+                        : null,
+                    child: image,
+                  ),
           );
         },
       );
@@ -609,6 +729,62 @@ class _Selectable extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// A thumbnail of an unfolded stack: a lime line along its bottom ties the
+/// stack's items together, and the cover carries a button that folds the
+/// stack again ([onFold]).
+class _UnfoldedStackMember extends StatelessWidget {
+  const _UnfoldedStackMember({required this.onFold, required this.child});
+
+  final VoidCallback? onFold;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final onFold = this.onFold;
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        child,
+        Positioned(
+          left: 0,
+          right: 0,
+          bottom: 0,
+          height: 3,
+          child: IgnorePointer(child: ColoredBox(color: colors.primary)),
+        ),
+        if (onFold != null)
+          Positioned(
+            top: 0,
+            right: 0,
+            child: Semantics(
+              button: true,
+              label: AppLocalizations.of(context).timelineFoldStack,
+              excludeSemantics: true,
+              child: GestureDetector(
+                behavior: HitTestBehavior.opaque,
+                onTap: onFold,
+                // A 40-pixel target around the small pill.
+                child: Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: CircleAvatar(
+                    radius: 14,
+                    backgroundColor: colors.primaryContainer,
+                    child: Icon(
+                      Icons.unfold_less_rounded,
+                      size: 18,
+                      color: colors.onPrimaryContainer,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+      ],
     );
   }
 }

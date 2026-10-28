@@ -2,12 +2,13 @@
 
 All notable changes to this project are documented here, one section per milestone. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-10-27 — Milestone M6
+Last updated: 2026-10-28 — Milestone M6
 
 ## [Unreleased]
 
 ### Added
 
+- **Stacks** in the timelines: consecutive items of one duplicate group (copies, burst, similar photos) taken the same day show as one thumbnail with a count badge, the best pick on top; a tap unfolds the stack in place, a button folds it again; selecting a folded stack selects all its items. Not in cleanup lists nor in name, size or duration order ([docs/features/library.md](docs/features/library.md#stacks)).
 - Viewer: an **info panel** (Details button), sliding up over a blurred, translucent background: date and where it comes from, name, path, resolution, size, duration, camera, lens, ISO, aperture, shutter speed, focal length and location ([docs/features/viewer.md](docs/features/viewer.md#info-panel)).
 - Native method `mediaMetadata`: EXIF of a photo, location of a video.
 - Info panel: the location opens the map app; a button copies the coordinates.

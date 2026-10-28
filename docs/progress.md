@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-10-27 — Milestone M6
+Last updated: 2026-10-28 — Milestone M6
 
 ## Milestones
 
@@ -14,29 +14,32 @@ Last updated: 2026-10-27 — Milestone M6
 | M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Merged into `main` (PR #4) |
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Merged into `main` (PR #5) |
 | M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Merged into `main` (PR #6) |
-| M6 | Advanced viewer and editing | In progress on `m6-viewer` (pushed): part 1 (info panel) and the hazy photo rule confirmed on the phone; parts 2 and 3 to do |
+| M6 | Advanced viewer and editing | In progress on `m6-viewer`: part 1 (info panel) and the hazy photo rule confirmed on the phone; stacks in the timelines done, to test; parts 2 and 3 to do |
 | M7 | Exploration: map, search | Not started |
 | M8 | Monetization | Not started |
 | M9 | Polish and release preparation | Not started |
 
 ## M6 — Advanced viewer and editing
 
-In parts, each tested on the phone: 1. the info panel; 2. the editor (crop, rotate, flip, adjustments); 3. filters and saving.
+In parts, each tested on the phone: 1. the info panel; stacks in the timelines (added at the product owner's request on 2026-10-28, before the editor); 2. the editor (crop, rotate, flip, adjustments); 3. filters and saving.
 
 ### Done
 
 - **Hazy photos are no longer blurry** (M5 follow-up): contrast measured and stored (schema version 4), blurry = sharpness below 30 and relative sharpness below 150, threshold read on the product owner's photos; only photos below 30 are analysed again ([ADR 0021](decisions/0021-hazy-photos-are-not-blurry.md)).
 - **Info panel** (part 1): a Details button in the viewer opens a bottom sheet over a blurred, translucent background with the date and its source, name, path, resolution, size, duration, camera, lens, ISO, aperture, shutter speed, focal length and location; EXIF read by the new native method `mediaMetadata` ([features/viewer.md](features/viewer.md#info-panel)). After the first device test: the panel ends above the navigation bar and takes up to 90 % of the screen; the location opens the map app (`openMap`), a button copies it.
+- **Stacks in the timelines**, asked by the product owner on 2026-10-28 before the editor: consecutive items of one duplicate group taken the same day fold into one thumbnail with a count badge; a tap unfolds it in place, a button on its cover folds it again; selecting a folded stack selects all its items. All groups stack (copies, bursts, similar photos); not in cleanup lists nor in name, size or duration order ([features/library.md](features/library.md#stacks)).
 - **Quality measures in the info panel**, at the product owner's request: sharpness (S), relative sharpness (N), brightness (B) and contrast (C) of the photo, measured by the engine's own code, and whether it is offered as blurry or too dark. Kept so the thresholds can be checked on real photos.
 
 ### Decisions
 
+- **Stacks**: every kind of group stacks, and a tap unfolds the stack in place (rather than opening the viewer or the duplicates screen). Chosen by the product owner on 2026-10-28.
 - The info panel's **mini map moves to M7**, with the map itself (`flutter_map` and OpenStreetMap tiles): the location shows as coordinates until then. A deviation from the brief, approved by the product owner on 2026-10-27.
 
 ### Known issues
 
 - Part 1 and the hazy photo rule confirmed on the Galaxy A54 on 2026-10-27 ("all good", [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device)). The quality row added afterwards is covered by a test, not seen on the device yet.
 - The hazy threshold (150) comes from a handful of photos; the quality row lets the product owner report others.
+- **Stacks** are covered by tests (255 in all), not seen on the device yet ([testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device), items 11 to 17). Stacks show once the analysis has grouped the photos; there is no setting to turn them off.
 
 ### Next steps
 
@@ -55,7 +58,7 @@ Plan to resume, in order. Each part ends with a commit, a release build installe
    - the new photo indexed at once and shown in the viewer.
 3. **End of M6**: summary, test instructions and known issues; `CHANGELOG.md` section, pull request file (title and description) and the link `https://github.com/Bichoumac/Clean-Gallery/pull/new/m6-viewer`.
 4. **M7**: map (`flutter_map`, OpenStreetMap tiles with a proper user agent and attribution, marker clusters with thumbnails), the info panel's **mini map**, search with combinable filters.
-5. Later: stack similar photos in the timelines (product owner's request); sort mode entry from album pages.
+5. Later: sort mode entry from album pages.
 
 ## M5 — Cleanup
 
@@ -82,7 +85,7 @@ Three parts, each committed and tested on the phone: 1. old screenshots and larg
 
 ### Next steps
 
-1. Later: stack similar photos in the timelines (product owner's request).
+1. Stack similar photos in the timelines: done in M6 (2026-10-28).
 
 ## M4 — Engine level 2
 

@@ -30,6 +30,8 @@ class CleanupListScreen extends ConsumerWidget {
 
     return MediaTimelineView(
       selection: selection,
+      // Every item here is a candidate for the trash: none hides in a stack.
+      stackDuplicates: false,
       title: switch (list) {
         CleanupList.screenshots => l10n.cleanupScreenshotsTitle,
         CleanupList.largeVideos => l10n.cleanupLargeVideosTitle,
