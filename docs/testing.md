@@ -190,6 +190,8 @@ Group strip in the viewer.
 | 30 | **Garder** | A lime check on the thumbnail; the next photo to sort shows. |
 | 31 | A photo outside any group; a video; tap the photo | No strip on the first two; the strip hides and shows with the top bar. |
 
+Results on the Galaxy A54, reported by the product owner on 2026-10-28 after installing commit `369e8b8`: stacks, map and group strip, "everything works" (items 11 to 31). The time taken by the first reading of locations was not reported.
+
 Part 1 results on the Galaxy A54, reported by the product owner on 2026-10-27: first test, the end of the panel was hidden (fixed: room above the navigation bar, 90 % high) and the coordinates were not clickable (fixed: they open the map app). Second test, with the hazy photo rule: all good; the product owner read the temporary measures and set the hazy threshold at 150. Item 10 added afterwards, at the product owner's request; not seen on the device yet.
 
 ### M5 — cleanup, to verify on a device

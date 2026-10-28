@@ -14,7 +14,7 @@ Last updated: 2026-10-28 — Milestone M6
 | M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Merged into `main` (PR #4) |
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Merged into `main` (PR #5) |
 | M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Merged into `main` (PR #6) |
-| M6 | Advanced viewer and editing | In progress on `m6-viewer`: part 1 (info panel) and the hazy photo rule confirmed on the phone; stacks in the timelines, the map (from M7) and the viewer's group strip done, to test; parts 2 and 3 to do |
+| M6 | Advanced viewer and editing | In progress on `m6-viewer`: part 1 (info panel) and the hazy photo rule confirmed on the phone; stacks in the timelines, the map (from M7) and the viewer's group strip confirmed on the phone; parts 2 and 3 to do |
 | M7 | Exploration: map, search | Map and mini map built early in M6 (2026-10-28); search not started |
 | M8 | Monetization | Not started |
 | M9 | Polish and release preparation | Not started |
@@ -42,9 +42,8 @@ In parts, each tested on the phone: 1. the info panel; stacks in the timelines a
 
 - Part 1 and the hazy photo rule confirmed on the Galaxy A54 on 2026-10-27 ("all good", [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device)). The quality row added afterwards is covered by a test, not seen on the device yet.
 - The hazy threshold (150) comes from a handful of photos; the quality row lets the product owner report others.
-- **The group strip** is covered by tests (277 in all), not seen on the device yet (items 26 to 31). Kept checks are not saved.
-- **The map** was installed on the phone on 2026-10-28, not reported on yet ([testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device), items 18 to 25). The first reading of every location after the update has not been timed on the phone.
-- **Stacks** are covered by tests, not seen on the device yet ([testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device), items 11 to 17). Stacks show once the analysis has grouped the photos; there is no setting to turn them off.
+- **Stacks, map and group strip confirmed on the Galaxy A54** on 2026-10-28 ("everything works", [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device), items 11 to 31); 277 tests. The first reading of every location was not timed. Kept checks of the group strip are not saved.
+- **Stacks** show once the analysis has grouped the photos; there is no setting to turn them off.
 
 ### Next steps
 
