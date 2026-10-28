@@ -200,6 +200,8 @@ Info panel and sorts by duplicates (after the results below).
 | 35 | Albums → All media → sort → *Doublons* | The largest groups first, each group's photos together, photos without duplicates at the end. |
 | 36 | Albums tab, sort button next to *Dossiers* → *Doublons* | Folders with the most duplicates first, each reading "N éléments · M doublons". |
 
+Results on the Galaxy A54, reported by the product owner on 2026-10-28 after installing commit `6c2fe5c`: "everything works" (items 32 to 36).
+
 Results on the Galaxy A54, reported by the product owner on 2026-10-28 after installing commit `369e8b8`: stacks, map and group strip, "everything works" (items 11 to 31). The time taken by the first reading of locations was not reported.
 
 Part 1 results on the Galaxy A54, reported by the product owner on 2026-10-27: first test, the end of the panel was hidden (fixed: room above the navigation bar, 90 % high) and the coordinates were not clickable (fixed: they open the map app). Second test, with the hazy photo rule: all good; the product owner read the temporary measures and set the hazy threshold at 150. Item 10 added afterwards, at the product owner's request; not seen on the device yet.

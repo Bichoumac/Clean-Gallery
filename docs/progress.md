@@ -44,7 +44,7 @@ In parts, each tested on the phone: 1. the info panel; stacks in the timelines a
 
 - Part 1 and the hazy photo rule confirmed on the Galaxy A54 on 2026-10-27 ("all good", [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device)). The quality row added afterwards is covered by a test, not seen on the device yet.
 - The hazy threshold (150) comes from a handful of photos; the quality row lets the product owner report others.
-- **Stacks, map and group strip confirmed on the Galaxy A54** on 2026-10-28 ("everything works", [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device), items 11 to 31); 277 tests then. The info panel change and the duplicates sorts came after (287 tests), not seen on the device yet. The first reading of every location was not timed. Kept checks of the group strip are not saved.
+- **Stacks, map and group strip confirmed on the Galaxy A54** on 2026-10-28 ("everything works", [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device), items 11 to 31); then the info panel change and the duplicates sorts, also confirmed the same day (items 32 to 36); 287 tests. The first reading of every location was not timed. Kept checks of the group strip are not saved.
 - **Stacks** show once the analysis has grouped the photos; there is no setting to turn them off.
 
 ### Next steps
