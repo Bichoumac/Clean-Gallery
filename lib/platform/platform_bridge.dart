@@ -1,5 +1,6 @@
+import 'dart:typed_data';
+
 import 'package:clean_gallery/domain/media_item.dart';
-import 'package:clean_gallery/domain/photo_edit.dart';
 
 /// Platform-specific features that the Dart packages do not cover.
 ///
@@ -44,14 +45,15 @@ abstract interface class PlatformBridge {
   /// app can show a location.
   Future<bool> openMap(double latitude, double longitude);
 
-  /// Saves [photo] with [edit] applied as a new JPEG photo in the same
+  /// Saves an edited copy of [photo] as a new JPEG photo in the same
   /// folder, with the same capture date and the original's metadata (EXIF)
-  /// except its orientation and size. [colorMatrix] is the 4 × 5 matrix of
-  /// the edit's colors, as previewed. Returns the new photo's id. The
-  /// original is not changed.
+  /// except its orientation and size. [rgba] holds [width] × [height]
+  /// opaque pixels, 4 bytes each, row by row: the edit already applied.
+  /// Returns the new photo's id. The original is not changed.
   Future<String> saveEditedPhoto(
-    MediaItem photo,
-    PhotoEdit edit, {
-    required List<double> colorMatrix,
+    MediaItem photo, {
+    required int width,
+    required int height,
+    required Uint8List rgba,
   });
 }

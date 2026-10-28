@@ -83,18 +83,29 @@ class PhotoEditor extends _$PhotoEditor {
     );
   }
 
-  /// Starts a line at [point] (fractions of the rotated photo).
+  /// Straightens the photo by [degrees] (-45 to 45).
+  void straighten(double degrees) => state = state.copyWith(
+    edit: state.edit.copyWith(angle: degrees.clamp(-45, 45)),
+  );
+
+  /// Replaces every color adjustment, e.g. with "Enhance".
+  void setAdjustments(Adjustments adjustments) => state = state.copyWith(
+    edit: state.edit.copyWith(adjustments: adjustments),
+  );
+
+  /// Starts a line of [kind] at [point] (fractions of the rotated photo).
   void startStroke(
     (double, double) point, {
     required int color,
     required double width,
+    StrokeKind kind = StrokeKind.pen,
   }) {
     final edit = state.edit;
     state = state.copyWith(
       edit: edit.copyWith(
         strokes: [
           ...edit.strokes,
-          Stroke(points: [point], color: color, width: width),
+          Stroke(kind: kind, points: [point], color: color, width: width),
         ],
       ),
     );
@@ -124,6 +135,41 @@ class PhotoEditor extends _$PhotoEditor {
         strokes: strokes.sublist(0, strokes.length - 1),
       ),
     );
+  }
+
+  /// Adds [text]; returns its index.
+  int addText(TextItem text) {
+    final texts = [...state.edit.texts, text];
+    state = state.copyWith(edit: state.edit.copyWith(texts: texts));
+    return texts.length - 1;
+  }
+
+  /// Replaces text [index] with [text].
+  void updateText(int index, TextItem text) {
+    final texts = [...state.edit.texts];
+    if (index < 0 || index >= texts.length) return;
+    texts[index] = text;
+    state = state.copyWith(edit: state.edit.copyWith(texts: texts));
+  }
+
+  /// Moves text [index] by [dx], [dy] (fractions), keeping its center on
+  /// the photo.
+  void moveText(int index, double dx, double dy) {
+    final texts = state.edit.texts;
+    if (index < 0 || index >= texts.length) return;
+    final text = texts[index];
+    updateText(
+      index,
+      text.copyWith(x: (text.x + dx).clamp(0, 1), y: (text.y + dy).clamp(0, 1)),
+    );
+  }
+
+  /// Removes text [index].
+  void removeText(int index) {
+    final texts = [...state.edit.texts];
+    if (index < 0 || index >= texts.length) return;
+    texts.removeAt(index);
+    state = state.copyWith(edit: state.edit.copyWith(texts: texts));
   }
 
   /// Back to the photo as it was.

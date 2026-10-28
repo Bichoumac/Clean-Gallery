@@ -6,46 +6,29 @@ import android.content.ContentValues
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.graphics.Canvas
-import android.graphics.ColorMatrix
-import android.graphics.ColorMatrixColorFilter
-import android.graphics.Matrix
-import android.graphics.Paint
-import android.graphics.Path
 import android.provider.MediaStore
 import androidx.exifinterface.media.ExifInterface
 import java.io.IOException
-import kotlin.math.min
-import kotlin.math.roundToInt
+import java.nio.ByteBuffer
 
 /**
- * Saves an edited photo as a new JPEG, with the same geometry and colors as
- * the editor's preview (`paintEdit` in `editor_screen.dart`): EXIF
- * orientation, then quarter turns, flip, color matrix, pencil strokes, and
- * the crop. The original is never changed.
+ * Saves an edited photo as a new JPEG next to its original. The pixels come
+ * from the editor, which renders the edit at full resolution with the same
+ * code as its preview; this class only encodes them, inserts the photo with
+ * MediaStore and copies the original's EXIF tags. The original is never
+ * changed.
  */
 class PhotoSaver(private val context: Context) {
     private val resolver = context.contentResolver
 
-    /** One pencil line: points in fractions of the rotated photo. */
-    data class Stroke(val color: Int, val width: Double, val points: List<Double>)
-
     /**
-     * Writes photo [id] edited as a new photo in the same folder, with the
-     * same capture date and the original's EXIF tags (orientation set to
-     * normal, new size). [crop] is `left, top, right, bottom` in fractions
-     * of the rotated photo; [matrix] the 20 numbers of a 4 × 5 color
-     * matrix. Returns the new photo's MediaStore id.
+     * Writes [rgba] ([width] × [height] opaque pixels, 4 bytes each) as a
+     * new photo in the folder of photo [id], with its capture date and EXIF
+     * tags (orientation set to normal, new size). Returns the new photo's
+     * MediaStore id.
      */
-    fun save(
-        id: Long,
-        quarterTurns: Int,
-        flipped: Boolean,
-        crop: List<Double>,
-        matrix: List<Double>,
-        strokes: List<Stroke>,
-    ): String {
+    fun save(id: Long, width: Int, height: Int, rgba: ByteArray): String {
+        require(rgba.size == width * height * 4) { "expected $width × $height RGBA pixels" }
         var source = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
         // The GPS tags are only readable from the original with this.
         if (context.checkSelfPermission(Manifest.permission.ACCESS_MEDIA_LOCATION) ==
@@ -55,84 +38,10 @@ class PhotoSaver(private val context: Context) {
         }
         val exif = resolver.openInputStream(source)?.use { ExifInterface(it) }
             ?: throw IOException("cannot read $id")
-        val bitmap = upright(decode(source), exif.rotationDegrees, exif.isFlipped)
-
-        // Size of the photo once turned, and the crop in its pixels.
-        val turned = quarterTurns % 2 == 1
-        val width = if (turned) bitmap.height else bitmap.width
-        val height = if (turned) bitmap.width else bitmap.height
-        val left = (crop[0] * width).roundToInt().coerceIn(0, width - 1)
-        val top = (crop[1] * height).roundToInt().coerceIn(0, height - 1)
-        val right = (crop[2] * width).roundToInt().coerceIn(left + 1, width)
-        val bottom = (crop[3] * height).roundToInt().coerceIn(top + 1, height)
-
-        val out = Bitmap.createBitmap(right - left, bottom - top, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(out)
-        canvas.translate(-left.toFloat(), -top.toFloat())
-        canvas.save()
-        canvas.translate(width / 2f, height / 2f)
-        if (flipped) canvas.scale(-1f, 1f)
-        canvas.rotate(90f * quarterTurns)
-        val paint = Paint(Paint.FILTER_BITMAP_FLAG).apply {
-            colorFilter = ColorMatrixColorFilter(ColorMatrix(FloatArray(20) { matrix[it].toFloat() }))
-        }
-        canvas.drawBitmap(bitmap, -bitmap.width / 2f, -bitmap.height / 2f, paint)
-        canvas.restore()
-        bitmap.recycle()
-
-        val shorter = min(width, height).toFloat()
-        for (stroke in strokes) {
-            val pen = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = stroke.color
-                style = Paint.Style.STROKE
-                strokeWidth = (stroke.width * shorter).toFloat()
-                strokeCap = Paint.Cap.ROUND
-                strokeJoin = Paint.Join.ROUND
-            }
-            val path = Path()
-            for (i in stroke.points.indices step 2) {
-                val x = (stroke.points[i] * width).toFloat()
-                val y = (stroke.points[i + 1] * height).toFloat()
-                if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
-                // A single tap draws a dot: a line too short to see, with
-                // round caps.
-                if (stroke.points.size == 2) path.lineTo(x + 0.01f, y)
-            }
-            canvas.drawPath(path, pen)
-        }
-
-        return insert(id, out, exif)
-    }
-
-    /**
-     * Decodes [uri], halved as many times as needed to stay under
-     * [MAX_PIXELS], so a large photo cannot run out of memory.
-     */
-    private fun decode(uri: android.net.Uri): Bitmap {
-        val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) }
-        var sample = 1
-        while (bounds.outWidth.toLong() * bounds.outHeight / (sample.toLong() * sample) > MAX_PIXELS) {
-            sample *= 2
-        }
-        val options = BitmapFactory.Options().apply {
-            inSampleSize = sample
-            inPreferredConfig = Bitmap.Config.ARGB_8888
-        }
-        return resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, options) }
-            ?: throw IOException("cannot decode $uri")
-    }
-
-    /** [bitmap] turned and mirrored as its EXIF orientation says. */
-    private fun upright(bitmap: Bitmap, degrees: Int, mirrored: Boolean): Bitmap {
-        if (degrees == 0 && !mirrored) return bitmap
-        val transform = Matrix().apply {
-            if (mirrored) postScale(-1f, 1f)
-            postRotate(degrees.toFloat())
-        }
-        val turned = Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, transform, true)
-        if (turned != bitmap) bitmap.recycle()
-        return turned
+        val image = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        // ARGB_8888 holds its bytes as R, G, B, A: the editor's order.
+        image.copyPixelsFromBuffer(ByteBuffer.wrap(rgba))
+        return insert(id, image, exif)
     }
 
     /** Inserts [image] as a JPEG next to photo [id], with its EXIF tags. */
@@ -192,9 +101,6 @@ class PhotoSaver(private val context: Context) {
     }
 
     private companion object {
-        /** Largest photo decoded in full: 40 MP, 160 MB of pixels. */
-        const val MAX_PIXELS = 40_000_000L
-
         const val JPEG_QUALITY = 95
 
         /** EXIF tags copied from the original: camera, settings, dates, place. */

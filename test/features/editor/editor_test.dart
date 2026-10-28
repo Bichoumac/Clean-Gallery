@@ -52,6 +52,42 @@ void main() {
     expect(loading, findsNothing);
   }
 
+  /// Lets the full-size render run (outside the fake clock) until the
+  /// editor closes.
+  Future<void> waitForSave(WidgetTester tester) async {
+    for (
+      var i = 0;
+      i < 50 && find.byType(EditorScreen).evaluate().isNotEmpty;
+      i++
+    ) {
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 20)),
+      );
+      await tester.pump();
+    }
+    await tester.pumpAndSettle();
+  }
+
+  /// Taps the chip [label] of a tool row, scrolling the row to it first.
+  Future<void> tapChip(WidgetTester tester, String label) async {
+    final chip = find.text(label);
+    await tester.scrollUntilVisible(
+      chip,
+      100,
+      scrollable: find
+          .descendant(
+            of: find.byType(EditorScreen),
+            matching: find.byWidgetPredicate(
+              (w) => w is Scrollable && w.axisDirection == AxisDirection.right,
+            ),
+          )
+          .first,
+    );
+    await tester.ensureVisible(chip);
+    await tester.pumpAndSettle();
+    await tester.tap(chip);
+  }
+
   PhotoEditorState editorState(WidgetTester tester) {
     final screen = find.byType(EditorScreen);
     return ProviderScope.containerOf(tester.element(screen))
@@ -87,7 +123,7 @@ void main() {
 
   testApp('a slider adjusts; closing with changes asks first', (tester) async {
     await openEditor(tester);
-    await tester.tap(find.text('Adjust'));
+    await tester.tap(find.byTooltip('Adjust'));
     await tester.pumpAndSettle();
     await tester.drag(find.byType(Slider), const Offset(80, 0));
     await tester.pumpAndSettle();
@@ -135,7 +171,7 @@ void main() {
 
   testApp('the pencil draws lines, undone one by one', (tester) async {
     await openEditor(tester);
-    await tester.tap(find.text('Draw'));
+    await tester.tap(find.byTooltip('Draw'));
     await tester.pumpAndSettle();
     final area = find.bySemanticsLabel(RegExp('Drawing area'));
     await tester.drag(area, const Offset(80, 30));
@@ -148,6 +184,102 @@ void main() {
     await tester.tap(find.text('Undo'));
     await tester.pumpAndSettle();
     expect(editorState(tester).edit.strokes, hasLength(1));
+  });
+
+  testApp('the straighten slider turns the photo by degrees', (tester) async {
+    await openEditor(tester);
+    final slider = find.byWidgetPredicate((w) => w is Slider && w.min == -45);
+    await tester.drag(slider, const Offset(60, 0));
+    await tester.pumpAndSettle();
+    final angle = editorState(tester).edit.angle;
+    expect(angle, greaterThan(0));
+    await tester.tap(find.text('${angle.toStringAsFixed(1)}°'));
+    await tester.pumpAndSettle();
+    expect(editorState(tester).edit.angle, 0);
+  });
+
+  testApp('Enhance sets the sliders; Vignette is one of them', (tester) async {
+    await openEditor(tester);
+    await tester.tap(find.byTooltip('Adjust'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Enhance'));
+    // The histogram is read from the decoded preview.
+    await tester.runAsync(
+      () => Future<void>.delayed(const Duration(milliseconds: 100)),
+    );
+    await tester.pumpAndSettle();
+    expect(editorState(tester).edit.adjustments.saturation, greaterThan(0));
+
+    await tapChip(tester, 'Vignette');
+    await tester.pumpAndSettle();
+    await tester.drag(find.byType(Slider), const Offset(60, 0));
+    await tester.pumpAndSettle();
+    expect(editorState(tester).edit.adjustments.vignette, greaterThan(0));
+  });
+
+  testApp('Before/After shows the original while held', (tester) async {
+    await openEditor(tester);
+    await tester.tap(find.text('Rotate'));
+    await tester.pumpAndSettle();
+    expect(find.bySemanticsLabel(RegExp('Crop area')), findsOneWidget);
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byTooltip('Hold to see the original')),
+    );
+    await tester.pump();
+    // The plain photo, without the crop frame.
+    expect(find.bySemanticsLabel(RegExp('Crop area')), findsNothing);
+    await gesture.up();
+    await tester.pump();
+    expect(find.bySemanticsLabel(RegExp('Crop area')), findsOneWidget);
+  });
+
+  testApp('the blur brush draws blurred areas', (tester) async {
+    await openEditor(tester);
+    await tester.tap(find.byTooltip('Draw'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Blur'));
+    await tester.pumpAndSettle();
+    await tester.drag(
+      find.bySemanticsLabel(RegExp('Drawing area')),
+      const Offset(60, 20),
+    );
+    await tester.pumpAndSettle();
+    final stroke = editorState(tester).edit.strokes.single;
+    expect(stroke.kind, StrokeKind.blur);
+    expect(stroke.width, greaterThan(0.03));
+  });
+
+  testApp('a text is added, restyled, moved and deleted', (tester) async {
+    await openEditor(tester);
+    await tester.tap(find.byTooltip('Text'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Add text'));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byType(TextField), 'Hello');
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    var text = editorState(tester).edit.texts.single;
+    expect(text.text, 'Hello');
+    expect((text.x, text.y), (0.5, 0.5));
+
+    // In the order of the row, which only scrolls one way here.
+    await tapChip(tester, 'Classic');
+    await tester.pumpAndSettle();
+    await tapChip(tester, 'Bold');
+    await tester.pumpAndSettle();
+    text = editorState(tester).edit.texts.single;
+    expect(text.bold, isTrue);
+    expect(text.font, TextFont.serif);
+
+    final area = find.bySemanticsLabel(RegExp('Texts:'));
+    await tester.dragFrom(tester.getCenter(area), const Offset(40, 0));
+    await tester.pumpAndSettle();
+    expect(editorState(tester).edit.texts.single.x, greaterThan(0.5));
+
+    await tapChip(tester, 'Delete');
+    await tester.pumpAndSettle();
+    expect(editorState(tester).edit.texts, isEmpty);
+    expect(find.text('Add text'), findsOneWidget);
   });
 
   testApp('Save as a copy saves the edit and shows the new photo', (
@@ -165,10 +297,9 @@ void main() {
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Save as a copy'));
-    await tester.pumpAndSettle();
+    await waitForSave(tester);
 
     expect(bridge.savedEdits.single.$1, '1');
-    expect(bridge.savedEdits.single.$2.quarterTurns, 1);
     expect(find.byType(EditorScreen), findsNothing);
     expect(find.text('Copy saved'), findsOneWidget);
     expect(find.text('IMG_9.jpg'), findsOneWidget);
@@ -187,7 +318,7 @@ void main() {
     await tester.tap(find.text('Save'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Replace the original'));
-    await tester.pumpAndSettle();
+    await waitForSave(tester);
 
     expect(
       find.text('Photo replaced; the original is in the trash'),

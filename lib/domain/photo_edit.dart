@@ -189,6 +189,10 @@ abstract class Adjustments with _$Adjustments {
     @Default(0) double saturation,
     @Default(0) double exposure,
     @Default(0) double warmth,
+
+    /// Darker edges (positive) or lighter edges (negative), drawing the eye
+    /// to the center. Not a color matrix: painted as a radial gradient.
+    @Default(0) double vignette,
   }) = _Adjustments;
 
   const Adjustments._();
@@ -199,7 +203,8 @@ abstract class Adjustments with _$Adjustments {
       contrast == 0 &&
       saturation == 0 &&
       exposure == 0 &&
-      warmth == 0;
+      warmth == 0 &&
+      vignette == 0;
 }
 
 /// One of the [Adjustments].
@@ -217,7 +222,10 @@ enum Adjustment {
   exposure,
 
   /// Warmer (orange) or cooler (blue).
-  warmth;
+  warmth,
+
+  /// Darker (or lighter) edges.
+  vignette;
 
   /// The value of this adjustment in [adjustments].
   double of(Adjustments adjustments) => switch (this) {
@@ -226,6 +234,7 @@ enum Adjustment {
     saturation => adjustments.saturation,
     exposure => adjustments.exposure,
     warmth => adjustments.warmth,
+    vignette => adjustments.vignette,
   };
 
   /// [adjustments] with this adjustment set to [value].
@@ -235,10 +244,23 @@ enum Adjustment {
     saturation => adjustments.copyWith(saturation: value),
     exposure => adjustments.copyWith(exposure: value),
     warmth => adjustments.copyWith(warmth: value),
+    vignette => adjustments.copyWith(vignette: value),
   };
 }
 
-/// A line drawn with the pencil, over the colors of the photo.
+/// What a [Stroke] does where it passes.
+enum StrokeKind {
+  /// Paints a line of its color.
+  pen,
+
+  /// Blurs the photo, e.g. a face or a plate.
+  blur,
+
+  /// Turns the photo into large squares.
+  pixelate,
+}
+
+/// A line drawn with the pencil: a color, or a blurred or pixelated area.
 @freezed
 abstract class Stroke with _$Stroke {
   /// Creates a stroke.
@@ -253,6 +275,9 @@ abstract class Stroke with _$Stroke {
     /// Line width, as a fraction of the photo's shorter side, which turning
     /// the photo does not change.
     required double width,
+
+    /// What the line does.
+    @Default(StrokeKind.pen) StrokeKind kind,
   }) = _Stroke;
 
   const Stroke._();
@@ -264,6 +289,64 @@ abstract class Stroke with _$Stroke {
   /// The same line once the photo is mirrored left to right.
   Stroke flipped() =>
       copyWith(points: [for (final (x, y) in points) (1 - x, y)]);
+}
+
+/// Typeface of a [TextItem].
+enum TextFont {
+  /// The app's own font (Manrope).
+  sans,
+
+  /// A serif face.
+  serif,
+
+  /// A fixed-width face.
+  mono,
+
+  /// A handwriting face.
+  hand,
+}
+
+/// A text placed on the photo.
+@freezed
+abstract class TextItem with _$TextItem {
+  /// Creates a text.
+  const factory TextItem({
+    required String text,
+
+    /// Center, in fractions of the rotated photo (like the crop).
+    required double x,
+    required double y,
+
+    /// Letter height, as a fraction of the photo's shorter side.
+    @Default(0.06) double size,
+
+    /// Color as 0xAARRGGBB.
+    @Default(0xFFFFFFFF) int color,
+
+    /// Box color behind the text as 0xAARRGGBB, or `null` for none.
+    int? background,
+    @Default(TextFont.sans) TextFont font,
+    @Default(false) bool bold,
+  }) = _TextItem;
+
+  const TextItem._();
+
+  /// The same text once the photo is turned a quarter clockwise: it moves
+  /// with the photo and stays upright.
+  TextItem rotatedClockwise() => copyWith(x: 1 - y, y: x);
+
+  /// The same text once the photo is mirrored: it moves, still readable.
+  TextItem flipped() => copyWith(x: 1 - x);
+}
+
+/// Scale that makes a photo of [ratio] (width / height) turned by
+/// [degrees] cover its own frame, so straightening leaves no empty corner.
+double straightenScale(double degrees, double ratio) {
+  if (degrees == 0) return 1;
+  final a = degrees.abs() * math.pi / 180;
+  final c = math.cos(a);
+  final s = math.sin(a);
+  return math.max(c + s / ratio, c + s * ratio);
 }
 
 /// Everything the editor changes in a photo, as plain data: applied in this
@@ -288,6 +371,13 @@ abstract class PhotoEdit with _$PhotoEdit {
 
     /// Lines drawn with the pencil, oldest first.
     @Default(<Stroke>[]) List<Stroke> strokes,
+
+    /// Fine rotation in degrees, -45 to 45, clockwise, to straighten a
+    /// horizon; the photo is enlarged so that no corner is empty.
+    @Default(0) double angle,
+
+    /// Texts, drawn last.
+    @Default(<TextItem>[]) List<TextItem> texts,
   }) = _PhotoEdit;
 
   const PhotoEdit._();
@@ -298,7 +388,9 @@ abstract class PhotoEdit with _$PhotoEdit {
       !flipped &&
       crop.isFull &&
       adjustments.isNeutral &&
-      strokes.isEmpty;
+      strokes.isEmpty &&
+      angle == 0 &&
+      texts.isEmpty;
 
   /// Turned a quarter clockwise; the crop and the drawing turn with the
   /// photo.
@@ -306,6 +398,7 @@ abstract class PhotoEdit with _$PhotoEdit {
     quarterTurns: (quarterTurns + 1) % 4,
     crop: crop.rotatedClockwise(),
     strokes: [for (final s in strokes) s.rotatedClockwise()],
+    texts: [for (final t in texts) t.rotatedClockwise()],
   );
 
   /// Mirrored left to right; the crop and the drawing are mirrored with
@@ -314,6 +407,8 @@ abstract class PhotoEdit with _$PhotoEdit {
     flipped: !flipped,
     crop: crop.flipped(),
     strokes: [for (final s in strokes) s.flipped()],
+    texts: [for (final t in texts) t.flipped()],
+    angle: -angle,
   );
 
   /// Width divided by height of a photo of [width] × [height] pixels once

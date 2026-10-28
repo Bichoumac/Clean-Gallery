@@ -1,4 +1,7 @@
+import 'dart:math' as math;
+
 import 'package:clean_gallery/domain/photo_edit.dart';
+
 import 'package:flutter_test/flutter_test.dart';
 
 void main() {
@@ -156,6 +159,32 @@ void main() {
       expect(const PhotoEdit(strokes: [line]).isIdentity, isFalse);
     });
 
+    test('straightening enlarges the photo enough to fill its frame', () {
+      expect(straightenScale(0, 4 / 3), 1);
+      // A frame w × h turned by a fits in the photo enlarged by s when
+      // w cos a + h sin a <= s w and w sin a + h cos a <= s h.
+      for (final degrees in [1.0, 10.0, -25.0, 45.0]) {
+        for (final ratio in [4 / 3, 3 / 4, 1.0, 16 / 9]) {
+          final s = straightenScale(degrees, ratio);
+          final a = degrees.abs() * 3.141592653589793 / 180;
+          const h = 1.0;
+          final w = ratio;
+          expect(w * _cos(a) + h * _sin(a), lessThanOrEqualTo(s * w + 1e-9));
+          expect(w * _sin(a) + h * _cos(a), lessThanOrEqualTo(s * h + 1e-9));
+        }
+      }
+    });
+
+    test('mirroring reverses the straightening; texts follow the photo', () {
+      const text = TextItem(text: 'Hi', x: 0.2, y: 0.3);
+      const edit = PhotoEdit(angle: 5, texts: [text]);
+      expect(edit.mirrored().angle, -5);
+      expect(edit.mirrored().texts.single.x, closeTo(0.8, 1e-9));
+      final turned = edit.rotated().texts.single;
+      expect((turned.x, turned.y), (0.7, 0.2));
+      expect(edit.isIdentity, isFalse);
+    });
+
     test('each adjustment reads and writes its own value', () {
       var adjustments = const Adjustments();
       for (final (i, a) in Adjustment.values.indexed) {
@@ -167,3 +196,7 @@ void main() {
     });
   });
 }
+
+double _cos(double a) => math.cos(a);
+
+double _sin(double a) => math.sin(a);

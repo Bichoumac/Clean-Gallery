@@ -2,13 +2,15 @@ import 'dart:async';
 import 'dart:math' as math;
 import 'dart:ui' as ui;
 
-import 'package:clean_gallery/analysis/color_matrix.dart';
+import 'package:clean_gallery/analysis/enhance.dart';
 import 'package:clean_gallery/core/media/media_actions.dart';
 import 'package:clean_gallery/core/media/media_index.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/theme/app_theme.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/domain/photo_edit.dart';
+import 'package:clean_gallery/features/editor/edit_painter.dart';
+import 'package:clean_gallery/features/editor/editor_tools.dart';
 import 'package:clean_gallery/features/editor/photo_editor.dart';
 import 'package:clean_gallery/features/viewer/zoomable_image.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
@@ -18,28 +20,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// The editor's tools.
 enum EditorTool {
-  /// Crop, rotate and flip.
+  /// Crop, straighten, rotate and flip.
   crop,
 
-  /// Color adjustments.
+  /// Enhance, color adjustments and vignette.
   adjust,
 
-  /// Pencil.
+  /// Pencil, blur and pixelate.
   draw,
+
+  /// Texts.
+  text,
 }
-
-/// Pencil colors, as 0xAARRGGBB.
-const penColors = [
-  0xFFFFFFFF,
-  0xFF000000,
-  0xFFC6F432, // The app's lime.
-  0xFFFF453A,
-  0xFFFFD60A,
-  0xFF0A84FF,
-];
-
-/// Pencil widths, as fractions of the photo's shorter side.
-const penWidths = [0.006, 0.014, 0.03];
 
 /// How a photo is saved from the editor.
 enum SaveMode {
@@ -50,15 +42,53 @@ enum SaveMode {
   replace,
 }
 
+/// Largest photo rendered when saving: 40 megapixels, about 160 MB of
+/// pixels. Larger photos are saved smaller.
+const maxSavedPixels = 40000000;
+
+/// Longest side rendered when saving, within the GPU's texture limit.
+const maxSavedSide = 8192;
+
+/// Decodes [provider] into one image.
+Future<ui.Image> decodeImage(ImageProvider provider) {
+  final completer = Completer<ui.Image>();
+  final stream = provider.resolve(ImageConfiguration.empty);
+  late final ImageStreamListener listener;
+  listener = ImageStreamListener(
+    (info, _) {
+      stream.removeListener(listener);
+      completer.complete(info.image);
+    },
+    onError: (error, stack) {
+      stream.removeListener(listener);
+      completer.completeError(error, stack);
+    },
+  );
+  stream.addListener(listener);
+  return completer.future;
+}
+
+/// Longest side to decode [photo] at for saving: its own, unless that is
+/// over [maxSavedPixels] or [maxSavedSide].
+int savedSide(MediaItem photo) {
+  final longest = math.max(photo.width, photo.height);
+  final pixels = photo.width * photo.height;
+  final side = pixels > maxSavedPixels
+      ? (longest * math.sqrt(maxSavedPixels / pixels)).floor()
+      : longest;
+  return side.clamp(1, maxSavedSide);
+}
+
 /// Full-screen photo editor, above the tabs: crop with handles and fixed
-/// shapes, rotate, flip, color adjustments and a pencil, previewed live,
-/// then saved as a new photo. Dark like the viewer, without ads.
+/// shapes, straighten, rotate, flip; enhance, color adjustments and
+/// vignette; pencil, blur and pixelate; texts. Previewed live, then saved
+/// as a new photo. Dark like the viewer, without ads.
 ///
-/// The preview paints the decoded screen-sized image directly with the
-/// edit's transform and color matrix ([paintEdit]): moving a slider only
-/// repaints, never decodes or lays out again. Closing with changes asks
-/// first. Pops with the id of the saved photo. See
-/// `docs/features/editor.md`.
+/// The preview paints the decoded screen-sized image with [paintEdit];
+/// saving paints the full-resolution photo with the same function, so what
+/// is seen is what is saved. Holding Before/After shows the original.
+/// Closing with changes asks first. Pops with the id of the saved photo.
+/// See `docs/features/editor.md`.
 class EditorScreen extends ConsumerStatefulWidget {
   /// Creates the editor of [photo].
   const EditorScreen({required this.photo, super.key});
@@ -73,27 +103,32 @@ class EditorScreen extends ConsumerStatefulWidget {
 class _EditorScreenState extends ConsumerState<EditorScreen> {
   EditorTool _tool = EditorTool.crop;
   Adjustment _adjustment = Adjustment.brightness;
-  int _penColor = penColors[2];
-  double _penWidth = penWidths[1];
+  StrokeKind _brush = StrokeKind.pen;
+  int _penColor = editorColors[2];
+  int _widthIndex = 1;
+  int? _selectedText;
+  bool _showOriginal = false;
   bool _saving = false;
 
   /// The preview, decoded once.
-  ui.Image? _image;
+  EditSource? _source;
   ImageStream? _stream;
-  late final _listener = ImageStreamListener(
-    (info, _) => setState(() => _image = info.image),
-    onError: (_, _) {},
-  );
+  late final _listener = ImageStreamListener((info, _) {
+    final previous = _source;
+    setState(() => _source = EditSource(info.image));
+    previous?.dispose();
+  }, onError: (_, _) {});
+
+  MediaItem get photo => widget.photo;
+
+  PhotoEditor get _editor => ref.read(photoEditorProvider(photo).notifier);
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final provider = ref
         .read(mediaSourceProvider)
-        .preview(
-          widget.photo,
-          longestSide: viewerPreviewSide(context, widget.photo),
-        );
+        .preview(photo, longestSide: viewerPreviewSide(context, photo));
     final stream = provider.resolve(createLocalImageConfiguration(context));
     if (stream.key != _stream?.key) {
       _stream?.removeListener(_listener);
@@ -104,6 +139,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
   @override
   void dispose() {
     _stream?.removeListener(_listener);
+    _source?.dispose();
     super.dispose();
   }
 
@@ -132,13 +168,56 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
 
   Future<void> _close() async {
     if (_saving) return;
-    final edit = ref.read(photoEditorProvider(widget.photo)).edit;
+    final edit = ref.read(photoEditorProvider(photo)).edit;
     if (edit.isIdentity || await _confirmDiscard()) {
       if (mounted) Navigator.of(context).pop();
     }
   }
 
-  /// Asks how to save, then saves; pops with the new photo's id.
+  /// Sets brightness and contrast from the histogram of the preview.
+  Future<void> _enhance() async {
+    final source = _source;
+    if (source == null) return;
+    final bytes = await source.image.toByteData();
+    if (bytes == null || !mounted) return;
+    final histogram = luminanceHistogram(bytes.buffer.asUint8List());
+    final current = ref.read(photoEditorProvider(photo)).edit.adjustments;
+    _editor.setAdjustments(autoEnhance(histogram, base: current));
+  }
+
+  /// Asks for the words of a text; `null` when cancelled or empty.
+  Future<String?> _askText([String initial = '']) async {
+    final text = await showDialog<String>(
+      context: context,
+      builder: (context) => _TextDialog(initial: initial),
+    );
+    final trimmed = text?.trim();
+    return trimmed == null || trimmed.isEmpty ? null : trimmed;
+  }
+
+  Future<void> _addText() async {
+    final words = await _askText();
+    if (words == null || !mounted) return;
+    final crop = ref.read(photoEditorProvider(photo)).edit.crop;
+    final index = _editor.addText(
+      TextItem(
+        text: words,
+        x: (crop.left + crop.right) / 2,
+        y: (crop.top + crop.bottom) / 2,
+      ),
+    );
+    setState(() => _selectedText = index);
+  }
+
+  Future<void> _editText(int index) async {
+    final text = ref.read(photoEditorProvider(photo)).edit.texts[index];
+    final words = await _askText(text.text);
+    if (words == null || !mounted) return;
+    _editor.updateText(index, text.copyWith(text: words));
+  }
+
+  /// Asks how to save, renders the photo at full size and saves it; pops
+  /// with the new photo's id.
   Future<void> _save() async {
     final l10n = AppLocalizations.of(context);
     final mode = await showModalBottomSheet<SaveMode>(
@@ -167,19 +246,34 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
     if (mode == null || !mounted) return;
     final messenger = ScaffoldMessenger.of(context);
     final navigator = Navigator.of(context);
-    final edit = ref.read(photoEditorProvider(widget.photo)).edit;
+    final edit = ref.read(photoEditorProvider(photo)).edit;
     setState(() => _saving = true);
+    EditSource? full;
     try {
+      full = EditSource(
+        await decodeImage(
+          ref
+              .read(mediaSourceProvider)
+              .fullImage(photo, maxDimension: savedSide(photo)),
+        ),
+      );
+      final rendered = await renderEdit(full, edit);
+      final bytes = await rendered.toByteData();
+      final width = rendered.width;
+      final height = rendered.height;
+      rendered.dispose();
+      if (bytes == null) throw StateError('no pixels');
       final id = await ref
           .read(platformBridgeProvider)
           .saveEditedPhoto(
-            widget.photo,
-            edit,
-            colorMatrix: adjustmentMatrix(edit.adjustments),
+            photo,
+            width: width,
+            height: height,
+            rgba: bytes.buffer.asUint8List(),
           );
       await ref.read(mediaIndexProvider.notifier).sync();
       if (mode == SaveMode.replace) {
-        await ref.read(mediaActionsProvider).trash([widget.photo]);
+        await ref.read(mediaActionsProvider).trash([photo]);
       }
       messenger.showSnackBar(
         SnackBar(
@@ -191,21 +285,26 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
         ),
       );
       navigator.pop(id);
-    } on PlatformException {
+    } on Object {
       if (!mounted) return;
       setState(() => _saving = false);
       messenger.showSnackBar(SnackBar(content: Text(l10n.editorSaveFailed)));
+    } finally {
+      full?.dispose();
     }
   }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final photo = widget.photo;
     final state = ref.watch(photoEditorProvider(photo));
-    final editor = ref.read(photoEditorProvider(photo).notifier);
+    final editor = _editor;
     final edit = state.edit;
-    final image = _image;
+    final source = _source;
+    final selected = _selectedText;
+    final selectedText = selected != null && selected < edit.texts.length
+        ? edit.texts[selected]
+        : null;
 
     return Theme(
       data: AppTheme.dark(),
@@ -225,11 +324,32 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                 icon: const Icon(Icons.close_rounded),
                 onPressed: _close,
               ),
-              title: Text(l10n.editorTitle),
               actions: [
+                // Held down, shows the original.
+                Tooltip(
+                  message: l10n.editorBeforeAfter,
+                  child: Listener(
+                    onPointerDown: (_) => setState(() => _showOriginal = true),
+                    onPointerUp: (_) => setState(() => _showOriginal = false),
+                    onPointerCancel: (_) =>
+                        setState(() => _showOriginal = false),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12),
+                      child: Icon(
+                        Icons.compare_rounded,
+                        color: edit.isIdentity ? Colors.white38 : null,
+                      ),
+                    ),
+                  ),
+                ),
                 IconButton(
                   tooltip: l10n.editorReset,
-                  onPressed: edit.isIdentity || _saving ? null : editor.reset,
+                  onPressed: edit.isIdentity || _saving
+                      ? null
+                      : () {
+                          editor.reset();
+                          setState(() => _selectedText = null);
+                        },
                   icon: const Icon(Icons.restart_alt_rounded),
                 ),
                 Padding(
@@ -255,77 +375,124 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                     Expanded(
                       child: Padding(
                         padding: const EdgeInsets.all(24),
-                        child: image == null
+                        child: source == null
                             ? const Center(child: CircularProgressIndicator())
                             : LayoutBuilder(
-                                builder: (context, box) => switch (_tool) {
-                                  EditorTool.crop => _CropView(
-                                    image: image,
-                                    edit: edit,
-                                    area: box.biggest,
-                                    onDrag: editor.dragCrop,
-                                  ),
-                                  EditorTool.adjust => _ResultView(
-                                    image: image,
-                                    edit: edit,
-                                    area: box.biggest,
-                                  ),
-                                  EditorTool.draw => _ResultView(
-                                    image: image,
-                                    edit: edit,
-                                    area: box.biggest,
-                                    onStart: (point) => editor.startStroke(
-                                      point,
-                                      color: _penColor,
-                                      width: _penWidth,
+                                builder: (context, box) {
+                                  if (_showOriginal) {
+                                    return _ResultView(
+                                      source: source,
+                                      edit: const PhotoEdit(),
+                                      area: box.biggest,
+                                    );
+                                  }
+                                  return switch (_tool) {
+                                    EditorTool.crop => _CropView(
+                                      source: source,
+                                      edit: edit,
+                                      area: box.biggest,
+                                      onDrag: editor.dragCrop,
                                     ),
-                                    onExtend: editor.extendStroke,
-                                  ),
+                                    EditorTool.adjust => _ResultView(
+                                      source: source,
+                                      edit: edit,
+                                      area: box.biggest,
+                                    ),
+                                    EditorTool.draw => _ResultView(
+                                      source: source,
+                                      edit: edit,
+                                      area: box.biggest,
+                                      label: l10n.editorDrawArea,
+                                      onPanStart: (point) => editor.startStroke(
+                                        point,
+                                        kind: _brush,
+                                        color: _penColor,
+                                        width: _brush == StrokeKind.pen
+                                            ? penWidths[_widthIndex]
+                                            : areaWidths[_widthIndex],
+                                      ),
+                                      onPanUpdate: (point, _) =>
+                                          editor.extendStroke(point),
+                                    ),
+                                    EditorTool.text => _TextView(
+                                      source: source,
+                                      edit: edit,
+                                      area: box.biggest,
+                                      selected: _selectedText,
+                                      onSelect: (index) =>
+                                          setState(() => _selectedText = index),
+                                      onMove: editor.moveText,
+                                      onEdit: _editText,
+                                    ),
+                                  };
                                 },
                               ),
                       ),
                     ),
                     switch (_tool) {
-                      EditorTool.crop => _CropTools(
+                      EditorTool.crop => CropTools(
                         ratio: state.ratio,
+                        angle: edit.angle,
                         onRatio: editor.setRatio,
+                        onAngle: editor.straighten,
                         onRotate: editor.rotate,
                         onFlip: editor.flip,
                       ),
-                      EditorTool.adjust => _AdjustTools(
+                      EditorTool.adjust => AdjustTools(
                         adjustments: edit.adjustments,
                         selected: _adjustment,
                         onSelected: (a) => setState(() => _adjustment = a),
                         onChanged: (value) => editor.adjust(_adjustment, value),
+                        onEnhance: () => unawaited(_enhance()),
                       ),
-                      EditorTool.draw => _DrawTools(
+                      EditorTool.draw => DrawTools(
+                        kind: _brush,
                         color: _penColor,
-                        width: _penWidth,
+                        widthIndex: _widthIndex,
                         canUndo: edit.strokes.isNotEmpty,
+                        onKind: (k) => setState(() => _brush = k),
                         onColor: (c) => setState(() => _penColor = c),
-                        onWidth: (w) => setState(() => _penWidth = w),
+                        onWidth: (w) => setState(() => _widthIndex = w),
                         onUndo: editor.undoStroke,
+                      ),
+                      EditorTool.text => TextTools(
+                        selected: selectedText,
+                        onAdd: () => unawaited(_addText()),
+                        onEdit: () => unawaited(_editText(selected!)),
+                        onChange: (text) => editor.updateText(selected!, text),
+                        onDelete: () {
+                          editor.removeText(selected!);
+                          setState(() => _selectedText = null);
+                        },
                       ),
                     },
                     Padding(
-                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 12),
+                      padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
                       child: SegmentedButton<EditorTool>(
                         showSelectedIcon: false,
+                        style: const ButtonStyle(
+                          visualDensity: VisualDensity.compact,
+                        ),
                         segments: [
                           ButtonSegment(
                             value: EditorTool.crop,
                             icon: const Icon(Icons.crop_rotate_rounded),
-                            label: Text(l10n.editorCrop),
+                            tooltip: l10n.editorCrop,
                           ),
                           ButtonSegment(
                             value: EditorTool.adjust,
                             icon: const Icon(Icons.tune_rounded),
-                            label: Text(l10n.editorAdjust),
+                            tooltip: l10n.editorAdjust,
                           ),
                           ButtonSegment(
                             value: EditorTool.draw,
-                            icon: const Icon(Icons.edit_rounded),
-                            label: Text(l10n.editorDraw),
+                            icon: const Icon(Icons.brush_rounded),
+                            tooltip: l10n.editorDraw,
+                          ),
+                          ButtonSegment(
+                            value: EditorTool.text,
+                            icon: const Icon(Icons.text_fields_rounded),
+                            tooltip: l10n.editorText,
                           ),
                         ],
                         selected: {_tool},
@@ -349,105 +516,44 @@ Size _fit(double ratio, Size area) => ratio >= area.width / area.height
     ? Size(area.width, area.width / ratio)
     : Size(area.height * ratio, area.height);
 
-/// Width divided by height of [image] once turned by [edit].
-double _orientedRatio(ui.Image image, PhotoEdit edit) =>
-    edit.orientedRatio(image.width, image.height);
-
-/// Paints [image] edited by [edit] into [size], showing the part [view] of
-/// the rotated photo (fractions): the whole photo while cropping, the crop
-/// otherwise. Turns, flips, colors and draws in the order the native save
-/// does (`PhotoSaver.kt`), so the saved photo matches.
-void paintEdit(
-  Canvas canvas,
-  Size size,
-  ui.Image image,
-  PhotoEdit edit, {
-  required CropRect view,
-}) {
-  // The whole rotated photo, placed so that [view] fills [size].
-  final full = Size(size.width / view.width, size.height / view.height);
-  final origin = Offset(-view.left * full.width, -view.top * full.height);
-  canvas
-    ..save()
-    ..clipRect(Offset.zero & size)
-    ..translate(origin.dx, origin.dy)
-    ..save()
-    ..translate(full.width / 2, full.height / 2);
-  if (edit.flipped) canvas.scale(-1, 1);
-  canvas.rotate(edit.quarterTurns * math.pi / 2);
-  // Before turning, the photo's own width is the rotated height.
-  final turned = edit.quarterTurns.isOdd;
-  final drawn = turned ? Size(full.height, full.width) : full;
-  final paint = Paint()
-    ..filterQuality = FilterQuality.medium
-    ..colorFilter = edit.adjustments.isNeutral
-        ? null
-        : ColorFilter.matrix(adjustmentMatrix(edit.adjustments));
-  canvas
-    ..drawImageRect(
-      image,
-      Offset.zero & Size(image.width.toDouble(), image.height.toDouble()),
-      Rect.fromCenter(
-        center: Offset.zero,
-        width: drawn.width,
-        height: drawn.height,
-      ),
-      paint,
-    )
-    ..restore();
-  final shorter = math.min(full.width, full.height);
-  for (final stroke in edit.strokes) {
-    final pen = Paint()
-      ..color = Color(stroke.color)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = stroke.width * shorter
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round
-      ..isAntiAlias = true;
-    final path = Path();
-    for (final (i, (x, y)) in stroke.points.indexed) {
-      final point = Offset(x * full.width, y * full.height);
-      if (i == 0) {
-        path.moveTo(point.dx, point.dy);
-      } else {
-        path.lineTo(point.dx, point.dy);
-      }
-      // A single tap draws a dot.
-      if (stroke.points.length == 1) path.lineTo(point.dx + 0.01, point.dy);
-    }
-    canvas.drawPath(path, pen);
-  }
-  canvas.restore();
-}
-
 /// Paints the edit, and the crop frame on top while cropping.
 class _EditPainter extends CustomPainter {
   _EditPainter({
-    required this.image,
+    required this.source,
     required this.edit,
     required this.view,
     this.frame,
+    this.selectedText,
   });
 
-  final ui.Image image;
+  final EditSource source;
   final PhotoEdit edit;
   final CropRect view;
 
   /// The crop frame's accent color, or `null` for no frame.
   final Color? frame;
+  final int? selectedText;
 
   @override
   void paint(Canvas canvas, Size size) {
-    paintEdit(canvas, size, image, edit, view: view);
+    paintEdit(
+      canvas,
+      size,
+      source,
+      edit,
+      view: view,
+      selectedText: selectedText,
+    );
     if (frame case final accent?) _paintFrame(canvas, size, edit.crop, accent);
   }
 
   @override
   bool shouldRepaint(_EditPainter old) =>
-      old.image != image ||
+      old.source != source ||
       old.edit != edit ||
       old.view != view ||
-      old.frame != frame;
+      old.frame != frame ||
+      old.selectedText != selectedText;
 }
 
 /// The crop frame: the outside dimmed, thirds lines, lime corners.
@@ -504,13 +610,13 @@ void _paintFrame(Canvas canvas, Size size, CropRect crop, Color accent) {
 /// corner resizes it.
 class _CropView extends StatefulWidget {
   const _CropView({
-    required this.image,
+    required this.source,
     required this.edit,
     required this.area,
     required this.onDrag,
   });
 
-  final ui.Image image;
+  final EditSource source;
   final PhotoEdit edit;
   final Size area;
   final void Function(CropHandle handle, double dx, double dy) onDrag;
@@ -549,7 +655,7 @@ class _CropViewState extends State<_CropView> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final size = _fit(_orientedRatio(widget.image, widget.edit), widget.area);
+    final size = _fit(widget.source.orientedRatio(widget.edit), widget.area);
     return Center(
       child: Semantics(
         label: l10n.editorCropArea,
@@ -570,7 +676,7 @@ class _CropViewState extends State<_CropView> {
           child: CustomPaint(
             size: size,
             painter: _EditPainter(
-              image: widget.image,
+              source: widget.source,
               edit: widget.edit,
               view: CropRect.full,
               frame: Theme.of(context).colorScheme.primary,
@@ -582,48 +688,67 @@ class _CropViewState extends State<_CropView> {
   }
 }
 
-/// The result: only the cropped part, as large as it fits. With [onStart]
-/// and [onExtend], a finger draws on it.
+/// The result: only the cropped part, as large as it fits. With
+/// [onPanStart] and [onPanUpdate], a finger works on it (drawing); points
+/// are given in fractions of the whole rotated photo.
 class _ResultView extends StatelessWidget {
   const _ResultView({
-    required this.image,
+    required this.source,
     required this.edit,
     required this.area,
-    this.onStart,
-    this.onExtend,
+    this.label,
+    this.onPanStart,
+    this.onPanUpdate,
+    this.selectedText,
   });
 
-  final ui.Image image;
+  final EditSource source;
   final PhotoEdit edit;
   final Size area;
-  final ValueChanged<(double, double)>? onStart;
-  final ValueChanged<(double, double)>? onExtend;
+  final String? label;
+  final ValueChanged<(double, double)>? onPanStart;
+  final void Function((double, double) point, Offset delta)? onPanUpdate;
+  final int? selectedText;
+
+  /// Size of the view in [area].
+  Size get size {
+    final crop = edit.crop;
+    return _fit(source.orientedRatio(edit) * crop.width / crop.height, area);
+  }
+
+  /// A point of the view in fractions of the whole rotated photo.
+  (double, double) toPhoto(Offset local) {
+    final crop = edit.crop;
+    final shown = size;
+    return (
+      crop.left + local.dx / shown.width * crop.width,
+      crop.top + local.dy / shown.height * crop.height,
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
-    final crop = edit.crop;
-    final ratio = _orientedRatio(image, edit) * crop.width / crop.height;
-    final size = _fit(ratio, area);
-    // A point of the view in fractions of the whole rotated photo.
-    (double, double) toPhoto(Offset local) => (
-      crop.left + local.dx / size.width * crop.width,
-      crop.top + local.dy / size.height * crop.height,
-    );
-    final onStart = this.onStart;
-    final onExtend = this.onExtend;
+    final onPanStart = this.onPanStart;
+    final onPanUpdate = this.onPanUpdate;
     final painted = CustomPaint(
       size: size,
-      painter: _EditPainter(image: image, edit: edit, view: crop),
+      painter: _EditPainter(
+        source: source,
+        edit: edit,
+        view: edit.crop,
+        selectedText: selectedText,
+      ),
     );
     return Center(
-      child: onStart == null || onExtend == null
+      child: onPanStart == null || onPanUpdate == null
           ? painted
           : Semantics(
-              label: AppLocalizations.of(context).editorDrawArea,
+              label: label,
               child: GestureDetector(
                 behavior: HitTestBehavior.opaque,
-                onPanStart: (d) => onStart(toPhoto(d.localPosition)),
-                onPanUpdate: (d) => onExtend(toPhoto(d.localPosition)),
+                onPanStart: (d) => onPanStart(toPhoto(d.localPosition)),
+                onPanUpdate: (d) =>
+                    onPanUpdate(toPhoto(d.localPosition), d.delta),
                 child: painted,
               ),
             ),
@@ -631,233 +756,116 @@ class _ResultView extends StatelessWidget {
   }
 }
 
-/// Pencil colors and widths, and Undo.
-class _DrawTools extends StatelessWidget {
-  const _DrawTools({
-    required this.color,
-    required this.width,
-    required this.canUndo,
-    required this.onColor,
-    required this.onWidth,
-    required this.onUndo,
+/// The result with its texts: tap one to select it (or nothing to
+/// deselect), drag the selected one to move it, double-tap it to change
+/// its words.
+class _TextView extends StatelessWidget {
+  const _TextView({
+    required this.source,
+    required this.edit,
+    required this.area,
+    required this.selected,
+    required this.onSelect,
+    required this.onMove,
+    required this.onEdit,
   });
 
-  final int color;
-  final double width;
-  final bool canUndo;
-  final ValueChanged<int> onColor;
-  final ValueChanged<double> onWidth;
-  final VoidCallback onUndo;
+  final EditSource source;
+  final PhotoEdit edit;
+  final Size area;
+  final int? selected;
+  final ValueChanged<int?> onSelect;
+  final void Function(int index, double dx, double dy) onMove;
+  final ValueChanged<int> onEdit;
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final colors = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              for (final (i, pen) in penColors.indexed)
-                Semantics(
-                  button: true,
-                  selected: pen == color,
-                  label: l10n.editorPenColor(i + 1),
-                  excludeSemantics: true,
-                  child: GestureDetector(
-                    onTap: () => onColor(pen),
-                    child: Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: Color(pen),
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: pen == color ? colors.primary : Colors.white38,
-                          width: pen == color ? 3 : 1,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              for (final (i, w) in penWidths.indexed)
-                IconButton(
-                  tooltip: l10n.editorPenWidth(i + 1),
-                  isSelected: w == width,
-                  onPressed: () => onWidth(w),
-                  icon: Icon(Icons.circle, size: 8.0 + i * 7),
-                ),
-              const Spacer(),
-              TextButton.icon(
-                onPressed: canUndo ? onUndo : null,
-                icon: const Icon(Icons.undo_rounded),
-                label: Text(l10n.editorUndoStroke),
-              ),
-            ],
-          ),
-        ],
+    final result = _ResultView(
+      source: source,
+      edit: edit,
+      area: area,
+      selectedText: selected,
+    );
+    final shown = result.size;
+    final crop = edit.crop;
+    final full = Size(shown.width / crop.width, shown.height / crop.height);
+
+    /// The text under [local], the last drawn first.
+    int? textAt(Offset local) {
+      final point =
+          local + Offset(crop.left * full.width, crop.top * full.height);
+      for (var i = edit.texts.length - 1; i >= 0; i--) {
+        if (textBounds(edit.texts[i], full).contains(point)) return i;
+      }
+      return null;
+    }
+
+    return Center(
+      child: Semantics(
+        label: AppLocalizations.of(context).editorTextArea,
+        child: GestureDetector(
+          behavior: HitTestBehavior.opaque,
+          onTapUp: (d) => onSelect(textAt(d.localPosition)),
+          onDoubleTapDown: (d) {
+            if (textAt(d.localPosition) case final i?) onEdit(i);
+          },
+          onPanStart: (d) {
+            if (textAt(d.localPosition) case final i?) onSelect(i);
+          },
+          onPanUpdate: (d) {
+            if (selected case final i?) {
+              onMove(i, d.delta.dx / full.width, d.delta.dy / full.height);
+            }
+          },
+          child: SizedBox.fromSize(size: shown, child: result),
+        ),
       ),
     );
   }
 }
 
-/// Crop shapes, rotate and flip.
-class _CropTools extends StatelessWidget {
-  const _CropTools({
-    required this.ratio,
-    required this.onRatio,
-    required this.onRotate,
-    required this.onFlip,
-  });
+/// Asks for the words of a text. Owns its controller, which the dialog's
+/// closing animation still uses after it returns.
+class _TextDialog extends StatefulWidget {
+  const _TextDialog({required this.initial});
 
-  final CropRatio ratio;
-  final ValueChanged<CropRatio> onRatio;
-  final VoidCallback onRotate;
-  final VoidCallback onFlip;
+  final String initial;
 
   @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          height: 48,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            children: [
-              for (final shape in CropRatio.values)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(switch (shape) {
-                      CropRatio.free => l10n.editorRatioFree,
-                      CropRatio.original => l10n.editorRatioOriginal,
-                      CropRatio.square => l10n.editorRatioSquare,
-                      CropRatio.fourThree => l10n.editorRatio43,
-                      CropRatio.threeFour => l10n.editorRatio34,
-                      CropRatio.sixteenNine => l10n.editorRatio169,
-                      CropRatio.nineSixteen => l10n.editorRatio916,
-                    }),
-                    selected: ratio == shape,
-                    showCheckmark: false,
-                    onSelected: (_) => onRatio(shape),
-                  ),
-                ),
-            ],
-          ),
-        ),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TextButton.icon(
-              onPressed: onRotate,
-              icon: const Icon(Icons.rotate_90_degrees_cw_rounded),
-              label: Text(l10n.editorRotate),
-            ),
-            const SizedBox(width: 16),
-            TextButton.icon(
-              onPressed: onFlip,
-              icon: const Icon(Icons.flip_rounded),
-              label: Text(l10n.editorFlip),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+  State<_TextDialog> createState() => _TextDialogState();
 }
 
-/// The five adjustments as chips, and the slider of the one picked.
-class _AdjustTools extends StatelessWidget {
-  const _AdjustTools({
-    required this.adjustments,
-    required this.selected,
-    required this.onSelected,
-    required this.onChanged,
-  });
+class _TextDialogState extends State<_TextDialog> {
+  late final _controller = TextEditingController(text: widget.initial);
 
-  final Adjustments adjustments;
-  final Adjustment selected;
-  final ValueChanged<Adjustment> onSelected;
-  final ValueChanged<double> onChanged;
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    String label(Adjustment a) => switch (a) {
-      Adjustment.brightness => l10n.editorBrightness,
-      Adjustment.contrast => l10n.editorContrast,
-      Adjustment.saturation => l10n.editorSaturation,
-      Adjustment.exposure => l10n.editorExposure,
-      Adjustment.warmth => l10n.editorWarmth,
-    };
-    final value = selected.of(adjustments);
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Slider(
-                  value: value,
-                  min: -1,
-                  divisions: 200,
-                  label: '${(value * 100).round()}',
-                  semanticFormatterCallback: (v) =>
-                      '${label(selected)} ${(v * 100).round()}',
-                  onChanged: onChanged,
-                ),
-              ),
-              SizedBox(
-                width: 40,
-                child: Text(
-                  '${(value * 100).round()}',
-                  textAlign: TextAlign.end,
-                ),
-              ),
-            ],
-          ),
+    return AlertDialog(
+      title: Text(
+        widget.initial.isEmpty ? l10n.editorAddText : l10n.editorEditText,
+      ),
+      content: TextField(
+        controller: _controller,
+        autofocus: true,
+        minLines: 1,
+        maxLines: 4,
+        decoration: InputDecoration(hintText: l10n.editorTextHint),
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          child: Text(l10n.editorCancel),
         ),
-        SizedBox(
-          height: 48,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            children: [
-              for (final a in Adjustment.values)
-                Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    avatar: Icon(switch (a) {
-                      Adjustment.brightness => Icons.brightness_6_rounded,
-                      Adjustment.contrast => Icons.contrast_rounded,
-                      Adjustment.saturation => Icons.palette_outlined,
-                      Adjustment.exposure => Icons.exposure_rounded,
-                      Adjustment.warmth => Icons.thermostat_rounded,
-                    }, size: 18),
-                    // A dot marks adjustments in use.
-                    label: Text(
-                      a.of(adjustments) == 0 ? label(a) : '${label(a)} •',
-                    ),
-                    selected: a == selected,
-                    showCheckmark: false,
-                    onSelected: (_) => onSelected(a),
-                  ),
-                ),
-            ],
-          ),
+        FilledButton(
+          onPressed: () => Navigator.of(context).pop(_controller.text),
+          child: Text(l10n.editorTextOk),
         ),
       ],
     );

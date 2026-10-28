@@ -124,28 +124,13 @@ class MainActivity : FlutterActivity() {
             )
             "saveEditedPhoto" -> {
                 val id = call.argument<String>("id")?.toLongOrNull()
-                val crop = call.argument<List<Double>>("crop")
-                val matrix = call.argument<List<Double>>("matrix")
-                if (id == null || crop?.size != 4 || matrix?.size != 20) {
-                    result.error("bad_arguments", "id, crop and matrix are required", null)
+                val width = call.argument<Int>("width")
+                val height = call.argument<Int>("height")
+                val rgba = call.argument<ByteArray>("rgba")
+                if (id == null || width == null || height == null || rgba == null) {
+                    result.error("bad_arguments", "id, width, height and rgba are required", null)
                 } else {
-                    val strokes = call.argument<List<Map<String, Any?>>>("strokes").orEmpty().map {
-                        PhotoSaver.Stroke(
-                            color = (it["color"] as Number).toInt(),
-                            width = (it["width"] as Number).toDouble(),
-                            points = (it["points"] as List<*>).map { p -> (p as Number).toDouble() },
-                        )
-                    }
-                    onWorker(result) {
-                        photoSaver.save(
-                            id,
-                            call.argument<Int>("quarterTurns") ?: 0,
-                            call.argument<Boolean>("flipped") == true,
-                            crop,
-                            matrix,
-                            strokes,
-                        )
-                    }
+                    onWorker(result) { photoSaver.save(id, width, height, rgba) }
                 }
             }
             "openMap" -> {

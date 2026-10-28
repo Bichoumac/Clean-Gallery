@@ -1,7 +1,6 @@
 import 'package:clean_gallery/domain/geo.dart';
 import 'package:clean_gallery/domain/gray_image.dart';
 import 'package:clean_gallery/domain/media_item.dart';
-import 'package:clean_gallery/domain/photo_edit.dart';
 import 'package:clean_gallery/platform/platform_bridge.dart';
 import 'package:flutter/services.dart';
 
@@ -212,27 +211,16 @@ final class AndroidPlatformBridge implements PlatformBridge {
 
   @override
   Future<String> saveEditedPhoto(
-    MediaItem photo,
-    PhotoEdit edit, {
-    required List<double> colorMatrix,
+    MediaItem photo, {
+    required int width,
+    required int height,
+    required Uint8List rgba,
   }) async {
-    final crop = edit.crop;
     final id = await _channel.invokeMethod<String>('saveEditedPhoto', {
       'id': photo.id,
-      'quarterTurns': edit.quarterTurns,
-      'flipped': edit.flipped,
-      'crop': [crop.left, crop.top, crop.right, crop.bottom],
-      'matrix': colorMatrix,
-      'strokes': [
-        for (final stroke in edit.strokes)
-          {
-            'color': stroke.color,
-            'width': stroke.width,
-            'points': [
-              for (final (x, y) in stroke.points) ...[x, y],
-            ],
-          },
-      ],
+      'width': width,
+      'height': height,
+      'rgba': rgba,
     });
     if (id == null) {
       throw PlatformException(code: 'failed', message: 'no id returned');
