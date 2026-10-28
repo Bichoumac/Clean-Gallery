@@ -317,6 +317,17 @@ Future<Map<String, DuplicateGroup>> libraryGroupsByItem(Ref ref) async =>
       await ref.watch(duplicateGroupsProvider(MediaSelection.all).future),
     );
 
+/// Number of items in a duplicate group in each folder, by folder id, for
+/// the Albums tab sorted by duplicates.
+@riverpod
+Future<Map<String, int>> folderDuplicateCounts(Ref ref) {
+  ref
+    ..watch(trashedIdsProvider)
+    ..watch(mediaIndexProvider.select((s) => s.revision))
+    ..watch(duplicateScanProvider.select((s) => s.revision));
+  return ref.watch(mediaIndexRepositoryProvider).duplicateCountsByFolder();
+}
+
 /// The part of a timeline's selection that duplicates are looked for in:
 /// its filter and folder.
 MediaSelection duplicateScope(MediaSelection selection) =>

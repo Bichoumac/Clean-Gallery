@@ -120,6 +120,9 @@
   "sortSmallest": "Smallest first",
   "sortLongest": "Longest first",
   "sortShortest": "Shortest first",
+  "sortDuplicates": "Duplicates",
+  "sortMostDuplicates": "Most duplicates first",
+  "sortFewestDuplicates": "Fewest first",
   "filterPeriod": "Period",
   "filterAllTime": "All time",
   "filterLast7Days": "Last 7 days",
@@ -146,6 +149,8 @@
   "albumsFolders": "Folders",
   "albumItemCount": "{count, plural, =0{Empty} =1{1 item} other{{count} items}}",
   "@albumItemCount": {"placeholders": {"count": {"type": "int"}}},
+  "albumDuplicateCount": "{count, plural, =1{1 duplicate} other{{count} duplicates}}",
+  "@albumDuplicateCount": {"placeholders": {"count": {"type": "int"}}},
 
   "timelineToday": "Today",
   "timelineYesterday": "Yesterday",

@@ -8,6 +8,7 @@ Last updated: 2026-10-28 — Milestone M6
 
 ### Added
 
+- **Sort by number of duplicates**, wherever it applies: the duplicates screen (groups with the most items first), every timeline's sort sheet (items of the largest groups first, each group together) and the Albums folders (folders holding the most duplicates first, with their count).
 - Viewer: a **group strip** for photos of a duplicate group: the group's thumbnails at the bottom, scrolling sideways, the best one marked; **Trash** and **Keep** buttons sort the group photo by photo, with Undo ([docs/features/viewer.md](docs/features/viewer.md#group-strip)).
 - **Map** (brought forward from M7): Albums → Map shows located photos and videos on OpenStreetMap tiles, grouped into clusters with the newest item's thumbnail and a count; a cluster opens the grid of its area, a single item the viewer; a card asks for the location permission when missing ([docs/features/map.md](docs/features/map.md), [ADR 0022](docs/decisions/0022-map-tiles-and-grid-clusters.md)).
 - Info panel: a **mini map** below the coordinates, opening the map there.
@@ -19,6 +20,11 @@ Last updated: 2026-10-28 — Milestone M6
 - Info panel: the location opens the map app; a button copies the coordinates.
 - Database schema version 4: `assets.contrast`.
 - Info panel: the photo's quality measures (sharpness, relative sharpness, brightness, contrast) and whether it is offered as blurry or too dark.
+
+### Fixed
+
+- Opening the duplicates screen or the viewer from an album page could fail in debug builds ("multiple heroes share the same tag"): the hidden tabs' thumbnails had heroes too. Hidden tabs now turn their heroes off.
+- The sort and filter sheet scrolls when its content does not fit.
 
 ### Changed
 

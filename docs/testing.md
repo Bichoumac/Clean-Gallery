@@ -190,6 +190,16 @@ Group strip in the viewer.
 | 30 | **Garder** | A lime check on the thumbnail; the next photo to sort shows. |
 | 31 | A photo outside any group; a video; tap the photo | No strip on the first two; the strip hides and shows with the top bar. |
 
+Info panel and sorts by duplicates (after the results below).
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 32 | A photo, ⓘ | The photo shows more clearly through the panel; the text stays readable. |
+| 33 | Panel open, at the top of its content, pull it down | It follows the finger and closes; a short pull lets it slide back. Scrolled down, pulling down scrolls the content first. |
+| 34 | Duplicates screen, sort button (top right) → *Plus de doublons d'abord* | The groups with the most photos come first. |
+| 35 | Albums → All media → sort → *Doublons* | The largest groups first, each group's photos together, photos without duplicates at the end. |
+| 36 | Albums tab, sort button next to *Dossiers* → *Doublons* | Folders with the most duplicates first, each reading "N éléments · M doublons". |
+
 Results on the Galaxy A54, reported by the product owner on 2026-10-28 after installing commit `369e8b8`: stacks, map and group strip, "everything works" (items 11 to 31). The time taken by the first reading of locations was not reported.
 
 Part 1 results on the Galaxy A54, reported by the product owner on 2026-10-27: first test, the end of the panel was hidden (fixed: room above the navigation bar, 90 % high) and the coordinates were not clickable (fixed: they open the map app). Second test, with the hazy photo rule: all good; the product owner read the temporary measures and set the hazy threshold at 150. Item 10 added afterwards, at the product owner's request; not seen on the device yet.

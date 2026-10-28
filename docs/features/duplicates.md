@@ -2,7 +2,7 @@
 
 The "Duplicates" virtual folder at the top of grids and the duplicates screen, where the user reviews groups of identical items, burst shots and similar photos, and moves the extra ones to the trash.
 
-Last updated: 2026-10-27 — Milestone M4
+Last updated: 2026-10-28 — Milestone M6
 
 ## Purpose
 
@@ -13,11 +13,12 @@ Find copies of the same photo or video (saved twice, received twice, copied to a
 1. A grid (Camera, Videos, an album, All media, Favorites) shows a **Duplicates** tile above the photos when its items hold duplicates: "3 items to review · 12 MB", the items suggested for the trash and their size (an item in two groups counts once). There is no tile otherwise. The Stats tab opens the same screen for the whole library ([stats.md](stats.md)).
 2. Tapping it opens the duplicates screen for that grid: only duplicates among its items, so All media also finds copies across folders.
 3. Choice chips at the top pick what to show: **All · N**, **Identical copies · N**, **Bursts · N**, **Similar photos · N** (N groups; a kind without groups has no chip; no chips at all when there is a single kind). Under **All**, the groups come in one titled section per kind, in that order; under a kind, only its groups, and *Clean all groups* applies to them only. The product owner asked for these chips on 2026-10-27, since one *Certain duplicates* section mixed identical copies and bursts. Each group shows its items side by side with resolution, size, date and full path (folder and file name, never truncated, since the end of the path is what tells copies apart; asked by the product owner after the first device test). The item to keep has a **Best** badge; the others are **pre-selected** (dimmed, check mark).
-4. Tap the round button on a photo to pick or keep it; tap the photo itself to open it full screen and swipe through the group.
-5. **Move N to trash** under a group trashes its picked items, with *Undo*.
-6. **Not duplicates** under a similar group: the group disappears with "These photos won't be grouped again." Its photos are never grouped together again, even after *Analyze the library again* ([analysis-engine.md](../analysis-engine.md#not-duplicates)). Certain duplicates have no such button: they are identical by definition.
-7. **Clean all groups** at the bottom shows a summary ("Move 128 items (1.4 GB) to the trash?"), then trashes every picked item, with *Undo*.
-8. A group disappears once fewer than two of its items remain outside the trash; restoring one brings it back.
+4. **Sort** (button in the top bar): *Newest first* (the default) or *Most duplicates first*, the groups with the most items on top, groups of one size newest first. Applies inside each section; not saved (product owner, 2026-10-28).
+5. Tap the round button on a photo to pick or keep it; tap the photo itself to open it full screen and swipe through the group.
+6. **Move N to trash** under a group trashes its picked items, with *Undo*.
+7. **Not duplicates** under a similar group: the group disappears with "These photos won't be grouped again." Its photos are never grouped together again, even after *Analyze the library again* ([analysis-engine.md](../analysis-engine.md#not-duplicates)). Certain duplicates have no such button: they are identical by definition.
+8. **Clean all groups** at the bottom shows a summary ("Move 128 items (1.4 GB) to the trash?"), then trashes every picked item, with *Undo*.
+9. A group disappears once fewer than two of its items remain outside the trash; restoring one brings it back.
 
 ```mermaid
 flowchart TD
@@ -71,6 +72,8 @@ Detection rules and the "Best" choice are in [analysis-engine.md](../analysis-en
 ## Tests
 
 - [duplicates_flow_test.dart](../../test/features/duplicates/duplicates_flow_test.dart): tile and its count, no tile without duplicates, clean all keeps the best, keeping every copy, opening a photo full screen.
+- [duplicate_sort_flow_test.dart](../../test/features/duplicates/duplicate_sort_flow_test.dart): the screen sorted by most duplicates (opened from All media, which also guards the hero fix below), a timeline sorted by duplicates, Albums folders sorted by duplicates.
+- [duplicate_sort_test.dart](../../test/core/media/duplicate_sort_test.dart): the duplicates order of the index (largest groups first, a group together, ascending, chunks, a trashed copy), duplicates per folder.
 - [similar_flow_test.dart](../../test/features/duplicates/similar_flow_test.dart): similar photos section, Not duplicates, the Stats tab opening the screen.
 - [duplicates_test.dart](../../test/core/media/duplicates_test.dart) and [best_picker_test.dart](../../test/analysis/best_picker_test.dart): detection, see [analysis-engine.md](../analysis-engine.md#tests).
 

@@ -1,3 +1,4 @@
+import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/location_scan.dart';
 import 'package:clean_gallery/core/media/media_index.dart';
 import 'package:clean_gallery/core/media/media_providers.dart';
@@ -17,15 +18,40 @@ import 'package:go_router/go_router.dart';
 ///
 /// The Trash is a page of the app, not a MediaStore album. The Duplicates
 /// virtual album joins the top row in M3.
-class AlbumsScreen extends ConsumerWidget {
+///
+/// Folders are sorted by size, or by the number of duplicates they hold
+/// (for this session).
+class AlbumsScreen extends ConsumerStatefulWidget {
   /// Creates the Albums tab.
   const AlbumsScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<AlbumsScreen> createState() => _AlbumsScreenState();
+}
+
+class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
+  /// Whether folders with the most duplicates come first.
+  bool _byDuplicates = false;
+
+  @override
+  Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
-    final folders = ref.watch(albumsProvider).value ?? const <Album>[];
+    final duplicates = _byDuplicates
+        ? ref.watch(folderDuplicateCountsProvider).value
+        : null;
+    var folders = ref.watch(albumsProvider).value ?? const <Album>[];
+    if (duplicates != null) {
+      // Folders with as many duplicates stay largest first.
+      final order = {for (final (i, f) in folders.indexed) f.id: i};
+      folders = [...folders]
+        ..sort((a, b) {
+          final byCount = (duplicates[b.id] ?? 0).compareTo(
+            duplicates[a.id] ?? 0,
+          );
+          return byCount != 0 ? byCount : order[a.id]!.compareTo(order[b.id]!);
+        });
+    }
     final trash = ref.watch(trashItemsProvider).value ?? const <TrashedItem>[];
     final located = ref.watch(locatedMediaProvider).value;
 
@@ -85,9 +111,37 @@ class AlbumsScreen extends ConsumerWidget {
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
               sliver: SliverToBoxAdapter(
-                child: Semantics(
-                  header: true,
-                  child: Text(l10n.albumsFolders, style: textTheme.titleLarge),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Semantics(
+                        header: true,
+                        child: Text(
+                          l10n.albumsFolders,
+                          style: textTheme.titleLarge,
+                        ),
+                      ),
+                    ),
+                    PopupMenuButton<bool>(
+                      tooltip: l10n.sortTitle,
+                      icon: const Icon(Icons.sort_rounded),
+                      initialValue: _byDuplicates,
+                      onSelected: (value) =>
+                          setState(() => _byDuplicates = value),
+                      itemBuilder: (context) => [
+                        CheckedPopupMenuItem(
+                          value: false,
+                          checked: !_byDuplicates,
+                          child: Text(l10n.sortSize),
+                        ),
+                        CheckedPopupMenuItem(
+                          value: true,
+                          checked: _byDuplicates,
+                          child: Text(l10n.sortDuplicates),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -102,6 +156,9 @@ class AlbumsScreen extends ConsumerWidget {
                     location: AlbumRoutes.location(album.id, album.name),
                     knownCount: album.count,
                     knownCover: album.cover,
+                    duplicates: duplicates == null
+                        ? null
+                        : duplicates[album.id] ?? 0,
                   ),
               ],
             ),
@@ -141,7 +198,12 @@ class _AlbumTile extends ConsumerWidget {
     this.knownCount,
     this.knownCover,
     this.icon,
+    this.duplicates,
   });
+
+  /// Number of items in a duplicate group, shown after the count when the
+  /// folders are sorted by duplicates.
+  final int? duplicates;
 
   final String name;
 
@@ -179,7 +241,11 @@ class _AlbumTile extends ConsumerWidget {
 
     return Semantics(
       button: true,
-      label: count == null ? name : '$name, ${l10n.albumItemCount(count)}',
+      label: [
+        name,
+        if (count != null) l10n.albumItemCount(count),
+        if (duplicates case final n? when n > 0) l10n.albumDuplicateCount(n),
+      ].join(', '),
       excludeSemantics: true,
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
@@ -223,7 +289,11 @@ class _AlbumTile extends ConsumerWidget {
             ),
             if (count != null)
               Text(
-                l10n.albumItemCount(count),
+                [
+                  l10n.albumItemCount(count),
+                  if (duplicates case final n? when n > 0)
+                    l10n.albumDuplicateCount(n),
+                ].join(' · '),
                 style: theme.textTheme.bodySmall?.copyWith(
                   color: theme.colorScheme.onSurfaceVariant,
                 ),

@@ -46,6 +46,11 @@ enum MediaSortField {
 
   /// Video length. Photos count as zero.
   duration,
+
+  /// Number of items in the item's duplicate group, items of one group
+  /// next to each other; items without duplicates come last (first in
+  /// ascending order).
+  duplicates,
 }
 
 /// Sort order of a media list.

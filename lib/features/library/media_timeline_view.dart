@@ -493,6 +493,7 @@ class _TimelineState extends ConsumerState<_Timeline> {
           final name? when name.isNotEmpty => name[0].toUpperCase(),
           _ => null,
         },
+        MediaSortField.duplicates => null,
       };
     }
 

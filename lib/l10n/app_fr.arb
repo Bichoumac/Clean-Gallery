@@ -108,6 +108,9 @@
   "sortSmallest": "Plus légers d'abord",
   "sortLongest": "Plus longs d'abord",
   "sortShortest": "Plus courts d'abord",
+  "sortDuplicates": "Doublons",
+  "sortMostDuplicates": "Plus de doublons d'abord",
+  "sortFewestDuplicates": "Moins d'abord",
   "filterPeriod": "Période",
   "filterAllTime": "Toutes les dates",
   "filterLast7Days": "7 derniers jours",
@@ -129,6 +132,7 @@
   "albumsFavorites": "Favoris",
   "albumsFolders": "Dossiers",
   "albumItemCount": "{count, plural, =0{Vide} =1{1 élément} other{{count} éléments}}",
+  "albumDuplicateCount": "{count, plural, =1{1 doublon} other{{count} doublons}}",
 
   "timelineToday": "Aujourd'hui",
   "timelineYesterday": "Hier",

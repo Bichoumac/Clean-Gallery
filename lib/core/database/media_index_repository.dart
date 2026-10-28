@@ -257,6 +257,9 @@ final class MediaIndexRepository {
     int offset = 0,
     int? limit,
   }) async {
+    if (selection.sort.field == MediaSortField.duplicates) {
+      return await _loadByDuplicates(selection, offset: offset, limit: limit);
+    }
     final query = _db.select(_db.assets)
       ..where((t) => _matches(t, selection))
       ..orderBy(_order(selection.sort));
@@ -267,6 +270,64 @@ final class MediaIndexRepository {
       query.limit(-1, offset: offset);
     }
     return [for (final row in await query.get()) _toItem(row)];
+  }
+
+  /// [load] sorted by the size of each item's duplicate group, see
+  /// [MediaSortField.duplicates].
+  ///
+  /// Sorted in memory: the group of an item is a lookup in
+  /// `duplicate_members` by asset, which has no index, so ordering in SQL
+  /// would scan it once per item. The whole selection is loaded, newest
+  /// first, then sorted (a stable sort keeps that order within a group).
+  Future<List<MediaItem>> _loadByDuplicates(
+    MediaSelection selection, {
+    required int offset,
+    required int? limit,
+  }) async {
+    final items = await load(selection.copyWith(sort: MediaSort.newest));
+    final rows = await _db
+        .customSelect(
+          'SELECT asset_id, group_id FROM duplicate_members '
+          'WHERE asset_id NOT IN (SELECT asset_id FROM trash_entries)',
+          readsFrom: {_db.duplicateMembers, _db.trashEntries},
+        )
+        .get();
+    // One group per item (the lowest id: certain groups are built first),
+    // and the number of items left in each group.
+    final groupOf = <String, int>{};
+    final sizes = <int, int>{};
+    for (final row in rows) {
+      final id = '${row.read<int>('asset_id')}';
+      final group = row.read<int>('group_id');
+      sizes[group] = (sizes[group] ?? 0) + 1;
+      final current = groupOf[id];
+      if (current == null || group < current) groupOf[id] = group;
+    }
+    int sizeOf(MediaItem item) => switch (sizes[groupOf[item.id]]) {
+      final n? when n > 1 => n,
+      _ => 0,
+    };
+    final descending = selection.sort.descending;
+    final sorted =
+        [for (final (i, item) in items.indexed) (i, item, sizeOf(item))]
+          ..sort((a, b) {
+            final bySize = descending
+                ? b.$3.compareTo(a.$3)
+                : a.$3.compareTo(b.$3);
+            if (bySize != 0) return bySize;
+            // Items without duplicates (size 0) stay in date order.
+            final byGroup = a.$3 == 0
+                ? 0
+                : groupOf[a.$2.id]!.compareTo(groupOf[b.$2.id]!);
+            return byGroup != 0 ? byGroup : a.$1.compareTo(b.$1);
+          });
+    final end = limit == null
+        ? sorted.length
+        : (offset + limit).clamp(0, sorted.length);
+    return [
+      for (final (_, item, _) in sorted.sublist(offset.clamp(0, end), end))
+        item,
+    ];
   }
 
   /// Number of items in [selection], leaving out trashed items.
@@ -322,6 +383,27 @@ final class MediaIndexRepository {
         )
         .get();
     return [for (final row in rows) _album(row)];
+  }
+
+  /// Number of items of each folder in a duplicate group, by folder id;
+  /// folders without any are left out. Trashed items are not counted, nor
+  /// groups left with a single item.
+  Future<Map<String, int>> duplicateCountsByFolder() async {
+    const notTrashed = 'NOT IN (SELECT asset_id FROM trash_entries)';
+    final rows = await _db
+        .customSelect(
+          'SELECT a.bucket_id AS bucket, COUNT(DISTINCT a.id) AS n '
+          'FROM duplicate_members m JOIN assets a ON a.id = m.asset_id '
+          'WHERE a.bucket_id IS NOT NULL AND a.id $notTrashed '
+          'AND m.group_id IN (SELECT group_id FROM duplicate_members '
+          'WHERE asset_id $notTrashed GROUP BY group_id HAVING COUNT(*) > 1) '
+          'GROUP BY a.bucket_id',
+          readsFrom: {_db.assets, _db.duplicateMembers, _db.trashEntries},
+        )
+        .get();
+    return {
+      for (final row in rows) row.read<String>('bucket'): row.read<int>('n'),
+    };
   }
 
   /// Months that have photos or videos, newest first, with their item
@@ -493,6 +575,8 @@ final class MediaIndexRepository {
             t.durationMs,
             const Constant(0),
           ]),
+          // Sorted in memory by [_loadByDuplicates], from the newest.
+          MediaSortField.duplicates => _date(t),
         },
         mode: mode,
       ),

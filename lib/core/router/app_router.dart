@@ -208,9 +208,10 @@ GoRouter appRouter(Ref ref) {
           title: state.uri.queryParameters['name'] ?? '',
         ),
       ),
-      StatefulShellRoute.indexedStack(
+      StatefulShellRoute(
         builder: (context, state, navigationShell) =>
             HomeShell(navigationShell: navigationShell),
+        navigatorContainerBuilder: _branchContainer,
         // Order must match the destinations of HomeShell.
         branches: [
           _branch(
@@ -313,6 +314,32 @@ StatefulShellBranch _branch(
         builder: (context, state) =>
             page(context, AppLocalizations.of(context)),
       ),
+    ],
+  );
+}
+
+/// The tabs' navigators in an [IndexedStack], as
+/// `StatefulShellRoute.indexedStack` does, with the heroes of hidden tabs
+/// turned off: the Camera tab and an album page can show the same item, and
+/// two heroes with one tag in the shell break the flight to the viewer or
+/// the duplicates screen.
+Widget _branchContainer(
+  BuildContext context,
+  StatefulNavigationShell navigationShell,
+  List<Widget> children,
+) {
+  final current = navigationShell.currentIndex;
+  return IndexedStack(
+    index: current,
+    children: [
+      for (final (index, child) in children.indexed)
+        Offstage(
+          offstage: index != current,
+          child: TickerMode(
+            enabled: index == current,
+            child: HeroMode(enabled: index == current, child: child),
+          ),
+        ),
     ],
   );
 }

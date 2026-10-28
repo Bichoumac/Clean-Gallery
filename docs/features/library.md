@@ -91,6 +91,7 @@ Every timeline (Photos, Videos, each album) can be sorted and limited to a date 
 | Name | A to Z / Z to A | A to Z |
 | Size | Largest first / Smallest first | Largest first |
 | Duration (not on Photos) | Longest first / Shortest first | Longest first |
+| Duplicates (M6) | Most duplicates first / Fewest first | Most duplicates first |
 
 | Period | Range |
 | --- | --- |
@@ -104,6 +105,8 @@ Every timeline (Photos, Videos, each album) can be sorted and limited to a date 
 - Active choices show as chips under the title; tapping a chip reopens the sheet, its cross removes it.
 - The filter button shows a lime dot when the view is customized.
 - Date headers only appear in date order; other orders show a plain grid.
+- **Duplicates** order: items by the number of items in their duplicate group (largest groups first), the items of one group next to each other, newest first within a group; items without duplicates at the end, newest first. Sorted in memory after loading the whole selection (`MediaIndexRepository._loadByDuplicates`): `duplicate_members` has no index by asset, so SQL would scan it once per item. The list reloads when the groups change. No fast-scroll bubble in this order. Asked by the product owner on 2026-10-28.
+- **Albums → Folders** has its own sort button: by size (the default) or by duplicates, the folders holding the most items in a duplicate group first, each tile then reading "120 items · 8 duplicates". Kept until the app is closed.
 - A period with no item shows "Nothing in this period" with *Clear filter*.
 - Each tab and album keeps its own choice until the app is closed.
 
