@@ -400,6 +400,13 @@ class _TopBar extends ConsumerWidget {
                       : Icons.favorite_border_rounded,
                 ),
               ),
+              if (!item.isVideo)
+                IconButton(
+                  tooltip: l10n.actionEdit,
+                  color: Colors.white,
+                  onPressed: () => context.push(AppRoutes.editor, extra: item),
+                  icon: const Icon(Icons.tune_rounded),
+                ),
               IconButton(
                 tooltip: l10n.actionInfo,
                 color: Colors.white,

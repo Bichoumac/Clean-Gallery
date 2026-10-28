@@ -8,6 +8,7 @@ Last updated: 2026-10-28 — Milestone M6
 
 ### Added
 
+- **Photo editor** (part 2 of M6), from the viewer's Edit button: crop with corner handles and shapes (free, original, 1:1, 4:3, 3:4, 16:9, 9:16), rotate, flip, and brightness, contrast, saturation, exposure and warmth previewed live with one color matrix; Reset; closing with changes asks first. Saving comes in part 3 ([docs/features/editor.md](docs/features/editor.md), [ADR 0023](docs/decisions/0023-editor-color-matrix-preview.md)).
 - **Sort by number of duplicates**, wherever it applies: the duplicates screen (groups with the most items first), every timeline's sort sheet (items of the largest groups first, each group together) and the Albums folders (folders holding the most duplicates first, with their count).
 - Viewer: a **group strip** for photos of a duplicate group: the group's thumbnails at the bottom, scrolling sideways, the best one marked; **Trash** and **Keep** buttons sort the group photo by photo, with Undo ([docs/features/viewer.md](docs/features/viewer.md#group-strip)).
 - **Map** (brought forward from M7): Albums → Map shows located photos and videos on OpenStreetMap tiles, grouped into clusters with the newest item's thumbnail and a count; a cluster opens the grid of its area, a single item the viewer; a card asks for the location permission when missing ([docs/features/map.md](docs/features/map.md), [ADR 0022](docs/decisions/0022-map-tiles-and-grid-clusters.md)).

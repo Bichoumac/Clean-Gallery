@@ -15,7 +15,7 @@ Show one item at a time, full screen, with swiping between the items of the grid
 3. Pinch, or double-tap, to zoom a photo; double-tap again to fit. Swiping is disabled while zoomed.
 4. Tap once to hide or show the controls and the system bars.
 5. Videos start playing when they become the current page and pause when swiped away. Controls: play/pause/replay, progress bar with seeking, mute, rotate. The progress bar follows the finger and the video seeks when it is lifted.
-6. Top bar actions: **share**, **favorite**, **details** (the [info panel](#info-panel)), **move to trash** (with *Undo*); after trashing, the next item is shown, and the viewer closes when nothing is left.
+6. Top bar actions: **share**, **favorite**, **edit** (photos only, the [editor](editor.md)), **details** (the [info panel](#info-panel)), **move to trash** (with *Undo*); after trashing, the next item is shown, and the viewer closes when nothing is left.
 7. Back returns to the grid.
 8. **A photo in a duplicate group** (identical copies, burst or similar photos): the [group strip](#group-strip) at the bottom.
 

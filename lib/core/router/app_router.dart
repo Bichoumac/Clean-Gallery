@@ -2,9 +2,11 @@ import 'package:clean_gallery/core/router/home_shell.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/domain/geo.dart';
+import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/features/cleanup/cleanup_list_screen.dart';
 import 'package:clean_gallery/features/cleanup/cleanup_lists.dart';
 import 'package:clean_gallery/features/duplicates/duplicates_screen.dart';
+import 'package:clean_gallery/features/editor/editor_screen.dart';
 import 'package:clean_gallery/features/library/albums_screen.dart';
 import 'package:clean_gallery/features/library/media_timeline_view.dart';
 import 'package:clean_gallery/features/map/map_area_screen.dart';
@@ -62,6 +64,10 @@ abstract final class AppRoutes {
   /// The items of one cluster of the map. Requires its `GeoArea` as
   /// `extra`.
   static const mapArea = '/map/area';
+
+  /// The photo editor, above the tabs. Requires the photo (`MediaItem`) as
+  /// `extra`.
+  static const editor = '/editor';
 }
 
 /// Album pages under the Albums tab: `/albums/<key>?name=<title>`.
@@ -156,6 +162,10 @@ GoRouter appRouter(Ref ref) {
           state.extra is! MediaSelection) {
         return AppRoutes.camera;
       }
+      if (state.matchedLocation == AppRoutes.editor &&
+          state.extra is! MediaItem) {
+        return AppRoutes.camera;
+      }
       if (state.matchedLocation == AppRoutes.mapArea &&
           state.extra is! GeoArea) {
         return AppRoutes.map;
@@ -187,6 +197,11 @@ GoRouter appRouter(Ref ref) {
           kind: DuplicateKind.values
               .asNameMap()[state.uri.queryParameters['kind']],
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.editor,
+        builder: (context, state) =>
+            EditorScreen(photo: state.extra! as MediaItem),
       ),
       GoRoute(
         path: AppRoutes.map,

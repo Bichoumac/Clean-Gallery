@@ -14,7 +14,7 @@ Last updated: 2026-10-28 — Milestone M6
 | M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Merged into `main` (PR #4) |
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Merged into `main` (PR #5) |
 | M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Merged into `main` (PR #6) |
-| M6 | Advanced viewer and editing | In progress on `m6-viewer`: part 1 (info panel) and the hazy photo rule confirmed on the phone; stacks in the timelines, the map (from M7) and the viewer's group strip confirmed on the phone; parts 2 and 3 to do |
+| M6 | Advanced viewer and editing | In progress on `m6-viewer`: part 1 (info panel) and the hazy photo rule confirmed on the phone; stacks in the timelines, the map (from M7) and the viewer's group strip confirmed on the phone; part 2 (editor) done, to test; part 3 to do |
 | M7 | Exploration: map, search | Map and mini map built early in M6 (2026-10-28); search not started |
 | M8 | Monetization | Not started |
 | M9 | Polish and release preparation | Not started |
@@ -28,6 +28,7 @@ In parts, each tested on the phone: 1. the info panel; stacks in the timelines a
 - **Hazy photos are no longer blurry** (M5 follow-up): contrast measured and stored (schema version 4), blurry = sharpness below 30 and relative sharpness below 150, threshold read on the product owner's photos; only photos below 30 are analysed again ([ADR 0021](decisions/0021-hazy-photos-are-not-blurry.md)).
 - **Info panel** (part 1): a Details button in the viewer opens a bottom sheet over a blurred, translucent background with the date and its source, name, path, resolution, size, duration, camera, lens, ISO, aperture, shutter speed, focal length and location; EXIF read by the new native method `mediaMetadata` ([features/viewer.md](features/viewer.md#info-panel)). After the first device test: the panel ends above the navigation bar and takes up to 90 % of the screen; the location opens the map app (`openMap`), a button copies it.
 - **Stacks in the timelines**, asked by the product owner on 2026-10-28 before the editor: consecutive items of one duplicate group taken the same day fold into one thumbnail with a count badge; a tap unfolds it in place, a button on its cover folds it again; selecting a folded stack selects all its items. All groups stack (copies, bursts, similar photos); not in cleanup lists nor in name, size or duration order ([features/library.md](features/library.md#stacks)).
+- **Editor** (part 2), 2026-10-28: an Edit button in the viewer (photos) opens a full-screen editor: crop with handles and shapes, rotate, flip, five color adjustments previewed live with one color matrix, Reset, a question before discarding changes. The edit is plain data (`PhotoEdit`), the matrix math pure Dart ([features/editor.md](features/editor.md), [ADR 0023](decisions/0023-editor-color-matrix-preview.md)). No saving until part 3. 316 tests; not seen on the device yet ([testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device), items 37 to 44).
 - **Sort by number of duplicates**, asked by the product owner on 2026-10-28 "wherever it applies": the duplicates screen, every timeline's sort sheet and the Albums folders ([features/library.md](features/library.md#sorting-and-date-filter), [features/duplicates.md](features/duplicates.md#user-flows)). Found on the way: a hero clash when opening the duplicates screen (or the viewer) from an album page, in debug builds only; hidden tabs now turn their heroes off.
 - **Info panel**: more transparent (40 % black, blur σ 22), and pulled down from the top of its content it closes (product owner, 2026-10-28).
 - **Group strip in the viewer**, asked by the product owner on 2026-10-28: a photo of a duplicate group shows the group's thumbnails at the bottom, scrolling sideways, the best one marked; large **Trash** and **Keep** buttons sort it photo by photo, with Undo ([features/viewer.md](features/viewer.md#group-strip)).
@@ -51,7 +52,7 @@ In parts, each tested on the phone: 1. the info panel; stacks in the timelines a
 
 Plan to resume, in order. Each part ends with a commit, a release build installed on the phone, and a numbered checklist for the product owner.
 
-1. **Part 2, the editor** (`lib/features/editor/`, the brief's "Editing and filters"):
+1. ~~**Part 2, the editor**~~ done on 2026-10-28, as planned below:
    - an **Edit** button in the viewer's top bar (photos only), opening a full-screen editor route above the tabs, dark like the viewer, no ads;
    - **crop** with handles and ratios free, 1:1, 4:3, 16:9 (and their portrait forms), **rotate** by 90°, **flip** horizontally;
    - **adjustments** with sliders: brightness, contrast, saturation, exposure, warmth; previewed live on a screen-sized image with a `ColorFilter.matrix` (one 5 × 4 color matrix composed from all sliders), so moving a slider never re-encodes the photo;

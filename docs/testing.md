@@ -202,6 +202,19 @@ Info panel and sorts by duplicates (after the results below).
 
 Results on the Galaxy A54, reported by the product owner on 2026-10-28 after installing commit `6c2fe5c`: "everything works" (items 32 to 36).
 
+Part 2, the editor (no saving yet).
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 37 | Open a photo; a video | A sliders icon (*Modifier*) in the photo's top bar; none on the video. |
+| 38 | Tap it | The editor, dark: the photo with a crop frame, lime corners, thirds lines; *Recadrer* and *Réglages* at the bottom. |
+| 39 | Drag a corner, then inside the frame | The frame resizes, then moves; it never leaves the photo nor gets tiny. |
+| 40 | *1:1*, then *16:9*; drag a corner | A square, then a wide frame, centered; the corner keeps the shape. |
+| 41 | *Pivoter* four times; *Retourner* | The photo turns a quarter each time and comes back; it is mirrored. |
+| 42 | *Réglages*: each chip, move the slider | The preview follows the finger smoothly; Saturation -100 is black and white; a dot marks the chips in use. |
+| 43 | *Réinitialiser* | Everything back as it was. |
+| 44 | Change something, then ✕ or Back | *Abandonner les modifications ?*; *Continuer* stays, *Abandonner* closes. Without changes, ✕ closes at once. The photo itself is never changed. |
+
 Results on the Galaxy A54, reported by the product owner on 2026-10-28 after installing commit `369e8b8`: stacks, map and group strip, "everything works" (items 11 to 31). The time taken by the first reading of locations was not reported.
 
 Part 1 results on the Galaxy A54, reported by the product owner on 2026-10-27: first test, the end of the panel was hidden (fixed: room above the navigation bar, 90 % high) and the coordinates were not clickable (fixed: they open the map app). Second test, with the hazy photo rule: all good; the product owner read the temporary measures and set the hazy threshold at 150. Item 10 added afterwards, at the product owner's request; not seen on the device yet.
