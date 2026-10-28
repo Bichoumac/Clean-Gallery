@@ -8,6 +8,7 @@ Last updated: 2026-10-28 — Milestone M6
 
 ### Added
 
+- Viewer: a **group strip** for photos of a duplicate group: the group's thumbnails at the bottom, scrolling sideways, the best one marked; **Trash** and **Keep** buttons sort the group photo by photo, with Undo ([docs/features/viewer.md](docs/features/viewer.md#group-strip)).
 - **Map** (brought forward from M7): Albums → Map shows located photos and videos on OpenStreetMap tiles, grouped into clusters with the newest item's thumbnail and a count; a cluster opens the grid of its area, a single item the viewer; a card asks for the location permission when missing ([docs/features/map.md](docs/features/map.md), [ADR 0022](docs/decisions/0022-map-tiles-and-grid-clusters.md)).
 - Info panel: a **mini map** below the coordinates, opening the map there.
 - Locations read from file headers in the background (native method `locations`), once per file; database schema version 5: `assets.location_read`.

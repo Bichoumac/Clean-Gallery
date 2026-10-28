@@ -17,6 +17,19 @@ Show one item at a time, full screen, with swiping between the items of the grid
 5. Videos start playing when they become the current page and pause when swiped away. Controls: play/pause/replay, progress bar with seeking, mute, rotate. The progress bar follows the finger and the video seeks when it is lifted.
 6. Top bar actions: **share**, **favorite**, **details** (the [info panel](#info-panel)), **move to trash** (with *Undo*); after trashing, the next item is shown, and the viewer closes when nothing is left.
 7. Back returns to the grid.
+8. **A photo in a duplicate group** (identical copies, burst or similar photos): the [group strip](#group-strip) at the bottom.
+
+## Group strip
+
+Asked by the product owner on 2026-10-28: sort a group of duplicates without leaving the photo.
+
+- When the photo shown is in a duplicate group, the bottom of the screen shows *N duplicates · tap to compare* and the group's thumbnails in a row that scrolls sideways, the suggested one first with a lime **Best** pill (the duplicates screen's best pick, see [duplicates.md](duplicates.md)), the photo shown in a lime frame.
+- **Tap a thumbnail**: the viewer shows that photo. A copy outside the grid's list (e.g. a WhatsApp copy while browsing Camera) opens in a viewer of its own, in place of this one.
+- **Trash** (outlined) moves the photo shown to the app trash and shows the next one of the group still to sort; **Keep** (lime) puts a check on it and shows the next one. Going round the group, then staying put once everything is sorted.
+- Trashed photos stay in the strip, dimmed with a trash icon; tapping one restores it. **Undo** (left of the buttons) restores the last one. No snack bar: it would cover the buttons.
+- The strip keeps the group as it was when the viewer reached it, so it stays while its photos go to the trash (a group of one is no longer a group). Swiping to a photo outside the group looks its group up again; kept checks are forgotten then (they are not saved).
+- It hides with the other controls (tap the photo), and is not shown on videos, whose playback controls are at the bottom.
+- An item in a certain group and a similar group shows its certain group (`groupsByItem`, as the stacks of the timelines).
 
 ## Screens and widgets
 
@@ -26,6 +39,7 @@ Show one item at a time, full screen, with swiping between the items of the grid
 | `ZoomableImage` (photo page) | [zoomable_image.dart](../../lib/features/viewer/zoomable_image.dart) |
 | `VideoPage` and its controls | [video_page.dart](../../lib/features/viewer/video_page.dart) |
 | `InfoPanel`, `showInfoPanel` | [info_panel.dart](../../lib/features/viewer/info_panel.dart) |
+| `GroupStrip` (duplicate group, Keep and Trash) | [group_strip.dart](../../lib/features/viewer/group_strip.dart) |
 
 Route: `/viewer`, above the tabs, with `ViewerArgs(selection, initialIndex)` as `extra` ([app_router.dart](../../lib/core/router/app_router.dart)). Without arguments (e.g. restored after the process was killed), it redirects to Photos.
 
@@ -66,6 +80,7 @@ The brief: "a bottom sheet that slides up with a translucent blurred background 
 - [library_test.dart](../../test/features/library/library_test.dart): opening the viewer on the tapped item, showing its file name, closing with back.
 - [viewer_test.dart](../../test/features/viewer/viewer_test.dart): swipe left and right (fling and slow drag), pinch then pan without changing page, double-tap back to fit, top bar height.
 - [info_panel_test.dart](../../test/features/viewer/info_panel_test.dart): the panel with camera settings and location, the location reached at the end and opening a map, the notes for missing camera data and location permission, the quality row, value formats.
+- [group_strip_test.dart](../../test/features/viewer/group_strip_test.dart): the strip of a grouped photo with its Best pill, none outside a group, a thumbnail showing its photo, Trash then Undo, Keep.
 - [video_controls_test.dart](../../test/features/viewer/video_controls_test.dart): progress bar at the bottom and play button centered, in portrait and landscape (the bar was in the middle of the screen because `Slider` takes all the height it is given).
 - Video playback, zoom gestures and Hero transitions are checked on a device ([testing.md](../testing.md#m1--to-verify-on-a-device)).
 

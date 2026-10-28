@@ -8,6 +8,7 @@ import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/duplicate_group.dart';
+import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/domain/gray_image.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
 import 'package:flutter/services.dart';
@@ -295,6 +296,26 @@ Future<List<DuplicateGroup>> duplicateGroups(Ref ref, MediaSelection base) {
       .watch(mediaIndexRepositoryProvider)
       .duplicateGroups(duplicateScope(base));
 }
+
+/// The group each item of [groups] belongs to, by item id. An item in a
+/// certain group (copies, burst) and a similar group gets its certain
+/// group.
+Map<String, DuplicateGroup> groupsByItem(List<DuplicateGroup> groups) => {
+  for (final group in groups)
+    if (group.kind == DuplicateKind.similar)
+      for (final item in group.items) item.id: group,
+  for (final group in groups)
+    if (group.kind != DuplicateKind.similar)
+      for (final item in group.items) item.id: group,
+};
+
+/// The duplicate group of every item of the library, by item id, see
+/// [groupsByItem]. Used by the viewer's group strip.
+@riverpod
+Future<Map<String, DuplicateGroup>> libraryGroupsByItem(Ref ref) async =>
+    groupsByItem(
+      await ref.watch(duplicateGroupsProvider(MediaSelection.all).future),
+    );
 
 /// The part of a timeline's selection that duplicates are looked for in:
 /// its filter and folder.

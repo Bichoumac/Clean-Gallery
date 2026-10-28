@@ -13,7 +13,6 @@ import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/core/router/compact_nav_bar.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/duplicate_group.dart';
-import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/domain/timeline.dart';
 import 'package:clean_gallery/features/library/fast_scroller.dart';
@@ -268,29 +267,20 @@ class _TimelineState extends ConsumerState<_Timeline> {
     });
   }
 
-  /// Stack keys and covers of [groups]. An item in a certain group and a
-  /// similar one stacks with its certain group. A group is keyed by its
-  /// best pick, which outlives regroupings that renumber groups.
+  /// Stack keys and covers of [groups] ([groupsByItem]: an item in a
+  /// certain group and a similar one stacks with its certain group). A
+  /// group is keyed by its best pick, which outlives regroupings that
+  /// renumber groups.
   void _updateStacks(List<DuplicateGroup> groups) {
     if (identical(groups, _stackGroups)) return;
     _stackGroups = groups;
-    final stackOf = <String, String>{};
-    final coverOf = <String, String>{};
-    final ordered = [
-      for (final group in groups)
-        if (group.kind == DuplicateKind.similar) group,
-      for (final group in groups)
-        if (group.kind != DuplicateKind.similar) group,
-    ];
-    for (final group in ordered) {
-      final key = group.best.id;
-      coverOf[key] = key;
-      for (final item in group.items) {
-        stackOf[item.id] = key;
-      }
-    }
-    _stackOf = stackOf;
-    _coverOf = coverOf;
+    final byItem = groupsByItem(groups);
+    _stackOf = {
+      for (final MapEntry(:key, :value) in byItem.entries) key: value.best.id,
+    };
+    _coverOf = {
+      for (final group in byItem.values) group.best.id: group.best.id,
+    };
   }
 
   void _clearSelection() => _setPicked({});

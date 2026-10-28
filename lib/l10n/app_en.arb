@@ -325,5 +325,11 @@
   "mapClusterLabel": "{count, plural, =1{1 item here} other{{count} items here}}",
   "@mapClusterLabel": {"placeholders": {"count": {"type": "int"}}},
   "mapAreaTitle": "In this area",
-  "infoMiniMap": "Show on the map"
+  "infoMiniMap": "Show on the map",
+
+  "viewerGroupTitle": "{count, plural, =1{1 duplicate} other{{count} duplicates}} · tap to compare",
+  "@viewerGroupTitle": {"placeholders": {"count": {"type": "int"}}},
+  "viewerGroupTrash": "Trash",
+  "viewerGroupTrashed": "in the trash, tap to restore",
+  "viewerGroupPhoto": "Photo of the group"
 }

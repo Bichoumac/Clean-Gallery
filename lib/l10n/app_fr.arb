@@ -287,5 +287,10 @@
   "mapLocationButton": "Autoriser",
   "mapClusterLabel": "{count, plural, =1{1 élément ici} other{{count} éléments ici}}",
   "mapAreaTitle": "Dans cette zone",
-  "infoMiniMap": "Voir sur la carte"
+  "infoMiniMap": "Voir sur la carte",
+
+  "viewerGroupTitle": "{count, plural, =1{1 doublon} other{{count} doublons}} · toucher pour comparer",
+  "viewerGroupTrash": "Corbeille",
+  "viewerGroupTrashed": "à la corbeille, toucher pour restaurer",
+  "viewerGroupPhoto": "Photo du groupe"
 }

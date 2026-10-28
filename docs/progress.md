@@ -14,7 +14,7 @@ Last updated: 2026-10-28 — Milestone M6
 | M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Merged into `main` (PR #4) |
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Merged into `main` (PR #5) |
 | M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Merged into `main` (PR #6) |
-| M6 | Advanced viewer and editing | In progress on `m6-viewer`: part 1 (info panel) and the hazy photo rule confirmed on the phone; stacks in the timelines and the map (from M7) done, to test; parts 2 and 3 to do |
+| M6 | Advanced viewer and editing | In progress on `m6-viewer`: part 1 (info panel) and the hazy photo rule confirmed on the phone; stacks in the timelines, the map (from M7) and the viewer's group strip done, to test; parts 2 and 3 to do |
 | M7 | Exploration: map, search | Map and mini map built early in M6 (2026-10-28); search not started |
 | M8 | Monetization | Not started |
 | M9 | Polish and release preparation | Not started |
@@ -28,6 +28,7 @@ In parts, each tested on the phone: 1. the info panel; stacks in the timelines a
 - **Hazy photos are no longer blurry** (M5 follow-up): contrast measured and stored (schema version 4), blurry = sharpness below 30 and relative sharpness below 150, threshold read on the product owner's photos; only photos below 30 are analysed again ([ADR 0021](decisions/0021-hazy-photos-are-not-blurry.md)).
 - **Info panel** (part 1): a Details button in the viewer opens a bottom sheet over a blurred, translucent background with the date and its source, name, path, resolution, size, duration, camera, lens, ISO, aperture, shutter speed, focal length and location; EXIF read by the new native method `mediaMetadata` ([features/viewer.md](features/viewer.md#info-panel)). After the first device test: the panel ends above the navigation bar and takes up to 90 % of the screen; the location opens the map app (`openMap`), a button copies it.
 - **Stacks in the timelines**, asked by the product owner on 2026-10-28 before the editor: consecutive items of one duplicate group taken the same day fold into one thumbnail with a count badge; a tap unfolds it in place, a button on its cover folds it again; selecting a folded stack selects all its items. All groups stack (copies, bursts, similar photos); not in cleanup lists nor in name, size or duration order ([features/library.md](features/library.md#stacks)).
+- **Group strip in the viewer**, asked by the product owner on 2026-10-28: a photo of a duplicate group shows the group's thumbnails at the bottom, scrolling sideways, the best one marked; large **Trash** and **Keep** buttons sort it photo by photo, with Undo ([features/viewer.md](features/viewer.md#group-strip)).
 - **Map** (from M7), asked by the product owner on 2026-10-28 before the editor: Albums → Map shows located photos and videos on OpenStreetMap, in clusters with the newest item's thumbnail and a count; a cluster opens the grid of its area, a single item the viewer. Locations read by a new scan (native `locations`, schema version 5 `assets.location_read`), only with the location permission. The info panel gets its **mini map**. `INTERNET` added to the release manifest for the tiles ([features/map.md](features/map.md), [ADR 0022](decisions/0022-map-tiles-and-grid-clusters.md)).
 - **Quality measures in the info panel**, at the product owner's request: sharpness (S), relative sharpness (N), brightness (B) and contrast (C) of the photo, measured by the engine's own code, and whether it is offered as blurry or too dark. Kept so the thresholds can be checked on real photos.
 
@@ -41,7 +42,8 @@ In parts, each tested on the phone: 1. the info panel; stacks in the timelines a
 
 - Part 1 and the hazy photo rule confirmed on the Galaxy A54 on 2026-10-27 ("all good", [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device)). The quality row added afterwards is covered by a test, not seen on the device yet.
 - The hazy threshold (150) comes from a handful of photos; the quality row lets the product owner report others.
-- **The map** is covered by tests (272 in all) and the release build, not seen on the device yet ([testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device), items 18 to 25). The first reading of every location after the update has not been timed on the phone.
+- **The group strip** is covered by tests (277 in all), not seen on the device yet (items 26 to 31). Kept checks are not saved.
+- **The map** was installed on the phone on 2026-10-28, not reported on yet ([testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device), items 18 to 25). The first reading of every location after the update has not been timed on the phone.
 - **Stacks** are covered by tests, not seen on the device yet ([testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device), items 11 to 17). Stacks show once the analysis has grouped the photos; there is no setting to turn them off.
 
 ### Next steps

@@ -179,6 +179,17 @@ Map (from M7). The first launch migrates the database (schema version 5) and rea
 | 24 | Dark mode, then airplane mode | Dark tiles; offline, tiles already seen still show, markers too. |
 | 25 | Settings → Android → Clean Gallery → Permissions: remove photo location, back to the map | A card asks to allow it; *Allow* brings the markers back. |
 
+Group strip in the viewer.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 26 | Open a photo of a burst or of identical copies | At the bottom: *N doublons · toucher pour comparer*, the thumbnails, the first with a lime *Meilleure* pill, the photo shown framed in lime; *Corbeille* and *Garder* buttons. |
+| 27 | Swipe the thumbnails sideways, tap one | The row scrolls; the viewer shows the tapped photo. |
+| 28 | **Corbeille** | The photo goes to the trash, the next one of the group shows; its thumbnail stays dimmed with a bin; an Undo button appears. |
+| 29 | Undo, then tap a dimmed thumbnail after another Corbeille | Each brings the photo back and shows it. |
+| 30 | **Garder** | A lime check on the thumbnail; the next photo to sort shows. |
+| 31 | A photo outside any group; a video; tap the photo | No strip on the first two; the strip hides and shows with the top bar. |
+
 Part 1 results on the Galaxy A54, reported by the product owner on 2026-10-27: first test, the end of the panel was hidden (fixed: room above the navigation bar, 90 % high) and the coordinates were not clickable (fixed: they open the map app). Second test, with the hazy photo rule: all good; the product owner read the temporary measures and set the hazy threshold at 150. Item 10 added afterwards, at the product owner's request; not seen on the device yet.
 
 ### M5 — cleanup, to verify on a device
