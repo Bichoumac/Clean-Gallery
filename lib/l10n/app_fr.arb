@@ -322,5 +322,19 @@
   "editorDiscardBody": "La photo reste telle quelle.",
   "editorDiscard": "Abandonner",
   "editorKeepEditing": "Continuer",
-  "editorCropArea": "Zone de recadrage : glisser à l'intérieur pour la déplacer, un coin pour la redimensionner"
+  "editorCropArea": "Zone de recadrage : glisser à l'intérieur pour la déplacer, un coin pour la redimensionner",
+
+  "editorSave": "Enregistrer",
+  "editorSaveCopy": "Enregistrer une copie",
+  "editorSaveCopyBody": "Une nouvelle photo à côté de l'originale, qui reste telle quelle.",
+  "editorSaveReplace": "Remplacer l'originale",
+  "editorSaveReplaceBody": "L'originale va dans la corbeille de l'app ; vous pourrez l'y restaurer.",
+  "editorSavedCopy": "Copie enregistrée",
+  "editorSavedReplace": "Photo remplacée ; l'originale est dans la corbeille",
+  "editorSaveFailed": "Impossible d'enregistrer la photo.",
+  "editorDraw": "Dessiner",
+  "editorDrawArea": "Zone de dessin : dessiner avec le doigt",
+  "editorPenColor": "Couleur {number}",
+  "editorPenWidth": "Épaisseur {number}",
+  "editorUndoStroke": "Annuler"
 }

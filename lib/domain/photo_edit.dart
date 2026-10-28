@@ -238,10 +238,38 @@ enum Adjustment {
   };
 }
 
+/// A line drawn with the pencil, over the colors of the photo.
+@freezed
+abstract class Stroke with _$Stroke {
+  /// Creates a stroke.
+  const factory Stroke({
+    /// Points, in fractions of the rotated and flipped photo (like the
+    /// crop), in drawing order.
+    required List<(double, double)> points,
+
+    /// Color as 0xAARRGGBB.
+    required int color,
+
+    /// Line width, as a fraction of the photo's shorter side, which turning
+    /// the photo does not change.
+    required double width,
+  }) = _Stroke;
+
+  const Stroke._();
+
+  /// The same line once the photo is turned a quarter clockwise.
+  Stroke rotatedClockwise() =>
+      copyWith(points: [for (final (x, y) in points) (1 - y, x)]);
+
+  /// The same line once the photo is mirrored left to right.
+  Stroke flipped() =>
+      copyWith(points: [for (final (x, y) in points) (1 - x, y)]);
+}
+
 /// Everything the editor changes in a photo, as plain data: applied in this
-/// order, rotation, flip, crop (in the rotated and flipped photo), then the
-/// colors. The original is never changed; saving writes a new photo (part 3
-/// of M6).
+/// order, rotation, flip, colors, drawing, then the crop (in the rotated and
+/// flipped photo). The original is never changed; saving writes a new
+/// photo.
 @freezed
 abstract class PhotoEdit with _$PhotoEdit {
   /// Creates an edit.
@@ -257,22 +285,36 @@ abstract class PhotoEdit with _$PhotoEdit {
 
     /// Color adjustments.
     @Default(Adjustments()) Adjustments adjustments,
+
+    /// Lines drawn with the pencil, oldest first.
+    @Default(<Stroke>[]) List<Stroke> strokes,
   }) = _PhotoEdit;
 
   const PhotoEdit._();
 
   /// Whether the edit changes nothing.
   bool get isIdentity =>
-      quarterTurns == 0 && !flipped && crop.isFull && adjustments.isNeutral;
+      quarterTurns == 0 &&
+      !flipped &&
+      crop.isFull &&
+      adjustments.isNeutral &&
+      strokes.isEmpty;
 
-  /// Turned a quarter clockwise; the crop turns with the photo.
+  /// Turned a quarter clockwise; the crop and the drawing turn with the
+  /// photo.
   PhotoEdit rotated() => copyWith(
     quarterTurns: (quarterTurns + 1) % 4,
     crop: crop.rotatedClockwise(),
+    strokes: [for (final s in strokes) s.rotatedClockwise()],
   );
 
-  /// Mirrored left to right; the crop is mirrored with the photo.
-  PhotoEdit mirrored() => copyWith(flipped: !flipped, crop: crop.flipped());
+  /// Mirrored left to right; the crop and the drawing are mirrored with
+  /// the photo.
+  PhotoEdit mirrored() => copyWith(
+    flipped: !flipped,
+    crop: crop.flipped(),
+    strokes: [for (final s in strokes) s.flipped()],
+  );
 
   /// Width divided by height of a photo of [width] × [height] pixels once
   /// rotated.

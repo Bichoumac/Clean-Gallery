@@ -76,91 +76,89 @@ class GroupStrip extends ConsumerWidget {
           colors: [Colors.black87, Colors.transparent],
         ),
       ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.only(top: 32, bottom: 12),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
-                child: Text(
-                  l10n.viewerGroupTitle(group.items.length),
-                  style: textTheme.labelLarge?.copyWith(color: Colors.white70),
-                ),
+      // The viewer's action bar below takes the system bar's room.
+      child: Padding(
+        padding: const EdgeInsets.only(top: 32, bottom: 4),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+              child: Text(
+                l10n.viewerGroupTitle(group.items.length),
+                style: textTheme.labelLarge?.copyWith(color: Colors.white70),
               ),
-              SizedBox(
-                height: _thumbSide + 20,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
-                  itemCount: group.items.length,
-                  separatorBuilder: (_, _) => const SizedBox(width: 8),
-                  itemBuilder: (context, i) {
-                    final item = group.items[i];
-                    final isTrashed = trashed.contains(item.id);
-                    final selected = item.id == current;
-                    return _Thumb(
-                      image: source.thumbnail(item, size: 192),
-                      selected: selected,
-                      best: item.id == group.best.id,
-                      kept: kept.contains(item.id),
-                      trashed: isTrashed,
-                      label: [
-                        if (item.id == group.best.id) l10n.duplicatesBest,
-                        if (kept.contains(item.id)) l10n.swipeKeep,
-                        if (isTrashed) l10n.viewerGroupTrashed,
-                      ].join(', '),
-                      onTap: () => isTrashed ? onRestore(item) : onOpen(item),
-                    );
-                  },
-                ),
-              ),
-              const SizedBox(height: 8),
-              Padding(
+            ),
+            SizedBox(
+              height: _thumbSide + 20,
+              child: ListView.separated(
+                scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: [
-                    if (onUndo != null) ...[
-                      IconButton.filledTonal(
-                        tooltip: l10n.actionUndo,
-                        onPressed: onUndo,
-                        icon: const Icon(Icons.undo_rounded),
-                      ),
-                      const SizedBox(width: 8),
-                    ],
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.white,
-                          side: const BorderSide(color: Colors.white54),
-                          minimumSize: const Size.fromHeight(48),
-                        ),
-                        onPressed: onTrash,
-                        icon: const Icon(Icons.delete_outline_rounded),
-                        label: Text(l10n.viewerGroupTrash),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: FilledButton.icon(
-                        style: FilledButton.styleFrom(
-                          minimumSize: const Size.fromHeight(48),
-                          backgroundColor: colors.primary,
-                          foregroundColor: colors.onPrimary,
-                        ),
-                        onPressed: onKeep,
-                        icon: const Icon(Icons.check_rounded),
-                        label: Text(l10n.swipeKeep),
-                      ),
-                    ),
-                  ],
-                ),
+                itemCount: group.items.length,
+                separatorBuilder: (_, _) => const SizedBox(width: 8),
+                itemBuilder: (context, i) {
+                  final item = group.items[i];
+                  final isTrashed = trashed.contains(item.id);
+                  final selected = item.id == current;
+                  return _Thumb(
+                    image: source.thumbnail(item, size: 192),
+                    selected: selected,
+                    best: item.id == group.best.id,
+                    kept: kept.contains(item.id),
+                    trashed: isTrashed,
+                    label: [
+                      if (item.id == group.best.id) l10n.duplicatesBest,
+                      if (kept.contains(item.id)) l10n.swipeKeep,
+                      if (isTrashed) l10n.viewerGroupTrashed,
+                    ].join(', '),
+                    onTap: () => isTrashed ? onRestore(item) : onOpen(item),
+                  );
+                },
               ),
-            ],
-          ),
+            ),
+            const SizedBox(height: 8),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              child: Row(
+                children: [
+                  if (onUndo != null) ...[
+                    IconButton.filledTonal(
+                      tooltip: l10n.actionUndo,
+                      onPressed: onUndo,
+                      icon: const Icon(Icons.undo_rounded),
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: Colors.white,
+                        side: const BorderSide(color: Colors.white54),
+                        minimumSize: const Size.fromHeight(48),
+                      ),
+                      onPressed: onTrash,
+                      icon: const Icon(Icons.delete_outline_rounded),
+                      label: Text(l10n.viewerGroupTrash),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: FilledButton.icon(
+                      style: FilledButton.styleFrom(
+                        minimumSize: const Size.fromHeight(48),
+                        backgroundColor: colors.primary,
+                        foregroundColor: colors.onPrimary,
+                      ),
+                      onPressed: onKeep,
+                      icon: const Icon(Icons.check_rounded),
+                      label: Text(l10n.swipeKeep),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );

@@ -15,7 +15,7 @@ Show one item at a time, full screen, with swiping between the items of the grid
 3. Pinch, or double-tap, to zoom a photo; double-tap again to fit. Swiping is disabled while zoomed.
 4. Tap once to hide or show the controls and the system bars.
 5. Videos start playing when they become the current page and pause when swiped away. Controls: play/pause/replay, progress bar with seeking, mute, rotate. The progress bar follows the finger and the video seeks when it is lifted.
-6. Top bar actions: **share**, **favorite**, **edit** (photos only, the [editor](editor.md)), **details** (the [info panel](#info-panel)), **move to trash** (with *Undo*); after trashing, the next item is shown, and the viewer closes when nothing is left.
+6. The top bar shows the back button, date and file name. The **actions** are at the bottom, within reach of the thumb (product owner, 2026-10-28): **share**, **favorite**, **edit** (photos only, the [editor](editor.md); after saving, the viewer shows the new photo), **details** (the [info panel](#info-panel)), **move to trash** (with *Undo*); after trashing, the next item is shown, and the viewer closes when nothing is left.
 7. Back returns to the grid.
 8. **A photo in a duplicate group** (identical copies, burst or similar photos): the [group strip](#group-strip) at the bottom.
 
@@ -23,7 +23,7 @@ Show one item at a time, full screen, with swiping between the items of the grid
 
 Asked by the product owner on 2026-10-28: sort a group of duplicates without leaving the photo.
 
-- When the photo shown is in a duplicate group, the bottom of the screen shows *N duplicates · tap to compare* and the group's thumbnails in a row that scrolls sideways, the suggested one first with a lime **Best** pill (the duplicates screen's best pick, see [duplicates.md](duplicates.md)), the photo shown in a lime frame.
+- When the photo shown is in a duplicate group, above the action bar, the bottom of the screen shows *N duplicates · tap to compare* and the group's thumbnails in a row that scrolls sideways, the suggested one first with a lime **Best** pill (the duplicates screen's best pick, see [duplicates.md](duplicates.md)), the photo shown in a lime frame.
 - **Tap a thumbnail**: the viewer shows that photo. A copy outside the grid's list (e.g. a WhatsApp copy while browsing Camera) opens in a viewer of its own, in place of this one.
 - **Trash** (outlined) moves the photo shown to the app trash and shows the next one of the group still to sort; **Keep** (lime) puts a check on it and shows the next one. Going round the group, then staying put once everything is sorted.
 - Trashed photos stay in the strip, dimmed with a trash icon; tapping one restores it. **Undo** (left of the buttons) restores the last one. No snack bar: it would cover the buttons.

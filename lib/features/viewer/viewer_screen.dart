@@ -171,6 +171,12 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
     await ref.read(mediaActionsProvider).restore([item.id]);
   }
 
+  /// Opens the editor on [photo], then shows the photo it saved.
+  Future<void> _edit(MediaItem photo) async {
+    final saved = await context.push<String>(AppRoutes.editor, extra: photo);
+    if (saved != null && mounted) setState(() => _pendingTarget = saved);
+  }
+
   void _toggleControls() {
     setState(() => _controlsVisible = !_controlsVisible);
     unawaited(
@@ -267,6 +273,7 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
                                 isCurrent: i == index,
                                 controlsVisible: _controlsVisible,
                                 onTap: _toggleControls,
+                                bottomInset: _actionBarHeight,
                               )
                             : ZoomableImage(
                                 key: ValueKey(item.id),
@@ -292,37 +299,62 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
                         ),
                       ),
                     ),
-                    // Not over a video's playback controls.
-                    if (group != null && shown != null && !shown.isVideo)
-                      Positioned(
-                        left: 0,
-                        right: 0,
-                        bottom: 0,
-                        child: IgnorePointer(
-                          ignoring: !_controlsVisible,
-                          child: AnimatedOpacity(
-                            opacity: _controlsVisible ? 1 : 0,
-                            duration: const Duration(milliseconds: 200),
-                            child: GroupStrip(
-                              group: group,
-                              current: inGroup ? shown.id : '',
-                              kept: _kept,
-                              trashed: _trashed,
-                              onOpen: (item) => _open(item, items),
-                              onRestore: (item) => unawaited(_restore(item)),
-                              onKeep: inGroup
-                                  ? () => _keep(shown, items)
-                                  : null,
-                              onTrash: inGroup
-                                  ? () => unawaited(_trash(shown))
-                                  : null,
-                              onUndo: _trashLog.isEmpty
-                                  ? null
-                                  : () => unawaited(_restore(_trashLog.last)),
+                    // The group strip, then the actions, pinned to the
+                    // bottom with their own height like the top bar.
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: IgnorePointer(
+                        ignoring: !_controlsVisible,
+                        child: AnimatedOpacity(
+                          opacity: _controlsVisible ? 1 : 0,
+                          duration: const Duration(milliseconds: 200),
+                          child: DecoratedBox(
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [Colors.black54, Colors.transparent],
+                              ),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Not over a video's playback controls.
+                                if (group != null &&
+                                    shown != null &&
+                                    !shown.isVideo)
+                                  GroupStrip(
+                                    group: group,
+                                    current: inGroup ? shown.id : '',
+                                    kept: _kept,
+                                    trashed: _trashed,
+                                    onOpen: (item) => _open(item, items),
+                                    onRestore: (item) =>
+                                        unawaited(_restore(item)),
+                                    onKeep: inGroup
+                                        ? () => _keep(shown, items)
+                                        : null,
+                                    onTrash: inGroup
+                                        ? () => unawaited(_trash(shown))
+                                        : null,
+                                    onUndo: _trashLog.isEmpty
+                                        ? null
+                                        : () => unawaited(
+                                            _restore(_trashLog.last),
+                                          ),
+                                  ),
+                                _ActionBar(
+                                  item: items[index],
+                                  onEdit: () => _edit(items[index]),
+                                ),
+                              ],
                             ),
                           ),
                         ),
                       ),
+                    ),
                   ],
                 ),
         ),
@@ -331,16 +363,15 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
   }
 }
 
-/// Back button, date and file name over a dark gradient, and the actions
-/// on the current item: share, favorite, details, move to trash.
-class _TopBar extends ConsumerWidget {
+/// Back button, date and file name over a dark gradient. The actions are
+/// in the [_ActionBar] at the bottom.
+class _TopBar extends StatelessWidget {
   const _TopBar({required this.item});
 
   final MediaItem item;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final fileName = item.fileName;
     return DecoratedBox(
@@ -382,45 +413,73 @@ class _TopBar extends ConsumerWidget {
                   ],
                 ),
               ),
-              IconButton(
-                tooltip: l10n.actionShare,
-                color: Colors.white,
-                onPressed: () => shareWithOptions(context, ref, [item]),
-                icon: const Icon(Icons.share_rounded),
-              ),
-              IconButton(
-                tooltip: item.isFavorite
-                    ? l10n.actionUnfavorite
-                    : l10n.actionFavorite,
-                color: Colors.white,
-                onPressed: () => toggleFavorite(context, ref, [item]),
-                icon: Icon(
-                  item.isFavorite
-                      ? Icons.favorite_rounded
-                      : Icons.favorite_border_rounded,
-                ),
-              ),
-              if (!item.isVideo)
-                IconButton(
-                  tooltip: l10n.actionEdit,
-                  color: Colors.white,
-                  onPressed: () => context.push(AppRoutes.editor, extra: item),
-                  icon: const Icon(Icons.tune_rounded),
-                ),
-              IconButton(
-                tooltip: l10n.actionInfo,
-                color: Colors.white,
-                onPressed: () => showInfoPanel(context, item),
-                icon: const Icon(Icons.info_outline_rounded),
-              ),
-              IconButton(
-                tooltip: l10n.actionTrash,
-                color: Colors.white,
-                onPressed: () => trashWithUndo(context, ref, [item]),
-                icon: const Icon(Icons.delete_outline_rounded),
-              ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Height of the [_ActionBar], above the system navigation bar.
+const _actionBarHeight = 64.0;
+
+/// The actions on the item shown, at the bottom of the screen within reach
+/// of the thumb: share, favorite, edit (photos), details, move to trash.
+class _ActionBar extends ConsumerWidget {
+  const _ActionBar({required this.item, required this.onEdit});
+
+  final MediaItem item;
+  final VoidCallback onEdit;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    return SafeArea(
+      top: false,
+      child: SizedBox(
+        height: _actionBarHeight,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            IconButton(
+              tooltip: l10n.actionShare,
+              color: Colors.white,
+              onPressed: () => shareWithOptions(context, ref, [item]),
+              icon: const Icon(Icons.share_rounded),
+            ),
+            IconButton(
+              tooltip: item.isFavorite
+                  ? l10n.actionUnfavorite
+                  : l10n.actionFavorite,
+              color: Colors.white,
+              onPressed: () => toggleFavorite(context, ref, [item]),
+              icon: Icon(
+                item.isFavorite
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
+              ),
+            ),
+            if (!item.isVideo)
+              IconButton(
+                tooltip: l10n.actionEdit,
+                color: Colors.white,
+                onPressed: onEdit,
+                icon: const Icon(Icons.tune_rounded),
+              ),
+            IconButton(
+              tooltip: l10n.actionInfo,
+              color: Colors.white,
+              onPressed: () => showInfoPanel(context, item),
+              icon: const Icon(Icons.info_outline_rounded),
+            ),
+            IconButton(
+              tooltip: l10n.actionTrash,
+              color: Colors.white,
+              onPressed: () => trashWithUndo(context, ref, [item]),
+              icon: const Icon(Icons.delete_outline_rounded),
+            ),
+          ],
         ),
       ),
     );

@@ -21,8 +21,13 @@ class VideoPage extends ConsumerStatefulWidget {
     required this.isCurrent,
     required this.controlsVisible,
     required this.onTap,
+    this.bottomInset = 0,
     super.key,
   });
+
+  /// Room left at the bottom for the viewer's action bar, above which the
+  /// progress bar sits.
+  final double bottomInset;
 
   /// Video to play.
   final MediaItem item;
@@ -124,7 +129,10 @@ class _VideoPageState extends ConsumerState<VideoPage> {
               child: AnimatedOpacity(
                 opacity: widget.controlsVisible ? 1 : 0,
                 duration: const Duration(milliseconds: 200),
-                child: VideoControls(controller: controller),
+                child: VideoControls(
+                  controller: controller,
+                  bottomInset: widget.bottomInset,
+                ),
               ),
             ),
         ],
@@ -136,10 +144,17 @@ class _VideoPageState extends ConsumerState<VideoPage> {
 /// Play/pause button in the middle, progress bar and toggles at the bottom.
 class VideoControls extends StatefulWidget {
   /// Creates the controls of [controller].
-  const VideoControls({required this.controller, super.key});
+  const VideoControls({
+    required this.controller,
+    this.bottomInset = 0,
+    super.key,
+  });
 
   /// Player the controls drive.
   final VideoPlayerController controller;
+
+  /// Room left below the progress bar, for the viewer's action bar.
+  final double bottomInset;
 
   @override
   State<VideoControls> createState() => _VideoControlsState();
@@ -223,7 +238,12 @@ class _VideoControlsState extends State<VideoControls> {
                 ),
                 child: SafeArea(
                   top: false,
-                  minimum: const EdgeInsets.fromLTRB(16, 0, 8, 12),
+                  minimum: EdgeInsets.fromLTRB(
+                    16,
+                    0,
+                    8,
+                    12 + widget.bottomInset,
+                  ),
                   // Fixed height: the Slider otherwise takes all the height
                   // it is given, which put the bar in the middle of the
                   // screen.

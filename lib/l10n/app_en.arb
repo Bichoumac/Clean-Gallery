@@ -362,5 +362,21 @@
   "editorDiscardBody": "The photo stays as it was.",
   "editorDiscard": "Discard",
   "editorKeepEditing": "Keep editing",
-  "editorCropArea": "Crop area: drag inside to move it, a corner to resize it"
+  "editorCropArea": "Crop area: drag inside to move it, a corner to resize it",
+
+  "editorSave": "Save",
+  "editorSaveCopy": "Save as a copy",
+  "editorSaveCopyBody": "A new photo next to the original, which stays as it is.",
+  "editorSaveReplace": "Replace the original",
+  "editorSaveReplaceBody": "The original goes to the app trash; you can restore it from there.",
+  "editorSavedCopy": "Copy saved",
+  "editorSavedReplace": "Photo replaced; the original is in the trash",
+  "editorSaveFailed": "The photo couldn't be saved.",
+  "editorDraw": "Draw",
+  "editorDrawArea": "Drawing area: draw with a finger",
+  "editorPenColor": "Color {number}",
+  "@editorPenColor": {"placeholders": {"number": {"type": "int"}}},
+  "editorPenWidth": "Width {number}",
+  "@editorPenWidth": {"placeholders": {"number": {"type": "int"}}},
+  "editorUndoStroke": "Undo"
 }

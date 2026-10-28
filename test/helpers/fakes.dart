@@ -5,6 +5,7 @@ import 'package:clean_gallery/domain/geo.dart';
 import 'package:clean_gallery/domain/gray_image.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/domain/media_metadata.dart';
+import 'package:clean_gallery/domain/photo_edit.dart';
 import 'package:clean_gallery/platform/media_source.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
 import 'package:clean_gallery/platform/platform_bridge.dart';
@@ -87,6 +88,23 @@ class FakePlatformBridge implements PlatformBridge {
 
   /// Share requests, as `(ids, removeLocation)`.
   final shareRequests = <(List<String>, bool)>[];
+
+  /// Edits saved, as `(photo id, edit)`.
+  final savedEdits = <(String, PhotoEdit)>[];
+
+  /// Called by [saveEditedPhoto] to make the new photo (e.g. add it to a
+  /// [FakeMediaSource]); returns its id. Defaults to `'saved'`.
+  String Function(MediaItem photo)? onSaveEdit;
+
+  @override
+  Future<String> saveEditedPhoto(
+    MediaItem photo,
+    PhotoEdit edit, {
+    required List<double> colorMatrix,
+  }) async {
+    savedEdits.add((photo.id, edit));
+    return onSaveEdit?.call(photo) ?? 'saved';
+  }
 
   @override
   Future<bool> setFavorite(

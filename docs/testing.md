@@ -215,6 +215,19 @@ Part 2, the editor (no saving yet).
 | 43 | *Réinitialiser* | Everything back as it was. |
 | 44 | Change something, then ✕ or Back | *Abandonner les modifications ?*; *Continuer* stays, *Abandonner* closes. Without changes, ✕ closes at once. The photo itself is never changed. |
 
+First editor test on the Galaxy A54, reported by the product owner on 2026-10-28: sliders slow to start and to follow a fast finger, no way to save; asked for a pencil and for the favorite and edit buttons at the bottom. All four done on 2026-10-29:
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 45 | Open a photo | Share, favorite, edit, details and trash in a bar at the bottom; back, date and name at the top. |
+| 46 | A video; a photo of a duplicate group | The progress bar sits above the action bar; the group strip too. |
+| 47 | Editor → *Réglages*, move a slider fast, back and forth | The preview follows at once, from the first move. |
+| 48 | *Dessiner*: pick a color and a width, draw; *Annuler* | Lines follow the finger; Undo removes the last one. Then rotate in *Recadrer*: the drawing turns with the photo. |
+| 49 | Crop, adjust and draw, then **Enregistrer → Enregistrer une copie** | The editor closes, *Copie enregistrée*, the viewer shows the new photo: same crop, colors and drawing as the preview, sharp. The original is still there next to it. |
+| 50 | The copy, ⓘ | Same date and camera as the original; its location if the original had one. |
+| 51 | Another photo, **Remplacer l'originale** | *Photo remplacée ; l'originale est dans la corbeille*; the original is in Albums → Corbeille and can be restored. |
+| 52 | A photo taken in portrait | The copy is upright, not on its side. |
+
 Results on the Galaxy A54, reported by the product owner on 2026-10-28 after installing commit `369e8b8`: stacks, map and group strip, "everything works" (items 11 to 31). The time taken by the first reading of locations was not reported.
 
 Part 1 results on the Galaxy A54, reported by the product owner on 2026-10-27: first test, the end of the panel was hidden (fixed: room above the navigation bar, 90 % high) and the coordinates were not clickable (fixed: they open the map app). Second test, with the hazy photo rule: all good; the product owner read the temporary measures and set the hazy threshold at 150. Item 10 added afterwards, at the product owner's request; not seen on the device yet.

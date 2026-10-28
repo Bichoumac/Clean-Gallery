@@ -83,6 +83,49 @@ class PhotoEditor extends _$PhotoEditor {
     );
   }
 
+  /// Starts a line at [point] (fractions of the rotated photo).
+  void startStroke(
+    (double, double) point, {
+    required int color,
+    required double width,
+  }) {
+    final edit = state.edit;
+    state = state.copyWith(
+      edit: edit.copyWith(
+        strokes: [
+          ...edit.strokes,
+          Stroke(points: [point], color: color, width: width),
+        ],
+      ),
+    );
+  }
+
+  /// Continues the last line to [point].
+  void extendStroke((double, double) point) {
+    final strokes = state.edit.strokes;
+    if (strokes.isEmpty) return;
+    final last = strokes.last;
+    state = state.copyWith(
+      edit: state.edit.copyWith(
+        strokes: [
+          ...strokes.sublist(0, strokes.length - 1),
+          last.copyWith(points: [...last.points, point]),
+        ],
+      ),
+    );
+  }
+
+  /// Removes the last line.
+  void undoStroke() {
+    final strokes = state.edit.strokes;
+    if (strokes.isEmpty) return;
+    state = state.copyWith(
+      edit: state.edit.copyWith(
+        strokes: strokes.sublist(0, strokes.length - 1),
+      ),
+    );
+  }
+
   /// Back to the photo as it was.
   void reset() => state = const PhotoEditorState();
 }

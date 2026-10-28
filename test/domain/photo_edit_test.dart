@@ -132,6 +132,30 @@ void main() {
       );
     });
 
+    test('the drawing turns and mirrors with the photo', () {
+      const line = Stroke(
+        points: [(0.1, 0.2), (0.3, 0.4)],
+        color: 0xFFFFFFFF,
+        width: 0.01,
+      );
+      final edit = const PhotoEdit(strokes: [line]).rotated();
+      expect(edit.strokes.single.points, [(0.8, 0.1), (0.6, 0.3)]);
+      expect(edit.strokes.single.width, 0.01);
+      expect(
+        const PhotoEdit(strokes: [line]).mirrored().strokes.single.points.first,
+        (0.9, 0.2),
+      );
+      var turned = const PhotoEdit(strokes: [line]);
+      for (var i = 0; i < 4; i++) {
+        turned = turned.rotated();
+      }
+      for (final (i, (x, y)) in turned.strokes.single.points.indexed) {
+        expect(x, closeTo(line.points[i].$1, 1e-9));
+        expect(y, closeTo(line.points[i].$2, 1e-9));
+      }
+      expect(const PhotoEdit(strokes: [line]).isIdentity, isFalse);
+    });
+
     test('each adjustment reads and writes its own value', () {
       var adjustments = const Adjustments();
       for (final (i, a) in Adjustment.values.indexed) {

@@ -8,7 +8,8 @@ Last updated: 2026-10-28 — Milestone M6
 
 ### Added
 
-- **Photo editor** (part 2 of M6), from the viewer's Edit button: crop with corner handles and shapes (free, original, 1:1, 4:3, 3:4, 16:9, 9:16), rotate, flip, and brightness, contrast, saturation, exposure and warmth previewed live with one color matrix; Reset; closing with changes asks first. Saving comes in part 3 ([docs/features/editor.md](docs/features/editor.md), [ADR 0023](docs/decisions/0023-editor-color-matrix-preview.md)).
+- **Photo editor** (part 2 of M6), from the viewer's Edit button: crop with corner handles and shapes (free, original, 1:1, 4:3, 3:4, 16:9, 9:16), rotate, flip, brightness, contrast, saturation, exposure and warmth, and a **pencil** (six colors, three widths, Undo), previewed live on a canvas with one color matrix; Reset; closing with changes asks first ([docs/features/editor.md](docs/features/editor.md), [ADR 0023](docs/decisions/0023-editor-color-matrix-preview.md)).
+- **Saving an edited photo**: *Save as a copy* or *Replace the original* (moved to the app trash); native method `saveEditedPhoto` writes a JPEG next to the original with its date and EXIF tags.
 - **Sort by number of duplicates**, wherever it applies: the duplicates screen (groups with the most items first), every timeline's sort sheet (items of the largest groups first, each group together) and the Albums folders (folders holding the most duplicates first, with their count).
 - Viewer: a **group strip** for photos of a duplicate group: the group's thumbnails at the bottom, scrolling sideways, the best one marked; **Trash** and **Keep** buttons sort the group photo by photo, with Undo ([docs/features/viewer.md](docs/features/viewer.md#group-strip)).
 - **Map** (brought forward from M7): Albums → Map shows located photos and videos on OpenStreetMap tiles, grouped into clusters with the newest item's thumbnail and a count; a cluster opens the grid of its area, a single item the viewer; a card asks for the location permission when missing ([docs/features/map.md](docs/features/map.md), [ADR 0022](docs/decisions/0022-map-tiles-and-grid-clusters.md)).
@@ -29,6 +30,8 @@ Last updated: 2026-10-28 — Milestone M6
 
 ### Changed
 
+- Viewer: the actions (share, favorite, edit, details, trash) moved to a bar at the bottom; the top bar keeps back, date and name. Video controls and the group strip sit above it.
+- Editor: the preview is painted on a canvas instead of stacked widgets; sliders follow the finger without delay.
 - Info panel: a more transparent background (40 % black, lighter blur); pulling it down from the top of its content closes it.
 - The release app declares `INTERNET`, for map tiles. Only tile coordinates are requested; no media or metadata is sent.
 - **Blurry photos**: hazy photos (mist, fog, night) in focus are no longer listed; a photo is blurry when its sharpness is low for its contrast too ([ADR 0021](docs/decisions/0021-hazy-photos-are-not-blurry.md)). Analysis version 3: only photos below the blur threshold are analysed again.
