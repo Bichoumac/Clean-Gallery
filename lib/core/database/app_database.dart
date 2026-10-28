@@ -45,7 +45,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Current schema version. Bump it for every schema change.
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   /// Migration steps, applied in order from the installed version.
   @override
@@ -69,6 +69,7 @@ class AppDatabase extends _$AppDatabase {
               assets.mediaRevision,
               assets.brightness,
               assets.contrast,
+              assets.locationRead,
             ],
             columnTransformer: {
               assets.takenAt: coalesce([assets.captureAt, assets.modifiedAt]),
@@ -87,6 +88,10 @@ class AppDatabase extends _$AppDatabase {
       if (from >= 2 && from < 4) {
         // Contrast of photos, telling hazy photos from blurry ones (M6).
         await m.addColumn(assets, assets.contrast);
+      }
+      if (from >= 2 && from < 5) {
+        // Whether the location was read, for the map (M7, built in M6).
+        await m.addColumn(assets, assets.locationRead);
       }
       if (from == 3) {
         // Analysis version 3 only adds the contrast, and the contrast only

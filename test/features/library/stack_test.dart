@@ -1,6 +1,5 @@
 import 'package:clean_gallery/core/media/media_thumbnail.dart';
 import 'package:clean_gallery/features/viewer/viewer_screen.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import '../../helpers/fakes.dart';

@@ -7,6 +7,7 @@ import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/duplicate_group.dart';
 import 'package:clean_gallery/domain/enums.dart';
+import 'package:clean_gallery/domain/geo.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/platform/media_source.dart';
 import 'package:drift/drift.dart';
@@ -111,6 +112,15 @@ final class MediaIndexRepository {
               contrast: resetAnalysis
                   ? const Constant(null)
                   : _keptIfSameFile(old, excluded, old.contrast, null),
+              latitude: resetAnalysis
+                  ? const Constant(null)
+                  : _keptIfSameFile(old, excluded, old.latitude, null),
+              longitude: resetAnalysis
+                  ? const Constant(null)
+                  : _keptIfSameFile(old, excluded, old.longitude, null),
+              locationRead: resetAnalysis
+                  ? const Constant(false)
+                  : _keptIfSameFile(old, excluded, old.locationRead, false),
             ),
           ),
         );
@@ -153,7 +163,8 @@ final class MediaIndexRepository {
 
   /// Forgets every analysis result, so the next sync and scan work out
   /// everything again: dates and burst ids (rows are described again),
-  /// content and perceptual hashes, quality and duplicate groups. Metadata,
+  /// content and perceptual hashes, quality, locations and duplicate
+  /// groups. Metadata,
   /// the trash, settings and the pairs marked "Not duplicates" are kept.
   Future<void> resetAnalysis() => _db.transaction(() async {
     await _db
@@ -167,11 +178,67 @@ final class MediaIndexRepository {
             blurScore: Value(null),
             brightness: Value(null),
             contrast: Value(null),
+            latitude: Value(null),
+            longitude: Value(null),
+            locationRead: Value(false),
             analysisVersion: Value(0),
           ),
         );
     await _db.delete(_db.duplicateGroups).go();
   });
+
+  /// Up to [limit] items whose location is still to read, newest first, so
+  /// recent places show first on the map. Trashed items are skipped.
+  Future<List<MediaItem>> locationCandidates({required int limit}) async {
+    final query = _db.select(_db.assets)
+      ..where((t) => t.locationRead.equals(false) & _notTrashed(t))
+      ..orderBy([
+        (t) => OrderingTerm.desc(_date(t)),
+        (t) => OrderingTerm.desc(t.id),
+      ])
+      ..limit(limit);
+    return [for (final row in await query.get()) _toItem(row)];
+  }
+
+  /// Stores the locations of [items] found in [locations], by id; the
+  /// others have none. All are marked read.
+  Future<void> saveLocations(
+    List<MediaItem> items,
+    Map<String, GeoPoint> locations,
+  ) => _db.batch((batch) {
+    for (final item in items) {
+      final position = locations[item.id];
+      batch.update(
+        _db.assets,
+        AssetsCompanion(
+          latitude: Value(position?.latitude),
+          longitude: Value(position?.longitude),
+          locationRead: const Value(true),
+        ),
+        where: (t) => t.id.equals(int.parse(item.id)),
+      );
+    }
+  });
+
+  /// Every item with a location, trashed ones left out, newest first.
+  Future<List<LocatedItem>> located() async {
+    final query = _db.select(_db.assets)
+      ..where(
+        (t) =>
+            t.latitude.isNotNull() & t.longitude.isNotNull() & _notTrashed(t),
+      )
+      ..orderBy([
+        (t) => OrderingTerm.desc(_date(t)),
+        (t) => OrderingTerm.desc(t.id),
+      ]);
+    return [
+      for (final row in await query.get())
+        LocatedItem(
+          item: _toItem(row),
+          position: (latitude: row.latitude!, longitude: row.longitude!),
+        ),
+    ];
+  }
 
   /// Records the favorite state of the items with [ids], after the system
   /// applied it.
@@ -383,6 +450,12 @@ final class MediaIndexRepository {
       if (selection.albumId case final albumId?) t.bucketId.equals(albumId),
       if (selection.ids case final ids?)
         t.id.isIn([for (final id in ids) ?int.tryParse(id)]),
+      if (selection.area case final area?) ...[
+        t.latitude.isBiggerOrEqualValue(area.south),
+        t.latitude.isSmallerThanValue(area.north),
+        t.longitude.isBiggerOrEqualValue(area.west),
+        t.longitude.isSmallerThanValue(area.east),
+      ],
       if (dates?.start case final start?) _date(t).isBiggerOrEqualValue(start),
       if (dates?.end case final end?) _date(t).isSmallerThanValue(end),
     ]);

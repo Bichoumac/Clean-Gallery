@@ -4,6 +4,7 @@ import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/settings/app_settings.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
+import 'package:clean_gallery/features/map/map_tiles.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -35,6 +36,8 @@ Future<void> pumpTestApp(
     ProviderScope(
       overrides: [
         appDatabaseProvider.overrideWithValue(db),
+        // Never reach the network for map tiles.
+        mapTileProviderProvider.overrideWithValue(BlankTileProvider()),
         mediaSourceProvider.overrideWithValue(media ?? FakeMediaSource()),
         permissionServiceProvider.overrideWithValue(
           permissions ?? FakePermissionService(),

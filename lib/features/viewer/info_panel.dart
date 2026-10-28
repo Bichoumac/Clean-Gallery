@@ -6,6 +6,7 @@ import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/domain/media_metadata.dart';
+import 'package:clean_gallery/features/map/mini_map.dart';
 import 'package:clean_gallery/features/viewer/media_info.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -204,6 +205,16 @@ class InfoPanel extends ConsumerWidget {
                       icon: Icons.location_off_outlined,
                       value: l10n.infoLocationNotAllowed,
                       muted: true,
+                    ),
+                  if (metadata case final metadata? when metadata.hasLocation)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(40, 4, 0, 12),
+                      child: MiniMap(
+                        point: (
+                          latitude: metadata.latitude!,
+                          longitude: metadata.longitude!,
+                        ),
+                      ),
                     ),
                   if (!item.isVideo)
                     if (ref.watch(photoQualityProvider(item)).value

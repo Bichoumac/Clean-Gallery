@@ -1,3 +1,4 @@
+import 'package:clean_gallery/domain/geo.dart';
 import 'package:clean_gallery/domain/gray_image.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/platform/platform_bridge.dart';
@@ -87,6 +88,26 @@ final class AndroidPlatformBridge implements PlatformBridge {
       {'items': _encode(items)},
     );
     return hashes ?? const {};
+  }
+
+  /// Location of [items] read from their file headers, by id; items
+  /// without one are left out. Fails with a `permission` error without
+  /// `ACCESS_MEDIA_LOCATION`.
+  ///
+  /// Android-only helper used by `AndroidMediaSource.locations`.
+  Future<Map<String, GeoPoint>> locations(List<MediaItem> items) async {
+    if (items.isEmpty) return const {};
+    final reply = await _channel.invokeMapMethod<String, List<Object?>>(
+      'locations',
+      {'items': _encode(items)},
+    );
+    return {
+      for (final MapEntry(:key, :value) in (reply ?? const {}).entries)
+        key: (
+          latitude: (value[0]! as num).toDouble(),
+          longitude: (value[1]! as num).toDouble(),
+        ),
+    };
   }
 
   /// Grayscale thumbnails of the photos with MediaStore [ids], fitting in

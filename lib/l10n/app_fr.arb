@@ -276,5 +276,16 @@
   "duplicatesFilterAll": "Tout",
   "duplicatesSimilar": "Photos similaires",
   "duplicatesNotDuplicates": "Pas des doublons",
-  "duplicatesIgnored": "Ces photos ne seront plus regroupées."
+  "duplicatesIgnored": "Ces photos ne seront plus regroupées.",
+
+  "mapTitle": "Carte",
+  "mapAttribution": "© contributeurs d'OpenStreetMap",
+  "mapEmptyTitle": "Aucun lieu pour l'instant",
+  "mapEmptyBody": "Les photos et vidéos prises avec la localisation activée s'affichent ici dès que l'app a lu où elles ont été prises.",
+  "mapLocationTitle": "Autoriser l'accès aux lieux des photos",
+  "mapLocationBody": "Android masque l'endroit où les photos ont été prises tant que vous ne l'autorisez pas. Les lieux restent sur votre téléphone ; seul le fond de carte est téléchargé depuis OpenStreetMap.",
+  "mapLocationButton": "Autoriser",
+  "mapClusterLabel": "{count, plural, =1{1 élément ici} other{{count} éléments ici}}",
+  "mapAreaTitle": "Dans cette zone",
+  "infoMiniMap": "Voir sur la carte"
 }

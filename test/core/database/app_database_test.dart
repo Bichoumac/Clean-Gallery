@@ -27,8 +27,8 @@ void main() {
     takenAt: DateTime(2026),
   );
 
-  test('schema version is 4', () {
-    expect(db.schemaVersion, 4);
+  test('schema version is 5', () {
+    expect(db.schemaVersion, 5);
   });
 
   test('stores enums by name', () async {
@@ -233,6 +233,52 @@ void main() {
     expect([for (final row in rows) row.analysisVersion], [3, 2, 3, 0]);
     expect(rows.first.blurScore, 120);
     expect(rows.first.contrast, isNull);
+  });
+
+  test('migration 4 → 5 adds location_read, keeping the rows', () async {
+    final old = AppDatabase(
+      NativeDatabase.memory(
+        setup: (raw) {
+          // The version 4 assets table, as Drift created it.
+          raw
+            ..execute(
+              'CREATE TABLE "assets" ("id" INTEGER NOT NULL, '
+              '"folder" TEXT NOT NULL, "bucket_id" TEXT NULL, '
+              '"relative_path" TEXT NOT NULL, '
+              '"file_name" TEXT NOT NULL, "mime_type" TEXT NOT NULL, '
+              '"kind" TEXT NOT NULL, "size_bytes" INTEGER NOT NULL, '
+              '"width" INTEGER NOT NULL, "height" INTEGER NOT NULL, '
+              '"duration_ms" INTEGER NULL, "modified_at" INTEGER NOT NULL, '
+              '"taken_at" INTEGER NOT NULL, "media_revision" INTEGER NULL, '
+              '"capture_at" INTEGER NULL, "capture_source" TEXT NULL, '
+              '"content_hash" TEXT NULL, "d_hash" INTEGER NULL, '
+              '"p_hash" INTEGER NULL, "blur_score" REAL NULL, '
+              '"brightness" REAL NULL, "contrast" REAL NULL, '
+              '"burst_id" TEXT NULL, '
+              '"is_screenshot" INTEGER NOT NULL DEFAULT 0, '
+              '"is_favorite" INTEGER NOT NULL DEFAULT 0, '
+              '"latitude" REAL NULL, "longitude" REAL NULL, '
+              '"camera_model" TEXT NULL, '
+              '"analysis_version" INTEGER NOT NULL DEFAULT 0, '
+              'PRIMARY KEY ("id"))',
+            )
+            ..execute(
+              'INSERT INTO assets (id, folder, relative_path, file_name, '
+              'mime_type, kind, size_bytes, width, height, modified_at, '
+              'taken_at, contrast, analysis_version) VALUES '
+              "(1, 'Camera', 'DCIM/Camera/', 'a.jpg', 'image/jpeg', "
+              "'photo', 10, 4, 3, 100, 200, 40.0, 3)",
+            )
+            ..userVersion = 4;
+        },
+      ),
+    );
+    addTearDown(old.close);
+
+    final row = await old.select(old.assets).getSingle();
+    expect(row.locationRead, isFalse);
+    expect(row.contrast, 40);
+    expect(row.analysisVersion, 3);
   });
 
   group('SettingsRepository', () {

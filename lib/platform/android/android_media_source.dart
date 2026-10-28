@@ -1,4 +1,5 @@
 import 'package:clean_gallery/domain/enums.dart';
+import 'package:clean_gallery/domain/geo.dart';
 import 'package:clean_gallery/domain/gray_image.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/domain/media_metadata.dart';
@@ -51,6 +52,10 @@ final class AndroidMediaSource implements MediaSource {
     List<MediaItem> photos, {
     required int side,
   }) => _bridge.grayThumbnails([for (final p in photos) p.id], side: side);
+
+  @override
+  Future<Map<String, GeoPoint>> locations(List<MediaItem> items) =>
+      _bridge.locations(items);
 
   @override
   Future<MediaMetadata> metadata(MediaItem item) async {

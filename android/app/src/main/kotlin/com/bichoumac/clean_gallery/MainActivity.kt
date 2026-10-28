@@ -82,6 +82,11 @@ class MainActivity : FlutterActivity() {
                     .map { it.id to it.isVideo }
                 onWorker(result, hasher) { mediaIndex.contentHashes(items) }
             }
+            "locations" -> {
+                val items = MediaActions.Item.listFrom(call.argument("items"))
+                    .map { it.id to it.isVideo }
+                onWorker(result) { mediaIndex.locations(items) }
+            }
             "grayThumbnails" -> {
                 val ids = call.argument<List<String>>("ids").orEmpty()
                     .mapNotNull { it.toLongOrNull() }

@@ -166,6 +166,19 @@ Stacks in the timelines (product owner's request, built before the editor). Inst
 | 16 | Sort by size; then Stats → Old screenshots | No stacks: every item shows. |
 | 17 | Photos taken between two shots of one scene, or a series around midnight | Separate thumbnails where the series is interrupted; no stack spans two days. |
 
+Map (from M7). The first launch migrates the database (schema version 5) and reads where every photo was taken, in the background: a few minutes, to report.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 18 | Albums tab | A **Map** tile with a count and the newest located photo. |
+| 19 | Tap it | The map, fitted to all the places; thumbnails with lime counts; *© OpenStreetMap contributors* in the corner. |
+| 20 | Pinch to zoom in on a city, then a street | Clusters split into smaller ones, then single photos. |
+| 21 | Tap a cluster | *In this area*: only photos taken there; opening one and swiping stays in that area. |
+| 22 | Back, tap a single photo | The viewer on that photo. |
+| 23 | A photo with a location, ⓘ | A small map with a lime dot under the coordinates; tapping it opens the map there. |
+| 24 | Dark mode, then airplane mode | Dark tiles; offline, tiles already seen still show, markers too. |
+| 25 | Settings → Android → Clean Gallery → Permissions: remove photo location, back to the map | A card asks to allow it; *Allow* brings the markers back. |
+
 Part 1 results on the Galaxy A54, reported by the product owner on 2026-10-27: first test, the end of the panel was hidden (fixed: room above the navigation bar, 90 % high) and the coordinates were not clickable (fixed: they open the map app). Second test, with the hazy photo rule: all good; the product owner read the temporary measures and set the hazy threshold at 150. Item 10 added afterwards, at the product owner's request; not seen on the device yet.
 
 ### M5 — cleanup, to verify on a device

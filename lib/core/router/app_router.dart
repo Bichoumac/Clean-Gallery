@@ -1,11 +1,14 @@
 import 'package:clean_gallery/core/router/home_shell.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/enums.dart';
+import 'package:clean_gallery/domain/geo.dart';
 import 'package:clean_gallery/features/cleanup/cleanup_list_screen.dart';
 import 'package:clean_gallery/features/cleanup/cleanup_lists.dart';
 import 'package:clean_gallery/features/duplicates/duplicates_screen.dart';
 import 'package:clean_gallery/features/library/albums_screen.dart';
 import 'package:clean_gallery/features/library/media_timeline_view.dart';
+import 'package:clean_gallery/features/map/map_area_screen.dart';
+import 'package:clean_gallery/features/map/map_screen.dart';
 import 'package:clean_gallery/features/onboarding/onboarding_controller.dart';
 import 'package:clean_gallery/features/onboarding/onboarding_screen.dart';
 import 'package:clean_gallery/features/settings/settings_screen.dart';
@@ -51,6 +54,14 @@ abstract final class AppRoutes {
 
   /// A swipe session, above the tabs: `/swipe?source=<key>&name=<title>`.
   static const swipe = '/swipe';
+
+  /// The map of located items, above the tabs. Takes an optional `GeoPoint`
+  /// to open on as `extra`.
+  static const map = '/map';
+
+  /// The items of one cluster of the map. Requires its `GeoArea` as
+  /// `extra`.
+  static const mapArea = '/map/area';
 }
 
 /// Album pages under the Albums tab: `/albums/<key>?name=<title>`.
@@ -145,6 +156,10 @@ GoRouter appRouter(Ref ref) {
           state.extra is! MediaSelection) {
         return AppRoutes.camera;
       }
+      if (state.matchedLocation == AppRoutes.mapArea &&
+          state.extra is! GeoArea) {
+        return AppRoutes.map;
+      }
       if (state.matchedLocation == AppRoutes.swipe &&
           SwipeSource.parse(state.uri.queryParameters['source'] ?? '') ==
               null) {
@@ -172,6 +187,19 @@ GoRouter appRouter(Ref ref) {
           kind: DuplicateKind.values
               .asNameMap()[state.uri.queryParameters['kind']],
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.map,
+        builder: (context, state) => MapScreen(
+          center: state.extra is GeoPoint ? state.extra! as GeoPoint : null,
+        ),
+        routes: [
+          GoRoute(
+            path: 'area',
+            builder: (context, state) =>
+                MapAreaScreen(area: state.extra! as GeoArea),
+          ),
+        ],
       ),
       GoRoute(
         path: AppRoutes.swipe,

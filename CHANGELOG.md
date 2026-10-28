@@ -8,6 +8,10 @@ Last updated: 2026-10-28 — Milestone M6
 
 ### Added
 
+- **Map** (brought forward from M7): Albums → Map shows located photos and videos on OpenStreetMap tiles, grouped into clusters with the newest item's thumbnail and a count; a cluster opens the grid of its area, a single item the viewer; a card asks for the location permission when missing ([docs/features/map.md](docs/features/map.md), [ADR 0022](docs/decisions/0022-map-tiles-and-grid-clusters.md)).
+- Info panel: a **mini map** below the coordinates, opening the map there.
+- Locations read from file headers in the background (native method `locations`), once per file; database schema version 5: `assets.location_read`.
+- Dependencies `flutter_map` and `latlong2`.
 - **Stacks** in the timelines: consecutive items of one duplicate group (copies, burst, similar photos) taken the same day show as one thumbnail with a count badge, the best pick on top; a tap unfolds the stack in place, a button folds it again; selecting a folded stack selects all its items. Not in cleanup lists nor in name, size or duration order ([docs/features/library.md](docs/features/library.md#stacks)).
 - Viewer: an **info panel** (Details button), sliding up over a blurred, translucent background: date and where it comes from, name, path, resolution, size, duration, camera, lens, ISO, aperture, shutter speed, focal length and location ([docs/features/viewer.md](docs/features/viewer.md#info-panel)).
 - Native method `mediaMetadata`: EXIF of a photo, location of a video.
@@ -17,6 +21,7 @@ Last updated: 2026-10-28 — Milestone M6
 
 ### Changed
 
+- The release app declares `INTERNET`, for map tiles. Only tile coordinates are requested; no media or metadata is sent.
 - **Blurry photos**: hazy photos (mist, fog, night) in focus are no longer listed; a photo is blurry when its sharpness is low for its contrast too ([ADR 0021](docs/decisions/0021-hazy-photos-are-not-blurry.md)). Analysis version 3: only photos below the blur threshold are analysed again.
 
 ## [M5] — 2026-10-27 — Cleanup

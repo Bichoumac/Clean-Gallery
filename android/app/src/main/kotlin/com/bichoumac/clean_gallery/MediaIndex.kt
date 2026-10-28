@@ -295,6 +295,58 @@ class MediaIndex(private val context: Context) {
         return if (isVideo) videoMetadata(itemUri) else photoMetadata(itemUri)
     }
 
+    /**
+     * Location of each of [items] (MediaStore id, and whether it is a
+     * video), by id: `[latitude, longitude]` in degrees. Items without a
+     * location, or that cannot be read, are left out.
+     *
+     * Reads only file headers (EXIF, or the video's metadata), for the
+     * map. Needs `ACCESS_MEDIA_LOCATION`: without it Android hides the GPS
+     * tags, so a [SecurityException] is thrown rather than reporting every
+     * item as having no location.
+     */
+    fun locations(items: List<Pair<Long, Boolean>>): Map<String, List<Double>> {
+        if (context.checkSelfPermission(Manifest.permission.ACCESS_MEDIA_LOCATION) !=
+            PackageManager.PERMISSION_GRANTED
+        ) {
+            throw SecurityException("ACCESS_MEDIA_LOCATION is not granted")
+        }
+        val locations = HashMap<String, List<Double>>()
+        for ((id, isVideo) in items) {
+            val base = if (isVideo) {
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            } else {
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+            }
+            val itemUri = MediaStore.setRequireOriginal(ContentUris.withAppendedId(base, id))
+            try {
+                val values = if (isVideo) videoMetadata(itemUri) else photoLocation(itemUri)
+                val latitude = values["latitude"] as? Double
+                val longitude = values["longitude"] as? Double
+                if (latitude != null && longitude != null) {
+                    locations[id.toString()] = listOf(latitude, longitude)
+                }
+            } catch (e: IOException) {
+                // Unreadable or deleted meanwhile: no location.
+            } catch (e: SecurityException) {
+                // Access withdrawn for this item: no location.
+            } catch (e: RuntimeException) {
+                // A malformed header (MediaMetadataRetriever throws these).
+            }
+        }
+        return locations
+    }
+
+    /** GPS position of the photo at [itemUri], for [locations]. */
+    private fun photoLocation(itemUri: Uri): Map<String, Any> {
+        val exif = resolver.openInputStream(itemUri)?.use { ExifInterface(it) }
+            ?: return emptyMap()
+        val (latitude, longitude) = exif.latLong ?: return emptyMap()
+        // 0, 0 is what some apps write when they have no fix.
+        if (latitude == 0.0 && longitude == 0.0) return emptyMap()
+        return mapOf("latitude" to latitude, "longitude" to longitude)
+    }
+
     /** EXIF values of the photo at [itemUri], for [metadata]. */
     private fun photoMetadata(itemUri: Uri): Map<String, Any> {
         val exif = resolver.openInputStream(itemUri)?.use { ExifInterface(it) }

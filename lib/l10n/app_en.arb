@@ -313,5 +313,17 @@
   "duplicatesFilterAll": "All",
   "duplicatesSimilar": "Similar photos",
   "duplicatesNotDuplicates": "Not duplicates",
-  "duplicatesIgnored": "These photos won't be grouped again."
+  "duplicatesIgnored": "These photos won't be grouped again.",
+
+  "mapTitle": "Map",
+  "mapAttribution": "© OpenStreetMap contributors",
+  "mapEmptyTitle": "No places yet",
+  "mapEmptyBody": "Photos and videos taken with location on show here once the app has read where they were taken.",
+  "mapLocationTitle": "Allow access to photo locations",
+  "mapLocationBody": "Android hides where photos were taken until you allow it. Locations stay on your phone; the map only downloads its background from OpenStreetMap.",
+  "mapLocationButton": "Allow",
+  "mapClusterLabel": "{count, plural, =1{1 item here} other{{count} items here}}",
+  "@mapClusterLabel": {"placeholders": {"count": {"type": "int"}}},
+  "mapAreaTitle": "In this area",
+  "infoMiniMap": "Show on the map"
 }

@@ -1,3 +1,4 @@
+import 'package:clean_gallery/domain/geo.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -119,6 +120,9 @@ abstract class MediaSelection with _$MediaSelection {
 
     /// Only items of at least this many bytes, e.g. large videos.
     int? minSizeBytes,
+
+    /// Only items taken in this area, e.g. a cluster of the map.
+    GeoArea? area,
   }) = _MediaSelection;
 
   /// Every photo, newest first.

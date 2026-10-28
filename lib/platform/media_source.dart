@@ -1,3 +1,4 @@
+import 'package:clean_gallery/domain/geo.dart';
 import 'package:clean_gallery/domain/gray_image.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/domain/media_metadata.dart';
@@ -45,6 +46,13 @@ abstract interface class MediaSource {
   /// The location needs the media location permission; without it, it is
   /// left out.
   Future<MediaMetadata> metadata(MediaItem item);
+
+  /// Location of each of [items], read from the file headers, by id; items
+  /// without a location, or that cannot be read, are left out.
+  ///
+  /// Throws a `PlatformException` with code `permission` without the media
+  /// location permission, since the platform then hides every location.
+  Future<Map<String, GeoPoint>> locations(List<MediaItem> items);
 
   /// Small square thumbnail of [item], about [size] pixels wide.
   ImageProvider thumbnail(MediaItem item, {required int size});

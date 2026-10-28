@@ -1,6 +1,7 @@
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/enums.dart';
+import 'package:clean_gallery/domain/geo.dart';
 import 'package:clean_gallery/domain/gray_image.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/domain/media_metadata.dart';
@@ -10,6 +11,8 @@ import 'package:clean_gallery/platform/platform_bridge.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:image/image.dart' as img;
 
 /// Opens a fresh in-memory database for one test.
 AppDatabase inMemoryDatabase() => AppDatabase(NativeDatabase.memory());
@@ -49,7 +52,7 @@ class FakePermissionService implements PermissionService {
   @override
   Future<bool> requestLocationAccess() async {
     locationRequests++;
-    return true;
+    return locationGranted = true;
   }
 
   @override
@@ -253,6 +256,18 @@ class FakeMediaSource implements MediaSource {
   Future<MediaMetadata> metadata(MediaItem item) async =>
       metadatas[item.id] ?? MediaMetadata.empty;
 
+  /// Location of items by id, as read by [locations]; others have none.
+  final positions = <String, GeoPoint>{};
+
+  /// Ids passed to [locations], per call.
+  final locationCalls = <List<String>>[];
+
+  @override
+  Future<Map<String, GeoPoint>> locations(List<MediaItem> items) async {
+    locationCalls.add([for (final item in items) item.id]);
+    return {for (final item in items) item.id: ?positions[item.id]};
+  }
+
   IndexedMedia _indexed(MediaItem item) {
     final folder = folders.where(
       (f) => folderItems[f.id]?.any((i) => i.id == item.id) ?? false,
@@ -280,4 +295,16 @@ class FakeMediaSource implements MediaSource {
 
   @override
   Future<Uri?> videoUri(MediaItem item) async => null;
+}
+
+/// Map tiles that are all blank, so tests never reach the network.
+class BlankTileProvider extends TileProvider {
+  /// A transparent 1 × 1 PNG.
+  static final _blank = MemoryImage(
+    img.encodePng(img.Image(width: 1, height: 1, numChannels: 4)),
+  );
+
+  @override
+  ImageProvider getImage(TileCoordinates coordinates, TileLayer options) =>
+      _blank;
 }

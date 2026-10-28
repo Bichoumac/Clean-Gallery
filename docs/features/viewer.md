@@ -2,7 +2,7 @@
 
 Full-screen photo and video viewer, opened from any grid.
 
-Last updated: 2026-10-27 — Milestone M6
+Last updated: 2026-10-28 — Milestone M6
 
 ## Purpose
 
@@ -51,7 +51,7 @@ The brief: "a bottom sheet that slides up with a translucent blurred background 
   - **Location**, as latitude and longitude with five decimals: tapping it opens the user's map app on that point (a `geo:` intent, `PlatformBridge.openMap`; when no app handles it, the panel closes and a snack bar says so), and a copy button puts the coordinates on the clipboard. Videos only have a location.
 - Missing values are left out. A photo with no camera data at all says *No camera information in this file.*; without the media location permission, the location row says to allow it in Settings (Android hides GPS tags from apps without it).
 - **Quality** (photos): the last row shows the analysis engine's measures on the photo's 256-pixel grayscale thumbnail, read when the panel opens (`photoQualityProvider`): `S 42 · N 180 · B 35 · C 22` for sharpness, relative sharpness, brightness and contrast ([analysis-engine.md](../analysis-engine.md#blurry-and-dark-photos)), and under it whether the photo is offered as blurry or too dark. Asked by the product owner after the blur calibration, to check the thresholds on real photos.
-- **No mini map yet**: it comes with the map in M7, which adds `flutter_map` and the OpenStreetMap tiles; showing it here first would have meant adding the map library and network access one milestone early.
+- **Mini map** (M6, with the map brought forward): below the coordinates, a still OpenStreetMap map of the point with a lime dot; tapping it opens the app's map there ([map.md](map.md)). Its tiles need the network; without it the dot shows on a grey background.
 
 ## Edge cases and error handling
 
@@ -72,5 +72,4 @@ The brief: "a bottom sheet that slides up with a translucent blurred background 
 ## Known limitations / future work
 
 - Edit comes later in M6.
-- The info panel's mini map comes with the map in M7.
 - Zoom is limited to 5× and to the 4,096 px decoded image.

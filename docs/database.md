@@ -2,7 +2,7 @@
 
 The app stores its index, analysis results, trash and settings in a local SQLite database managed by Drift. It runs on a background isolate so queries never block the UI. This file lists the schema, indexes and migration history.
 
-Last updated: 2026-10-27 — Milestone M5
+Last updated: 2026-10-28 — Milestone M6
 
 Source: [tables.dart](../lib/core/database/tables.dart), [app_database.dart](../lib/core/database/app_database.dart).
 
@@ -44,7 +44,8 @@ The media index: one row per photo or video, keyed by its MediaStore id. Every l
 | `burst_id` | TEXT | yes | `<relative path>\|<shared part of the name>` for a burst shot, from its file name at index time ([analysis-engine.md](analysis-engine.md#bursts)) |
 | `is_screenshot` | BOOLEAN | no | Default `false`; set while indexing by `isScreenshot` (M5) |
 | `is_favorite` | BOOLEAN | no | Default `false`; cached copy of MediaStore `IS_FAVORITE` |
-| `latitude`, `longitude` | REAL | yes | From EXIF GPS |
+| `latitude`, `longitude` | REAL | yes | From EXIF GPS, or the video's location; read by `LocationScan` for the map from schema version 5 ([features/map.md](features/map.md#reading-locations)); kept while the file does not change |
+| `location_read` | BOOLEAN | no | Default `false`; whether the location was read, as `latitude` is `null` both before and without one (schema version 5, M6) |
 | `camera_model` | TEXT | yes | From EXIF |
 | `analysis_version` | INTEGER | no | Default `0`; see below |
 
@@ -164,4 +165,5 @@ Every schema change:
 | 1 | M0 | Initial schema. |
 | 3 | M5 | `assets.brightness`. Upgrades from version 1 get it from the version 2 table rebuild, which uses today's columns. |
 | 4 | M6 | `assets.contrast`; from version 3, version 2 photos at a sharpness of 30 or more move to analysis version 3. |
+| 5 | M6 | `assets.location_read`, for the map: every item's location is read once after the update. |
 | 2 | M3 | Media index: `assets.bucket_id`, `taken_at`, `media_revision`; indexes `assets_taken_at`, `assets_bucket_id`. The table is rebuilt (`alterTable`): rows written by the M2 trash move their date from `capture_at` to `taken_at`, since `capture_at` is now reserved for the engine. |

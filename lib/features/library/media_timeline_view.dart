@@ -568,7 +568,9 @@ class _TimelineState extends ConsumerState<_Timeline> {
                 children: [
                   widget.header,
                   ?widget.banner,
-                  DuplicatesTile(selection: widget.selection),
+                  // Duplicates are looked for by folder, not by place.
+                  if (widget.selection.area == null)
+                    DuplicatesTile(selection: widget.selection),
                 ],
               ),
             ),

@@ -1,3 +1,4 @@
+import 'package:clean_gallery/core/media/location_scan.dart';
 import 'package:clean_gallery/core/media/media_index.dart';
 import 'package:clean_gallery/core/media/media_providers.dart';
 import 'package:clean_gallery/core/media/media_thumbnail.dart';
@@ -26,6 +27,7 @@ class AlbumsScreen extends ConsumerWidget {
     final textTheme = Theme.of(context).textTheme;
     final folders = ref.watch(albumsProvider).value ?? const <Album>[];
     final trash = ref.watch(trashItemsProvider).value ?? const <TrashedItem>[];
+    final located = ref.watch(locatedMediaProvider).value;
 
     return RefreshIndicator(
       onRefresh: () => ref.read(mediaIndexProvider.notifier).sync(),
@@ -61,6 +63,13 @@ class AlbumsScreen extends ConsumerWidget {
                     l10n.albumsFavorites,
                   ),
                   icon: Icons.favorite_rounded,
+                ),
+                _AlbumTile(
+                  name: l10n.mapTitle,
+                  location: AppRoutes.map,
+                  knownCount: located?.length,
+                  knownCover: located?.firstOrNull?.item,
+                  icon: Icons.map_rounded,
                 ),
                 _AlbumTile(
                   name: l10n.trashTitle,

@@ -14,7 +14,7 @@ Show every photo and video on the device, newest first, grouped by day or month,
 2. **Pinch** with two fingers: spreading shows fewer, larger thumbnails (down to 2 columns); pinching shows more (up to 6). From 5 columns, headers switch from days to months.
 3. **Pull down** to pick up changes at once (new photos, deletions made in another app). The app also does it at launch and when it returns to the foreground.
 4. **Tap a thumbnail**: the viewer opens on that item ([viewer.md](viewer.md)).
-5. **Albums tab**: "All media" and "Favorites", then "Folders" sorted by size. Tapping one opens its timeline, with a back button.
+5. **Albums tab**: "All media", "Favorites", "Map" ([map.md](map.md)) and "Trash", then "Folders" sorted by size. Tapping one opens its timeline, with a back button.
 6. **Sort and filter**: the button next to the title opens a sheet (see below).
 7. **Duplicates**: when a grid holds extra copies, a tile above the photos opens them ([duplicates.md](duplicates.md)).
 8. **Stacks**: duplicates taken one after the other show as one thumbnail (see below).
