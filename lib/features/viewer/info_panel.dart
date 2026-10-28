@@ -73,183 +73,265 @@ class InfoPanel extends ConsumerWidget {
         ),
     ];
 
-    return ClipRRect(
-      borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 30, sigmaY: 30),
-        child: ColoredBox(
-          color: Colors.black.withValues(alpha: 0.55),
-          child: ConstrainedBox(
-            constraints: BoxConstraints(
-              maxHeight: MediaQuery.sizeOf(context).height * 0.9,
-            ),
-            child: SingleChildScrollView(
-              // Below the content, room for the system navigation bar: the
-              // sheet is drawn under it, edge to edge.
-              padding: EdgeInsets.fromLTRB(
-                24,
-                12,
-                24,
-                24 + MediaQuery.viewPaddingOf(context).bottom,
+    return _PullToDismiss(
+      child: ClipRRect(
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 22, sigmaY: 22),
+          child: ColoredBox(
+            color: Colors.black.withValues(alpha: 0.4),
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.sizeOf(context).height * 0.9,
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 32,
-                      height: 4,
-                      margin: const EdgeInsets.only(bottom: 16),
-                      decoration: BoxDecoration(
-                        color: Colors.white38,
-                        borderRadius: BorderRadius.circular(2),
+              child: SingleChildScrollView(
+                // Always scrollable, so pulling down at the top overscrolls
+                // even when everything fits: [_PullToDismiss] closes the panel.
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: ClampingScrollPhysics(),
+                ),
+                // Below the content, room for the system navigation bar: the
+                // sheet is drawn under it, edge to edge.
+                padding: EdgeInsets.fromLTRB(
+                  24,
+                  12,
+                  24,
+                  24 + MediaQuery.viewPaddingOf(context).bottom,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Center(
+                      child: Container(
+                        width: 32,
+                        height: 4,
+                        margin: const EdgeInsets.only(bottom: 16),
+                        decoration: BoxDecoration(
+                          color: Colors.white38,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
                       ),
                     ),
-                  ),
-                  _InfoRow(
-                    icon: Icons.event_outlined,
-                    value: formatMediaDate(context, item.takenAt),
-                    label: switch (info?.dateSource) {
-                      DateSource.exif => l10n.infoDateExif,
-                      DateSource.filename => l10n.infoDateFilename,
-                      DateSource.file => l10n.infoDateFile,
-                      null => null,
-                    },
-                  ),
-                  if (item.fileName case final name?)
                     _InfoRow(
-                      icon: item.isVideo
-                          ? Icons.videocam_outlined
-                          : Icons.image_outlined,
-                      value: name,
-                      label: l10n.infoName,
+                      icon: Icons.event_outlined,
+                      value: formatMediaDate(context, item.takenAt),
+                      label: switch (info?.dateSource) {
+                        DateSource.exif => l10n.infoDateExif,
+                        DateSource.filename => l10n.infoDateFilename,
+                        DateSource.file => l10n.infoDateFile,
+                        null => null,
+                      },
                     ),
-                  if (item.relativePath case final path? when path.isNotEmpty)
-                    _InfoRow(
-                      icon: Icons.folder_outlined,
-                      value: path,
-                      label: l10n.infoPath,
-                    ),
-                  _InfoRow(
-                    icon: Icons.aspect_ratio_rounded,
-                    value: l10n.infoResolutionValue(
-                      item.width,
-                      item.height,
-                      decimal.format(item.width * item.height / 1e6),
-                    ),
-                    label: l10n.infoResolution,
-                  ),
-                  _InfoRow(
-                    icon: Icons.sd_storage_outlined,
-                    value: formatBytes(context, item.sizeBytes),
-                    label: l10n.infoSize,
-                  ),
-                  if (item.isVideo)
-                    _InfoRow(
-                      icon: Icons.timer_outlined,
-                      value: formatDuration(item.duration),
-                      label: l10n.infoDuration,
-                    ),
-                  if (metadata?.camera case final camera?)
-                    _InfoRow(
-                      icon: Icons.photo_camera_outlined,
-                      value: camera,
-                      label: l10n.infoCamera,
-                    ),
-                  if (metadata?.lens case final lens?)
-                    _InfoRow(
-                      icon: Icons.camera_outlined,
-                      value: lens,
-                      label: l10n.infoLens,
-                    ),
-                  if (settings.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 40, bottom: 16),
-                      child: Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          for (final (label, value) in settings)
-                            _Setting(label: label, value: value),
-                        ],
+                    if (item.fileName case final name?)
+                      _InfoRow(
+                        icon: item.isVideo
+                            ? Icons.videocam_outlined
+                            : Icons.image_outlined,
+                        value: name,
+                        label: l10n.infoName,
                       ),
-                    ),
-                  if (metadata != null &&
-                      !item.isVideo &&
-                      metadata.camera == null &&
-                      settings.isEmpty)
-                    _InfoRow(
-                      icon: Icons.photo_camera_outlined,
-                      value: l10n.infoNoCameraData,
-                      muted: true,
-                    ),
-                  if (metadata case final metadata? when metadata.hasLocation)
-                    _InfoRow(
-                      icon: Icons.place_outlined,
-                      value: formatCoordinates(
-                        metadata.latitude!,
-                        metadata.longitude!,
+                    if (item.relativePath case final path? when path.isNotEmpty)
+                      _InfoRow(
+                        icon: Icons.folder_outlined,
+                        value: path,
+                        label: l10n.infoPath,
                       ),
-                      label: l10n.infoLocationOpen,
-                      onTap: () => _openMap(context, ref, metadata),
-                      trailing: _CopyButton(
-                        text: formatCoordinates(
+                    _InfoRow(
+                      icon: Icons.aspect_ratio_rounded,
+                      value: l10n.infoResolutionValue(
+                        item.width,
+                        item.height,
+                        decimal.format(item.width * item.height / 1e6),
+                      ),
+                      label: l10n.infoResolution,
+                    ),
+                    _InfoRow(
+                      icon: Icons.sd_storage_outlined,
+                      value: formatBytes(context, item.sizeBytes),
+                      label: l10n.infoSize,
+                    ),
+                    if (item.isVideo)
+                      _InfoRow(
+                        icon: Icons.timer_outlined,
+                        value: formatDuration(item.duration),
+                        label: l10n.infoDuration,
+                      ),
+                    if (metadata?.camera case final camera?)
+                      _InfoRow(
+                        icon: Icons.photo_camera_outlined,
+                        value: camera,
+                        label: l10n.infoCamera,
+                      ),
+                    if (metadata?.lens case final lens?)
+                      _InfoRow(
+                        icon: Icons.camera_outlined,
+                        value: lens,
+                        label: l10n.infoLens,
+                      ),
+                    if (settings.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 40, bottom: 16),
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: [
+                            for (final (label, value) in settings)
+                              _Setting(label: label, value: value),
+                          ],
+                        ),
+                      ),
+                    if (metadata != null &&
+                        !item.isVideo &&
+                        metadata.camera == null &&
+                        settings.isEmpty)
+                      _InfoRow(
+                        icon: Icons.photo_camera_outlined,
+                        value: l10n.infoNoCameraData,
+                        muted: true,
+                      ),
+                    if (metadata case final metadata? when metadata.hasLocation)
+                      _InfoRow(
+                        icon: Icons.place_outlined,
+                        value: formatCoordinates(
                           metadata.latitude!,
                           metadata.longitude!,
                         ),
-                      ),
-                    )
-                  else if (info != null && !info.locationAllowed)
-                    _InfoRow(
-                      icon: Icons.location_off_outlined,
-                      value: l10n.infoLocationNotAllowed,
-                      muted: true,
-                    ),
-                  if (metadata case final metadata? when metadata.hasLocation)
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(40, 4, 0, 12),
-                      child: MiniMap(
-                        point: (
-                          latitude: metadata.latitude!,
-                          longitude: metadata.longitude!,
-                        ),
-                      ),
-                    ),
-                  if (!item.isVideo)
-                    if (ref.watch(photoQualityProvider(item)).value
-                        case final quality?)
-                      _InfoRow(
-                        icon: Icons.blur_on_rounded,
-                        value: formatQuality(quality),
-                        label: switch ((
-                          isBlurry(
-                            sharpness: quality.sharpness,
-                            contrast: quality.contrast,
+                        label: l10n.infoLocationOpen,
+                        onTap: () => _openMap(context, ref, metadata),
+                        trailing: _CopyButton(
+                          text: formatCoordinates(
+                            metadata.latitude!,
+                            metadata.longitude!,
                           ),
-                          quality.brightness < darkBelow,
-                        )) {
-                          (true, _) => l10n.infoQualityBlurry,
-                          (_, true) => l10n.infoQualityDark,
-                          _ => l10n.infoQuality,
-                        },
+                        ),
+                      )
+                    else if (info != null && !info.locationAllowed)
+                      _InfoRow(
+                        icon: Icons.location_off_outlined,
+                        value: l10n.infoLocationNotAllowed,
+                        muted: true,
                       ),
-                  if (info == null)
-                    Padding(
-                      padding: const EdgeInsets.only(left: 40, top: 4),
-                      child: SizedBox.square(
-                        dimension: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: theme.colorScheme.primary,
+                    if (metadata case final metadata? when metadata.hasLocation)
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(40, 4, 0, 12),
+                        child: MiniMap(
+                          point: (
+                            latitude: metadata.latitude!,
+                            longitude: metadata.longitude!,
+                          ),
                         ),
                       ),
-                    ),
-                ],
+                    if (!item.isVideo)
+                      if (ref.watch(photoQualityProvider(item)).value
+                          case final quality?)
+                        _InfoRow(
+                          icon: Icons.blur_on_rounded,
+                          value: formatQuality(quality),
+                          label: switch ((
+                            isBlurry(
+                              sharpness: quality.sharpness,
+                              contrast: quality.contrast,
+                            ),
+                            quality.brightness < darkBelow,
+                          )) {
+                            (true, _) => l10n.infoQualityBlurry,
+                            (_, true) => l10n.infoQualityDark,
+                            _ => l10n.infoQuality,
+                          },
+                        ),
+                    if (info == null)
+                      Padding(
+                        padding: const EdgeInsets.only(left: 40, top: 4),
+                        child: SizedBox.square(
+                          dimension: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
               ),
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+/// Lets the user close the panel by pulling it down from the top of its
+/// content: the panel follows the finger, then closes past
+/// [_dismissDistance] or on a downward fling, and slides back otherwise.
+///
+/// The sheet's own drag cannot do it, since the scroll view inside takes
+/// every vertical drag; this listens to its overscroll instead.
+class _PullToDismiss extends StatefulWidget {
+  const _PullToDismiss({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_PullToDismiss> createState() => _PullToDismissState();
+}
+
+/// Pull distance that closes the panel, in logical pixels.
+const _dismissDistance = 96.0;
+
+/// Downward fling speed that closes the panel, in logical pixels per second.
+const _dismissVelocity = 700.0;
+
+class _PullToDismissState extends State<_PullToDismiss>
+    with SingleTickerProviderStateMixin {
+  /// How far the panel is pulled down; animated back to 0 on release.
+  late final _offset = AnimationController.unbounded(vsync: this);
+  bool _closing = false;
+
+  @override
+  void dispose() {
+    _offset.dispose();
+    super.dispose();
+  }
+
+  bool _onScroll(ScrollNotification notification) {
+    if (_closing) return false;
+    switch (notification) {
+      // Pulling down past the top of the content.
+      case OverscrollNotification(:final overscroll, dragDetails: _?)
+          when overscroll < 0 || _offset.value > 0:
+        _offset.value = (_offset.value - overscroll).clamp(0, double.infinity);
+      // Moving the finger back up while pulled: the panel goes up first.
+      case ScrollUpdateNotification(:final scrollDelta?, dragDetails: _?)
+          when _offset.value > 0 && scrollDelta > 0:
+        _offset.value = (_offset.value - scrollDelta).clamp(0, double.infinity);
+      case ScrollEndNotification(:final dragDetails) when _offset.value > 0:
+        final velocity = dragDetails?.primaryVelocity ?? 0;
+        if (_offset.value > _dismissDistance || velocity > _dismissVelocity) {
+          _closing = true;
+          Navigator.of(context).pop();
+        } else {
+          _offset.animateTo(
+            0,
+            duration: const Duration(milliseconds: 200),
+            curve: Curves.easeOutCubic,
+          );
+        }
+      default:
+    }
+    return false;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return NotificationListener<ScrollNotification>(
+      onNotification: _onScroll,
+      child: AnimatedBuilder(
+        animation: _offset,
+        builder: (context, child) =>
+            Transform.translate(offset: Offset(0, _offset.value), child: child),
+        child: widget.child,
       ),
     );
   }

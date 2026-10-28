@@ -66,6 +66,26 @@ void main() {
     expect(bridge.mapRequests, [(48.856613, 2.352222)]);
   });
 
+  testApp('pulling the panel down from its top closes it', (tester) async {
+    await openInfo(tester, FakeMediaSource(items: [testItem(1)]));
+    await tester.drag(find.byType(InfoPanel), const Offset(0, 300));
+    await tester.pumpAndSettle();
+    expect(find.byType(InfoPanel), findsNothing);
+  });
+
+  testApp('a short, slow pull lets the panel slide back', (tester) async {
+    await openInfo(tester, FakeMediaSource(items: [testItem(1)]));
+    final top = tester.getTopLeft(find.byType(InfoPanel));
+    await tester.timedDrag(
+      find.byType(InfoPanel),
+      const Offset(0, 50),
+      const Duration(seconds: 1),
+    );
+    await tester.pumpAndSettle();
+    expect(find.byType(InfoPanel), findsOneWidget);
+    expect(tester.getTopLeft(find.byType(InfoPanel)), top);
+  });
+
   testApp('says what is missing', (tester) async {
     final media = FakeMediaSource(items: [testItem(1)])
       ..withoutMetadataDate.add('1');

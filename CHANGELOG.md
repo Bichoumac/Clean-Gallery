@@ -22,6 +22,7 @@ Last updated: 2026-10-28 — Milestone M6
 
 ### Changed
 
+- Info panel: a more transparent background (40 % black, lighter blur); pulling it down from the top of its content closes it.
 - The release app declares `INTERNET`, for map tiles. Only tile coordinates are requested; no media or metadata is sent.
 - **Blurry photos**: hazy photos (mist, fog, night) in focus are no longer listed; a photo is blurry when its sharpness is low for its contrast too ([ADR 0021](docs/decisions/0021-hazy-photos-are-not-blurry.md)). Analysis version 3: only photos below the blur threshold are analysed again.
 
