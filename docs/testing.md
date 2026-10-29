@@ -2,7 +2,7 @@
 
 How Clean Gallery is tested: test layers, commands, fakes and fixtures. Every milestone adds tests for what it builds; a milestone is not done until the suite passes.
 
-Last updated: 2026-10-27 — Milestone M4
+Last updated: 2026-10-29 — Milestone M6
 
 ## Commands
 
@@ -227,6 +227,23 @@ First editor test on the Galaxy A54, reported by the product owner on 2026-10-28
 | 50 | The copy, ⓘ | Same date and camera as the original; its location if the original had one. |
 | 51 | Another photo, **Remplacer l'originale** | *Photo remplacée ; l'originale est dans la corbeille*; the original is in Albums → Corbeille and can be restored. |
 | 52 | A photo taken in portrait | The copy is upright, not on its side. |
+
+Items 45 to 52 were installed on 2026-10-29 but not reported: the product owner asked for the next features first. They are tested with these, from the build installed on 2026-10-29 with the document scanner (commit "Document scanner; editor docs").
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 53 | Editor → Crop: **Straighten** slider | The photo turns by tenths of a degree, no empty corner; tapping the value returns to 0°. |
+| 54 | Adjust → **Améliorer** on a dull or dark photo | Contrast and Brightness (and Saturation 10) set at once; the photo livelier; the sliders can refine it. On a photo already contrasted, almost nothing changes. |
+| 55 | Adjust → **Vignettage** at 50, then -50 | Darker edges, then lighter edges, around the crop. |
+| 56 | Hold the **Avant/Après** icon (top bar) | The original while held, the edit when released. |
+| 57 | Draw → **Flou**, paint over a face; **Pixels** over a plate | Blurred, then large squares, only under the finger. |
+| 58 | **Texte** → Ajouter un texte, type two lines, OK | Centered on the photo, framed in lime. |
+| 59 | Change font, Gras, size, color, background color; drag the text; double-tap it | Each applies at once; it follows the finger; double-tap opens its words. |
+| 60 | Save a copy with straighten, Enhance, vignette, blur and a text | The saved photo matches the preview exactly, sharp, upright; text crisp. |
+| 61 | Viewer, top bar: **Scanner un document** on a photo of a sheet on a table | Lime outline on the page's corners (*Page trouvée*); else the corners 8 % in. |
+| 62 | Drag a corner; **Suivant** | The handle follows; the page flattened, straight. |
+| 63 | **Gris**, **Noir et blanc**, back to **Couleur**; Back | Gray page; white paper and black text, no shadow; Back returns to the corners. |
+| 64 | **Enregistrer** | *Scan enregistré*, the viewer shows the page; the original is still there. |
 
 Results on the Galaxy A54, reported by the product owner on 2026-10-28 after installing commit `369e8b8`: stacks, map and group strip, "everything works" (items 11 to 31). The time taken by the first reading of locations was not reported.
 

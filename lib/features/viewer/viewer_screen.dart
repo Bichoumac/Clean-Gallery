@@ -171,6 +171,12 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
     await ref.read(mediaActionsProvider).restore([item.id]);
   }
 
+  /// Opens the document scanner on [photo], then shows the page it saved.
+  Future<void> _scanDocument(MediaItem photo) async {
+    final saved = await context.push<String>(AppRoutes.scan, extra: photo);
+    if (saved != null && mounted) setState(() => _pendingTarget = saved);
+  }
+
   /// Opens the editor on [photo], then shows the photo it saved.
   Future<void> _edit(MediaItem photo) async {
     final saved = await context.push<String>(AppRoutes.editor, extra: photo);
@@ -295,7 +301,10 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
                         child: AnimatedOpacity(
                           opacity: _controlsVisible ? 1 : 0,
                           duration: const Duration(milliseconds: 200),
-                          child: _TopBar(item: items[index]),
+                          child: _TopBar(
+                            item: items[index],
+                            onScan: () => _scanDocument(items[index]),
+                          ),
                         ),
                       ),
                     ),
@@ -366,9 +375,10 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
 /// Back button, date and file name over a dark gradient. The actions are
 /// in the [_ActionBar] at the bottom.
 class _TopBar extends StatelessWidget {
-  const _TopBar({required this.item});
+  const _TopBar({required this.item, required this.onScan});
 
   final MediaItem item;
+  final VoidCallback onScan;
 
   @override
   Widget build(BuildContext context) {
@@ -413,6 +423,13 @@ class _TopBar extends StatelessWidget {
                   ],
                 ),
               ),
+              if (!item.isVideo)
+                IconButton(
+                  tooltip: AppLocalizations.of(context).scanAction,
+                  color: Colors.white,
+                  onPressed: onScan,
+                  icon: const Icon(Icons.document_scanner_outlined),
+                ),
             ],
           ),
         ),

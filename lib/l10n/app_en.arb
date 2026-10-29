@@ -404,5 +404,16 @@
   "editorBrushBlur": "Blur",
   "editorBrushPixelate": "Pixels",
   "editorTextArea": "Texts: tap one to select it, drag it to move it, double-tap it to change it",
-  "editorSelectText": "Tap a text to change it, or add one."
+  "editorSelectText": "Tap a text to change it, or add one.",
+
+  "scanAction": "Scan a document",
+  "scanTitle": "Scan",
+  "scanCornersFound": "Page found: drag a corner to adjust it.",
+  "scanCornersPlace": "Drag the four corners onto the page's corners.",
+  "scanCornersArea": "Page corners: drag a corner to move it",
+  "scanNext": "Next",
+  "scanModeColor": "Color",
+  "scanModeGray": "Gray",
+  "scanModeBlackWhite": "Black & white",
+  "scanSaved": "Scan saved"
 }

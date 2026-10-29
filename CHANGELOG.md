@@ -2,12 +2,14 @@
 
 All notable changes to this project are documented here, one section per milestone. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-10-28 — Milestone M6
+Last updated: 2026-10-29 — Milestone M6
 
 ## [Unreleased]
 
 ### Added
 
+- Editor: **Straighten** (-45° to 45°), **Vignette**, **Enhance** (auto levels from the histogram, no machine learning, written into the sliders), **Before/After** (hold), **Blur** and **Pixels** brushes, **Texts** (four fonts, bold, size, color, background box; drag to move, double-tap to edit) ([docs/features/editor.md](docs/features/editor.md)).
+- **Document scanner** from a photo: page corners found by Otsu's threshold (adjustable), perspective flattened, Color / Gray / Black & white, saved as a new photo ([docs/features/scan.md](docs/features/scan.md), [ADR 0024](docs/decisions/0024-document-scanner.md)).
 - **Photo editor** (part 2 of M6), from the viewer's Edit button: crop with corner handles and shapes (free, original, 1:1, 4:3, 3:4, 16:9, 9:16), rotate, flip, brightness, contrast, saturation, exposure and warmth, and a **pencil** (six colors, three widths, Undo), previewed live on a canvas with one color matrix; Reset; closing with changes asks first ([docs/features/editor.md](docs/features/editor.md), [ADR 0023](docs/decisions/0023-editor-color-matrix-preview.md)).
 - **Saving an edited photo**: *Save as a copy* or *Replace the original* (moved to the app trash); native method `saveEditedPhoto` writes a JPEG next to the original with its date and EXIF tags.
 - **Sort by number of duplicates**, wherever it applies: the duplicates screen (groups with the most items first), every timeline's sort sheet (items of the largest groups first, each group together) and the Albums folders (folders holding the most duplicates first, with their count).
@@ -32,6 +34,7 @@ Last updated: 2026-10-28 — Milestone M6
 
 - Viewer: the actions (share, favorite, edit, details, trash) moved to a bar at the bottom; the top bar keeps back, date and name. Video controls and the group strip sit above it.
 - Editor: the preview is painted on a canvas instead of stacked widgets; sliders follow the finger without delay.
+- Saving an edit: the photo is rendered at full size in Flutter by the preview's own paint function; the native `saveEditedPhoto` now takes RGBA pixels and only encodes, inserts and copies EXIF ([ADR 0023](docs/decisions/0023-editor-color-matrix-preview.md)).
 - Info panel: a more transparent background (40 % black, lighter blur); pulling it down from the top of its content closes it.
 - The release app declares `INTERNET`, for map tiles. Only tile coordinates are requested; no media or metadata is sent.
 - **Blurry photos**: hazy photos (mist, fog, night) in focus are no longer listed; a photo is blurry when its sharpness is low for its contrast too ([ADR 0021](docs/decisions/0021-hazy-photos-are-not-blurry.md)). Analysis version 3: only photos below the blur threshold are analysed again.

@@ -13,6 +13,7 @@ import 'package:clean_gallery/features/map/map_area_screen.dart';
 import 'package:clean_gallery/features/map/map_screen.dart';
 import 'package:clean_gallery/features/onboarding/onboarding_controller.dart';
 import 'package:clean_gallery/features/onboarding/onboarding_screen.dart';
+import 'package:clean_gallery/features/scan/scan_screen.dart';
 import 'package:clean_gallery/features/settings/settings_screen.dart';
 import 'package:clean_gallery/features/stats/stats_screen.dart';
 import 'package:clean_gallery/features/swipe/swipe_screen.dart';
@@ -68,6 +69,10 @@ abstract final class AppRoutes {
   /// The photo editor, above the tabs. Requires the photo (`MediaItem`) as
   /// `extra`.
   static const editor = '/editor';
+
+  /// The document scanner, above the tabs. Requires the photo
+  /// (`MediaItem`) as `extra`.
+  static const scan = '/scan';
 }
 
 /// Album pages under the Albums tab: `/albums/<key>?name=<title>`.
@@ -162,7 +167,8 @@ GoRouter appRouter(Ref ref) {
           state.extra is! MediaSelection) {
         return AppRoutes.camera;
       }
-      if (state.matchedLocation == AppRoutes.editor &&
+      if ((state.matchedLocation == AppRoutes.editor ||
+              state.matchedLocation == AppRoutes.scan) &&
           state.extra is! MediaItem) {
         return AppRoutes.camera;
       }
@@ -202,6 +208,11 @@ GoRouter appRouter(Ref ref) {
         path: AppRoutes.editor,
         builder: (context, state) =>
             EditorScreen(photo: state.extra! as MediaItem),
+      ),
+      GoRoute(
+        path: AppRoutes.scan,
+        builder: (context, state) =>
+            ScanScreen(photo: state.extra! as MediaItem),
       ),
       GoRoute(
         path: AppRoutes.map,

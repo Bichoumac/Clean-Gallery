@@ -2,22 +2,18 @@
 
 How the product owner and the AI assistant work together on Clean Gallery, the constraints of the development machine, and where to pick up. Read it at the start of every session, after [AGENTS.md](../AGENTS.md).
 
-Last updated: 2026-10-28 — Milestone M6
+Last updated: 2026-10-29 — Milestone M6
 
 ## Where to pick up
 
-- The milestone status lives in [progress.md](progress.md); this section only says what to do first.
-- End of 2026-10-27: M0 to M3 are merged into `main` (M3 as PR #4). M4 is on branch `m4-similar` (committed locally, not pushed).
-- **M4 device tests (2026-10-27)**: the first found no similar groups; after the fixes (commit `d07c2fd`) the second confirmed similar groups, progress, resume, Not duplicates, sensitivity and Stats rows. Decisions A (multi-index hashing, ADR 0019) and B (keep the pre-selection) are approved. Results in [testing.md](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device).
-- **Chips on the duplicates screen** (All, Identical copies, Bursts, Similar photos) added at the product owner's request, Stats split the same way; to check on the phone.
-- **Checked on 2026-10-27**: chips clearer, WhatsApp copy grouped with its original marked Best, cleaning from Stats, viewer sharp at once (previews now decoded from the file: MediaStore's cache stops at 512 px on this phone). Then pinch zoom, items 9, 10 and 13 (*Analyze the library again*): the whole M4 checklist is confirmed.
-- **Measuring on the phone**: the product owner allowed reading `logcat` lines that hold only durations and sizes, logged under one tag by temporary code that is never committed. Ask again for each new measurement.
-- **Product owner's request**: stack similar photos in the timelines. Built on 2026-10-28, before the editor, at the product owner's request: all groups stack, a tap unfolds in place.
-- M4 merged into `main` (PR #5) on 2026-10-27, after a CI fix (the runner's disk was full; the build job now frees space first).
-- **M5 on branch `m5-cleaning`**, in three parts tested one by one on the phone: 1. old screenshots and large videos (confirmed on the phone); 2. blurry and dark photos, one pass on 256-pixel thumbnails (product owner's choice; done, to test); 3. swipe mode, oldest first (product owner's choice; done, to test). On 2026-10-27 the product owner asked to build the rest of M5 in one go, push, and send one report of what to test. See [progress.md](progress.md#m5--cleanup).
+Quick resume (keep this short; history is in [progress.md](progress.md) and git):
 
-- M5 merged into `main` (PR #6) on 2026-10-27. Device test: all good except some **hazy night photos with lights listed as blurry**. Calibrated on 2026-10-27 from measures shown by a temporary build (never committed) in the info panel: low sharpness and low relative sharpness mean real blur; the product owner set the hazy threshold at 150 ([ADR 0021](decisions/0021-hazy-photos-are-not-blurry.md)).
-- **M6 on branch `m6-viewer`, pushed on 2026-10-28**: part 1 (info panel) and the hazy photo rule confirmed on the phone; the quality row added at the end of the session (not seen on the device yet). **2026-10-28: stacks in the timelines and the map** (brought forward from M7) added first, both at the product owner's request then the viewer's group strip with Keep and Trash; then a lighter info panel that closes when pulled down and sorts by number of duplicates; all confirmed on the phone the same day ([testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device) items 11 to 36). **Next: part 2, the editor** (built on 2026-10-28, branch pushed first; to test, items 37 to 44), then part 3; the detailed plan is in [progress.md](progress.md#next-steps) (M6 → Next steps). No pull request yet: it comes at the end of M6.
+- **Branch `m6-viewer`** (M6, advanced viewer and editing). Pushed up to `a1cf8f4` (2026-10-28); later commits are local until the product owner asks to push. No PR yet: it comes at the end of M6 (title and description in a text file, link `https://github.com/Bichoumac/Clean-Gallery/pull/new/m6-viewer`).
+- **Done in M6**, all on this branch: info panel (mini map, quality row), stacks of duplicates in the timelines, map and mini map (brought forward from M7), viewer group strip (Keep / Trash), sort by number of duplicates, viewer actions at the bottom, **editor** (crop, straighten, rotate, flip, Enhance, adjustments, vignette, pencil, blur, pixelate, texts, Before/After, save as copy or replace) and **document scanner**. Feature docs: [editor.md](features/editor.md), [scan.md](features/scan.md), [map.md](features/map.md), [viewer.md](features/viewer.md).
+- **Confirmed on the phone**: items 1 to 36 of [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device). **Waiting for the product owner's results**: items 45 to 64 (editor with save, pencil, texts, scanner), installed on 2026-10-29. Record them in testing.md and progress.md first.
+- **Next**: part 3, filters (about ten presets, each a color matrix composed with the adjustments, thumbnails of the photo with each). Then end of M6: CHANGELOG section, PR file, README status. Batch editing: not wanted (2026-10-29). Scanner: from photos only, no camera.
+- **Key design points to keep**: one paint function (`paintEdit`, `paintPage`) for preview and saving; the native side only writes JPEG + EXIF (`PhotoSaver.kt`); every delete through the app trash; pure Dart in `lib/analysis/` and `lib/domain/`.
+- **Commands that save tokens**: run tests to a file and read only the summary, e.g. `flutter test --timeout 60s > /tmp/…/t.log 2>&1; tail -1 …` (piping into `grep` hides progress until the end); widget tests that decode images need `tester.runAsync` (see `waitUntil` in [scan_test.dart](../test/features/scan/scan_test.dart)); never `pkill -f` a pattern that appears in your own command line.
 
 ## Working with the product owner
 

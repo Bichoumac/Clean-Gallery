@@ -2,7 +2,7 @@
 
 Every documentation file in the repository, with a one-line description. Start with [progress.md](progress.md) to see where the project stands.
 
-Last updated: 2026-10-28 — Milestone M6
+Last updated: 2026-10-29 — Milestone M6
 
 ## Project
 
@@ -43,7 +43,8 @@ Planned files: `monetization.md` (M8), `release.md` (M9).
 | [features/cleanup.md](features/cleanup.md) | Cleanup lists: old screenshots, large videos, blurry photos. |
 | [features/swipe.md](features/swipe.md) | Sort mode: swipe left to trash, right to keep, undo, resumable sessions. |
 | [features/map.md](features/map.md) | Map of located photos, clusters, area grid, info panel mini map. |
-| [features/editor.md](features/editor.md) | Photo editor: crop, rotate, flip, color adjustments. |
+| [features/editor.md](features/editor.md) | Photo editor: crop, straighten, adjustments, Enhance, vignette, pencil, blur, pixelate, texts, saving. |
+| [features/scan.md](features/scan.md) | Document scanner: page corners, perspective, color / gray / black and white. |
 
 One file per feature is added as each feature is built.
 
@@ -73,4 +74,5 @@ One file per feature is added as each feature is built.
 | [0020](decisions/0020-blur-and-brightness-with-the-hashes.md) | Blur and brightness measured with the hashes, on 256-pixel thumbnails |
 | [0021](decisions/0021-hazy-photos-are-not-blurry.md) | Hazy photos are not blurry: sharpness relative to contrast |
 | [0022](decisions/0022-map-tiles-and-grid-clusters.md) | Map: OpenStreetMap tiles with flutter_map, clusters on a grid |
-| [0023](decisions/0023-editor-color-matrix-preview.md) | Editor: the edit as data, colors as one matrix, saving natively |
+| [0023](decisions/0023-editor-color-matrix-preview.md) | Editor: the edit as data, one paint function for preview and saving |
+| [0024](decisions/0024-document-scanner.md) | Document scanner: Otsu threshold, perspective on the canvas |

@@ -362,5 +362,16 @@
   "editorBrushBlur": "Flou",
   "editorBrushPixelate": "Pixels",
   "editorTextArea": "Textes : toucher un texte pour le choisir, le glisser pour le déplacer, toucher deux fois pour le modifier",
-  "editorSelectText": "Touchez un texte pour le modifier, ou ajoutez-en un."
+  "editorSelectText": "Touchez un texte pour le modifier, ou ajoutez-en un.",
+
+  "scanAction": "Scanner un document",
+  "scanTitle": "Scanner",
+  "scanCornersFound": "Page trouvée : glissez un coin pour l'ajuster.",
+  "scanCornersPlace": "Placez les quatre coins sur ceux de la page.",
+  "scanCornersArea": "Coins de la page : glisser un coin pour le déplacer",
+  "scanNext": "Suivant",
+  "scanModeColor": "Couleur",
+  "scanModeGray": "Gris",
+  "scanModeBlackWhite": "Noir et blanc",
+  "scanSaved": "Scan enregistré"
 }

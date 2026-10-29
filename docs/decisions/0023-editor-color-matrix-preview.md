@@ -16,7 +16,7 @@ The brief asks for crop, rotate, adjustments and filters. Photos are up to 50 me
 - **The edit is plain data** (`PhotoEdit`, pure Dart): quarter turns, flip, a crop rectangle in fractions, adjustments from -1 to 1. Nothing is applied to pixels while editing.
 - **Preview painted on a canvas** (`paintEdit`): the viewer's screen-sized preview decoded once, drawn turned, flipped and cropped with the color matrix as the paint's filter, the pencil lines on top. A first version used widgets (`RotatedBox`, `Transform.flip`, `ColorFiltered`); it was slow on the phone, see [editor.md](../features/editor.md#how-the-preview-works).
 - **Colors as one 4 × 5 matrix** composed in pure Dart from the adjustments (and, in part 3, the filter): a slider only repaints.
-- **Saving natively** (`PhotoSaver.kt`): decode the full photo, turn it upright, then flip, turn, draw it with Android's `ColorMatrixColorFilter` (the same 20 numbers) and the lines, in the order of `paintEdit`, crop, encode JPEG and insert it with MediaStore, EXIF copied.
+- **Saving: Flutter renders, Android writes** (since 2026-10-29): the original decoded at full size is painted by the same `paintEdit` as the preview into an image; its RGBA pixels go to the native `saveEditedPhoto`, which encodes JPEG, inserts it with MediaStore and copies the EXIF tags. A first version (2026-10-29 morning) redid the geometry and colors in Kotlin; texts, blur and pixelate would have needed a second implementation of each, so the rendering moved to Flutter.
 
 ## Alternatives considered
 
@@ -26,6 +26,7 @@ The brief asks for crop, rotate, adjustments and filters. Photos are up to 50 me
 
 ## Consequences
 
-- The preview and the saved photo share one matrix: what is seen is what is saved, up to rounding.
+- The preview and the saved photo come from one function: what is seen is what is saved, at another resolution.
+- Saving holds the full photo and its edited copy in memory (about 2 × 48 MB for 12 MP; capped at 40 MP) and sends the pixels over the platform channel.
 - Adjustments are limited to what a color matrix can do (no curves, highlights or shadows, no sharpening).
-- Saving is `PlatformBridge.saveEditedPhoto` and the native `saveEditedPhoto`; the geometry is written twice (Dart and Kotlin) and must stay in the same order.
+- Saving is `PlatformBridge.saveEditedPhoto(photo, width, height, rgba)`; the document scanner uses it too ([ADR 0024](0024-document-scanner.md)).
