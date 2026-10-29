@@ -2,7 +2,7 @@
 
 The "Duplicates" virtual folder at the top of grids and the duplicates screen, where the user reviews groups of identical items, burst shots and similar photos, and moves the extra ones to the trash.
 
-Last updated: 2026-10-28 — Milestone M6
+Last updated: 2026-10-29 — Milestone M6
 
 ## Purpose
 

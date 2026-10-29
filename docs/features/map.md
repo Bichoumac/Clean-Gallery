@@ -2,7 +2,7 @@
 
 The photos and videos of the library on a map, grouped by place, and the mini map of the viewer's info panel.
 
-Last updated: 2026-10-28 — Milestone M6 (map brought forward from M7)
+Last updated: 2026-10-29 — Milestone M6 (map brought forward from M7)
 
 ## Purpose
 

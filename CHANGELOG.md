@@ -6,6 +6,12 @@ Last updated: 2026-10-29 — Milestone M6
 
 ## [Unreleased]
 
+Nothing yet: filters (the rest of M6) come next.
+
+## [M6] — 2026-10-29 — Advanced viewer, editing, map
+
+Filters, planned in M6, are not included; the map and its mini map come from M7.
+
 ### Added
 
 - Editor: **Straighten** (-45° to 45°), **Vignette**, **Enhance** (auto levels from the histogram, no machine learning, written into the sliders), **Before/After** (hold), **Blur** and **Pixels** brushes, **Texts** (four fonts, bold, size, color, background box; drag to move, double-tap to edit) ([docs/features/editor.md](docs/features/editor.md)).

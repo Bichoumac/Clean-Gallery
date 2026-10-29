@@ -2,7 +2,7 @@
 
 Browsing the device's photos and videos: the Camera and Videos timelines, the Albums tab and album pages.
 
-Last updated: 2026-10-28 — Milestone M6
+Last updated: 2026-10-29 — Milestone M6
 
 ## Purpose
 

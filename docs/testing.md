@@ -245,6 +245,8 @@ Items 45 to 52 were installed on 2026-10-29 but not reported: the product owner 
 | 63 | **Gris**, **Noir et blanc**, back to **Couleur**; Back | Gray page; white paper and black text, no shadow; Back returns to the corners. |
 | 64 | **Enregistrer** | *Scan enregistré*, the viewer shows the page; the original is still there. |
 
+Results on the Galaxy A54, reported by the product owner on 2026-10-29: blur and pixelate covered the whole photo (item 57); after the fix (commit `2090792`), "everything works" (items 45 to 64).
+
 Results on the Galaxy A54, reported by the product owner on 2026-10-28 after installing commit `369e8b8`: stacks, map and group strip, "everything works" (items 11 to 31). The time taken by the first reading of locations was not reported.
 
 Part 1 results on the Galaxy A54, reported by the product owner on 2026-10-27: first test, the end of the panel was hidden (fixed: room above the navigation bar, 90 % high) and the coordinates were not clickable (fixed: they open the map app). Second test, with the hazy photo rule: all good; the product owner read the temporary measures and set the hazy threshold at 150. Item 10 added afterwards, at the product owner's request; not seen on the device yet.

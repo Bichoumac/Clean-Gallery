@@ -2,7 +2,7 @@
 
 Entry point for AI assistants working on Clean Gallery. Read this first, then follow the links to `docs/` for depth.
 
-Last updated: 2026-10-27 — Milestone M4
+Last updated: 2026-10-29 — Milestone M6
 
 ## Project summary
 
