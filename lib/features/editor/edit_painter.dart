@@ -129,8 +129,13 @@ void paintEdit(
 
   for (final stroke in edit.strokes) {
     if (stroke.kind == StrokeKind.pen) continue;
-    // The area redrawn blurred or pixelated, kept only under the line.
-    canvas.saveLayer(Offset.zero & full, Paint());
+    // The photo redrawn blurred or pixelated, clipped to the line's area.
+    // A clip rather than a layer masked with BlendMode.dstIn: on the
+    // phone (Impeller) the mask did not apply and the whole photo was
+    // blurred.
+    canvas
+      ..save()
+      ..clipPath(strokeArea(stroke, full));
     _drawPhoto(
       canvas,
       full,
@@ -149,12 +154,7 @@ void paintEdit(
               )
             : null,
     );
-    canvas
-      ..drawPath(
-        _strokePath(stroke, full),
-        _strokePaint(stroke, shorter)..blendMode = BlendMode.dstIn,
-      )
-      ..restore();
+    canvas.restore();
   }
 
   final vignette = edit.adjustments.vignette;
@@ -247,6 +247,30 @@ void _drawPhoto(
       paint,
     )
     ..restore();
+}
+
+/// The area a line of [stroke]'s width covers on a photo whose rotated
+/// size is [full]: a disc at each point and a band between each two, all
+/// turning the same way so that their overlaps add up.
+Path strokeArea(Stroke stroke, Size full) {
+  final radius = stroke.width * math.min(full.width, full.height) / 2;
+  final points = [
+    for (final (x, y) in stroke.points) Offset(x * full.width, y * full.height),
+  ];
+  final area = Path();
+  for (final point in points) {
+    area.addOval(Rect.fromCircle(center: point, radius: radius));
+  }
+  for (var i = 1; i < points.length; i++) {
+    final a = points[i - 1];
+    final b = points[i];
+    final along = b - a;
+    if (along.distance == 0) continue;
+    final normal = Offset(-along.dy, along.dx) / along.distance * radius;
+    // Clockwise like the discs (y points down).
+    area.addPolygon([a - normal, b - normal, b + normal, a + normal], true);
+  }
+  return area;
 }
 
 Path _strokePath(Stroke stroke, Size full) {

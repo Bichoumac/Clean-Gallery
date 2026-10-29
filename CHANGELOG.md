@@ -27,6 +27,8 @@ Last updated: 2026-10-29 — Milestone M6
 
 ### Fixed
 
+- Editor: blur and pixelate covered the whole photo on the phone instead of the area under the finger (a blend-mode mask that Impeller did not apply; now a clip).
+
 - Opening the duplicates screen or the viewer from an album page could fail in debug builds ("multiple heroes share the same tag"): the hidden tabs' thumbnails had heroes too. Hidden tabs now turn their heroes off.
 - The sort and filter sheet scrolls when its content does not fit.
 

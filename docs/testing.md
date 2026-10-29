@@ -236,7 +236,7 @@ Items 45 to 52 were installed on 2026-10-29 but not reported: the product owner 
 | 54 | Adjust → **Améliorer** on a dull or dark photo | Contrast and Brightness (and Saturation 10) set at once; the photo livelier; the sliders can refine it. On a photo already contrasted, almost nothing changes. |
 | 55 | Adjust → **Vignettage** at 50, then -50 | Darker edges, then lighter edges, around the crop. |
 | 56 | Hold the **Avant/Après** icon (top bar) | The original while held, the edit when released. |
-| 57 | Draw → **Flou**, paint over a face; **Pixels** over a plate | Blurred, then large squares, only under the finger. |
+| 57 | Draw → **Flou**, paint over a face; **Pixels** over a plate | Blurred, then large squares, only under the finger. **First test (2026-10-29): the whole photo was blurred/pixelated**; fixed the same day (clip instead of a blend mask), to test again. |
 | 58 | **Texte** → Ajouter un texte, type two lines, OK | Centered on the photo, framed in lime. |
 | 59 | Change font, Gras, size, color, background color; drag the text; double-tap it | Each applies at once; it follows the finger; double-tap opens its words. |
 | 60 | Save a copy with straighten, Enhance, vignette, blur and a text | The saved photo matches the preview exactly, sharp, upright; text crisp. |

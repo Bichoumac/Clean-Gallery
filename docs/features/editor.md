@@ -31,7 +31,7 @@ The brief's "Editing and filters". Built in M6 part 2 (2026-10-28), then extende
 | `PhotoEdit`, `CropRect`, `Adjustments`, `Stroke`, `TextItem`, `straightenScale`, crop math | [photo_edit.dart](../../lib/domain/photo_edit.dart) | The edit as plain data (pure Dart). Positions in fractions of the rotated, flipped photo; widths and text sizes in fractions of its shorter side, which turning does not change. `rotated()` and `mirrored()` move crop, lines and texts with the photo. |
 | Color matrices | [color_matrix.dart](../../lib/analysis/color_matrix.dart) | One 4 × 5 matrix from the adjustments (exposure, brightness, contrast, saturation, warmth, in that order). |
 | Enhance | [enhance.dart](../../lib/analysis/enhance.dart) | `luminanceHistogram`, `autoEnhance` (auto levels into sliders). |
-| `paintEdit`, `renderEdit`, `EditSource` | [edit_painter.dart](../../lib/features/editor/edit_painter.dart) | Paints a photo edited: straighten, flip and turn with the color matrix; blurred areas (the photo redrawn with `ImageFilter.blur`, kept under the line with `BlendMode.dstIn`) and pixelated ones (a copy reduced to 40 squares across, drawn enlarged without smoothing); vignette (radial gradient); pen lines; texts (`TextPainter`). `renderEdit` paints at full size into an image. |
+| `paintEdit`, `renderEdit`, `EditSource` | [edit_painter.dart](../../lib/features/editor/edit_painter.dart) | Paints a photo edited: straighten, flip and turn with the color matrix; blurred areas (the photo redrawn with `ImageFilter.blur`, clipped to the line's area, `strokeArea`: a disc per point and a band between points) and pixelated ones (a copy reduced to 40 squares across, drawn enlarged without smoothing, clipped the same way); vignette (radial gradient); pen lines; texts (`TextPainter`). `renderEdit` paints at full size into an image. |
 | `PhotoEditor` | [photo_editor.dart](../../lib/features/editor/photo_editor.dart) | Controller (Riverpod): rotate, flip, shape, crop drags, straighten, adjustments, strokes, texts, reset. |
 | `EditorScreen` | [editor_screen.dart](../../lib/features/editor/editor_screen.dart) | Route `/editor` (`MediaItem` as `extra`); views (crop, result, drawing, texts), Before/After, Enhance, saving. Pops with the new photo's id. |
 | Tool panels | [editor_tools.dart](../../lib/features/editor/editor_tools.dart) | `CropTools`, `AdjustTools`, `DrawTools`, `TextTools`, `ColorRow`. |
@@ -47,11 +47,13 @@ The brief's "Editing and filters". Built in M6 part 2 (2026-10-28), then extende
 - HEIC, PNG and WebP originals are saved as JPEG; transparency becomes black.
 - A failed native save deletes the half-written row; the editor stays open with the edit.
 - The text dialog owns its controller: it was disposed while the dialog was closing (crash in tests).
+- **Blur and pixelate covered the whole photo on the phone** (product owner, 2026-10-29): the area was a layer masked with `BlendMode.dstIn`, which Impeller did not apply, although tests (another renderer) passed. Now a clip to the line's area; the discs and bands all turn clockwise so that their overlaps are not holes.
 
 ## Tests
 
 - [photo_edit_test.dart](../../test/domain/photo_edit_test.dart): crop turning and mirroring, moves, shapes, corner drags, identity, oriented ratio, adjustments, strokes and texts following the photo, straighten scale covering the frame.
 - [color_matrix_test.dart](../../test/analysis/color_matrix_test.dart), [enhance_test.dart](../../test/analysis/enhance_test.dart): each adjustment, composition, clamping; auto levels (stretch, × 2 cap, clipping of extremes, other adjustments kept), histogram.
+- [edit_painter_test.dart](../../test/features/editor/edit_painter_test.dart): the line's area (overlaps, round ends), and a checkerboard rendered with blur and pixelate changed only under the line.
 - [editor_test.dart](../../test/features/editor/editor_test.dart): no Edit on videos, rotate and reset, sliders, closing with and without changes, 1:1, corner drag, pencil and undo, straighten, Enhance and Vignette, Before/After, blur brush, texts (add, font, bold, move, delete), Save as a copy, Replace the original.
 - Rendering and the native save are checked on the device ([testing.md](../testing.md#m6--viewer-and-editing-to-verify-on-a-device)).
 
