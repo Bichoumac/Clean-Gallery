@@ -133,7 +133,9 @@ abstract class MediaSelection with _$MediaSelection {
     @Default(false) bool favoritesOnly,
 
     /// Only items whose file name contains these words, ignoring case for
-    /// unaccented letters (search); `null` or empty for any name.
+    /// unaccented letters, or any name when empty. `null` outside the
+    /// search: a search without a name has an empty one, so its results
+    /// never share the view (sort, dates) of the tab it searches in.
     String? nameContains,
   }) = _MediaSelection;
 

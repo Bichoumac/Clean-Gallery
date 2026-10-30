@@ -10,14 +10,14 @@ The brief: "Combinable filters: date range, type (photo / video / screenshot), f
 
 ## User flows
 
-1. **Open**: the magnifier in the title of the Camera, Videos and Albums tabs (product owner's choice, 2026-10-30). The search opens with the keyboard up and every photo and video below, newest first.
+1. **Open**: the magnifier in the title of the Camera, Videos and Albums tabs and of every album page (product owner's choice, 2026-10-30). The search looks **only in the timeline it was opened from** (product owner, after the first device test): Camera searches the camera's photos, Videos the videos, a folder page that folder, Favorites the favorites, the Albums tab every photo and video. It opens with the keyboard up and that whole timeline below, titled *In Camera*, *In Videos*, *In WhatsApp Images*…
 2. **File name**: typing filters the results once typing pauses (300 ms); case is ignored for unaccented letters; ✕ clears the field.
-3. **Criteria chips** under the field, all in sight (they wrap onto two lines):
+3. **Criteria chips** under the field, all in sight (they wrap onto two lines). Chips that cannot narrow the timeline are left out: no type in Camera and Videos, no Folder in Camera or a folder page, no Favorites in the Favorites album.
    - **Photos**, **Videos**, **Screenshots**: one type at a time; the chip picked again goes back to every type.
    - **Favorites**: only favorites, combined with the type.
    - **Folder**: a list of the device folders with their counts; the chip then shows the folder's name, its ✕ removes it.
    - **Area**: the map opens in picking mode (title *Choose an area*); move and zoom, then **Search this area**: the results are limited to the area shown. A cluster zooms in instead of opening. The chip then reads *Area on the map*; tapping it opens the map on that area again; its ✕ removes it.
-4. **Results**: a timeline titled *Results* with the number of items, like an album: date sections, pinch, selection, viewer. Its **sort and filter** button sets the order and the **date range** (presets or custom), as everywhere in the app; they stay when a criterion changes.
+4. **Results**: a timeline titled *In …* with the number of items, like an album: date sections, pinch, selection, viewer. Its **sort and filter** button sets the order and the **date range** (presets or custom), as everywhere in the app; they stay when a criterion changes.
 5. **Nothing matches**: *Nothing matches*; with a date range set, the usual empty state offers to show all dates.
 
 ## How it works
@@ -26,12 +26,13 @@ The brief: "Combinable filters: date range, type (photo / video / screenshot), f
 | --- | --- | --- |
 | `MediaSelection.favoritesOnly`, `nameContains` | [album.dart](../../lib/domain/album.dart) | The two criteria the selection lacked; type, folder, dates and area existed already. |
 | Query | [media_index_repository.dart](../../lib/core/database/media_index_repository.dart) | `_matches` adds `is_favorite = 1` and `file_name LIKE '%…%'` with `%`, `_` and `\` escaped, so they match literally. |
-| `SearchCriteria` | [search_controller.dart](../../lib/features/search/search_controller.dart) | Controller (Riverpod): the criteria as a `MediaSelection`. On each change it carries the results' sort and dates to the new selection (`ViewSelection.keepFrom`) and keeps that view alive. |
-| `SearchScreen` | [search_screen.dart](../../lib/features/search/search_screen.dart) | Route `/search`: field, chips, folder sheet, results (`MediaTimelineView` with `compact`, without the Duplicates tile). |
-| `SearchButton` | [media_timeline_view.dart](../../lib/features/library/media_timeline_view.dart) | The magnifier; `showSearch` on the Camera and Videos timelines, and in the Albums title. |
+| `SearchArgs`, `searchStart`, `SearchCriteria` | [search_controller.dart](../../lib/features/search/search_controller.dart) | `SearchArgs`: the timeline searched in (`scope`) and its name. `searchStart`: the scope as a search, with an empty `nameContains` (the Favorites album becomes `favoritesOnly`, so a type can be picked). `SearchCriteria` (Riverpod, one per scope): the criteria as a `MediaSelection`; on each change it carries the results' sort and dates to the new selection (`ViewSelection.keepFrom`) and keeps that view alive. |
+| `SearchScreen` | [search_screen.dart](../../lib/features/search/search_screen.dart) | Route `/search` (`SearchArgs` as `extra`; all media without): field, chips, folder sheet, results (`MediaTimelineView` with `compact`, without the Duplicates tile). |
+| `SearchButton` | [media_timeline_view.dart](../../lib/features/library/media_timeline_view.dart) | The magnifier, opening the search in its timeline; `showSearch` on the Camera and Videos timelines and album pages; in the Albums title, on all media. |
 | Picking an area | [map_screen.dart](../../lib/features/map/map_screen.dart) | Route `/map/pick` (`MapScreen(pickArea: true)`, optional `GeoArea` to open on): pops the visible bounds as a `GeoArea` ([map.md](map.md)). |
 
 - The field and chips sit above the results, outside the scrolling timeline: the timeline rebuilds as results come and go, and the field must keep its focus and keyboard.
+- A search's selection always has a `nameContains`, empty without a name: it never equals the tab's own selection, so the results' sort and dates never leak into the tab, and `viewKey` saves their sort apart (`search:` prefix).
 - No new table or index: a `LIKE` over 30,000 file names takes a few milliseconds in SQLite.
 
 ## Edge cases
@@ -46,10 +47,9 @@ The brief: "Combinable filters: date range, type (photo / video / screenshot), f
 ## Tests
 
 - [search_selection_test.dart](../../test/core/database/search_selection_test.dart): part of a name ignoring case and spaces around, empty name, literal `%` and `_`, favorites combined with type and name.
-- [search_test.dart](../../test/features/search/search_test.dart): the magnifier in the three tabs, everything without criteria, name and clear, type and favorites combined, type toggled off, folder picked and removed, area picked on the map, sort kept when a criterion changes.
+- [search_test.dart](../../test/features/search/search_test.dart): the magnifier in the three tabs; the search limited to Camera, Videos, a folder page and Favorites, with the chips that apply; everything without criteria, name and clear, type and favorites combined, type toggled off, folder picked and removed, area picked on the map, sort kept when a criterion changes.
 
 ## Known limitations / future work
 
-- The results' sort is saved per type and folder, like other views: sorting the results of *Videos* also sorts the Videos tab.
 - No search by date typed as text, camera model or place name (no geocoding: it would need a network service or a large offline database).
 - The criteria are not remembered when the search is closed.

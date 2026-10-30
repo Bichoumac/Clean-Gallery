@@ -14,6 +14,7 @@ import 'package:clean_gallery/features/map/map_screen.dart';
 import 'package:clean_gallery/features/onboarding/onboarding_controller.dart';
 import 'package:clean_gallery/features/onboarding/onboarding_screen.dart';
 import 'package:clean_gallery/features/scan/scan_screen.dart';
+import 'package:clean_gallery/features/search/search_controller.dart';
 import 'package:clean_gallery/features/search/search_screen.dart';
 import 'package:clean_gallery/features/settings/settings_screen.dart';
 import 'package:clean_gallery/features/stats/stats_screen.dart';
@@ -75,7 +76,8 @@ abstract final class AppRoutes {
   /// (`MediaItem`) as `extra`.
   static const scan = '/scan';
 
-  /// Search: criteria and results.
+  /// Search: criteria and results, inside the timeline given as
+  /// `SearchArgs`.
   static const search = '/search';
 
   /// The map, to pick the area a search is limited to; pops a `GeoArea`.
@@ -243,7 +245,14 @@ GoRouter appRouter(Ref ref) {
       ),
       GoRoute(
         path: AppRoutes.search,
-        builder: (context, state) => const SearchScreen(),
+        builder: (context, state) => SearchScreen(
+          args: state.extra is SearchArgs
+              ? state.extra! as SearchArgs
+              : SearchArgs(
+                  scope: MediaSelection.all,
+                  place: AppLocalizations.of(context).albumsAllMedia,
+                ),
+        ),
       ),
       GoRoute(
         path: AppRoutes.swipe,
@@ -298,6 +307,7 @@ GoRouter appRouter(Ref ref) {
                         title: state.uri.queryParameters['name'] ?? '',
                         emptyTitle: l10n.libraryEmptyAlbum,
                         showBackButton: true,
+                        showSearch: true,
                       );
                     },
                   ),

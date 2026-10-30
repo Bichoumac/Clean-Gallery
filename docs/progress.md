@@ -25,22 +25,23 @@ The map and its mini map were built in M6 (see below). M7 adds the search.
 
 ### Done
 
-- **Search** (2026-10-30, branch `m7-search`): a magnifier in the Camera, Videos and Albums titles (product owner's choice the same day) opens a file name field and criteria chips: Photos / Videos / Screenshots, Favorites, Folder, Area (picked on the map, new picking mode). Results as a timeline with its own sort and date range, kept when a criterion changes. `MediaSelection` gains `favoritesOnly` and `nameContains`; no schema change ([features/search.md](features/search.md)). 363 tests. Device checklist: [testing.md](testing.md#m7--search-to-verify-on-a-device) items 71 to 78.
+- **Search** (2026-10-30, branch `m7-search`): a magnifier in the Camera, Videos and Albums titles (product owner's choice the same day) opens a file name field and criteria chips: Photos / Videos / Screenshots, Favorites, Folder, Area (picked on the map, new picking mode). Results as a timeline with its own sort and date range, kept when a criterion changes. `MediaSelection` gains `favoritesOnly` and `nameContains`; no schema change ([features/search.md](features/search.md)). Device checklist: [testing.md](testing.md#m7--search-to-verify-on-a-device) items 71 to 78.
+- **First device test of the search** (2026-10-30, product owner): everything worked, but the search looked through every item instead of the tab or folder it was opened from. Now it searches only that timeline (Camera, Videos, a folder, Favorites; the Albums tab searches everything), album pages get the magnifier too, chips that cannot narrow it are hidden; the results' sort is saved apart from the tab's. 367 tests; items 79 to 82 to test.
 
 ### Decisions
 
 - **Entry point**: a magnifier in the tab titles rather than a tile in Albums (product owner, 2026-10-30).
+- **Scope**: the search looks only in the timeline it was opened from (product owner, 2026-10-30, after the first device test).
 - **Dates** stay in the results' sort and filter sheet, as in every other timeline, instead of a separate chip.
 - **Criteria chips wrap** onto two lines instead of scrolling sideways, so every criterion is in sight.
 
 ### Known issues
 
-- Sorting search results is saved per type and folder like other views: sorting *Videos* results also sorts the Videos tab.
 - Accented capitals do not match lowercase letters in file names (SQLite `LIKE`).
 
 ### Next steps
 
-1. Device test of the search (items 71 to 78), then a pull request and the end of M7 (summary, CHANGELOG section).
+1. Device test of the scoped search (items 79 to 82), then a pull request and the end of M7 (summary, CHANGELOG section).
 2. **M8**: monetization.
 
 ## M6 — Advanced viewer and editing

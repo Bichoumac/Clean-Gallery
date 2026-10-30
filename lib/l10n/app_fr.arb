@@ -294,7 +294,7 @@
   "searchFolderTitle": "Choisir un dossier",
   "searchArea": "Zone",
   "searchAreaPicked": "Zone sur la carte",
-  "searchResults": "Résultats",
+  "searchIn": "Dans {place}",
   "searchEmpty": "Aucun résultat",
   "searchCount": "{count, plural, =0{Aucun élément} =1{1 élément} other{{count} éléments}}",
   "mapPickTitle": "Choisir une zone",

@@ -74,7 +74,10 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
                         style: textTheme.displaySmall,
                       ),
                     ),
-                    const SearchButton(),
+                    SearchButton(
+                      scope: MediaSelection.all,
+                      place: l10n.albumsAllMedia,
+                    ),
                   ],
                 ),
               ),

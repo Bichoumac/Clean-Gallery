@@ -1,6 +1,7 @@
 import 'package:clean_gallery/core/media/media_providers.dart';
 import 'package:clean_gallery/core/media/media_thumbnail.dart';
 import 'package:clean_gallery/domain/album.dart';
+import 'package:clean_gallery/features/library/albums_screen.dart';
 import 'package:clean_gallery/features/map/map_screen.dart';
 import 'package:clean_gallery/features/search/search_controller.dart';
 import 'package:clean_gallery/features/search/search_screen.dart';
@@ -52,9 +53,12 @@ void main() {
     return media;
   }
 
-  Future<void> openSearch(WidgetTester tester) async {
+  /// Opens the search from the tab [tab] (Albums: all media).
+  Future<void> openSearch(WidgetTester tester, {String tab = 'Albums'}) async {
     await pumpTestApp(tester, media: source());
-    await tester.tap(find.byTooltip('Search').first);
+    await tester.tap(find.byTooltip(tab));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Search'));
     await tester.pumpAndSettle();
     expect(find.byType(SearchScreen), findsOneWidget);
   }
@@ -81,6 +85,63 @@ void main() {
     await tester.tap(find.byTooltip('Albums'));
     await tester.pumpAndSettle();
     expect(find.byTooltip('Search'), findsOneWidget);
+  });
+
+  testApp('the Camera tab searches its photos only, without type or folder', (
+    tester,
+  ) async {
+    await openSearch(tester, tab: 'Camera');
+    expect(find.text('In Camera'), findsOneWidget);
+    expect(shown(tester), ['1', '2']);
+    expect(find.text('Photos'), findsNothing);
+    expect(find.text('Folder'), findsNothing);
+    await typeName(tester, 'beach');
+    expect(shown(tester), ['1']);
+  });
+
+  testApp('the Videos tab searches its videos, no type chips', (tester) async {
+    await openSearch(tester, tab: 'Videos');
+    expect(find.text('In Videos'), findsOneWidget);
+    expect(shown(tester), ['3']);
+    expect(find.text('Screenshots'), findsNothing);
+    expect(find.text('Folder'), findsOneWidget);
+  });
+
+  testApp('a folder page searches that folder', (tester) async {
+    await pumpTestApp(tester, media: source());
+    await tester.tap(find.byTooltip('Albums'));
+    await tester.pumpAndSettle();
+    // The folder tiles are below the fold, under the navigation bar.
+    await tester.drag(
+      find.descendant(
+        of: find.byType(AlbumsScreen),
+        matching: find.byType(Scrollable),
+      ),
+      const Offset(0, -400),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('WhatsApp Images'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Search'));
+    await tester.pumpAndSettle();
+    expect(find.text('In WhatsApp Images'), findsOneWidget);
+    expect(shown(tester), ['4']);
+    expect(find.text('Folder'), findsNothing);
+  });
+
+  testApp('the Favorites album searches favorites, any type', (tester) async {
+    await pumpTestApp(tester, media: source());
+    await tester.tap(find.byTooltip('Albums'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Favorites'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Search'));
+    await tester.pumpAndSettle();
+    expect(shown(tester), ['4']);
+    expect(find.widgetWithText(FilterChip, 'Favorites'), findsNothing);
+    await tester.tap(find.text('Videos'));
+    await tester.pumpAndSettle();
+    expect(find.text('Nothing matches'), findsOneWidget);
   });
 
   testApp('without criteria every item shows; a name narrows it', (
@@ -163,7 +224,9 @@ void main() {
       tester.element(find.byType(SearchScreen)),
     );
     MediaSelection view() => container.read(
-      viewSelectionProvider(container.read(searchCriteriaProvider)),
+      viewSelectionProvider(
+        container.read(searchCriteriaProvider(MediaSelection.all)),
+      ),
     );
     container
         .read(viewSelectionProvider(view()).notifier)
@@ -174,5 +237,10 @@ void main() {
     await tester.pumpAndSettle();
     expect(view().sort.field, MediaSortField.name);
     expect(view().filter, MediaFilter.photos);
+    // The All media album keeps its own sort.
+    expect(
+      container.read(viewSelectionProvider(MediaSelection.all)).sort,
+      MediaSort.newest,
+    );
   });
 }

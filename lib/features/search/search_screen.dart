@@ -17,10 +17,16 @@ const searchTypingDelay = Duration(milliseconds: 300);
 /// Search: a file name field and criteria chips (type, favorites, folder,
 /// area) above the results, a timeline with its own sort and dates.
 ///
-/// The criteria combine; with none, every photo and video shows.
+/// It searches only the timeline it was opened from ([args]): a tab, a
+/// folder or an album. The criteria combine; with none, the whole timeline
+/// shows. Chips that cannot narrow it are left out (no type in Videos, no
+/// folder in a folder).
 class SearchScreen extends ConsumerStatefulWidget {
   /// Creates the screen.
-  const SearchScreen({super.key});
+  const SearchScreen({required this.args, super.key});
+
+  /// Where the search looks.
+  final SearchArgs args;
 
   @override
   ConsumerState<SearchScreen> createState() => _SearchScreenState();
@@ -30,7 +36,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   final _name = TextEditingController();
   Timer? _typing;
 
-  SearchCriteria get _criteria => ref.read(searchCriteriaProvider.notifier);
+  SearchCriteria get _criteria =>
+      ref.read(searchCriteriaProvider(widget.args.scope).notifier);
 
   @override
   void dispose() {
@@ -95,7 +102,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final colors = Theme.of(context).colorScheme;
-    final criteria = ref.watch(searchCriteriaProvider);
+    final start = searchStart(widget.args.scope);
+    final criteria = ref.watch(searchCriteriaProvider(widget.args.scope));
     final folders = ref.watch(albumsProvider).value ?? const <Album>[];
     final folderName = folders
         .where((f) => f.id == criteria.albumId)
@@ -165,26 +173,31 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               spacing: 8,
               runSpacing: 4,
               children: [
-                type(MediaFilter.photos, l10n.searchPhotos),
-                type(MediaFilter.videos, l10n.searchVideos),
-                type(MediaFilter.screenshots, l10n.searchScreenshots),
-                FilterChip(
-                  avatar: const Icon(Icons.favorite_outline_rounded),
-                  label: Text(l10n.searchFavorites),
-                  selected: criteria.favoritesOnly,
-                  onSelected: (on) => _criteria.setFavoritesOnly(only: on),
-                ),
-                InputChip(
-                  avatar: const Icon(Icons.folder_outlined),
-                  label: Text(folderName ?? l10n.searchFolder),
-                  selected: criteria.albumId != null,
-                  showCheckmark: false,
-                  onPressed: () =>
-                      unawaited(_pickFolder(folders, criteria.albumId)),
-                  onDeleted: criteria.albumId == null
-                      ? null
-                      : () => _criteria.setFolder(null),
-                ),
+                if (start.filter == MediaFilter.all) ...[
+                  type(MediaFilter.photos, l10n.searchPhotos),
+                  type(MediaFilter.videos, l10n.searchVideos),
+                  type(MediaFilter.screenshots, l10n.searchScreenshots),
+                ],
+                if (!start.favoritesOnly)
+                  FilterChip(
+                    avatar: const Icon(Icons.favorite_outline_rounded),
+                    label: Text(l10n.searchFavorites),
+                    selected: criteria.favoritesOnly,
+                    onSelected: (on) => _criteria.setFavoritesOnly(only: on),
+                  ),
+                // The Camera tab is one folder already.
+                if (start.albumId == null && start.filter != MediaFilter.camera)
+                  InputChip(
+                    avatar: const Icon(Icons.folder_outlined),
+                    label: Text(folderName ?? l10n.searchFolder),
+                    selected: criteria.albumId != null,
+                    showCheckmark: false,
+                    onPressed: () =>
+                        unawaited(_pickFolder(folders, criteria.albumId)),
+                    onDeleted: criteria.albumId == null
+                        ? null
+                        : () => _criteria.setFolder(null),
+                  ),
                 InputChip(
                   avatar: const Icon(Icons.map_outlined),
                   label: Text(
@@ -208,7 +221,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               removeTop: true,
               child: MediaTimelineView(
                 selection: criteria,
-                title: l10n.searchResults,
+                title: l10n.searchIn(widget.args.place),
                 summary: count == null ? null : l10n.searchCount(count),
                 emptyTitle: l10n.searchEmpty,
                 compact: true,

@@ -147,6 +147,15 @@ From a release build of branch `m7-search`.
 | 77 | **Zone** → move the map onto a city → **Rechercher dans cette zone** | Back to the search, chip *Zone sur la carte*, only items taken there; tapping the chip reopens the map on that area. |
 | 78 | Results' sort button → *Cette année*, then change a criterion; open a result | The date range and its chip stay; the viewer swipes through the results only. |
 
+Results on the Galaxy A54, reported by the product owner on 2026-10-30 after installing commit `d55b708`: everything works, but the search looked through every item instead of the tab it was opened from. Changed: the search is limited to the timeline it is opened from.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 79 | Camera tab → magnifier | *Dans Appareil photo*: only the camera's photos; no Photos / Vidéos / Captures chips, no Dossier chip. A name finds only camera photos. |
+| 80 | Videos tab → magnifier | *Dans Vidéos*: only videos; no type chips; Dossier, Favoris and Zone remain. |
+| 81 | Albums → a folder (e.g. WhatsApp Images) → magnifier at the top right | *Dans WhatsApp Images*: only that folder's items; no Dossier chip. Albums → Favoris → magnifier: only favorites, no Favoris chip. |
+| 82 | Sort the results by name, go back to the tab | The tab keeps its own order. Albums tab → magnifier: everything, every chip. |
+
 ### M6 — viewer and editing, to verify on a device
 
 Part 1, info panel. Install over M5 (`adb install -r`).

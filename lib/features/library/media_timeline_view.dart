@@ -18,6 +18,7 @@ import 'package:clean_gallery/domain/timeline.dart';
 import 'package:clean_gallery/features/library/fast_scroller.dart';
 import 'package:clean_gallery/features/library/pinch_to_change_columns.dart';
 import 'package:clean_gallery/features/library/sort_filter_sheet.dart';
+import 'package:clean_gallery/features/search/search_controller.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
 import 'package:flutter/material.dart';
@@ -862,7 +863,7 @@ class _TimelineHeader extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
-                if (showSearch) const SearchButton(),
+                if (showSearch) SearchButton(scope: base, place: title),
                 IconButton(
                   tooltip: l10n.sortFilterTooltip,
                   onPressed: () => showSortFilterSheet(context, base),
@@ -1152,15 +1153,26 @@ class _LimitedAccessBanner extends ConsumerWidget {
   }
 }
 
-/// Opens the search screen.
+/// Opens the search in [scope].
 class SearchButton extends StatelessWidget {
   /// Creates the button.
-  const SearchButton({super.key});
+  const SearchButton({required this.scope, required this.place, super.key});
+
+  /// The timeline to search in.
+  final MediaSelection scope;
+
+  /// Its name, for the search's title.
+  final String place;
 
   @override
   Widget build(BuildContext context) => IconButton(
     tooltip: AppLocalizations.of(context).searchTooltip,
-    onPressed: () => unawaited(context.push(AppRoutes.search)),
+    onPressed: () => unawaited(
+      context.push(
+        AppRoutes.search,
+        extra: SearchArgs(scope: scope, place: place),
+      ),
+    ),
     icon: const Icon(Icons.search_rounded),
   );
 }

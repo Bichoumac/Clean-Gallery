@@ -15,7 +15,7 @@ Show every photo and video on the device, newest first, grouped by day or month,
 3. **Pull down** to pick up changes at once (new photos, deletions made in another app). The app also does it at launch and when it returns to the foreground.
 4. **Tap a thumbnail**: the viewer opens on that item ([viewer.md](viewer.md)).
 5. **Albums tab**: "All media", "Favorites", "Map" ([map.md](map.md)) and "Trash", then "Folders" sorted by size. Tapping one opens its timeline, with a back button.
-6. **Sort and filter**: the button next to the title opens a sheet (see below). The Camera, Videos and Albums titles also have a magnifier that opens the search ([search.md](search.md)).
+6. **Sort and filter**: the button next to the title opens a sheet (see below). The Camera, Videos, Albums and album page titles also have a magnifier that searches that timeline ([search.md](search.md)).
 7. **Duplicates**: when a grid holds extra copies, a tile above the photos opens them ([duplicates.md](duplicates.md)).
 8. **Stacks**: duplicates taken one after the other show as one thumbnail (see below).
 
