@@ -93,6 +93,16 @@ class PhotoEditor extends _$PhotoEditor {
     edit: state.edit.copyWith(adjustments: adjustments),
   );
 
+  /// Picks [filter], at full strength.
+  void setFilter(PhotoFilter filter) => state = state.copyWith(
+    edit: state.edit.copyWith(filter: filter, filterStrength: 1),
+  );
+
+  /// Sets how much of the filter is applied (0 to 1).
+  void setFilterStrength(double strength) => state = state.copyWith(
+    edit: state.edit.copyWith(filterStrength: strength.clamp(0, 1)),
+  );
+
   /// Starts a line of [kind] at [point] (fractions of the rotated photo).
   void startStroke(
     (double, double) point, {

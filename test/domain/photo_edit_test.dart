@@ -112,6 +112,14 @@ void main() {
       expect(const PhotoEdit().isIdentity, isTrue);
       expect(const PhotoEdit().rotated().isIdentity, isFalse);
       expect(const PhotoEdit().mirrored().mirrored().isIdentity, isTrue);
+      expect(const PhotoEdit(filter: PhotoFilter.sepia).isIdentity, isFalse);
+      expect(
+        const PhotoEdit(
+          filter: PhotoFilter.sepia,
+          filterStrength: 0,
+        ).isIdentity,
+        isTrue,
+      );
       expect(
         const PhotoEdit(adjustments: Adjustments(warmth: 0.2)).isIdentity,
         isFalse,

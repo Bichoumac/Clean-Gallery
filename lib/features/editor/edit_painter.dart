@@ -109,9 +109,9 @@ void paintEdit(
   // The whole rotated photo, placed so that [view] fills [size].
   final full = Size(size.width / view.width, size.height / view.height);
   final shorter = math.min(full.width, full.height);
-  final matrix = edit.adjustments.isNeutral
+  final matrix = edit.adjustments.isNeutral && !edit.hasFilter
       ? null
-      : ColorFilter.matrix(adjustmentMatrix(edit.adjustments));
+      : ColorFilter.matrix(editMatrix(edit));
   canvas
     ..save()
     ..clipRect(Offset.zero & size)

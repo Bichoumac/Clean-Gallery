@@ -2,7 +2,7 @@
 
 How the editor previews changes live and how they will be saved.
 
-Last updated: 2026-10-29 — Milestone M6
+Last updated: 2026-10-30 — Milestone M6 (filters)
 
 - **Status**: Accepted
 - **Date**: 2026-10-28
@@ -15,7 +15,8 @@ The brief asks for crop, rotate, adjustments and filters. Photos are up to 50 me
 
 - **The edit is plain data** (`PhotoEdit`, pure Dart): quarter turns, flip, a crop rectangle in fractions, adjustments from -1 to 1. Nothing is applied to pixels while editing.
 - **Preview painted on a canvas** (`paintEdit`): the viewer's screen-sized preview decoded once, drawn turned, flipped and cropped with the color matrix as the paint's filter, the pencil lines on top. A first version used widgets (`RotatedBox`, `Transform.flip`, `ColorFiltered`); it was slow on the phone, see [editor.md](../features/editor.md#how-it-works).
-- **Colors as one 4 × 5 matrix** composed in pure Dart from the adjustments (and, in part 3, the filter): a slider only repaints.
+- **Colors as one 4 × 5 matrix** composed in pure Dart from the filter and the adjustments: a slider only repaints.
+- **Filters before adjustments** (2026-10-30): each filter is a fixed matrix; its strength blends it with the identity matrix, which for a linear transform equals blending the colors. Applying the filter first lets the sliders refine it (a warm tone on black and white); the other order would make Warmth or Saturation do nothing after a black and white filter.
 - **Saving: Flutter renders, Android writes** (since 2026-10-29): the original decoded at full size is painted by the same `paintEdit` as the preview into an image; its RGBA pixels go to the native `saveEditedPhoto`, which encodes JPEG, inserts it with MediaStore and copies the EXIF tags. A first version (2026-10-29 morning) redid the geometry and colors in Kotlin; texts, blur and pixelate would have needed a second implementation of each, so the rendering moved to Flutter.
 
 ## Alternatives considered

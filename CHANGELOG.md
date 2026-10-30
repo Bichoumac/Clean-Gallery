@@ -2,11 +2,13 @@
 
 All notable changes to this project are documented here, one section per milestone. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-10-29 — Milestone M6
+Last updated: 2026-10-30 — Milestone M6 (filters)
 
 ## [Unreleased]
 
-Nothing yet: filters (the rest of M6) come next.
+### Added
+
+- Editor: **Filters** (second tool): None, B&W, Sepia, Vintage, Warm, Cool, Vivid, Fade, Dramatic, Noir, Soft, shown as thumbnails of the cropped photo, with a **Strength** slider; applied before the adjustments ([docs/features/editor.md](docs/features/editor.md), [ADR 0023](docs/decisions/0023-editor-color-matrix-preview.md)).
 
 ## [M6] — 2026-10-29 — Advanced viewer, editing, map
 

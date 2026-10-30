@@ -87,4 +87,61 @@ void main() {
     );
     expect(m.sublist(15), [0, 0, 0, 1, 0]);
   });
+
+  group('filters', () {
+    test('no filter, or a filter at strength 0, changes nothing', () {
+      expect(filterMatrix(PhotoFilter.none), identityMatrix);
+      expect(filterMatrix(PhotoFilter.sepia, 0), identityMatrix);
+    });
+
+    test('black and white filters leave no color', () {
+      for (final f in [PhotoFilter.blackAndWhite, PhotoFilter.noir]) {
+        final (r, g, b) = apply(filterMatrix(f), 200, 80, 30);
+        expect(r, closeTo(g, 1e-9), reason: '$f');
+        expect(g, closeTo(b, 1e-9), reason: '$f');
+      }
+    });
+
+    test('sepia is brown: red above green above blue', () {
+      final (r, g, b) = apply(filterMatrix(PhotoFilter.sepia), 120, 120, 120);
+      expect(r, greaterThan(g));
+      expect(g, greaterThan(b));
+    });
+
+    test('warm and cool move red and blue opposite ways', () {
+      final (wr, _, wb) = apply(filterMatrix(PhotoFilter.warm), 128, 128, 128);
+      final (cr, _, cb) = apply(filterMatrix(PhotoFilter.cool), 128, 128, 128);
+      expect(wr, greaterThan(wb));
+      expect(cb, greaterThan(cr));
+    });
+
+    test('fade lightens black; soft lowers contrast', () {
+      expect(apply(filterMatrix(PhotoFilter.fade), 0, 0, 0).$1, 32);
+      final soft = filterMatrix(PhotoFilter.soft);
+      final spread = apply(soft, 230, 230, 230).$1 - apply(soft, 20, 20, 20).$1;
+      expect(spread, lessThan(210));
+    });
+
+    test('every filter changes a colored pixel, alpha kept', () {
+      for (final f in PhotoFilter.values.skip(1)) {
+        final m = filterMatrix(f);
+        expect(apply(m, 180, 90, 40), isNot((180.0, 90.0, 40.0)), reason: '$f');
+        expect(m.sublist(15), [0, 0, 0, 1, 0], reason: '$f');
+      }
+    });
+
+    test('half strength lands halfway', () {
+      final (r, _, _) = apply(filterMatrix(PhotoFilter.fade, 0.5), 0, 0, 0);
+      expect(r, closeTo(16, 1e-9));
+    });
+
+    test('the edit applies the filter, then the adjustments', () {
+      const edit = PhotoEdit(
+        filter: PhotoFilter.fade,
+        adjustments: Adjustments(exposure: 1),
+      );
+      // Black: lifted to 32 by Fade, then doubled.
+      expect(apply(editMatrix(edit), 0, 0, 0).$1, closeTo(64, 1e-9));
+    });
+  });
 }
