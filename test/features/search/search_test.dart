@@ -181,6 +181,29 @@ void main() {
     expect(shown(tester), ['4']);
   });
 
+  testApp('a period is picked among the criteria and removed', (tester) async {
+    await openSearch(tester);
+    await tester.tap(find.text('Dates'));
+    await tester.pumpAndSettle();
+    expect(find.text('Period'), findsOneWidget);
+    // Every item is from today: none last year.
+    await tester.tap(find.text('Last year'));
+    await tester.pumpAndSettle();
+    expect(find.text('Period'), findsNothing);
+    expect(find.widgetWithText(InputChip, 'Last year'), findsOneWidget);
+    expect(shown(tester), isEmpty);
+
+    await tester.tap(
+      find.descendant(
+        of: find.widgetWithText(InputChip, 'Last year'),
+        matching: find.byTooltip('Delete'),
+      ),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Dates'), findsOneWidget);
+    expect(shown(tester), hasLength(4));
+  });
+
   testApp('a folder is picked from a list and removed', (tester) async {
     await openSearch(tester);
     await tester.tap(find.text('Folder'));

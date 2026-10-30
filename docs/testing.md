@@ -156,6 +156,12 @@ Results on the Galaxy A54, reported by the product owner on 2026-10-30 after ins
 | 81 | Albums → a folder (e.g. WhatsApp Images) → magnifier at the top right | *Dans WhatsApp Images*: only that folder's items; no Dossier chip. Albums → Favoris → magnifier: only favorites, no Favoris chip. |
 | 82 | Sort the results by name, go back to the tab | The tab keeps its own order. Albums tab → magnifier: everything, every chip. |
 
+Results on the Galaxy A54, reported by the product owner on 2026-10-30 after installing commit `6f858a1`: items 79 to 82 all OK; a search by date asked for.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 83 | Search → **Dates** → *Cette année*, then **Dates** → *Personnalisée…* and pick two days | The sheet closes; the chip reads *Cette année*, then the two dates; only items of that period; the chip's ✕ shows all dates again. The period combines with a name and the other chips. |
+
 ### M6 — viewer and editing, to verify on a device
 
 Part 1, info panel. Install over M5 (`adb install -r`).

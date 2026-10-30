@@ -886,14 +886,15 @@ class _TimelineHeader extends ConsumerWidget {
                   ),
                 ),
               ),
-            if (customized)
+            if (customized && (!compact || shown.sort != base.sort))
               Padding(
                 padding: EdgeInsets.only(top: 8, left: showBackButton ? 12 : 0),
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    if (dates != null)
+                    // A search shows its dates among its criteria.
+                    if (dates != null && !compact)
                       InputChip(
                         avatar: const Icon(Icons.date_range_rounded, size: 18),
                         label: Text(

@@ -5,6 +5,7 @@ import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/geo.dart';
 import 'package:clean_gallery/features/library/media_timeline_view.dart';
+import 'package:clean_gallery/features/library/sort_filter_sheet.dart';
 import 'package:clean_gallery/features/search/search_controller.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -93,6 +94,43 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     if (picked != null) _criteria.setFolder(picked);
   }
 
+  /// Picks the results' period; the sheet closes on a choice.
+  Future<void> _pickDates(MediaSelection criteria) async {
+    final l10n = AppLocalizations.of(context);
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => Consumer(
+        builder: (context, ref, _) => SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.filterPeriod,
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                DateRangeChips(
+                  dates: ref.watch(viewSelectionProvider(criteria)).dates,
+                  now: DateTime.now(),
+                  onChanged: (dates) {
+                    ref
+                        .read(viewSelectionProvider(criteria).notifier)
+                        .setDates(dates);
+                    Navigator.of(context).pop();
+                  },
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Future<void> _pickArea(GeoArea? current) async {
     final area = await context.push<GeoArea>(AppRoutes.mapPick, extra: current);
     if (area != null) _criteria.setArea(area);
@@ -178,6 +216,26 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                   type(MediaFilter.videos, l10n.searchVideos),
                   type(MediaFilter.screenshots, l10n.searchScreenshots),
                 ],
+                InputChip(
+                  avatar: const Icon(Icons.date_range_rounded),
+                  label: Text(
+                    shown.dates == null
+                        ? l10n.searchDates
+                        : dateFilterLabel(
+                            context,
+                            shown.dates!,
+                            DateTime.now(),
+                          ),
+                  ),
+                  selected: shown.dates != null,
+                  showCheckmark: false,
+                  onPressed: () => unawaited(_pickDates(criteria)),
+                  onDeleted: shown.dates == null
+                      ? null
+                      : () => ref
+                            .read(viewSelectionProvider(criteria).notifier)
+                            .setDates(null),
+                ),
                 if (!start.favoritesOnly)
                   FilterChip(
                     avatar: const Icon(Icons.favorite_outline_rounded),
