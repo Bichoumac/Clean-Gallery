@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-10-30 — Milestone M6 (filters)
+Last updated: 2026-10-30 — Milestone M7
 
 ## Milestones
 
@@ -14,10 +14,34 @@ Last updated: 2026-10-30 — Milestone M6 (filters)
 | M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Merged into `main` (PR #4) |
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Merged into `main` (PR #5) |
 | M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Merged into `main` (PR #6) |
-| M6 | Advanced viewer and editing | Merged into `main` (PR #7, 2026-10-30), without filters. **Filters** on branch `m6-filters` (2026-10-30), confirmed on the phone |
-| M7 | Exploration: map, search | Map and mini map built early in M6 (2026-10-28); search not started |
+| M6 | Advanced viewer and editing | Merged into `main` (PR #7, 2026-10-30); filters merged after (PR #8, 2026-10-30) |
+| M7 | Exploration: map, search | Map and mini map built early in M6 (2026-10-28). **Search** on branch `m7-search` (2026-10-30), to test on the phone |
 | M8 | Monetization | Not started |
 | M9 | Polish and release preparation | Not started |
+
+## M7 — Exploration
+
+The map and its mini map were built in M6 (see below). M7 adds the search.
+
+### Done
+
+- **Search** (2026-10-30, branch `m7-search`): a magnifier in the Camera, Videos and Albums titles (product owner's choice the same day) opens a file name field and criteria chips: Photos / Videos / Screenshots, Favorites, Folder, Area (picked on the map, new picking mode). Results as a timeline with its own sort and date range, kept when a criterion changes. `MediaSelection` gains `favoritesOnly` and `nameContains`; no schema change ([features/search.md](features/search.md)). 363 tests. Device checklist: [testing.md](testing.md#m7--search-to-verify-on-a-device) items 71 to 78.
+
+### Decisions
+
+- **Entry point**: a magnifier in the tab titles rather than a tile in Albums (product owner, 2026-10-30).
+- **Dates** stay in the results' sort and filter sheet, as in every other timeline, instead of a separate chip.
+- **Criteria chips wrap** onto two lines instead of scrolling sideways, so every criterion is in sight.
+
+### Known issues
+
+- Sorting search results is saved per type and folder like other views: sorting *Videos* results also sorts the Videos tab.
+- Accented capitals do not match lowercase letters in file names (SQLite `LIKE`).
+
+### Next steps
+
+1. Device test of the search (items 71 to 78), then a pull request and the end of M7 (summary, CHANGELOG section).
+2. **M8**: monetization.
 
 ## M6 — Advanced viewer and editing
 

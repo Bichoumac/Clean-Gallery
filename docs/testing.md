@@ -2,7 +2,7 @@
 
 How Clean Gallery is tested: test layers, commands, fakes and fixtures. Every milestone adds tests for what it builds; a milestone is not done until the suite passes.
 
-Last updated: 2026-10-30 — Milestone M6 (filters)
+Last updated: 2026-10-30 — Milestone M7
 
 ## Commands
 
@@ -131,6 +131,21 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 12 | Kill the app mid-onboarding, relaunch | any | Onboarding restarts from the first page. |
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
+
+### M7 — search, to verify on a device
+
+From a release build of branch `m7-search`.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 71 | Camera, Videos and Albums tabs | A magnifier next to the title (Camera, Videos: before the sort button). |
+| 72 | Tap it | *Rechercher*: keyboard up in a *Nom de fichier* field; chips Photos, Vidéos, Captures d'écran, Favoris, Dossier, Zone on two lines; below, *Résultats* with the number of items, every photo and video. |
+| 73 | Type part of a file name (e.g. `IMG_2026`, or `screenshot`) | After a short pause, only matching items; the count follows; ✕ empties the field and shows everything. |
+| 74 | **Vidéos**, then Vidéos again; **Captures d'écran** | Only videos, then everything again; only screenshots. |
+| 75 | **Favoris** with Photos | Only favorite photos. |
+| 76 | **Dossier** → pick *WhatsApp Images* (or another) | The chip shows the folder's name, only its items; the chip's ✕ removes it. |
+| 77 | **Zone** → move the map onto a city → **Rechercher dans cette zone** | Back to the search, chip *Zone sur la carte*, only items taken there; tapping the chip reopens the map on that area. |
+| 78 | Results' sort button → *Cette année*, then change a criterion; open a result | The date range and its chip stay; the viewer swipes through the results only. |
 
 ### M6 — viewer and editing, to verify on a device
 

@@ -505,7 +505,7 @@ final class MediaIndexRepository {
   }
 
   /// Condition selecting the rows of [selection] (filter, folder, dates,
-  /// size).
+  /// size, area, favorites, name).
   Expression<bool> _matches($AssetsTable t, MediaSelection selection) {
     final dates = selection.dates;
     return Expression.and([
@@ -538,6 +538,9 @@ final class MediaIndexRepository {
         t.longitude.isBiggerOrEqualValue(area.west),
         t.longitude.isSmallerThanValue(area.east),
       ],
+      if (selection.favoritesOnly) t.isFavorite.equals(true),
+      if (selection.nameContains?.trim() case final name? when name.isNotEmpty)
+        t.fileName.like('%${_escapeLike(name)}%', escapeChar: r'\'),
       if (dates?.start case final start?) _date(t).isBiggerOrEqualValue(start),
       if (dates?.end case final end?) _date(t).isSmallerThanValue(end),
     ]);
@@ -553,6 +556,11 @@ final class MediaIndexRepository {
             t.contrast.isSmallerOrEqualValue(0) |
             relativeSharpness.isSmallerThan(hazyLimit));
   }
+
+  /// [text] with the wildcards of LIKE (`%`, `_`) and the escape character
+  /// taken literally.
+  static String _escapeLike(String text) =>
+      text.replaceAllMapped(RegExp(r'[\\%_]'), (m) => '\\${m[0]}');
 
   /// Condition leaving out items in the app trash.
   Expression<bool> _notTrashed($AssetsTable t) {

@@ -2,16 +2,16 @@
 
 How the product owner and the AI assistant work together on Clean Gallery, the constraints of the development machine, and where to pick up. Read it at the start of every session, after [AGENTS.md](../AGENTS.md).
 
-Last updated: 2026-10-30 — Milestone M6 (filters)
+Last updated: 2026-10-30 — Milestone M7
 
 ## Where to pick up
 
 Quick resume (keep this short; history is in [progress.md](progress.md) and git):
 
-- **M6 is merged** (PR #7, 2026-10-30). **Filters** are on branch `m6-filters` (2026-10-30), confirmed on the phone (items 65 to 70 of [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device)): to push and merge as a pull request; then start M7 from `main`.
+- **M6 is merged**, filters included (PRs #7 and #8, 2026-10-30). **M7 search** is on branch `m7-search` (2026-10-30): to install and test on the phone (items 71 to 78 of [testing.md](testing.md#m7--search-to-verify-on-a-device)), then a pull request ends M7 ([search.md](features/search.md)).
 - **Everything built in M6 is confirmed on the Galaxy A54** (items 1 to 64 of [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device)): info panel with mini map, stacks of duplicates in the timelines, map (brought forward from M7), viewer group strip (Keep / Trash), sorts by number of duplicates, viewer actions at the bottom, editor ([editor.md](features/editor.md)), document scanner ([scan.md](features/scan.md)).
-- **Left from M6**: nothing once the filters pull request is merged. Not wanted for now: batch editing; scanner camera capture.
-- **Next milestones**: M7 search (the map is done), M8 monetization, M9 polish ([progress.md](progress.md)).
+- **Left from M6**: nothing. Not wanted for now: batch editing; scanner camera capture.
+- **Next milestones**: M8 monetization, M9 polish ([progress.md](progress.md)).
 - **Key design points to keep**: one paint function (`paintEdit`, `paintPage`) for preview and saving; the native side only writes JPEG + EXIF (`PhotoSaver.kt`); every delete through the app trash; pure Dart in `lib/analysis/` and `lib/domain/`; on the phone (Impeller), avoid blend-mode masks in layers, use clips (blur bug of 2026-10-29).
 - **Commands that save tokens**: run tests to a file and read only the summary (`flutter test --timeout 60s > <scratchpad>/t.log 2>&1; tail -1 …`; piping into `grep` hides progress until the end); widget tests that decode images need `tester.runAsync` (see `waitUntil` in [scan_test.dart](../test/features/scan/scan_test.dart)); never `pkill -f` a pattern that appears in your own command line; `gh` is installed but not logged in: give the `pull/new/<branch>` link.
 

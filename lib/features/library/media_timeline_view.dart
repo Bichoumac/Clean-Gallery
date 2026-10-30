@@ -44,6 +44,9 @@ class MediaTimelineView extends ConsumerWidget {
     this.subtitle,
     this.summary,
     this.stackDuplicates = true,
+    this.showSearch = false,
+    this.compact = false,
+    this.showDuplicates = true,
     super.key,
   });
 
@@ -70,6 +73,17 @@ class MediaTimelineView extends ConsumerWidget {
   /// candidate for the trash.
   final bool stackDuplicates;
 
+  /// Whether the title has a search button (tabs).
+  final bool showSearch;
+
+  /// A smaller title without top inset, under another bar (search
+  /// results).
+  final bool compact;
+
+  /// Whether the Duplicates tile can show above the grid. Off for search
+  /// results, whose duplicates are not looked for on their own.
+  final bool showDuplicates;
+
   Future<void> _refresh(WidgetRef ref) async {
     ref.invalidate(mediaAccessProvider);
     await ref.read(mediaIndexProvider.notifier).sync();
@@ -84,6 +98,8 @@ class MediaTimelineView extends ConsumerWidget {
       showBackButton: showBackButton,
       subtitle: subtitle,
       summary: summary,
+      showSearch: showSearch,
+      compact: compact,
     );
     if (access == MediaAccess.denied) {
       return _Scaffolding(
@@ -123,6 +139,7 @@ class MediaTimelineView extends ConsumerWidget {
             items: value,
             columns: columns,
             stackDuplicates: stackDuplicates,
+            showDuplicates: showDuplicates,
           ),
           AsyncError() => _Scaffolding(
             header: header,
@@ -155,6 +172,7 @@ class _Timeline extends ConsumerStatefulWidget {
     required this.items,
     required this.columns,
     required this.stackDuplicates,
+    required this.showDuplicates,
   });
 
   final Widget header;
@@ -163,6 +181,7 @@ class _Timeline extends ConsumerStatefulWidget {
   final List<MediaItem> items;
   final int columns;
   final bool stackDuplicates;
+  final bool showDuplicates;
 
   @override
   ConsumerState<_Timeline> createState() => _TimelineState();
@@ -560,7 +579,7 @@ class _TimelineState extends ConsumerState<_Timeline> {
                   widget.header,
                   ?widget.banner,
                   // Duplicates are looked for by folder, not by place.
-                  if (widget.selection.area == null)
+                  if (widget.showDuplicates && widget.selection.area == null)
                     DuplicatesTile(selection: widget.selection),
                 ],
               ),
@@ -793,6 +812,8 @@ class _TimelineHeader extends ConsumerWidget {
     required this.base,
     required this.title,
     required this.showBackButton,
+    required this.showSearch,
+    required this.compact,
     this.subtitle,
     this.summary,
   });
@@ -800,6 +821,8 @@ class _TimelineHeader extends ConsumerWidget {
   final MediaSelection base;
   final String title;
   final bool showBackButton;
+  final bool showSearch;
+  final bool compact;
   final String? subtitle;
   final String? summary;
 
@@ -815,7 +838,12 @@ class _TimelineHeader extends ConsumerWidget {
     return SafeArea(
       bottom: false,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(showBackButton ? 8 : 20, 24, 12, 16),
+        padding: EdgeInsets.fromLTRB(
+          showBackButton ? 8 : 20,
+          compact ? 8 : 24,
+          12,
+          compact ? 8 : 16,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -825,13 +853,16 @@ class _TimelineHeader extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     title,
-                    style: showBackButton
+                    style: compact
+                        ? theme.textTheme.titleLarge
+                        : showBackButton
                         ? theme.textTheme.headlineMedium
                         : theme.textTheme.displaySmall,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                if (showSearch) const SearchButton(),
                 IconButton(
                   tooltip: l10n.sortFilterTooltip,
                   onPressed: () => showSortFilterSheet(context, base),
@@ -1119,4 +1150,17 @@ class _LimitedAccessBanner extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Opens the search screen.
+class SearchButton extends StatelessWidget {
+  /// Creates the button.
+  const SearchButton({super.key});
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+    tooltip: AppLocalizations.of(context).searchTooltip,
+    onPressed: () => unawaited(context.push(AppRoutes.search)),
+    icon: const Icon(Icons.search_rounded),
+  );
 }

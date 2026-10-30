@@ -128,6 +128,13 @@ abstract class MediaSelection with _$MediaSelection {
 
     /// Only items taken in this area, e.g. a cluster of the map.
     GeoArea? area,
+
+    /// Only favorites, on top of [filter] (search).
+    @Default(false) bool favoritesOnly,
+
+    /// Only items whose file name contains these words, ignoring case for
+    /// unaccented letters (search); `null` or empty for any name.
+    String? nameContains,
   }) = _MediaSelection;
 
   /// Every photo, newest first.
