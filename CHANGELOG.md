@@ -6,12 +6,19 @@ Last updated: 2026-10-30 — Milestone M7
 
 ## [Unreleased]
 
+Nothing yet: M8 (monetization) comes next.
+
+## [M7] — 2026-10-30 — Search, and the M6 filters
+
+The map, planned in M7, came with M6.
+
 ### Added
 
-- **Search** (M7), from a magnifier in the Camera, Videos, Albums and album page titles, inside that timeline: part of the file name, Photos / Videos / Screenshots, Dates, Favorites, a folder, an area picked on the map, combined; results as a timeline with its own sort and date range ([docs/features/search.md](docs/features/search.md)).
+- **Search**, from a magnifier in the Camera, Videos, Albums and album page titles, inside that timeline: part of the file name, Photos / Videos / Screenshots, Dates, Favorites, a folder, an area picked on the map, combined; results as a timeline with its own sort and date range ([docs/features/search.md](docs/features/search.md)).
 - Map: a picking mode (*Choose an area*, *Search this area*) for the search.
-
-- Editor: **Filters** (second tool): None, B&W, Sepia, Vintage, Warm, Cool, Vivid, Fade, Dramatic, Noir, Soft, shown as thumbnails of the cropped photo, with a **Strength** slider; applied before the adjustments ([docs/features/editor.md](docs/features/editor.md), [ADR 0023](docs/decisions/0023-editor-color-matrix-preview.md)).
+- `MediaSelection.favoritesOnly` and `nameContains`; search results save their sort apart from their tab.
+- The period choices of the sort sheet are a shared widget, `DateRangeChips`.
+- Editor (rest of M6, merged as PR #8): **Filters** (second tool): None, B&W, Sepia, Vintage, Warm, Cool, Vivid, Fade, Dramatic, Noir, Soft, shown as thumbnails of the cropped photo, with a **Strength** slider; applied before the adjustments ([docs/features/editor.md](docs/features/editor.md), [ADR 0023](docs/decisions/0023-editor-color-matrix-preview.md)).
 
 ## [M6] — 2026-10-29 — Advanced viewer, editing, map
 

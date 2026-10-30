@@ -8,7 +8,7 @@ The app is free with two small, unobtrusive ad placements, and a single "Remove 
 
 ## Status
 
-Milestones **M0** to **M6** are merged (M6 with its filters). **M7 — Exploration**: the map was built in M6; the **search** is on branch `m7-search`, to test on the phone. See [docs/progress.md](docs/progress.md) for details and the device checklist.
+Milestones **M0** to **M6** are merged (M6 with its filters). **M7 — Exploration** is in review (branch `m7-search`): the map came with M6; the **search**, scoped to the tab or folder it is opened from, is confirmed on the phone. See [docs/progress.md](docs/progress.md) for details and the device checklist.
 
 ## Features
 
@@ -22,7 +22,7 @@ Milestones **M0** to **M6** are merged (M6 with its filters). **M7 — Explorati
 | Similar photos | Perceptual hashing, best-shot suggestion, Not duplicates, sensitivity, storage dashboard | M4 ✓ |
 | Cleanup | Swipe mode, blurry photos, screenshots, large videos | M5 ✓ |
 | Editing | Info panel, editor (crop, straighten, adjustments, Enhance, vignette, pencil, blur, pixelate, texts), document scanner, filters | M6 ✓ |
-| Exploration | Map with clusters and mini map, search with combinable criteria (name, type, favorites, folder, area on the map, dates) | Map M6 ✓, search M7 |
+| Exploration | Map with clusters and mini map, search with combinable criteria (name, type, favorites, folder, area on the map, dates) | Map M6 ✓, search M7 ✓ |
 | Monetization | Banner (Albums), native card (Stats), consent, "Remove ads" purchase | M8 |
 
 ## Requirements

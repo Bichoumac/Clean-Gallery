@@ -8,7 +8,7 @@ Last updated: 2026-10-30 — Milestone M7
 
 Quick resume (keep this short; history is in [progress.md](progress.md) and git):
 
-- **M6 is merged**, filters included (PRs #7 and #8, 2026-10-30). **M7 search** is on branch `m7-search` (2026-10-30): to install and test on the phone (items 71 to 78 of [testing.md](testing.md#m7--search-to-verify-on-a-device)), then a pull request ends M7 ([search.md](features/search.md)).
+- **M6 is merged**, filters included (PRs #7 and #8, 2026-10-30). **M7 search** is in a pull request from branch `m7-search` (pushed 2026-10-30), everything confirmed on the phone (items 71 to 83 of [testing.md](testing.md#m7--search-to-verify-on-a-device), [search.md](features/search.md)). First ask whether it was merged; if merged, start M8 from `main`.
 - **Everything built in M6 is confirmed on the Galaxy A54** (items 1 to 64 of [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device)): info panel with mini map, stacks of duplicates in the timelines, map (brought forward from M7), viewer group strip (Keep / Trash), sorts by number of duplicates, viewer actions at the bottom, editor ([editor.md](features/editor.md)), document scanner ([scan.md](features/scan.md)).
 - **Left from M6**: nothing. Not wanted for now: batch editing; scanner camera capture.
 - **Next milestones**: M8 monetization, M9 polish ([progress.md](progress.md)).

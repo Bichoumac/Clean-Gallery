@@ -162,6 +162,8 @@ Results on the Galaxy A54, reported by the product owner on 2026-10-30 after ins
 | --- | --- | --- |
 | 83 | Search → **Dates** → *Cette année*, then **Dates** → *Personnalisée…* and pick two days | The sheet closes; the chip reads *Cette année*, then the two dates; only items of that period; the chip's ✕ shows all dates again. The period combines with a name and the other chips. |
 
+Result on the Galaxy A54, reported by the product owner on 2026-10-30 after installing commit `13b0e3b`: item 83 OK. Every M7 item (71 to 83) is confirmed.
+
 ### M6 — viewer and editing, to verify on a device
 
 Part 1, info panel. Install over M5 (`adb install -r`).

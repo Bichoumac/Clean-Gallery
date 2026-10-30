@@ -15,7 +15,7 @@ Last updated: 2026-10-30 — Milestone M7
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Merged into `main` (PR #5) |
 | M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Merged into `main` (PR #6) |
 | M6 | Advanced viewer and editing | Merged into `main` (PR #7, 2026-10-30); filters merged after (PR #8, 2026-10-30) |
-| M7 | Exploration: map, search | Map and mini map built early in M6 (2026-10-28). **Search** on branch `m7-search` (2026-10-30), to test on the phone |
+| M7 | Exploration: map, search | Map built in M6. **Search** on branch `m7-search`, confirmed on the phone, pull request opened 2026-10-30 (to review and merge) |
 | M8 | Monetization | Not started |
 | M9 | Polish and release preparation | Not started |
 
@@ -27,7 +27,7 @@ The map and its mini map were built in M6 (see below). M7 adds the search.
 
 - **Search** (2026-10-30, branch `m7-search`): a magnifier in the Camera, Videos and Albums titles (product owner's choice the same day) opens a file name field and criteria chips: Photos / Videos / Screenshots, Favorites, Folder, Area (picked on the map, new picking mode). Results as a timeline with its own sort and date range, kept when a criterion changes. `MediaSelection` gains `favoritesOnly` and `nameContains`; no schema change ([features/search.md](features/search.md)). Device checklist: [testing.md](testing.md#m7--search-to-verify-on-a-device) items 71 to 78.
 - **First device test of the search** (2026-10-30, product owner): everything worked, but the search looked through every item instead of the tab or folder it was opened from. Now it searches only that timeline (Camera, Videos, a folder, Favorites; the Albums tab searches everything), album pages get the magnifier too, chips that cannot narrow it are hidden; the results' sort is saved apart from the tab's. 367 tests.
-- **Second device test** (2026-10-30, product owner): the scoped search works (items 79 to 82, "c'est très bien"); a search by date asked for. Added: a **Dates** chip among the criteria (presets and custom range), sharing the period choices with the sort sheet. 368 tests; item 83 to test.
+- **Second device test** (2026-10-30, product owner): the scoped search works (items 79 to 82, "c'est très bien"); a search by date asked for. Added: a **Dates** chip among the criteria (presets and custom range), sharing the period choices with the sort sheet. 368 tests; item 83 confirmed on the phone the same day. Branch pushed and pull request opened.
 
 ### Decisions
 
@@ -42,7 +42,7 @@ The map and its mini map were built in M6 (see below). M7 adds the search.
 
 ### Next steps
 
-1. Device test of the Dates chip (item 83), then a pull request and the end of M7 (summary, CHANGELOG section).
+1. ~~Device tests and pull request~~ done on 2026-10-30; merge the pull request of `m7-search`.
 2. **M8**: monetization.
 
 ## M6 — Advanced viewer and editing
