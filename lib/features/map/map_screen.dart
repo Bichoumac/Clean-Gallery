@@ -30,14 +30,23 @@ Future<bool> locationAccess(Ref ref) =>
 /// into clusters that show their newest item and their count. Tapping a
 /// cluster opens the grid of its items; a single item opens the viewer.
 ///
-/// Opens on [center] when given (from the info panel), otherwise fitted to
-/// every located item.
+/// Opens on [center] when given (from the info panel), on [area] when
+/// given, otherwise fitted to every located item.
+///
+/// With [pickArea] (search), a button pops the area shown as a `GeoArea`,
+/// and a cluster zooms in instead of opening.
 class MapScreen extends ConsumerWidget {
   /// Creates the map.
-  const MapScreen({this.center, super.key});
+  const MapScreen({this.center, this.area, this.pickArea = false, super.key});
 
   /// Where to open the map, zoomed in.
   final GeoPoint? center;
+
+  /// Area to open the map on, e.g. the one a search is limited to.
+  final GeoArea? area;
+
+  /// Whether the map is open to pick an area.
+  final bool pickArea;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -51,8 +60,13 @@ class MapScreen extends ConsumerWidget {
           if (located == null)
             const Center(child: CircularProgressIndicator())
           else
-            _ClusterMap(items: located, center: center),
-          _TopBar(title: l10n.mapTitle),
+            _ClusterMap(
+              items: located,
+              center: center,
+              area: area,
+              pickArea: pickArea && allowed != false,
+            ),
+          _TopBar(title: pickArea ? l10n.mapPickTitle : l10n.mapTitle),
           if (allowed == false)
             _Notice(
               icon: Icons.location_off_outlined,
@@ -71,7 +85,7 @@ class MapScreen extends ConsumerWidget {
                 child: Text(l10n.mapLocationButton),
               ),
             )
-          else if (located != null && located.isEmpty)
+          else if (!pickArea && located != null && located.isEmpty)
             _Notice(
               icon: Icons.map_outlined,
               title: l10n.mapEmptyTitle,
@@ -85,10 +99,19 @@ class MapScreen extends ConsumerWidget {
 
 /// The map itself, with one marker per cluster at the current zoom level.
 class _ClusterMap extends ConsumerStatefulWidget {
-  const _ClusterMap({required this.items, required this.center});
+  const _ClusterMap({
+    required this.items,
+    required this.center,
+    required this.area,
+    required this.pickArea,
+  });
 
   final List<LocatedItem> items;
   final GeoPoint? center;
+  final GeoArea? area;
+
+  /// Whether to show the button that pops the area shown.
+  final bool pickArea;
 
   @override
   ConsumerState<_ClusterMap> createState() => _ClusterMapState();
@@ -130,6 +153,9 @@ class _ClusterMapState extends ConsumerState<_ClusterMap> {
       _clusters[zoom] ??= clusterItems(widget.items, zoom: zoom);
 
   CameraFit? get _initialFit {
+    if (widget.area case final area?) {
+      return CameraFit.bounds(bounds: _bounds(area));
+    }
     if (widget.center != null || widget.items.isEmpty) return null;
     final points = [for (final i in widget.items) _latLng(i.position)];
     final bounds = LatLngBounds.fromPoints(points);
@@ -144,8 +170,30 @@ class _ClusterMapState extends ConsumerState<_ClusterMap> {
     );
   }
 
+  /// The area shown, as a search criterion. A view across the antimeridian
+  /// takes every longitude.
+  GeoArea get _shownArea {
+    final b = _controller.camera.visibleBounds;
+    final across = b.west > b.east;
+    return GeoArea(
+      south: b.south,
+      west: across ? -180 : b.west,
+      north: b.north,
+      east: across ? 180 : b.east,
+    );
+  }
+
+  /// Zooms onto [cluster] (picking an area).
+  void _zoomOn(GeoCluster cluster) => _controller.fitCamera(
+    CameraFit.bounds(
+      bounds: _bounds(cluster.area),
+      padding: const EdgeInsets.all(48),
+    ),
+  );
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final colors = Theme.of(context).colorScheme;
     final dark = Theme.of(context).brightness == Brightness.dark;
     final center = widget.center;
@@ -182,11 +230,29 @@ class _ClusterMapState extends ConsumerState<_ClusterMap> {
                 point: _latLng(cluster.center),
                 width: _markerSize,
                 height: _markerSize,
-                child: _ClusterMarker(cluster: cluster),
+                child: _ClusterMarker(
+                  cluster: cluster,
+                  onTap: widget.pickArea ? () => _zoomOn(cluster) : null,
+                ),
               ),
           ],
         ),
         const MapAttribution(),
+        if (widget.pickArea)
+          SafeArea(
+            child: Align(
+              alignment: Alignment.bottomCenter,
+              child: Padding(
+                // Above the attribution.
+                padding: const EdgeInsets.only(bottom: 40),
+                child: FilledButton.icon(
+                  onPressed: () => context.pop(_shownArea),
+                  icon: const Icon(Icons.search_rounded),
+                  label: Text(l10n.mapPickButton),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
@@ -194,12 +260,18 @@ class _ClusterMapState extends ConsumerState<_ClusterMap> {
 
 LatLng _latLng(GeoPoint point) => LatLng(point.latitude, point.longitude);
 
+LatLngBounds _bounds(GeoArea area) =>
+    LatLngBounds(LatLng(area.south, area.west), LatLng(area.north, area.east));
+
 /// A cluster on the map: its newest item in a rounded square, and the
 /// number of items when there are several.
 class _ClusterMarker extends ConsumerWidget {
-  const _ClusterMarker({required this.cluster});
+  const _ClusterMarker({required this.cluster, this.onTap});
 
   final GeoCluster cluster;
+
+  /// Replaces opening the cluster, e.g. zooming in while picking an area.
+  final VoidCallback? onTap;
 
   void _open(BuildContext context) {
     final selection = MediaSelection(area: cluster.area);
@@ -227,7 +299,7 @@ class _ClusterMarker extends ConsumerWidget {
       label: l10n.mapClusterLabel(cluster.count),
       excludeSemantics: true,
       child: GestureDetector(
-        onTap: () => _open(context),
+        onTap: onTap ?? () => _open(context),
         child: Stack(
           clipBehavior: Clip.none,
           children: [

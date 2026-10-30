@@ -18,6 +18,7 @@ import 'package:clean_gallery/domain/timeline.dart';
 import 'package:clean_gallery/features/library/fast_scroller.dart';
 import 'package:clean_gallery/features/library/pinch_to_change_columns.dart';
 import 'package:clean_gallery/features/library/sort_filter_sheet.dart';
+import 'package:clean_gallery/features/search/search_controller.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
 import 'package:flutter/material.dart';
@@ -44,6 +45,9 @@ class MediaTimelineView extends ConsumerWidget {
     this.subtitle,
     this.summary,
     this.stackDuplicates = true,
+    this.showSearch = false,
+    this.compact = false,
+    this.showDuplicates = true,
     super.key,
   });
 
@@ -70,6 +74,17 @@ class MediaTimelineView extends ConsumerWidget {
   /// candidate for the trash.
   final bool stackDuplicates;
 
+  /// Whether the title has a search button (tabs).
+  final bool showSearch;
+
+  /// A smaller title without top inset, under another bar (search
+  /// results).
+  final bool compact;
+
+  /// Whether the Duplicates tile can show above the grid. Off for search
+  /// results, whose duplicates are not looked for on their own.
+  final bool showDuplicates;
+
   Future<void> _refresh(WidgetRef ref) async {
     ref.invalidate(mediaAccessProvider);
     await ref.read(mediaIndexProvider.notifier).sync();
@@ -84,6 +99,8 @@ class MediaTimelineView extends ConsumerWidget {
       showBackButton: showBackButton,
       subtitle: subtitle,
       summary: summary,
+      showSearch: showSearch,
+      compact: compact,
     );
     if (access == MediaAccess.denied) {
       return _Scaffolding(
@@ -123,6 +140,7 @@ class MediaTimelineView extends ConsumerWidget {
             items: value,
             columns: columns,
             stackDuplicates: stackDuplicates,
+            showDuplicates: showDuplicates,
           ),
           AsyncError() => _Scaffolding(
             header: header,
@@ -155,6 +173,7 @@ class _Timeline extends ConsumerStatefulWidget {
     required this.items,
     required this.columns,
     required this.stackDuplicates,
+    required this.showDuplicates,
   });
 
   final Widget header;
@@ -163,6 +182,7 @@ class _Timeline extends ConsumerStatefulWidget {
   final List<MediaItem> items;
   final int columns;
   final bool stackDuplicates;
+  final bool showDuplicates;
 
   @override
   ConsumerState<_Timeline> createState() => _TimelineState();
@@ -560,7 +580,7 @@ class _TimelineState extends ConsumerState<_Timeline> {
                   widget.header,
                   ?widget.banner,
                   // Duplicates are looked for by folder, not by place.
-                  if (widget.selection.area == null)
+                  if (widget.showDuplicates && widget.selection.area == null)
                     DuplicatesTile(selection: widget.selection),
                 ],
               ),
@@ -793,6 +813,8 @@ class _TimelineHeader extends ConsumerWidget {
     required this.base,
     required this.title,
     required this.showBackButton,
+    required this.showSearch,
+    required this.compact,
     this.subtitle,
     this.summary,
   });
@@ -800,6 +822,8 @@ class _TimelineHeader extends ConsumerWidget {
   final MediaSelection base;
   final String title;
   final bool showBackButton;
+  final bool showSearch;
+  final bool compact;
   final String? subtitle;
   final String? summary;
 
@@ -815,7 +839,12 @@ class _TimelineHeader extends ConsumerWidget {
     return SafeArea(
       bottom: false,
       child: Padding(
-        padding: EdgeInsets.fromLTRB(showBackButton ? 8 : 20, 24, 12, 16),
+        padding: EdgeInsets.fromLTRB(
+          showBackButton ? 8 : 20,
+          compact ? 8 : 24,
+          12,
+          compact ? 8 : 16,
+        ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -825,13 +854,16 @@ class _TimelineHeader extends ConsumerWidget {
                 Expanded(
                   child: Text(
                     title,
-                    style: showBackButton
+                    style: compact
+                        ? theme.textTheme.titleLarge
+                        : showBackButton
                         ? theme.textTheme.headlineMedium
                         : theme.textTheme.displaySmall,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                if (showSearch) SearchButton(scope: base, place: title),
                 IconButton(
                   tooltip: l10n.sortFilterTooltip,
                   onPressed: () => showSortFilterSheet(context, base),
@@ -854,14 +886,15 @@ class _TimelineHeader extends ConsumerWidget {
                   ),
                 ),
               ),
-            if (customized)
+            if (customized && (!compact || shown.sort != base.sort))
               Padding(
                 padding: EdgeInsets.only(top: 8, left: showBackButton ? 12 : 0),
                 child: Wrap(
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    if (dates != null)
+                    // A search shows its dates among its criteria.
+                    if (dates != null && !compact)
                       InputChip(
                         avatar: const Icon(Icons.date_range_rounded, size: 18),
                         label: Text(
@@ -1119,4 +1152,28 @@ class _LimitedAccessBanner extends ConsumerWidget {
       ),
     );
   }
+}
+
+/// Opens the search in [scope].
+class SearchButton extends StatelessWidget {
+  /// Creates the button.
+  const SearchButton({required this.scope, required this.place, super.key});
+
+  /// The timeline to search in.
+  final MediaSelection scope;
+
+  /// Its name, for the search's title.
+  final String place;
+
+  @override
+  Widget build(BuildContext context) => IconButton(
+    tooltip: AppLocalizations.of(context).searchTooltip,
+    onPressed: () => unawaited(
+      context.push(
+        AppRoutes.search,
+        extra: SearchArgs(scope: scope, place: place),
+      ),
+    ),
+    icon: const Icon(Icons.search_rounded),
+  );
 }

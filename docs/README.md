@@ -2,7 +2,7 @@
 
 Every documentation file in the repository, with a one-line description. Start with [progress.md](progress.md) to see where the project stands.
 
-Last updated: 2026-10-29 — Milestone M6
+Last updated: 2026-10-30 — Milestone M7
 
 ## Project
 
@@ -45,6 +45,7 @@ Planned files: `monetization.md` (M8), `release.md` (M9).
 | [features/map.md](features/map.md) | Map of located photos, clusters, area grid, info panel mini map. |
 | [features/editor.md](features/editor.md) | Photo editor: crop, straighten, adjustments, Enhance, vignette, pencil, blur, pixelate, texts, saving. |
 | [features/scan.md](features/scan.md) | Document scanner: page corners, perspective, color / gray / black and white. |
+| [features/search.md](features/search.md) | Search: file name, type, favorites, folder, area picked on the map, dates. |
 
 One file per feature is added as each feature is built.
 

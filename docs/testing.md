@@ -2,7 +2,7 @@
 
 How Clean Gallery is tested: test layers, commands, fakes and fixtures. Every milestone adds tests for what it builds; a milestone is not done until the suite passes.
 
-Last updated: 2026-10-30 — Milestone M6 (filters)
+Last updated: 2026-10-30 — Milestone M7
 
 ## Commands
 
@@ -131,6 +131,38 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 12 | Kill the app mid-onboarding, relaunch | any | Onboarding restarts from the first page. |
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
+
+### M7 — search, to verify on a device
+
+From a release build of branch `m7-search`.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 71 | Camera, Videos and Albums tabs | A magnifier next to the title (Camera, Videos: before the sort button). |
+| 72 | Tap it | *Rechercher*: keyboard up in a *Nom de fichier* field; chips Photos, Vidéos, Captures d'écran, Favoris, Dossier, Zone on two lines; below, *Résultats* with the number of items, every photo and video. |
+| 73 | Type part of a file name (e.g. `IMG_2026`, or `screenshot`) | After a short pause, only matching items; the count follows; ✕ empties the field and shows everything. |
+| 74 | **Vidéos**, then Vidéos again; **Captures d'écran** | Only videos, then everything again; only screenshots. |
+| 75 | **Favoris** with Photos | Only favorite photos. |
+| 76 | **Dossier** → pick *WhatsApp Images* (or another) | The chip shows the folder's name, only its items; the chip's ✕ removes it. |
+| 77 | **Zone** → move the map onto a city → **Rechercher dans cette zone** | Back to the search, chip *Zone sur la carte*, only items taken there; tapping the chip reopens the map on that area. |
+| 78 | Results' sort button → *Cette année*, then change a criterion; open a result | The date range and its chip stay; the viewer swipes through the results only. |
+
+Results on the Galaxy A54, reported by the product owner on 2026-10-30 after installing commit `d55b708`: everything works, but the search looked through every item instead of the tab it was opened from. Changed: the search is limited to the timeline it is opened from.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 79 | Camera tab → magnifier | *Dans Appareil photo*: only the camera's photos; no Photos / Vidéos / Captures chips, no Dossier chip. A name finds only camera photos. |
+| 80 | Videos tab → magnifier | *Dans Vidéos*: only videos; no type chips; Dossier, Favoris and Zone remain. |
+| 81 | Albums → a folder (e.g. WhatsApp Images) → magnifier at the top right | *Dans WhatsApp Images*: only that folder's items; no Dossier chip. Albums → Favoris → magnifier: only favorites, no Favoris chip. |
+| 82 | Sort the results by name, go back to the tab | The tab keeps its own order. Albums tab → magnifier: everything, every chip. |
+
+Results on the Galaxy A54, reported by the product owner on 2026-10-30 after installing commit `6f858a1`: items 79 to 82 all OK; a search by date asked for.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 83 | Search → **Dates** → *Cette année*, then **Dates** → *Personnalisée…* and pick two days | The sheet closes; the chip reads *Cette année*, then the two dates; only items of that period; the chip's ✕ shows all dates again. The period combines with a name and the other chips. |
+
+Result on the Galaxy A54, reported by the product owner on 2026-10-30 after installing commit `13b0e3b`: item 83 OK. Every M7 item (71 to 83) is confirmed.
 
 ### M6 — viewer and editing, to verify on a device
 

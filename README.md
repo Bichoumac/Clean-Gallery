@@ -2,13 +2,13 @@
 
 A photo and video gallery for Android, built with Flutter, with cleanup tools: a virtual folder of likely duplicates, a swipe-to-sort mode and a trash with a configurable retention period. **Your photos never leave your device.**
 
-Last updated: 2026-10-29 — Milestone M6
+Last updated: 2026-10-30 — Milestone M7
 
 The app is free with two small, unobtrusive ad placements, and a single "Remove ads" in-app purchase. Every feature is available to everyone.
 
 ## Status
 
-Milestones **M0** to **M5** are merged. **M6 — Advanced viewer and editing** is in review (branch `m6-viewer`): info panel, stacks of duplicates in the timelines, map (brought forward from M7), duplicate group strip in the viewer, sorts by number of duplicates, photo editor and document scanner, all confirmed on the phone. Filters are left for later. See [docs/progress.md](docs/progress.md) for details and the device checklist.
+Milestones **M0** to **M6** are merged (M6 with its filters). **M7 — Exploration** is in review (branch `m7-search`): the map came with M6; the **search**, scoped to the tab or folder it is opened from, is confirmed on the phone. See [docs/progress.md](docs/progress.md) for details and the device checklist.
 
 ## Features
 
@@ -21,8 +21,8 @@ Milestones **M0** to **M5** are merged. **M6 — Advanced viewer and editing** i
 | Duplicates | Exact duplicates and bursts in a virtual folder; stacks in the timelines | M3 ✓, stacks M6 |
 | Similar photos | Perceptual hashing, best-shot suggestion, Not duplicates, sensitivity, storage dashboard | M4 ✓ |
 | Cleanup | Swipe mode, blurry photos, screenshots, large videos | M5 ✓ |
-| Editing | Info panel, editor (crop, straighten, adjustments, Enhance, vignette, pencil, blur, pixelate, texts), document scanner, filters | M6 ✓ (filters later) |
-| Exploration | Map with clusters and mini map, search | Map M6, search M7 |
+| Editing | Info panel, editor (crop, straighten, adjustments, Enhance, vignette, pencil, blur, pixelate, texts), document scanner, filters | M6 ✓ |
+| Exploration | Map with clusters and mini map, search with combinable criteria (name, type, favorites, folder, area on the map, dates) | Map M6 ✓, search M7 ✓ |
 | Monetization | Banner (Albums), native card (Stats), consent, "Remove ads" purchase | M8 |
 
 ## Requirements

@@ -141,8 +141,6 @@ class SortFilterSheet extends ConsumerWidget {
     final notifier = ref.read(viewSelectionProvider(base).notifier);
     final sort = selection.sort;
     final today = now ?? DateTime.now();
-    final preset = matchingPreset(selection.dates, today);
-    final customDates = selection.dates != null && preset == null;
     // Duration only makes sense when videos can be in the list.
     final fields = [
       MediaSortField.date,
@@ -157,24 +155,6 @@ class SortFilterSheet extends ConsumerWidget {
     ];
     String direction({required bool descending}) =>
         _directionLabel(l10n, sort.field, descending: descending);
-
-    Future<void> pickCustomRange() async {
-      final current = selection.dates;
-      final picked = await showDateRangePicker(
-        context: context,
-        firstDate: DateTime(1990),
-        lastDate: today,
-        initialDateRange: current?.start != null && current?.end != null
-            ? DateTimeRange(
-                start: current!.start!,
-                end: current.end!.subtract(const Duration(days: 1)),
-              )
-            : null,
-      );
-      if (picked != null) {
-        notifier.setDates(DateFilter.days(picked.start, picked.end));
-      }
-    }
 
     return SafeArea(
       // Scrolls when the sort chips wrap onto more lines (large text).
@@ -243,42 +223,88 @@ class SortFilterSheet extends ConsumerWidget {
             const SizedBox(height: 24),
             Text(l10n.filterPeriod, style: textTheme.titleLarge),
             const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                ChoiceChip(
-                  label: Text(l10n.filterAllTime),
-                  selected: selection.dates == null,
-                  onSelected: (_) => notifier.setDates(null),
-                ),
-                for (final p in DatePreset.values)
-                  ChoiceChip(
-                    label: Text(switch (p) {
-                      DatePreset.last7Days => l10n.filterLast7Days,
-                      DatePreset.last30Days => l10n.filterLast30Days,
-                      DatePreset.thisYear => l10n.filterThisYear,
-                      DatePreset.lastYear => l10n.filterLastYear,
-                    }),
-                    selected: preset == p,
-                    onSelected: (_) =>
-                        notifier.setDates(datePresetRange(p, today)),
-                  ),
-                ChoiceChip(
-                  avatar: const Icon(Icons.date_range_rounded, size: 18),
-                  label: Text(
-                    customDates
-                        ? _rangeLabel(context, selection.dates!)
-                        : l10n.filterCustom,
-                  ),
-                  selected: customDates,
-                  onSelected: (_) => pickCustomRange(),
-                ),
-              ],
+            DateRangeChips(
+              dates: selection.dates,
+              now: today,
+              onChanged: notifier.setDates,
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+/// The period choices: all time, the presets, and a custom range picked in
+/// a calendar.
+class DateRangeChips extends StatelessWidget {
+  /// Creates the chips.
+  const DateRangeChips({
+    required this.dates,
+    required this.now,
+    required this.onChanged,
+    super.key,
+  });
+
+  /// Range picked, or `null` for all time.
+  final DateFilter? dates;
+
+  /// Current time, for the presets.
+  final DateTime now;
+
+  /// Called with the range picked, or `null` for all time.
+  final ValueChanged<DateFilter?> onChanged;
+
+  Future<void> _pickCustomRange(BuildContext context) async {
+    final current = dates;
+    final picked = await showDateRangePicker(
+      context: context,
+      firstDate: DateTime(1990),
+      lastDate: now,
+      initialDateRange: current?.start != null && current?.end != null
+          ? DateTimeRange(
+              start: current!.start!,
+              end: current.end!.subtract(const Duration(days: 1)),
+            )
+          : null,
+    );
+    if (picked != null) onChanged(DateFilter.days(picked.start, picked.end));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final preset = matchingPreset(dates, now);
+    final customDates = dates != null && preset == null;
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        ChoiceChip(
+          label: Text(l10n.filterAllTime),
+          selected: dates == null,
+          onSelected: (_) => onChanged(null),
+        ),
+        for (final p in DatePreset.values)
+          ChoiceChip(
+            label: Text(switch (p) {
+              DatePreset.last7Days => l10n.filterLast7Days,
+              DatePreset.last30Days => l10n.filterLast30Days,
+              DatePreset.thisYear => l10n.filterThisYear,
+              DatePreset.lastYear => l10n.filterLastYear,
+            }),
+            selected: preset == p,
+            onSelected: (_) => onChanged(datePresetRange(p, now)),
+          ),
+        ChoiceChip(
+          avatar: const Icon(Icons.date_range_rounded, size: 18),
+          label: Text(
+            customDates ? _rangeLabel(context, dates!) : l10n.filterCustom,
+          ),
+          selected: customDates,
+          onSelected: (_) => _pickCustomRange(context),
+        ),
+      ],
     );
   }
 }

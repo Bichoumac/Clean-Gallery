@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-10-30 — Milestone M6 (filters)
+Last updated: 2026-10-30 — Milestone M7
 
 ## Milestones
 
@@ -14,10 +14,36 @@ Last updated: 2026-10-30 — Milestone M6 (filters)
 | M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Merged into `main` (PR #4) |
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Merged into `main` (PR #5) |
 | M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Merged into `main` (PR #6) |
-| M6 | Advanced viewer and editing | Merged into `main` (PR #7, 2026-10-30), without filters. **Filters** on branch `m6-filters` (2026-10-30), confirmed on the phone |
-| M7 | Exploration: map, search | Map and mini map built early in M6 (2026-10-28); search not started |
+| M6 | Advanced viewer and editing | Merged into `main` (PR #7, 2026-10-30); filters merged after (PR #8, 2026-10-30) |
+| M7 | Exploration: map, search | Map built in M6. **Search** on branch `m7-search`, confirmed on the phone, pull request opened 2026-10-30 (to review and merge) |
 | M8 | Monetization | Not started |
 | M9 | Polish and release preparation | Not started |
+
+## M7 — Exploration
+
+The map and its mini map were built in M6 (see below). M7 adds the search.
+
+### Done
+
+- **Search** (2026-10-30, branch `m7-search`): a magnifier in the Camera, Videos and Albums titles (product owner's choice the same day) opens a file name field and criteria chips: Photos / Videos / Screenshots, Favorites, Folder, Area (picked on the map, new picking mode). Results as a timeline with its own sort and date range, kept when a criterion changes. `MediaSelection` gains `favoritesOnly` and `nameContains`; no schema change ([features/search.md](features/search.md)). Device checklist: [testing.md](testing.md#m7--search-to-verify-on-a-device) items 71 to 78.
+- **First device test of the search** (2026-10-30, product owner): everything worked, but the search looked through every item instead of the tab or folder it was opened from. Now it searches only that timeline (Camera, Videos, a folder, Favorites; the Albums tab searches everything), album pages get the magnifier too, chips that cannot narrow it are hidden; the results' sort is saved apart from the tab's. 367 tests.
+- **Second device test** (2026-10-30, product owner): the scoped search works (items 79 to 82, "c'est très bien"); a search by date asked for. Added: a **Dates** chip among the criteria (presets and custom range), sharing the period choices with the sort sheet. 368 tests; item 83 confirmed on the phone the same day. Branch pushed and pull request opened.
+
+### Decisions
+
+- **Entry point**: a magnifier in the tab titles rather than a tile in Albums (product owner, 2026-10-30).
+- **Scope**: the search looks only in the timeline it was opened from (product owner, 2026-10-30, after the first device test).
+- **Dates**: first only in the results' sort and filter sheet, as in every other timeline; a **Dates** chip among the criteria was added at the product owner's request after the second device test (2026-10-30). Both set the same period.
+- **Criteria chips wrap** onto two lines instead of scrolling sideways, so every criterion is in sight.
+
+### Known issues
+
+- Accented capitals do not match lowercase letters in file names (SQLite `LIKE`).
+
+### Next steps
+
+1. ~~Device tests and pull request~~ done on 2026-10-30; merge the pull request of `m7-search`.
+2. **M8**: monetization.
 
 ## M6 — Advanced viewer and editing
 

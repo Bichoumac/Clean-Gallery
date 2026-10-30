@@ -107,8 +107,10 @@ abstract class AppSettings with _$AppSettings {
 
 /// Key identifying a timeline (a tab or an album) in
 /// [AppSettings.viewSorts]. The date filter is not part of it: it is kept
-/// for the session only.
+/// for the session only. Search results have their own keys, so sorting
+/// them never sorts the tab searched in.
 String viewKey(MediaSelection base) =>
+    '${base.nameContains == null ? '' : 'search:'}'
     '${base.filter.name}:${base.albumId ?? ''}';
 
 /// [sort] as stored text, e.g. `size:desc`.

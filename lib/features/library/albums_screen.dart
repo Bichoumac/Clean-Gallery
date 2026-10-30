@@ -9,6 +9,7 @@ import 'package:clean_gallery/core/router/compact_nav_bar.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/domain/trashed_item.dart';
+import 'package:clean_gallery/features/library/media_timeline_view.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -65,7 +66,20 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
             sliver: SliverPadding(
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
               sliver: SliverToBoxAdapter(
-                child: Text(l10n.navAlbums, style: textTheme.displaySmall),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        l10n.navAlbums,
+                        style: textTheme.displaySmall,
+                      ),
+                    ),
+                    SearchButton(
+                      scope: MediaSelection.all,
+                      place: l10n.albumsAllMedia,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

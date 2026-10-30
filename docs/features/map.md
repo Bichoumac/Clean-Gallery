@@ -2,7 +2,7 @@
 
 The photos and videos of the library on a map, grouped by place, and the mini map of the viewer's info panel.
 
-Last updated: 2026-10-29 — Milestone M6 (map brought forward from M7)
+Last updated: 2026-10-30 — Milestone M7
 
 ## Purpose
 
@@ -16,6 +16,7 @@ The brief: "OpenStreetMap map with geotagged photos, markers grouped into cluste
 4. **Info panel**: below the coordinates, a still mini map with a lime dot; tapping it opens the map there, at zoom 15 ([viewer.md](viewer.md#info-panel)).
 5. **Without the location permission**: a card at the bottom of the map says that Android hides where photos were taken and offers *Allow*; once granted, locations are read at once.
 6. **No located item** (location off when shooting, or still being read): a card says so.
+7. **Picking an area** (search, M7): the map opens titled *Choose an area*, on the area already picked if any; a **Search this area** button returns the area shown to the search; a cluster zooms in instead of opening ([search.md](search.md)).
 
 ## Reading locations
 
@@ -41,7 +42,7 @@ The brief: "OpenStreetMap map with geotagged photos, markers grouped into cluste
 
 | Widget | File | Role |
 | --- | --- | --- |
-| `MapScreen` | [map_screen.dart](../../lib/features/map/map_screen.dart) | Route `/map` (optional `GeoPoint` to open on): map, clusters, back button and title, permission and empty cards |
+| `MapScreen` | [map_screen.dart](../../lib/features/map/map_screen.dart) | Route `/map` (optional `GeoPoint` to open on): map, clusters, back button and title, permission and empty cards. Route `/map/pick` (`pickArea`, optional `GeoArea` to open on): picking an area for the search |
 | `MapAreaScreen` | [map_area_screen.dart](../../lib/features/map/map_area_screen.dart) | Route `/map/area` (`GeoArea`): timeline of a cluster, without the Duplicates tile |
 | `MiniMap` | [mini_map.dart](../../lib/features/map/mini_map.dart) | Still map of one point in the info panel |
 | `MapAttribution` | [map_attribution.dart](../../lib/features/map/map_attribution.dart) | Attribution in the corner of both maps |

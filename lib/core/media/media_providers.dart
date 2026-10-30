@@ -132,7 +132,8 @@ AsyncValue<List<MediaItem>> visibleMediaList(
   final deleted = ref.watch(deletedIdsProvider);
   final favorites = ref.watch(favoriteOverridesProvider);
   final ready = ref.watch(mediaIndexProvider.select((s) => s.ready));
-  final onlyFavorites = selection.filter == MediaFilter.favorites;
+  final onlyFavorites =
+      selection.filter == MediaFilter.favorites || selection.favoritesOnly;
   final list = ref.watch(mediaListProvider(selection));
   if (!ready && list is AsyncData<List<MediaItem>> && list.value.isEmpty) {
     return const AsyncLoading();
@@ -206,6 +207,11 @@ class ViewSelection extends _$ViewSelection {
 
   /// Limits the timeline to [dates], or shows all dates when `null`.
   void setDates(DateFilter? dates) => state = state.copyWith(dates: dates);
+
+  /// Takes the sort and dates of [shown], another view, without saving the
+  /// sort: the search keeps them when a criterion changes.
+  void keepFrom(MediaSelection shown) =>
+      state = state.copyWith(sort: shown.sort, dates: shown.dates);
 
   /// Back to newest first, all dates.
   void reset() {
