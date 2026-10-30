@@ -14,7 +14,7 @@ Last updated: 2026-10-30 — Milestone M6 (filters)
 | M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Merged into `main` (PR #4) |
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Merged into `main` (PR #5) |
 | M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Merged into `main` (PR #6) |
-| M6 | Advanced viewer and editing | Merged into `main` (PR #7, 2026-10-30), without filters. **Filters** on branch `m6-filters` (2026-10-30), not yet tested on the phone |
+| M6 | Advanced viewer and editing | Merged into `main` (PR #7, 2026-10-30), without filters. **Filters** on branch `m6-filters` (2026-10-30), confirmed on the phone |
 | M7 | Exploration: map, search | Map and mini map built early in M6 (2026-10-28); search not started |
 | M8 | Monetization | Not started |
 | M9 | Polish and release preparation | Not started |
@@ -25,7 +25,7 @@ In parts, each tested on the phone: 1. the info panel; stacks in the timelines a
 
 ### Done
 
-- **Filters** (2026-10-30, branch `m6-filters`, after PR #7 was merged): a Filters tool with eleven thumbnails (None and ten looks) and a Strength slider; each filter is a color matrix applied before the adjustments ([features/editor.md](features/editor.md), [ADR 0023](decisions/0023-editor-color-matrix-preview.md)). Device checklist: [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device) items 65 to 70.
+- **Filters** (2026-10-30, branch `m6-filters`, after PR #7 was merged): a Filters tool with eleven thumbnails (None and ten looks) and a Strength slider; each filter is a color matrix applied before the adjustments ([features/editor.md](features/editor.md), [ADR 0023](decisions/0023-editor-color-matrix-preview.md)). Confirmed on the Galaxy A54 the same day, items 65 to 70 all OK ([testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device)); 353 tests.
 - **Hazy photos are no longer blurry** (M5 follow-up): contrast measured and stored (schema version 4), blurry = sharpness below 30 and relative sharpness below 150, threshold read on the product owner's photos; only photos below 30 are analysed again ([ADR 0021](decisions/0021-hazy-photos-are-not-blurry.md)).
 - **Info panel** (part 1): a Details button in the viewer opens a bottom sheet over a blurred, translucent background with the date and its source, name, path, resolution, size, duration, camera, lens, ISO, aperture, shutter speed, focal length and location; EXIF read by the new native method `mediaMetadata` ([features/viewer.md](features/viewer.md#info-panel)). After the first device test: the panel ends above the navigation bar and takes up to 90 % of the screen; the location opens the map app (`openMap`), a button copies it.
 - **Stacks in the timelines**, asked by the product owner on 2026-10-28 before the editor: consecutive items of one duplicate group taken the same day fold into one thumbnail with a count badge; a tap unfolds it in place, a button on its cover folds it again; selecting a folded stack selects all its items. All groups stack (copies, bursts, similar photos); not in cleanup lists nor in name, size or duration order ([features/library.md](features/library.md#stacks)).
@@ -67,7 +67,7 @@ Plan to resume, in order. Each part ends with a commit, a release build installe
    - **saving natively** (new `PlatformBridge`/`MediaSource` method, Kotlin): decode the full photo, apply crop, rotation, flip and the color matrix (`ColorMatrixColorFilter` on a `Canvas`), encode JPEG, insert it with MediaStore in the same folder; **Save as copy** by default; **Replace original** puts the original in the app trash (never deleted directly);
    - **EXIF kept**: copy the original's tags with `ExifInterface`, orientation set to normal, new width and height;
    - the new photo indexed at once and shown in the viewer.
-3. ~~**End of M6**~~ merged as PR #7 on 2026-10-30; filters follow in their own pull request once tested on the phone (items 65 to 70). Original plan: summary, test instructions and known issues; `CHANGELOG.md` section, pull request file (title and description) and the link `https://github.com/Bichoumac/Clean-Gallery/pull/new/m6-viewer`.
+3. ~~**End of M6**~~ merged as PR #7 on 2026-10-30; filters follow in their own pull request from `m6-filters`, tested on the phone on 2026-10-30. Original plan: summary, test instructions and known issues; `CHANGELOG.md` section, pull request file (title and description) and the link `https://github.com/Bichoumac/Clean-Gallery/pull/new/m6-viewer`.
 4. **M7**: search with combinable filters, including an area picked on the map (the map itself is done).
 5. Later: sort mode entry from album pages.
 

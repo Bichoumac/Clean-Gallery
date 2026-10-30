@@ -256,6 +256,8 @@ Filters (follow-up to M6, branch `m6-filters`), from a release build:
 | 69 | Hold **Avant/Après**; then **Réinitialiser** | The original while held; Reset removes the filter too. |
 | 70 | Save a copy with a filter at 60 and a crop | The saved photo matches the preview. |
 
+Results on the Galaxy A54, reported by the product owner on 2026-10-30 after installing commit `798d4ff`: items 65 to 70 all OK.
+
 Results on the Galaxy A54, reported by the product owner on 2026-10-29: blur and pixelate covered the whole photo (item 57); after the fix (commit `2090792`), "everything works" (items 45 to 64).
 
 Results on the Galaxy A54, reported by the product owner on 2026-10-28 after installing commit `369e8b8`: stacks, map and group strip, "everything works" (items 11 to 31). The time taken by the first reading of locations was not reported.
