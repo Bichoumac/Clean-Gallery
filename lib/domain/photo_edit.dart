@@ -349,6 +349,43 @@ double straightenScale(double degrees, double ratio) {
   return math.max(c + s / ratio, c + s * ratio);
 }
 
+/// A preset look, applied to the colors before the [Adjustments], so the
+/// sliders refine it.
+enum PhotoFilter {
+  /// No filter.
+  none,
+
+  /// Black and white.
+  blackAndWhite,
+
+  /// Brown tones of old prints.
+  sepia,
+
+  /// Warm, faded, less vivid.
+  vintage,
+
+  /// Warmer colors.
+  warm,
+
+  /// Cooler colors.
+  cool,
+
+  /// More vivid colors, a little more contrast.
+  vivid,
+
+  /// Lighter blacks, softer colors.
+  fade,
+
+  /// Strong contrast, muted colors, a little darker.
+  dramatic,
+
+  /// Contrasted black and white.
+  noir,
+
+  /// Less contrast, a little lighter.
+  soft,
+}
+
 /// Everything the editor changes in a photo, as plain data: applied in this
 /// order, rotation, flip, colors, drawing, then the crop (in the rotated and
 /// flipped photo). The original is never changed; saving writes a new
@@ -378,6 +415,12 @@ abstract class PhotoEdit with _$PhotoEdit {
 
     /// Texts, drawn last.
     @Default(<TextItem>[]) List<TextItem> texts,
+
+    /// Preset look.
+    @Default(PhotoFilter.none) PhotoFilter filter,
+
+    /// How much of the [filter] is applied, 0 to 1.
+    @Default(1) double filterStrength,
   }) = _PhotoEdit;
 
   const PhotoEdit._();
@@ -390,7 +433,11 @@ abstract class PhotoEdit with _$PhotoEdit {
       adjustments.isNeutral &&
       strokes.isEmpty &&
       angle == 0 &&
-      texts.isEmpty;
+      texts.isEmpty &&
+      !hasFilter;
+
+  /// Whether a filter changes the colors.
+  bool get hasFilter => filter != PhotoFilter.none && filterStrength > 0;
 
   /// Turned a quarter clockwise; the crop and the drawing turn with the
   /// photo.

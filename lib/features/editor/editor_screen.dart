@@ -23,6 +23,9 @@ enum EditorTool {
   /// Crop, straighten, rotate and flip.
   crop,
 
+  /// Preset looks.
+  filter,
+
   /// Enhance, color adjustments and vignette.
   adjust,
 
@@ -393,6 +396,7 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                                       area: box.biggest,
                                       onDrag: editor.dragCrop,
                                     ),
+                                    EditorTool.filter ||
                                     EditorTool.adjust => _ResultView(
                                       source: source,
                                       edit: edit,
@@ -438,6 +442,24 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                         onRotate: editor.rotate,
                         onFlip: editor.flip,
                       ),
+                      EditorTool.filter => FilterTools(
+                        filter: edit.filter,
+                        strength: edit.filterStrength,
+                        thumbnail: (filter, side) => _Thumbnail(
+                          source: source,
+                          // Only the photo and its colors: lines and texts
+                          // would not show at this size.
+                          edit: edit.copyWith(
+                            filter: filter,
+                            filterStrength: 1,
+                            strokes: const [],
+                            texts: const [],
+                          ),
+                          side: side,
+                        ),
+                        onFilter: editor.setFilter,
+                        onStrength: editor.setFilterStrength,
+                      ),
                       EditorTool.adjust => AdjustTools(
                         adjustments: edit.adjustments,
                         selected: _adjustment,
@@ -478,6 +500,11 @@ class _EditorScreenState extends ConsumerState<EditorScreen> {
                             value: EditorTool.crop,
                             icon: const Icon(Icons.crop_rotate_rounded),
                             tooltip: l10n.editorCrop,
+                          ),
+                          ButtonSegment(
+                            value: EditorTool.filter,
+                            icon: const Icon(Icons.filter_vintage_rounded),
+                            tooltip: l10n.editorFilters,
                           ),
                           ButtonSegment(
                             value: EditorTool.adjust,
@@ -752,6 +779,39 @@ class _ResultView extends StatelessWidget {
                 child: painted,
               ),
             ),
+    );
+  }
+}
+
+/// The cropped result in a square of [side], or an empty square while the
+/// preview decodes.
+class _Thumbnail extends StatelessWidget {
+  const _Thumbnail({
+    required this.source,
+    required this.edit,
+    required this.side,
+  });
+
+  final EditSource? source;
+  final PhotoEdit edit;
+  final double side;
+
+  @override
+  Widget build(BuildContext context) {
+    final source = this.source;
+    if (source == null) return SizedBox.square(dimension: side);
+    final crop = edit.crop;
+    return SizedBox.square(
+      dimension: side,
+      child: Center(
+        child: CustomPaint(
+          size: _fit(
+            source.orientedRatio(edit) * crop.width / crop.height,
+            Size.square(side),
+          ),
+          painter: _EditPainter(source: source, edit: edit, view: crop),
+        ),
+      ),
     );
   }
 }

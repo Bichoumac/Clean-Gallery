@@ -310,6 +310,139 @@ class AdjustTools extends StatelessWidget {
   }
 }
 
+/// The filters as thumbnails of the photo, and the strength of the one
+/// picked.
+class FilterTools extends StatelessWidget {
+  /// Creates the tools.
+  const FilterTools({
+    required this.filter,
+    required this.strength,
+    required this.thumbnail,
+    required this.onFilter,
+    required this.onStrength,
+    super.key,
+  });
+
+  /// Filter picked.
+  final PhotoFilter filter;
+
+  /// Its strength, 0 to 1.
+  final double strength;
+
+  /// The photo with a filter, fitted in a square of the given side.
+  final Widget Function(PhotoFilter filter, double side) thumbnail;
+
+  /// Picks a filter.
+  final ValueChanged<PhotoFilter> onFilter;
+
+  /// Sets the strength.
+  final ValueChanged<double> onStrength;
+
+  /// Side of a thumbnail.
+  static const double side = 64;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final colors = Theme.of(context).colorScheme;
+    String label(PhotoFilter f) => switch (f) {
+      PhotoFilter.none => l10n.editorFilterNone,
+      PhotoFilter.blackAndWhite => l10n.editorFilterBlackAndWhite,
+      PhotoFilter.sepia => l10n.editorFilterSepia,
+      PhotoFilter.vintage => l10n.editorFilterVintage,
+      PhotoFilter.warm => l10n.editorFilterWarm,
+      PhotoFilter.cool => l10n.editorFilterCool,
+      PhotoFilter.vivid => l10n.editorFilterVivid,
+      PhotoFilter.fade => l10n.editorFilterFade,
+      PhotoFilter.dramatic => l10n.editorFilterDramatic,
+      PhotoFilter.noir => l10n.editorFilterNoir,
+      PhotoFilter.soft => l10n.editorFilterSoft,
+    };
+    final percent = (strength * 100).round();
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Kept when no filter is picked, so the photo does not jump.
+        Visibility.maintain(
+          visible: filter != PhotoFilter.none,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Slider(
+                    value: strength,
+                    divisions: 100,
+                    label: '$percent',
+                    semanticFormatterCallback: (v) =>
+                        '${l10n.editorFilterStrength} ${(v * 100).round()}',
+                    onChanged: onStrength,
+                  ),
+                ),
+                SizedBox(
+                  width: 40,
+                  child: Text('$percent', textAlign: TextAlign.end),
+                ),
+              ],
+            ),
+          ),
+        ),
+        SizedBox(
+          height: side + 28,
+          child: ListView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            children: [
+              for (final f in PhotoFilter.values)
+                Padding(
+                  padding: const EdgeInsets.only(right: 8),
+                  child: Semantics(
+                    button: true,
+                    selected: f == filter,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () => onFilter(f),
+                      child: Column(
+                        children: [
+                          Container(
+                            width: side,
+                            height: side,
+                            padding: const EdgeInsets.all(2),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: f == filter
+                                    ? colors.primary
+                                    : Colors.transparent,
+                                width: 2,
+                              ),
+                            ),
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: thumbnail(f, side - 8),
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            label(f),
+                            style: Theme.of(context).textTheme.labelSmall
+                                ?.copyWith(
+                                  color: f == filter ? colors.primary : null,
+                                ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
 /// Brush (pen, blur, pixelate), color, width and Undo.
 class DrawTools extends StatelessWidget {
   /// Creates the tools.

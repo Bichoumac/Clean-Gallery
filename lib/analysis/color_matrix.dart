@@ -95,6 +95,62 @@ ColorMatrix adjustmentMatrix(Adjustments adjustments) => [
   warmthMatrix(adjustments.warmth),
 ].fold(identityMatrix, compose);
 
+/// [filter] at full strength.
+ColorMatrix _filterMatrix(PhotoFilter filter) => switch (filter) {
+  PhotoFilter.none => identityMatrix,
+  PhotoFilter.blackAndWhite => saturationMatrix(-1),
+  PhotoFilter.sepia => const [
+    0.393, 0.769, 0.189, 0, 0, //
+    0.349, 0.686, 0.168, 0, 0,
+    0.272, 0.534, 0.131, 0, 0,
+    0, 0, 0, 1, 0,
+  ],
+  PhotoFilter.vintage => [
+    saturationMatrix(-0.3),
+    warmthMatrix(0.6),
+    _scale(0.85, 0.85, 0.85, 24),
+  ].fold(identityMatrix, compose),
+  PhotoFilter.warm => compose(warmthMatrix(0.6), saturationMatrix(0.1)),
+  PhotoFilter.cool => compose(warmthMatrix(-0.6), saturationMatrix(-0.05)),
+  PhotoFilter.vivid => compose(saturationMatrix(0.5), contrastMatrix(0.15)),
+  PhotoFilter.fade => compose(
+    saturationMatrix(-0.25),
+    _scale(0.8, 0.8, 0.8, 32),
+  ),
+  PhotoFilter.dramatic => [
+    exposureMatrix(-0.15),
+    contrastMatrix(0.45),
+    saturationMatrix(-0.2),
+  ].fold(identityMatrix, compose),
+  PhotoFilter.noir => [
+    saturationMatrix(-1),
+    brightnessMatrix(-0.1),
+    contrastMatrix(0.6),
+  ].fold(identityMatrix, compose),
+  PhotoFilter.soft => [
+    brightnessMatrix(0.1),
+    contrastMatrix(-0.25),
+    saturationMatrix(-0.1),
+  ].fold(identityMatrix, compose),
+};
+
+/// The transform of [filter] at [strength] (0 to 1): a blend between no
+/// change and the full filter, which for a linear transform is the same
+/// as blending the colors.
+ColorMatrix filterMatrix(PhotoFilter filter, [double strength = 1]) {
+  final full = _filterMatrix(filter);
+  return [
+    for (var i = 0; i < 20; i++)
+      identityMatrix[i] + (full[i] - identityMatrix[i]) * strength,
+  ];
+}
+
+/// The color transform of [edit]: its filter, then its adjustments.
+ColorMatrix editMatrix(PhotoEdit edit) => compose(
+  filterMatrix(edit.filter, edit.filterStrength),
+  adjustmentMatrix(edit.adjustments),
+);
+
 /// [matrix] applied to an opaque color of [r], [g], [b] (0 to 255), each
 /// channel clamped to 0–255, as the screen and the saved photo do.
 (double, double, double) applyMatrix(

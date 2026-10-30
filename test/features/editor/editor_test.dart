@@ -68,12 +68,17 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  /// Taps the chip [label] of a tool row, scrolling the row to it first.
-  Future<void> tapChip(WidgetTester tester, String label) async {
+  /// Taps the chip [label] of a tool row, scrolling the row to it first
+  /// ([delta] negative to scroll back).
+  Future<void> tapChip(
+    WidgetTester tester,
+    String label, {
+    double delta = 100,
+  }) async {
     final chip = find.text(label);
     await tester.scrollUntilVisible(
       chip,
-      100,
+      delta,
       scrollable: find
           .descendant(
             of: find.byType(EditorScreen),
@@ -215,6 +220,37 @@ void main() {
     await tester.drag(find.byType(Slider), const Offset(60, 0));
     await tester.pumpAndSettle();
     expect(editorState(tester).edit.adjustments.vignette, greaterThan(0));
+  });
+
+  testApp('a filter is picked from thumbnails, its strength set', (
+    tester,
+  ) async {
+    await openEditor(tester);
+    await tester.tap(find.byTooltip('Filters'));
+    await tester.pumpAndSettle();
+    // No strength slider until a filter is picked.
+    Visibility strength() => tester.widget(
+      find.ancestor(of: find.byType(Slider), matching: find.byType(Visibility)),
+    );
+    expect(strength().visible, isFalse);
+
+    await tapChip(tester, 'Sepia');
+    await tester.pumpAndSettle();
+    expect(editorState(tester).edit.filter, PhotoFilter.sepia);
+    expect(editorState(tester).edit.filterStrength, 1);
+    expect(strength().visible, isTrue);
+
+    await tester.drag(find.byType(Slider), const Offset(-80, 0));
+    await tester.pumpAndSettle();
+    expect(editorState(tester).edit.filterStrength, lessThan(1));
+
+    // Another filter starts at full strength; None removes it.
+    await tapChip(tester, 'Noir');
+    await tester.pumpAndSettle();
+    expect(editorState(tester).edit.filterStrength, 1);
+    await tapChip(tester, 'None', delta: -100);
+    await tester.pumpAndSettle();
+    expect(editorState(tester).edit.isIdentity, isTrue);
   });
 
   testApp('Before/After shows the original while held', (tester) async {

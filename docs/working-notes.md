@@ -2,15 +2,15 @@
 
 How the product owner and the AI assistant work together on Clean Gallery, the constraints of the development machine, and where to pick up. Read it at the start of every session, after [AGENTS.md](../AGENTS.md).
 
-Last updated: 2026-10-29 — Milestone M6
+Last updated: 2026-10-30 — Milestone M6 (filters)
 
 ## Where to pick up
 
 Quick resume (keep this short; history is in [progress.md](progress.md) and git):
 
-- **M6 is in a pull request** from branch `m6-viewer` (pushed 2026-10-29; description in the PR). First ask whether it was reviewed and merged; if merged, start from `main`.
+- **M6 is merged** (PR #7, 2026-10-30). **Filters** are on branch `m6-filters` (2026-10-30), confirmed on the phone (items 65 to 70 of [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device)): to push and merge as a pull request; then start M7 from `main`.
 - **Everything built in M6 is confirmed on the Galaxy A54** (items 1 to 64 of [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device)): info panel with mini map, stacks of duplicates in the timelines, map (brought forward from M7), viewer group strip (Keep / Trash), sorts by number of duplicates, viewer actions at the bottom, editor ([editor.md](features/editor.md)), document scanner ([scan.md](features/scan.md)).
-- **Left from M6**: filters (about ten presets, each a color matrix composed with the adjustments, with thumbnails). Not wanted for now: batch editing; scanner camera capture.
+- **Left from M6**: nothing once the filters pull request is merged. Not wanted for now: batch editing; scanner camera capture.
 - **Next milestones**: M7 search (the map is done), M8 monetization, M9 polish ([progress.md](progress.md)).
 - **Key design points to keep**: one paint function (`paintEdit`, `paintPage`) for preview and saving; the native side only writes JPEG + EXIF (`PhotoSaver.kt`); every delete through the app trash; pure Dart in `lib/analysis/` and `lib/domain/`; on the phone (Impeller), avoid blend-mode masks in layers, use clips (blur bug of 2026-10-29).
 - **Commands that save tokens**: run tests to a file and read only the summary (`flutter test --timeout 60s > <scratchpad>/t.log 2>&1; tail -1 …`; piping into `grep` hides progress until the end); widget tests that decode images need `tester.runAsync` (see `waitUntil` in [scan_test.dart](../test/features/scan/scan_test.dart)); never `pkill -f` a pattern that appears in your own command line; `gh` is installed but not logged in: give the `pull/new/<branch>` link.
@@ -41,7 +41,7 @@ This follows the product owner's request and the app's own promise: "Your photos
 | SDKs | Flutter in `~/sdk/flutter`, Android SDK in `~/sdk/android`; neither is on `PATH` by default. |
 | Gradle memory | Heap set to 3 GB in `android/gradle.properties`; the template's 8 GB was killed by the kernel. Stop the Gradle daemon (`./gradlew --stop`) before running the emulator or the analyzer at the same time. |
 | Emulator | Installed (AVD `cg_api34`) but unusable: no GPU access, software rendering too slow. Test on the phone instead. |
-| Phone | Samsung Galaxy A54, Android 16, French. Its USB device needs `sudo setfacl -m u:claude:rw /dev/bus/usb/<bus>/<device>` (from `lsusb`); the access is lost when the phone is unplugged or the session resets. The screen locks after 30 s; ask before changing that setting. |
+| Phone | Samsung Galaxy A54, Android 16, French. Its USB device needs `sudo setfacl -m u:claude:rw /dev/bus/usb/<bus>/<device>`; the access is lost when the phone is unplugged or the session resets. The product owner cannot copy commands from the conversation: ask them to type `sudo sh /home/claude/p.sh` (outside the repository; it finds the Samsung, Google or Xiaomi USB device and runs that `setfacl`). The screen locks after 30 s; ask before changing that setting. |
 | CPU throttling | On 2026-10-26/27 the CPU ran at 600 MHz (`grep MHz /proc/cpuinfo`) instead of up to 3.1 GHz: `flutter test` took about 3 minutes instead of 1, benchmarks varied by 2×. A Gradle daemon left running also filled the swap; stop it after builds (`android/gradlew --stop`). |
 | Benchmarks | Pure Dart code of `lib/analysis/` can be timed AOT without a device: `dart compile exe -p .dart_tool/package_config.json <script>` from the project root, script in the scratchpad. `flutter test` runs JIT and gives misleading numbers. |
 | Speed tests | Always on a release build (`flutter build apk --release --target-platform android-arm64`); debug builds are several times slower and were judged unusable. |

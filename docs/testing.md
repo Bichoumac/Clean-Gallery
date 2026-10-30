@@ -2,7 +2,7 @@
 
 How Clean Gallery is tested: test layers, commands, fakes and fixtures. Every milestone adds tests for what it builds; a milestone is not done until the suite passes.
 
-Last updated: 2026-10-29 — Milestone M6
+Last updated: 2026-10-30 — Milestone M6 (filters)
 
 ## Commands
 
@@ -244,6 +244,19 @@ Items 45 to 52 were installed on 2026-10-29 but not reported: the product owner 
 | 62 | Drag a corner; **Suivant** | The handle follows; the page flattened, straight. |
 | 63 | **Gris**, **Noir et blanc**, back to **Couleur**; Back | Gray page; white paper and black text, no shadow; Back returns to the corners. |
 | 64 | **Enregistrer** | *Scan enregistré*, the viewer shows the page; the original is still there. |
+
+Filters (follow-up to M6, branch `m6-filters`), from a release build:
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 65 | Editor → **Filtres** (second icon) | A row of thumbnails of the cropped photo: Aucun, N&B, Sépia, Vintage, Chaud, Froid, Éclatant, Délavé, Dramatique, Noir, Doux; *Aucun* framed in lime; no slider. |
+| 66 | Tap each thumbnail | The photo takes that look at once; its thumbnail framed in lime; an **Intensité** slider at 100 appears. |
+| 67 | Move **Intensité** to 0, then 50 | At 0 the photo is unchanged; at 50 halfway; the slider follows the finger smoothly. |
+| 68 | A filter, then **Réglages** → Luminosité or Chaleur | The slider refines the filtered photo (e.g. a warm tone on N&B). |
+| 69 | Hold **Avant/Après**; then **Réinitialiser** | The original while held; Reset removes the filter too. |
+| 70 | Save a copy with a filter at 60 and a crop | The saved photo matches the preview. |
+
+Results on the Galaxy A54, reported by the product owner on 2026-10-30 after installing commit `798d4ff`: items 65 to 70 all OK.
 
 Results on the Galaxy A54, reported by the product owner on 2026-10-29: blur and pixelate covered the whole photo (item 57); after the fix (commit `2090792`), "everything works" (items 45 to 64).
 
