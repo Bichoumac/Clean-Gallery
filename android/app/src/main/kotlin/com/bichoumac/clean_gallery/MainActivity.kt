@@ -1,5 +1,6 @@
 package com.bichoumac.clean_gallery
 
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -42,6 +43,9 @@ class MainActivity : FlutterActivity() {
     /** MediaStore reads for the app's media index. */
     private val mediaIndex by lazy { MediaIndex(applicationContext) }
 
+    /** Writes photos edited in the editor. */
+    private val photoSaver by lazy { PhotoSaver(applicationContext) }
+
     /** Favorites, permanent deletion and sharing. */
     private val actions by lazy { MediaActions(this, worker, mainHandler) }
 
@@ -67,10 +71,24 @@ class MainActivity : FlutterActivity() {
                     .mapNotNull { it.toLongOrNull() }
                 onWorker(result) { mediaIndex.describe(ids) }
             }
+            "mediaMetadata" -> {
+                val id = call.argument<String>("id")?.toLongOrNull()
+                if (id == null) {
+                    result.error("bad_arguments", "id is required", null)
+                } else {
+                    val isVideo = call.argument<Boolean>("video") == true
+                    onWorker(result) { mediaIndex.metadata(id, isVideo) }
+                }
+            }
             "contentHashes" -> {
                 val items = MediaActions.Item.listFrom(call.argument("items"))
                     .map { it.id to it.isVideo }
                 onWorker(result, hasher) { mediaIndex.contentHashes(items) }
+            }
+            "locations" -> {
+                val items = MediaActions.Item.listFrom(call.argument("items"))
+                    .map { it.id to it.isVideo }
+                onWorker(result) { mediaIndex.locations(items) }
             }
             "grayThumbnails" -> {
                 val ids = call.argument<List<String>>("ids").orEmpty()
@@ -104,6 +122,26 @@ class MainActivity : FlutterActivity() {
                 call.argument<Boolean>("removeLocation") == true,
                 result,
             )
+            "saveEditedPhoto" -> {
+                val id = call.argument<String>("id")?.toLongOrNull()
+                val width = call.argument<Int>("width")
+                val height = call.argument<Int>("height")
+                val rgba = call.argument<ByteArray>("rgba")
+                if (id == null || width == null || height == null || rgba == null) {
+                    result.error("bad_arguments", "id, width, height and rgba are required", null)
+                } else {
+                    onWorker(result) { photoSaver.save(id, width, height, rgba) }
+                }
+            }
+            "openMap" -> {
+                val latitude = call.argument<Double>("latitude")
+                val longitude = call.argument<Double>("longitude")
+                if (latitude == null || longitude == null) {
+                    result.error("bad_arguments", "latitude and longitude are required", null)
+                } else {
+                    result.success(openMap(latitude, longitude))
+                }
+            }
             else -> result.notImplemented()
         }
     }
@@ -132,6 +170,21 @@ class MainActivity : FlutterActivity() {
         }
         if (intent.resolveActivity(packageManager) != null) {
             startActivity(intent)
+        }
+    }
+
+    /**
+     * Opens the user's map app at [latitude], [longitude] with a `geo:` URI,
+     * with a pin. Returns `false` when no app handles it.
+     */
+    private fun openMap(latitude: Double, longitude: Double): Boolean {
+        val point = "$latitude,$longitude"
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("geo:$point?q=$point"))
+        return try {
+            startActivity(intent)
+            true
+        } catch (e: ActivityNotFoundException) {
+            false
         }
     }
 

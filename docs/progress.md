@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-10-27 — Milestone M5
+Last updated: 2026-10-29 — Milestone M6
 
 ## Milestones
 
@@ -13,11 +13,62 @@ Last updated: 2026-10-27 — Milestone M5
 | M2 | Actions: favorites, sharing, multi-select, trash, basic settings | Merged into `main` (PR #3) |
 | M3 | Engine level 1: indexing, dates, exact duplicates, bursts | Merged into `main` (PR #4) |
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Merged into `main` (PR #5) |
-| M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Done on `m5-cleaning` (pushed), confirmed on the phone; pull request opened by the product owner |
-| M6 | Advanced viewer and editing | Not started |
-| M7 | Exploration: map, search | Not started |
+| M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Merged into `main` (PR #6) |
+| M6 | Advanced viewer and editing | Branch `m6-viewer` pushed, pull request opened 2026-10-29 (to review and merge). Everything confirmed on the phone: info panel, stacks, map (from M7), group strip, sorts by duplicates, editor (crop, straighten, adjustments, Enhance, vignette, pencil, blur, pixelate, texts, saving), document scanner. **Filters not done** (left for a follow-up) |
+| M7 | Exploration: map, search | Map and mini map built early in M6 (2026-10-28); search not started |
 | M8 | Monetization | Not started |
 | M9 | Polish and release preparation | Not started |
+
+## M6 — Advanced viewer and editing
+
+In parts, each tested on the phone: 1. the info panel; stacks in the timelines and the map (added at the product owner's request on 2026-10-28, before the editor; the map comes from M7); 2. the editor (crop, rotate, flip, adjustments); 3. filters and saving.
+
+### Done
+
+- **Hazy photos are no longer blurry** (M5 follow-up): contrast measured and stored (schema version 4), blurry = sharpness below 30 and relative sharpness below 150, threshold read on the product owner's photos; only photos below 30 are analysed again ([ADR 0021](decisions/0021-hazy-photos-are-not-blurry.md)).
+- **Info panel** (part 1): a Details button in the viewer opens a bottom sheet over a blurred, translucent background with the date and its source, name, path, resolution, size, duration, camera, lens, ISO, aperture, shutter speed, focal length and location; EXIF read by the new native method `mediaMetadata` ([features/viewer.md](features/viewer.md#info-panel)). After the first device test: the panel ends above the navigation bar and takes up to 90 % of the screen; the location opens the map app (`openMap`), a button copies it.
+- **Stacks in the timelines**, asked by the product owner on 2026-10-28 before the editor: consecutive items of one duplicate group taken the same day fold into one thumbnail with a count badge; a tap unfolds it in place, a button on its cover folds it again; selecting a folded stack selects all its items. All groups stack (copies, bursts, similar photos); not in cleanup lists nor in name, size or duration order ([features/library.md](features/library.md#stacks)).
+- **Editor** (part 2), 2026-10-28: an Edit button in the viewer (photos) opens a full-screen editor: crop with handles and shapes, rotate, flip, five color adjustments previewed live with one color matrix, Reset, a question before discarding changes. The edit is plain data (`PhotoEdit`), the matrix math pure Dart ([features/editor.md](features/editor.md), [ADR 0023](decisions/0023-editor-color-matrix-preview.md)).
+- **Device test of the editor extensions and scanner** (2026-10-29): blur and pixelate covered the whole photo (fixed: clip instead of a blend mask); after the fix the product owner reported "everything works" (items 45 to 64). 344 tests. Branch pushed and pull request opened the same day; filters left for later.
+- **Editor extensions and scanner** (2026-10-29, product owner's list): straighten, vignette, Enhance (histogram auto levels, no AI), Before/After, texts, blur and pixelate brushes, and a document scanner from a photo; batch editing not wanted. Saving now renders in Flutter (one paint function for preview and save). 342 tests; build installed on the phone; to test: [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device) items 45 to 64 ([features/editor.md](features/editor.md), [features/scan.md](features/scan.md), ADRs 0023 and 0024).
+- **After the first device test of the editor** (2026-10-29, product owner): sliders were slow to start and to follow (fixed: the preview is painted on a canvas); **saving** (brought forward from part 3: *Save as a copy* or *Replace the original*, native `saveEditedPhoto`, EXIF kept); a **pencil** (six colors, three widths, Undo); the viewer's **actions moved to the bottom**. 320 tests; not seen on the device yet (items 45 to 52).
+- **Sort by number of duplicates**, asked by the product owner on 2026-10-28 "wherever it applies": the duplicates screen, every timeline's sort sheet and the Albums folders ([features/library.md](features/library.md#sorting-and-date-filter), [features/duplicates.md](features/duplicates.md#user-flows)). Found on the way: a hero clash when opening the duplicates screen (or the viewer) from an album page, in debug builds only; hidden tabs now turn their heroes off.
+- **Info panel**: more transparent (40 % black, blur σ 22), and pulled down from the top of its content it closes (product owner, 2026-10-28).
+- **Group strip in the viewer**, asked by the product owner on 2026-10-28: a photo of a duplicate group shows the group's thumbnails at the bottom, scrolling sideways, the best one marked; large **Trash** and **Keep** buttons sort it photo by photo, with Undo ([features/viewer.md](features/viewer.md#group-strip)).
+- **Map** (from M7), asked by the product owner on 2026-10-28 before the editor: Albums → Map shows located photos and videos on OpenStreetMap, in clusters with the newest item's thumbnail and a count; a cluster opens the grid of its area, a single item the viewer. Locations read by a new scan (native `locations`, schema version 5 `assets.location_read`), only with the location permission. The info panel gets its **mini map**. `INTERNET` added to the release manifest for the tiles ([features/map.md](features/map.md), [ADR 0022](decisions/0022-map-tiles-and-grid-clusters.md)).
+- **Quality measures in the info panel**, at the product owner's request: sharpness (S), relative sharpness (N), brightness (B) and contrast (C) of the photo, measured by the engine's own code, and whether it is offered as blurry or too dark. Kept so the thresholds can be checked on real photos.
+
+### Decisions
+
+- **Stacks**: every kind of group stacks, and a tap unfolds the stack in place (rather than opening the viewer or the duplicates screen). Chosen by the product owner on 2026-10-28.
+- The info panel's **mini map moves to M7**, with the map itself (approved by the product owner on 2026-10-27); the map was then brought forward to M6 on 2026-10-28, so the mini map is back in M6.
+- **Map**: own grid clustering instead of `flutter_map_marker_cluster`, so a cluster is a rectangle its grid can list; the release app declares `INTERNET`; tiles from OpenStreetMap's servers ([ADR 0022](decisions/0022-map-tiles-and-grid-clusters.md)).
+
+### Known issues
+
+- Part 1 and the hazy photo rule confirmed on the Galaxy A54 on 2026-10-27 ("all good", [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device)). The quality row added afterwards is covered by a test, not seen on the device yet.
+- The hazy threshold (150) comes from a handful of photos; the quality row lets the product owner report others.
+- **Stacks, map and group strip confirmed on the Galaxy A54** on 2026-10-28 ("everything works", [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device), items 11 to 31); then the info panel change and the duplicates sorts, also confirmed the same day (items 32 to 36); 287 tests. The first reading of every location was not timed. Kept checks of the group strip are not saved.
+- **Stacks** show once the analysis has grouped the photos; there is no setting to turn them off.
+
+### Next steps
+
+Plan to resume, in order. Each part ends with a commit, a release build installed on the phone, and a numbered checklist for the product owner.
+
+1. ~~**Part 2, the editor**~~ done on 2026-10-28, as planned below:
+   - an **Edit** button in the viewer's top bar (photos only), opening a full-screen editor route above the tabs, dark like the viewer, no ads;
+   - **crop** with handles and ratios free, 1:1, 4:3, 16:9 (and their portrait forms), **rotate** by 90°, **flip** horizontally;
+   - **adjustments** with sliders: brightness, contrast, saturation, exposure, warmth; previewed live on a screen-sized image with a `ColorFilter.matrix` (one 5 × 4 color matrix composed from all sliders), so moving a slider never re-encodes the photo;
+   - the edit described as plain data in `lib/domain/` (crop rectangle, quarter turns, flip, adjustment values, later the filter), with the matrix math in pure Dart (`lib/analysis/` or `lib/domain/`, no Flutter import) and unit tests;
+   - Cancel asks before dropping changes; an ADR for the approach (preview with color matrices, saving natively).
+2. **Part 3, filters** (saving, texts and the rest were done on 2026-10-29, see Done). First get the device results of items 45 to 64:
+   - about ten **filters** with thumbnail previews: Black & White, Sepia, Vintage, Warm, Cool, Vivid, Fade, Dramatic, Noir, Soft, each a color matrix combined with the adjustments;
+   - **saving natively** (new `PlatformBridge`/`MediaSource` method, Kotlin): decode the full photo, apply crop, rotation, flip and the color matrix (`ColorMatrixColorFilter` on a `Canvas`), encode JPEG, insert it with MediaStore in the same folder; **Save as copy** by default; **Replace original** puts the original in the app trash (never deleted directly);
+   - **EXIF kept**: copy the original's tags with `ExifInterface`, orientation set to normal, new width and height;
+   - the new photo indexed at once and shown in the viewer.
+3. **End of M6**: summary, test instructions and known issues; `CHANGELOG.md` section, pull request file (title and description) and the link `https://github.com/Bichoumac/Clean-Gallery/pull/new/m6-viewer`.
+4. **M7**: search with combinable filters, including an area picked on the map (the map itself is done).
+5. Later: sort mode entry from album pages.
 
 ## M5 — Cleanup
 
@@ -44,10 +95,7 @@ Three parts, each committed and tested on the phone: 1. old screenshots and larg
 
 ### Next steps
 
-1. Merge the M5 pull request.
-2. Calibrate the blur rule on real photos (hazy night shots); needs measured values, see the product owner.
-3. M6 (advanced viewer and editing).
-4. Later: stack similar photos in the timelines (product owner's request).
+1. Stack similar photos in the timelines: done in M6 (2026-10-28).
 
 ## M4 — Engine level 2
 

@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:clean_gallery/domain/media_item.dart';
 
 /// Platform-specific features that the Dart packages do not cover.
@@ -38,4 +40,20 @@ abstract interface class PlatformBridge {
   /// GPS data; the originals are not changed. Videos are always shared as
   /// they are.
   Future<void> share(List<MediaItem> items, {required bool removeLocation});
+
+  /// Opens a map app at [latitude], [longitude]. Returns `false` when no
+  /// app can show a location.
+  Future<bool> openMap(double latitude, double longitude);
+
+  /// Saves an edited copy of [photo] as a new JPEG photo in the same
+  /// folder, with the same capture date and the original's metadata (EXIF)
+  /// except its orientation and size. [rgba] holds [width] × [height]
+  /// opaque pixels, 4 bytes each, row by row: the edit already applied.
+  /// Returns the new photo's id. The original is not changed.
+  Future<String> saveEditedPhoto(
+    MediaItem photo, {
+    required int width,
+    required int height,
+    required Uint8List rgba,
+  });
 }

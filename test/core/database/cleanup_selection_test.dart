@@ -93,21 +93,28 @@ void main() {
     expect(await ids(CleanupList.largeVideos), ['2', '1', '3']);
   });
 
-  test('blurry photos: low sharpness or very dark, not screenshots', () async {
+  test('blurry photos: low sharpness or very dark, not screenshots, '
+      'not hazy', () async {
     final photos = [
       testItem(1),
       testItem(2),
       testItem(3),
       testItem(4, relativePath: 'DCIM/Screenshots/'),
       testItem(5),
+      testItem(6),
     ];
     await index(photos);
     ({PerceptualHashes hashes, ImageQuality quality}) result(
       double sharpness,
-      double brightness,
-    ) => (
+      double brightness, {
+      double contrast = 40,
+    }) => (
       hashes: (dHash: 0, pHash: 0),
-      quality: (sharpness: sharpness, brightness: brightness),
+      quality: (
+        sharpness: sharpness,
+        brightness: brightness,
+        contrast: contrast,
+      ),
     );
     await DuplicateRepository(db).savePhotoAnalysis(photos, {
       '1': result(500, 120),
@@ -115,6 +122,8 @@ void main() {
       '3': result(500, 4),
       '4': result(5, 120),
       // 5 had no readable thumbnail: not measured, not offered.
+      // Mist: soft edges, but sharp for its contrast (5000 / 25 = 200).
+      '6': result(5, 120, contrast: 5),
     });
     expect(await ids(CleanupList.poorQuality), unorderedEquals(['2', '3']));
     final sharp = await repository.load(const MediaSelection(ids: ['1']));

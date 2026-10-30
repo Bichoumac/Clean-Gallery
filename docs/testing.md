@@ -2,7 +2,7 @@
 
 How Clean Gallery is tested: test layers, commands, fakes and fixtures. Every milestone adds tests for what it builds; a milestone is not done until the suite passes.
 
-Last updated: 2026-10-27 — Milestone M4
+Last updated: 2026-10-29 — Milestone M6
 
 ## Commands
 
@@ -131,6 +131,125 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 12 | Kill the app mid-onboarding, relaunch | any | Onboarding restarts from the first page. |
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
+
+### M6 — viewer and editing, to verify on a device
+
+Part 1, info panel. Install over M5 (`adb install -r`).
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 1 | Open a photo taken with the phone, tap ⓘ (Details) | A panel slides up; the photo shows blurred through it. Date with *From the photo's metadata (EXIF)*, name, path, resolution with megapixels, size. |
+| 2 | Same panel, below | Camera (e.g. *samsung Galaxy A54 5G*), then tiles ISO, Aperture, Shutter speed, Focal length with its 35 mm equivalent. |
+| 3 | A photo taken with location on | Coordinates under *Location · tap to open in a map app*; tapping them opens the map app on the right place; the copy button shows a check and the coordinates paste elsewhere. |
+| 4 | A WhatsApp image or a screenshot | *From the file name* or *File date*; *No camera information in this file.* |
+| 5 | A video | Duration; its location if the camera saved one; no camera tiles. |
+| 6 | Swipe the panel down, tap above it, Back | Each closes it; the viewer stays on the same photo. |
+| 7 | Largest font size | The panel scrolls to its last row, above the navigation bar; nothing is cut off. |
+
+Hazy photos (M5 follow-up). The first launch migrates the database (schema version 4) and analyses again only the photos that were below the blur threshold: a few minutes at most.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 8 | Once the analysis is done, Stats → **Blurry photos** | The hazy night photos with lights are gone; the photos really out of focus are still there. |
+| 9 | Duplicates, a group with a hazy photo | No *Blurry* label under it. |
+| 10 | A photo, ⓘ, last row | *S … · N … · B … · C …* and *Quality: …*; *offered as blurry* only when the photo is in the Blurry photos list. |
+
+Stacks in the timelines (product owner's request, built before the editor). Install over part 1.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 11 | Photos tab, a day with a burst or several shots of the same scene | One thumbnail with a lime badge (e.g. ⧉ 4) instead of the series; the cover is the photo marked *Best* in Duplicates. |
+| 12 | Tap the stack | It unfolds in place; a lime line under each photo; a round button on the cover. |
+| 13 | Tap a photo of the unfolded stack, then swipe in the viewer | It opens on that photo; swiping goes through every photo, stacked ones included. |
+| 14 | Back, tap the round button | The stack folds again. |
+| 15 | Long-press a folded stack | *4 selected* (all its photos); a tap on it deselects them. |
+| 16 | Sort by size; then Stats → Old screenshots | No stacks: every item shows. |
+| 17 | Photos taken between two shots of one scene, or a series around midnight | Separate thumbnails where the series is interrupted; no stack spans two days. |
+
+Map (from M7). The first launch migrates the database (schema version 5) and reads where every photo was taken, in the background: a few minutes, to report.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 18 | Albums tab | A **Map** tile with a count and the newest located photo. |
+| 19 | Tap it | The map, fitted to all the places; thumbnails with lime counts; *© OpenStreetMap contributors* in the corner. |
+| 20 | Pinch to zoom in on a city, then a street | Clusters split into smaller ones, then single photos. |
+| 21 | Tap a cluster | *In this area*: only photos taken there; opening one and swiping stays in that area. |
+| 22 | Back, tap a single photo | The viewer on that photo. |
+| 23 | A photo with a location, ⓘ | A small map with a lime dot under the coordinates; tapping it opens the map there. |
+| 24 | Dark mode, then airplane mode | Dark tiles; offline, tiles already seen still show, markers too. |
+| 25 | Settings → Android → Clean Gallery → Permissions: remove photo location, back to the map | A card asks to allow it; *Allow* brings the markers back. |
+
+Group strip in the viewer.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 26 | Open a photo of a burst or of identical copies | At the bottom: *N doublons · toucher pour comparer*, the thumbnails, the first with a lime *Meilleure* pill, the photo shown framed in lime; *Corbeille* and *Garder* buttons. |
+| 27 | Swipe the thumbnails sideways, tap one | The row scrolls; the viewer shows the tapped photo. |
+| 28 | **Corbeille** | The photo goes to the trash, the next one of the group shows; its thumbnail stays dimmed with a bin; an Undo button appears. |
+| 29 | Undo, then tap a dimmed thumbnail after another Corbeille | Each brings the photo back and shows it. |
+| 30 | **Garder** | A lime check on the thumbnail; the next photo to sort shows. |
+| 31 | A photo outside any group; a video; tap the photo | No strip on the first two; the strip hides and shows with the top bar. |
+
+Info panel and sorts by duplicates (after the results below).
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 32 | A photo, ⓘ | The photo shows more clearly through the panel; the text stays readable. |
+| 33 | Panel open, at the top of its content, pull it down | It follows the finger and closes; a short pull lets it slide back. Scrolled down, pulling down scrolls the content first. |
+| 34 | Duplicates screen, sort button (top right) → *Plus de doublons d'abord* | The groups with the most photos come first. |
+| 35 | Albums → All media → sort → *Doublons* | The largest groups first, each group's photos together, photos without duplicates at the end. |
+| 36 | Albums tab, sort button next to *Dossiers* → *Doublons* | Folders with the most duplicates first, each reading "N éléments · M doublons". |
+
+Results on the Galaxy A54, reported by the product owner on 2026-10-28 after installing commit `6c2fe5c`: "everything works" (items 32 to 36).
+
+Part 2, the editor (no saving yet).
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 37 | Open a photo; a video | A sliders icon (*Modifier*) in the photo's top bar; none on the video. |
+| 38 | Tap it | The editor, dark: the photo with a crop frame, lime corners, thirds lines; *Recadrer* and *Réglages* at the bottom. |
+| 39 | Drag a corner, then inside the frame | The frame resizes, then moves; it never leaves the photo nor gets tiny. |
+| 40 | *1:1*, then *16:9*; drag a corner | A square, then a wide frame, centered; the corner keeps the shape. |
+| 41 | *Pivoter* four times; *Retourner* | The photo turns a quarter each time and comes back; it is mirrored. |
+| 42 | *Réglages*: each chip, move the slider | The preview follows the finger smoothly; Saturation -100 is black and white; a dot marks the chips in use. |
+| 43 | *Réinitialiser* | Everything back as it was. |
+| 44 | Change something, then ✕ or Back | *Abandonner les modifications ?*; *Continuer* stays, *Abandonner* closes. Without changes, ✕ closes at once. The photo itself is never changed. |
+
+First editor test on the Galaxy A54, reported by the product owner on 2026-10-28: sliders slow to start and to follow a fast finger, no way to save; asked for a pencil and for the favorite and edit buttons at the bottom. All four done on 2026-10-29:
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 45 | Open a photo | Share, favorite, edit, details and trash in a bar at the bottom; back, date and name at the top. |
+| 46 | A video; a photo of a duplicate group | The progress bar sits above the action bar; the group strip too. |
+| 47 | Editor → *Réglages*, move a slider fast, back and forth | The preview follows at once, from the first move. |
+| 48 | *Dessiner*: pick a color and a width, draw; *Annuler* | Lines follow the finger; Undo removes the last one. Then rotate in *Recadrer*: the drawing turns with the photo. |
+| 49 | Crop, adjust and draw, then **Enregistrer → Enregistrer une copie** | The editor closes, *Copie enregistrée*, the viewer shows the new photo: same crop, colors and drawing as the preview, sharp. The original is still there next to it. |
+| 50 | The copy, ⓘ | Same date and camera as the original; its location if the original had one. |
+| 51 | Another photo, **Remplacer l'originale** | *Photo remplacée ; l'originale est dans la corbeille*; the original is in Albums → Corbeille and can be restored. |
+| 52 | A photo taken in portrait | The copy is upright, not on its side. |
+
+Items 45 to 52 were installed on 2026-10-29 but not reported: the product owner asked for the next features first. They are tested with these, from the build installed on 2026-10-29 with the document scanner (commit "Document scanner; editor docs").
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 53 | Editor → Crop: **Straighten** slider | The photo turns by tenths of a degree, no empty corner; tapping the value returns to 0°. |
+| 54 | Adjust → **Améliorer** on a dull or dark photo | Contrast and Brightness (and Saturation 10) set at once; the photo livelier; the sliders can refine it. On a photo already contrasted, almost nothing changes. |
+| 55 | Adjust → **Vignettage** at 50, then -50 | Darker edges, then lighter edges, around the crop. |
+| 56 | Hold the **Avant/Après** icon (top bar) | The original while held, the edit when released. |
+| 57 | Draw → **Flou**, paint over a face; **Pixels** over a plate | Blurred, then large squares, only under the finger. **First test (2026-10-29): the whole photo was blurred/pixelated**; fixed the same day (clip instead of a blend mask), to test again. |
+| 58 | **Texte** → Ajouter un texte, type two lines, OK | Centered on the photo, framed in lime. |
+| 59 | Change font, Gras, size, color, background color; drag the text; double-tap it | Each applies at once; it follows the finger; double-tap opens its words. |
+| 60 | Save a copy with straighten, Enhance, vignette, blur and a text | The saved photo matches the preview exactly, sharp, upright; text crisp. |
+| 61 | Viewer, top bar: **Scanner un document** on a photo of a sheet on a table | Lime outline on the page's corners (*Page trouvée*); else the corners 8 % in. |
+| 62 | Drag a corner; **Suivant** | The handle follows; the page flattened, straight. |
+| 63 | **Gris**, **Noir et blanc**, back to **Couleur**; Back | Gray page; white paper and black text, no shadow; Back returns to the corners. |
+| 64 | **Enregistrer** | *Scan enregistré*, the viewer shows the page; the original is still there. |
+
+Results on the Galaxy A54, reported by the product owner on 2026-10-29: blur and pixelate covered the whole photo (item 57); after the fix (commit `2090792`), "everything works" (items 45 to 64).
+
+Results on the Galaxy A54, reported by the product owner on 2026-10-28 after installing commit `369e8b8`: stacks, map and group strip, "everything works" (items 11 to 31). The time taken by the first reading of locations was not reported.
+
+Part 1 results on the Galaxy A54, reported by the product owner on 2026-10-27: first test, the end of the panel was hidden (fixed: room above the navigation bar, 90 % high) and the coordinates were not clickable (fixed: they open the map app). Second test, with the hazy photo rule: all good; the product owner read the temporary measures and set the hazy threshold at 150. Item 10 added afterwards, at the product owner's request; not seen on the device yet.
 
 ### M5 — cleanup, to verify on a device
 

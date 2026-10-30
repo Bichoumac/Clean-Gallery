@@ -1,3 +1,4 @@
+import 'package:clean_gallery/domain/geo.dart';
 import 'package:clean_gallery/domain/gray_image.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/platform/platform_bridge.dart';
@@ -59,6 +60,22 @@ final class AndroidPlatformBridge implements PlatformBridge {
     ];
   }
 
+  /// Camera and location metadata of the MediaStore item [id], as a map
+  /// whose keys are listed in `docs/platform-android.md`; missing values
+  /// are left out.
+  ///
+  /// Android-only helper used by `AndroidMediaSource.metadata`.
+  Future<Map<String, Object?>> mediaMetadata(
+    String id, {
+    required bool video,
+  }) async {
+    final reply = await _channel.invokeMapMethod<String, Object?>(
+      'mediaMetadata',
+      {'id': id, 'video': video},
+    );
+    return reply ?? const {};
+  }
+
   /// SHA-256 of the content of [items], as lowercase hex, by id; items
   /// that cannot be read are left out.
   ///
@@ -71,6 +88,26 @@ final class AndroidPlatformBridge implements PlatformBridge {
       {'items': _encode(items)},
     );
     return hashes ?? const {};
+  }
+
+  /// Location of [items] read from their file headers, by id; items
+  /// without one are left out. Fails with a `permission` error without
+  /// `ACCESS_MEDIA_LOCATION`.
+  ///
+  /// Android-only helper used by `AndroidMediaSource.locations`.
+  Future<Map<String, GeoPoint>> locations(List<MediaItem> items) async {
+    if (items.isEmpty) return const {};
+    final reply = await _channel.invokeMapMethod<String, List<Object?>>(
+      'locations',
+      {'items': _encode(items)},
+    );
+    return {
+      for (final MapEntry(:key, :value) in (reply ?? const {}).entries)
+        key: (
+          latitude: (value[0]! as num).toDouble(),
+          longitude: (value[1]! as num).toDouble(),
+        ),
+    };
   }
 
   /// Grayscale thumbnails of the photos with MediaStore [ids], fitting in
@@ -161,6 +198,34 @@ final class AndroidPlatformBridge implements PlatformBridge {
       'items': _encode(items),
       'removeLocation': removeLocation,
     });
+  }
+
+  @override
+  Future<bool> openMap(double latitude, double longitude) async {
+    final opened = await _channel.invokeMethod<bool>('openMap', {
+      'latitude': latitude,
+      'longitude': longitude,
+    });
+    return opened ?? false;
+  }
+
+  @override
+  Future<String> saveEditedPhoto(
+    MediaItem photo, {
+    required int width,
+    required int height,
+    required Uint8List rgba,
+  }) async {
+    final id = await _channel.invokeMethod<String>('saveEditedPhoto', {
+      'id': photo.id,
+      'width': width,
+      'height': height,
+      'rgba': rgba,
+    });
+    if (id == null) {
+      throw PlatformException(code: 'failed', message: 'no id returned');
+    }
+    return id;
   }
 
   /// Items as the native side expects them.

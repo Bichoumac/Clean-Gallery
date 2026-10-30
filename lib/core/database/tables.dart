@@ -78,6 +78,10 @@ class Assets extends Table {
   /// version 3.
   RealColumn get brightness => real().nullable()();
 
+  /// Contrast of the photo (standard deviation of its pixels, 0–128), from
+  /// schema version 4: tells hazy photos from blurry ones.
+  RealColumn get contrast => real().nullable()();
+
   /// Burst identifier, shared by all photos of one burst sequence.
   TextColumn get burstId => text().nullable()();
 
@@ -87,11 +91,16 @@ class Assets extends Table {
   /// Whether the item is marked as a favorite in MediaStore.
   BoolColumn get isFavorite => boolean().withDefault(const Constant(false))();
 
-  /// Latitude from EXIF GPS data.
+  /// Latitude from EXIF GPS data (or the video's location), in degrees.
   RealColumn get latitude => real().nullable()();
 
-  /// Longitude from EXIF GPS data.
+  /// Longitude from EXIF GPS data (or the video's location), in degrees.
   RealColumn get longitude => real().nullable()();
+
+  /// Whether the location was read from the file, from schema version 5:
+  /// [latitude] and [longitude] are `null` both before and when the file
+  /// has none.
+  BoolColumn get locationRead => boolean().withDefault(const Constant(false))();
 
   /// Camera model from EXIF data.
   TextColumn get cameraModel => text().nullable()();

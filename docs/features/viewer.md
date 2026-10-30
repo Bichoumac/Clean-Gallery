@@ -2,7 +2,7 @@
 
 Full-screen photo and video viewer, opened from any grid.
 
-Last updated: 2026-10-25 — Milestone M2
+Last updated: 2026-10-29 — Milestone M6
 
 ## Purpose
 
@@ -15,8 +15,21 @@ Show one item at a time, full screen, with swiping between the items of the grid
 3. Pinch, or double-tap, to zoom a photo; double-tap again to fit. Swiping is disabled while zoomed.
 4. Tap once to hide or show the controls and the system bars.
 5. Videos start playing when they become the current page and pause when swiped away. Controls: play/pause/replay, progress bar with seeking, mute, rotate. The progress bar follows the finger and the video seeks when it is lifted.
-6. Top bar actions: **share**, **favorite**, **move to trash** (with *Undo*); after trashing, the next item is shown, and the viewer closes when nothing is left.
+6. The top bar shows the back button, date and file name, and for photos **Scan a document** ([scan.md](scan.md)); after saving, the viewer shows the page. The **actions** are at the bottom, within reach of the thumb (product owner, 2026-10-28): **share**, **favorite**, **edit** (photos only, the [editor](editor.md); after saving, the viewer shows the new photo), **details** (the [info panel](#info-panel)), **move to trash** (with *Undo*); after trashing, the next item is shown, and the viewer closes when nothing is left.
 7. Back returns to the grid.
+8. **A photo in a duplicate group** (identical copies, burst or similar photos): the [group strip](#group-strip) at the bottom.
+
+## Group strip
+
+Asked by the product owner on 2026-10-28: sort a group of duplicates without leaving the photo.
+
+- When the photo shown is in a duplicate group, above the action bar, the bottom of the screen shows *N duplicates · tap to compare* and the group's thumbnails in a row that scrolls sideways, the suggested one first with a lime **Best** pill (the duplicates screen's best pick, see [duplicates.md](duplicates.md)), the photo shown in a lime frame.
+- **Tap a thumbnail**: the viewer shows that photo. A copy outside the grid's list (e.g. a WhatsApp copy while browsing Camera) opens in a viewer of its own, in place of this one.
+- **Trash** (outlined) moves the photo shown to the app trash and shows the next one of the group still to sort; **Keep** (lime) puts a check on it and shows the next one. Going round the group, then staying put once everything is sorted.
+- Trashed photos stay in the strip, dimmed with a trash icon; tapping one restores it. **Undo** (left of the buttons) restores the last one. No snack bar: it would cover the buttons.
+- The strip keeps the group as it was when the viewer reached it, so it stays while its photos go to the trash (a group of one is no longer a group). Swiping to a photo outside the group looks its group up again; kept checks are forgotten then (they are not saved).
+- It hides with the other controls (tap the photo), and is not shown on videos, whose playback controls are at the bottom.
+- An item in a certain group and a similar group shows its certain group (`groupsByItem`, as the stacks of the timelines).
 
 ## Screens and widgets
 
@@ -25,6 +38,8 @@ Show one item at a time, full screen, with swiping between the items of the grid
 | `ViewerScreen` (pages, top bar, system UI) | [viewer_screen.dart](../../lib/features/viewer/viewer_screen.dart) |
 | `ZoomableImage` (photo page) | [zoomable_image.dart](../../lib/features/viewer/zoomable_image.dart) |
 | `VideoPage` and its controls | [video_page.dart](../../lib/features/viewer/video_page.dart) |
+| `InfoPanel`, `showInfoPanel` | [info_panel.dart](../../lib/features/viewer/info_panel.dart) |
+| `GroupStrip` (duplicate group, Keep and Trash) | [group_strip.dart](../../lib/features/viewer/group_strip.dart) |
 
 Route: `/viewer`, above the tabs, with `ViewerArgs(selection, initialIndex)` as `extra` ([app_router.dart](../../lib/core/router/app_router.dart)). Without arguments (e.g. restored after the process was killed), it redirects to Photos.
 
@@ -38,6 +53,20 @@ Route: `/viewer`, above the tabs, with `ViewerArgs(selection, initialIndex)` as 
 - Zoom: own gesture handling ([ADR 0010](../decisions/0010-photo-zoom.md)): one finger swipes between pages at fit scale and pans once zoomed; two fingers zoom. The zoom claims the gesture as soon as the second finger lands: otherwise a pinch whose first finger slid a little first went to the page view and did not zoom (seen on the device on 2026-10-27).
 - The top bar is pinned to the top with its own height: an earlier full-screen overlay swallowed swipes and the video controls.
 
+## Info panel
+
+The brief: "a bottom sheet that slides up with a translucent blurred background over the photo. It shows the date (and its source), file name, path, size, resolution, camera, lens, ISO, aperture, shutter speed, focal length, and GPS location with a mini map."
+
+- Opened with the **details** button (ⓘ) of the top bar; closed by pulling it down, tapping the photo above it, or Back. **Pulling down** works from anywhere on the panel once its content is scrolled to the top: the panel follows the finger, closes past 96 px or on a downward fling, and slides back otherwise (`_PullToDismiss`; the sheet's own drag never got the gesture, which the scroll view took; product owner, 2026-10-28).
+- A modal bottom sheet over a `BackdropFilter` blur (σ 22) and 40 % black (σ 30 and 55 % until 2026-10-28, made more transparent at the product owner's request), at most 90 % of the screen high, scrolling when longer. Its content ends above the system navigation bar: the sheet is drawn edge to edge, and on the device the last rows were hidden under that bar at first (75 % high, no bottom inset; product owner, 2026-10-27).
+- What the index already knows shows at once: date, name, path, resolution and megapixels, size, video duration. The rest is read when the panel opens (`mediaInfoProvider` in [media_info.dart](../../lib/features/viewer/media_info.dart)), with a small spinner until then:
+  - **Date source**, from the media index (`MediaIndexRepository.dateSource`): *From the photo's metadata (EXIF)*, *From the file name*, or *File date* (also when corrected dates are turned off in Settings, since the date shown is then the system's);
+  - **Camera metadata**, from the file's EXIF header (`MediaSource.metadata`, native `mediaMetadata`, [platform-android.md](../platform-android.md#native-channel-clean_galleryplatform)): camera (maker and model, the maker once), lens, then ISO, aperture (`f/1.8`), shutter speed (`1/125 s`) and focal length (`5.4 mm · 24 mm equivalent`) as small tiles;
+  - **Location**, as latitude and longitude with five decimals: tapping it opens the user's map app on that point (a `geo:` intent, `PlatformBridge.openMap`; when no app handles it, the panel closes and a snack bar says so), and a copy button puts the coordinates on the clipboard. Videos only have a location.
+- Missing values are left out. A photo with no camera data at all says *No camera information in this file.*; without the media location permission, the location row says to allow it in Settings (Android hides GPS tags from apps without it).
+- **Quality** (photos): the last row shows the analysis engine's measures on the photo's 256-pixel grayscale thumbnail, read when the panel opens (`photoQualityProvider`): `S 42 · N 180 · B 35 · C 22` for sharpness, relative sharpness, brightness and contrast ([analysis-engine.md](../analysis-engine.md#blurry-and-dark-photos)), and under it whether the photo is offered as blurry or too dark. Asked by the product owner after the blur calibration, to check the thresholds on real photos.
+- **Mini map** (M6, with the map brought forward): below the coordinates, a still OpenStreetMap map of the point with a lime dot; tapping it opens the app's map there ([map.md](map.md)). Its tiles need the network; without it the dot shows on a grey background.
+
 ## Edge cases and error handling
 
 - **Unreadable file or video**: "This item can't be displayed." on that page; other pages still work.
@@ -50,11 +79,12 @@ Route: `/viewer`, above the tabs, with `ViewerArgs(selection, initialIndex)` as 
 
 - [library_test.dart](../../test/features/library/library_test.dart): opening the viewer on the tapped item, showing its file name, closing with back.
 - [viewer_test.dart](../../test/features/viewer/viewer_test.dart): swipe left and right (fling and slow drag), pinch then pan without changing page, double-tap back to fit, top bar height.
+- [info_panel_test.dart](../../test/features/viewer/info_panel_test.dart): pulling the panel down closes it, a short slow pull does not, the panel with camera settings and location, the location reached at the end and opening a map, the notes for missing camera data and location permission, the quality row, value formats.
+- [group_strip_test.dart](../../test/features/viewer/group_strip_test.dart): the strip of a grouped photo with its Best pill, none outside a group, a thumbnail showing its photo, Trash then Undo, Keep.
 - [video_controls_test.dart](../../test/features/viewer/video_controls_test.dart): progress bar at the bottom and play button centered, in portrait and landscape (the bar was in the middle of the screen because `Slider` takes all the height it is given).
 - Video playback, zoom gestures and Hero transitions are checked on a device ([testing.md](../testing.md#m1--to-verify-on-a-device)).
 
 ## Known limitations / future work
 
-- Edit and the info panel come in M6.
-- The info panel with EXIF data and a mini map comes in M6.
+- Edit comes later in M6.
 - Zoom is limited to 5× and to the 4,096 px decoded image.

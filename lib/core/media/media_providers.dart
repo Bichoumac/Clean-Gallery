@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/media_index.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/settings/app_settings.dart';
@@ -47,6 +48,13 @@ class MediaList extends _$MediaList {
       mediaIndexProvider.select((s) => s.revision),
       (_, _) => unawaited(_reload()),
     );
+    // Sorted by duplicates: new groups change the order.
+    if (selection.sort.field == MediaSortField.duplicates) {
+      ref.listen(
+        duplicateScanProvider.select((s) => s.revision),
+        (_, _) => unawaited(_reload()),
+      );
+    }
     final generation = ++_generation;
     final first = await ref
         .watch(mediaIndexRepositoryProvider)

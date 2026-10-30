@@ -1,9 +1,12 @@
 import 'package:clean_gallery/domain/enums.dart';
+import 'package:clean_gallery/domain/geo.dart';
 import 'package:clean_gallery/domain/gray_image.dart';
 import 'package:clean_gallery/domain/media_item.dart';
+import 'package:clean_gallery/domain/media_metadata.dart';
 import 'package:clean_gallery/platform/android/android_platform_bridge.dart';
 import 'package:clean_gallery/platform/android/media_image_providers.dart';
 import 'package:clean_gallery/platform/media_source.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:photo_manager/photo_manager.dart';
 
@@ -49,6 +52,33 @@ final class AndroidMediaSource implements MediaSource {
     List<MediaItem> photos, {
     required int side,
   }) => _bridge.grayThumbnails([for (final p in photos) p.id], side: side);
+
+  @override
+  Future<Map<String, GeoPoint>> locations(List<MediaItem> items) =>
+      _bridge.locations(items);
+
+  @override
+  Future<MediaMetadata> metadata(MediaItem item) async {
+    final Map<String, Object?> row;
+    try {
+      row = await _bridge.mediaMetadata(item.id, video: item.isVideo);
+    } on PlatformException {
+      return MediaMetadata.empty;
+    }
+    double? number(String key) => (row[key] as num?)?.toDouble();
+    return MediaMetadata(
+      make: row['make'] as String?,
+      model: row['model'] as String?,
+      lens: row['lens'] as String?,
+      iso: row['iso'] as int?,
+      aperture: number('aperture'),
+      exposure: number('exposure'),
+      focalLength: number('focalLength'),
+      focalLength35: number('focalLength35'),
+      latitude: number('latitude'),
+      longitude: number('longitude'),
+    );
+  }
 
   /// An item from one map of [AndroidPlatformBridge.mediaDetails].
   static IndexedMedia _toIndexed(Map<String, Object?> row) {

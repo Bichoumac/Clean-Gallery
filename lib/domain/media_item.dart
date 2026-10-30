@@ -55,6 +55,10 @@ abstract class MediaItem with _$MediaItem {
     /// Laplacian on a thumbnail), higher is sharper; `null` until measured
     /// and for videos.
     double? sharpness,
+
+    /// Contrast measured with [sharpness] (standard deviation of the
+    /// pixels); tells hazy photos from blurry ones. `null` until measured.
+    double? contrast,
   }) = _MediaItem;
 
   const MediaItem._();

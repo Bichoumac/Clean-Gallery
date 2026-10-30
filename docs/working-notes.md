@@ -2,19 +2,18 @@
 
 How the product owner and the AI assistant work together on Clean Gallery, the constraints of the development machine, and where to pick up. Read it at the start of every session, after [AGENTS.md](../AGENTS.md).
 
-Last updated: 2026-10-27 — Milestone M5
+Last updated: 2026-10-29 — Milestone M6
 
 ## Where to pick up
 
-- The milestone status lives in [progress.md](progress.md); this section only says what to do first.
-- End of 2026-10-27: M0 to M3 are merged into `main` (M3 as PR #4). M4 is on branch `m4-similar` (committed locally, not pushed).
-- **M4 device tests (2026-10-27)**: the first found no similar groups; after the fixes (commit `d07c2fd`) the second confirmed similar groups, progress, resume, Not duplicates, sensitivity and Stats rows. Decisions A (multi-index hashing, ADR 0019) and B (keep the pre-selection) are approved. Results in [testing.md](testing.md#m4--similar-photos-and-stats-to-verify-on-a-device).
-- **Chips on the duplicates screen** (All, Identical copies, Bursts, Similar photos) added at the product owner's request, Stats split the same way; to check on the phone.
-- **Checked on 2026-10-27**: chips clearer, WhatsApp copy grouped with its original marked Best, cleaning from Stats, viewer sharp at once (previews now decoded from the file: MediaStore's cache stops at 512 px on this phone). Then pinch zoom, items 9, 10 and 13 (*Analyze the library again*): the whole M4 checklist is confirmed.
-- **Measuring on the phone**: the product owner allowed reading `logcat` lines that hold only durations and sizes, logged under one tag by temporary code that is never committed. Ask again for each new measurement.
-- **Product owner's request**: stack similar photos in the timelines, later (M5 or after).
-- M4 merged into `main` (PR #5) on 2026-10-27, after a CI fix (the runner's disk was full; the build job now frees space first).
-- **M5 on branch `m5-cleaning`**, in three parts tested one by one on the phone: 1. old screenshots and large videos (confirmed on the phone); 2. blurry and dark photos, one pass on 256-pixel thumbnails (product owner's choice; done, to test); 3. swipe mode, oldest first (product owner's choice; done, to test). On 2026-10-27 the product owner asked to build the rest of M5 in one go, push, and send one report of what to test. See [progress.md](progress.md#m5--cleanup).
+Quick resume (keep this short; history is in [progress.md](progress.md) and git):
+
+- **M6 is in a pull request** from branch `m6-viewer` (pushed 2026-10-29; description in the PR). First ask whether it was reviewed and merged; if merged, start from `main`.
+- **Everything built in M6 is confirmed on the Galaxy A54** (items 1 to 64 of [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device)): info panel with mini map, stacks of duplicates in the timelines, map (brought forward from M7), viewer group strip (Keep / Trash), sorts by number of duplicates, viewer actions at the bottom, editor ([editor.md](features/editor.md)), document scanner ([scan.md](features/scan.md)).
+- **Left from M6**: filters (about ten presets, each a color matrix composed with the adjustments, with thumbnails). Not wanted for now: batch editing; scanner camera capture.
+- **Next milestones**: M7 search (the map is done), M8 monetization, M9 polish ([progress.md](progress.md)).
+- **Key design points to keep**: one paint function (`paintEdit`, `paintPage`) for preview and saving; the native side only writes JPEG + EXIF (`PhotoSaver.kt`); every delete through the app trash; pure Dart in `lib/analysis/` and `lib/domain/`; on the phone (Impeller), avoid blend-mode masks in layers, use clips (blur bug of 2026-10-29).
+- **Commands that save tokens**: run tests to a file and read only the summary (`flutter test --timeout 60s > <scratchpad>/t.log 2>&1; tail -1 …`; piping into `grep` hides progress until the end); widget tests that decode images need `tester.runAsync` (see `waitUntil` in [scan_test.dart](../test/features/scan/scan_test.dart)); never `pkill -f` a pattern that appears in your own command line; `gh` is installed but not logged in: give the `pull/new/<branch>` link.
 
 ## Working with the product owner
 

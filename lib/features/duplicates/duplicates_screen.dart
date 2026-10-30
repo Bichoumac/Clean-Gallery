@@ -51,6 +51,10 @@ class _DuplicatesScreenState extends ConsumerState<DuplicatesScreen> {
   /// The kind of groups shown, or `null` for all of them.
   late DuplicateKind? _kind = widget.kind;
 
+  /// Whether the groups with the most items come first, rather than the
+  /// newest.
+  bool _largestFirst = false;
+
   MediaSelection get scope => widget.scope;
 
   @override
@@ -69,6 +73,14 @@ class _DuplicatesScreenState extends ConsumerState<DuplicatesScreen> {
       for (final group in all)
         if (_kind == null || group.kind == _kind) group,
     ];
+    if (_largestFirst) {
+      // Groups of one size stay newest first.
+      final order = {for (final (i, g) in shown.indexed) g.id: i};
+      shown.sort((a, b) {
+        final bySize = b.items.length.compareTo(a.items.length);
+        return bySize != 0 ? bySize : order[a.id]!.compareTo(order[b.id]!);
+      });
+    }
     // An item can be in a certain group and a similar group: count it once.
     final picked = {
       for (final group in shown)
@@ -82,6 +94,26 @@ class _DuplicatesScreenState extends ConsumerState<DuplicatesScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(l10n.duplicatesTitle),
+        actions: [
+          PopupMenuButton<bool>(
+            tooltip: l10n.sortTitle,
+            icon: const Icon(Icons.sort_rounded),
+            initialValue: _largestFirst,
+            onSelected: (value) => setState(() => _largestFirst = value),
+            itemBuilder: (context) => [
+              CheckedPopupMenuItem(
+                value: false,
+                checked: !_largestFirst,
+                child: Text(l10n.sortNewest),
+              ),
+              CheckedPopupMenuItem(
+                value: true,
+                checked: _largestFirst,
+                child: Text(l10n.sortMostDuplicates),
+              ),
+            ],
+          ),
+        ],
         bottom: scanning
             ? PreferredSize(
                 preferredSize: const Size.fromHeight(2),
@@ -437,7 +469,8 @@ class _Member extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text('${item.width} × ${item.height}', style: details),
-          if (item.sharpness case final sharpness? when sharpness < blurryBelow)
+          if (item.sharpness case final sharpness?
+              when isBlurry(sharpness: sharpness, contrast: item.contrast))
             Text(
               l10n.duplicatesBlurry,
               style: details?.copyWith(color: colors.error),

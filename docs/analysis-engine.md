@@ -189,10 +189,12 @@ Photos out of focus, shaken, or too dark to show anything (a pocket shot, a cove
 | --- | --- | --- | --- |
 | Sharpness | Variance of the 4-neighbour Laplacian over the inner pixels of the 256-pixel grayscale thumbnail | `blur_score` | 30 |
 | Brightness | Mean of the thumbnail's pixels, 0 to 255 | `brightness` | 20 |
+| Contrast | Standard deviation of the thumbnail's pixels | `contrast` | Not a rule by itself: see relative sharpness |
 
 - Measured in the same isolate call as the perceptual hashes (`analyzePhoto`), so no photo is read twice; a photo without a readable thumbnail is not measured and never offered.
 - Screenshots are left out: flat backgrounds would look blurry.
-- **Thresholds**: a thumbnail is much sharper than its full-size photo, so the usual thresholds (around 100 at full size) do not apply. On the synthetic test photos ([photo_set.dart](../test/analysis/photo_set.dart)), sharp scenes score 54 to 250, recompressed ones included, and the same scenes blurred by 0.6 % of their width 7 to 19; 30 sits between. To check on real photos: a flat scene (sky, fog, a wall) can score low without being blurry.
+- **Thresholds**: a thumbnail is much sharper than its full-size photo, so the usual thresholds (around 100 at full size) do not apply. On the synthetic test photos ([photo_set.dart](../test/analysis/photo_set.dart)), sharp scenes score 54 to 250, recompressed ones included, and the same scenes blurred by 0.6 % of their width 7 to 19; 30 sits between. On real photos, hazy scenes scored low without being blurry: hence the relative sharpness below.
+- **Hazy is not blurry** (M6, [ADR 0021](decisions/0021-hazy-photos-are-not-blurry.md)): mist, fog or a night scene lower the contrast of the whole photo and with it the sharpness. A photo is blurry only when its sharpness is below 30 **and** its relative sharpness (sharpness × 1000 / contrast²) is below 150: contrast changes both alike, blur only the sharpness. On the product owner's phone, hazy night photos with lights score 150 and more. Without a measured contrast, the sharpness alone decides.
 - Sharpness also refines the [best pick](#best-pick).
 
 ## Best pick

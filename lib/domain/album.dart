@@ -1,3 +1,4 @@
+import 'package:clean_gallery/domain/geo.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
@@ -45,6 +46,11 @@ enum MediaSortField {
 
   /// Video length. Photos count as zero.
   duration,
+
+  /// Number of items in the item's duplicate group, items of one group
+  /// next to each other; items without duplicates come last (first in
+  /// ascending order).
+  duplicates,
 }
 
 /// Sort order of a media list.
@@ -119,6 +125,9 @@ abstract class MediaSelection with _$MediaSelection {
 
     /// Only items of at least this many bytes, e.g. large videos.
     int? minSizeBytes,
+
+    /// Only items taken in this area, e.g. a cluster of the map.
+    GeoArea? area,
   }) = _MediaSelection;
 
   /// Every photo, newest first.

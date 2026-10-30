@@ -84,6 +84,7 @@ String sortLabel(BuildContext context, MediaSort sort) {
     MediaSortField.name => l10n.sortName,
     MediaSortField.size => l10n.sortSize,
     MediaSortField.duration => l10n.sortDuration,
+    MediaSortField.duplicates => l10n.sortDuplicates,
   };
   final direction = _directionLabel(
     l10n,
@@ -107,6 +108,8 @@ String _directionLabel(
   (MediaSortField.size, false) => l10n.sortSmallest,
   (MediaSortField.duration, true) => l10n.sortLongest,
   (MediaSortField.duration, false) => l10n.sortShortest,
+  (MediaSortField.duplicates, true) => l10n.sortMostDuplicates,
+  (MediaSortField.duplicates, false) => l10n.sortFewestDuplicates,
 };
 
 /// Opens the sort and date filter sheet for the timeline of [base].
@@ -150,6 +153,7 @@ class SortFilterSheet extends ConsumerWidget {
           base.filter != MediaFilter.screenshots &&
           base.filter != MediaFilter.poorQuality)
         MediaSortField.duration,
+      MediaSortField.duplicates,
     ];
     String direction({required bool descending}) =>
         _directionLabel(l10n, sort.field, descending: descending);
@@ -173,7 +177,8 @@ class SortFilterSheet extends ConsumerWidget {
     }
 
     return SafeArea(
-      child: Padding(
+      // Scrolls when the sort chips wrap onto more lines (large text).
+      child: SingleChildScrollView(
         padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -202,6 +207,7 @@ class SortFilterSheet extends ConsumerWidget {
                       MediaSortField.name => l10n.sortName,
                       MediaSortField.size => l10n.sortSize,
                       MediaSortField.duration => l10n.sortDuration,
+                      MediaSortField.duplicates => l10n.sortDuplicates,
                     }),
                     selected: sort.field == field,
                     onSelected: (_) => notifier.setSort(

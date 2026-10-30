@@ -1,14 +1,18 @@
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/enums.dart';
+import 'package:clean_gallery/domain/geo.dart';
 import 'package:clean_gallery/domain/gray_image.dart';
 import 'package:clean_gallery/domain/media_item.dart';
+import 'package:clean_gallery/domain/media_metadata.dart';
 import 'package:clean_gallery/platform/media_source.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
 import 'package:clean_gallery/platform/platform_bridge.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:image/image.dart' as img;
 
 /// Opens a fresh in-memory database for one test.
 AppDatabase inMemoryDatabase() => AppDatabase(NativeDatabase.memory());
@@ -48,7 +52,7 @@ class FakePermissionService implements PermissionService {
   @override
   Future<bool> requestLocationAccess() async {
     locationRequests++;
-    return true;
+    return locationGranted = true;
   }
 
   @override
@@ -84,6 +88,25 @@ class FakePlatformBridge implements PlatformBridge {
   /// Share requests, as `(ids, removeLocation)`.
   final shareRequests = <(List<String>, bool)>[];
 
+  /// Edited photos saved, as `(photo id, width, height)`.
+  final savedEdits = <(String, int, int)>[];
+
+  /// Called by [saveEditedPhoto] to make the new photo (e.g. add it to a
+  /// [FakeMediaSource]); returns its id. Defaults to `'saved'`.
+  String Function(MediaItem photo)? onSaveEdit;
+
+  @override
+  Future<String> saveEditedPhoto(
+    MediaItem photo, {
+    required int width,
+    required int height,
+    required Uint8List rgba,
+  }) async {
+    assert(rgba.length == width * height * 4, 'one RGBA pixel each');
+    savedEdits.add((photo.id, width, height));
+    return onSaveEdit?.call(photo) ?? 'saved';
+  }
+
   @override
   Future<bool> setFavorite(
     List<MediaItem> items, {
@@ -105,6 +128,15 @@ class FakePlatformBridge implements PlatformBridge {
     required bool removeLocation,
   }) async {
     shareRequests.add(([for (final i in items) i.id], removeLocation));
+  }
+
+  /// Locations passed to [openMap].
+  final mapRequests = <(double, double)>[];
+
+  @override
+  Future<bool> openMap(double latitude, double longitude) async {
+    mapRequests.add((latitude, longitude));
+    return true;
   }
 }
 
@@ -236,6 +268,25 @@ class FakeMediaSource implements MediaSource {
     return {for (final photo in photos) photo.id: ?grayImages[photo.id]};
   }
 
+  /// Metadata of items by id; items not listed have none.
+  final metadatas = <String, MediaMetadata>{};
+
+  @override
+  Future<MediaMetadata> metadata(MediaItem item) async =>
+      metadatas[item.id] ?? MediaMetadata.empty;
+
+  /// Location of items by id, as read by [locations]; others have none.
+  final positions = <String, GeoPoint>{};
+
+  /// Ids passed to [locations], per call.
+  final locationCalls = <List<String>>[];
+
+  @override
+  Future<Map<String, GeoPoint>> locations(List<MediaItem> items) async {
+    locationCalls.add([for (final item in items) item.id]);
+    return {for (final item in items) item.id: ?positions[item.id]};
+  }
+
   IndexedMedia _indexed(MediaItem item) {
     final folder = folders.where(
       (f) => folderItems[f.id]?.any((i) => i.id == item.id) ?? false,
@@ -263,4 +314,16 @@ class FakeMediaSource implements MediaSource {
 
   @override
   Future<Uri?> videoUri(MediaItem item) async => null;
+}
+
+/// Map tiles that are all blank, so tests never reach the network.
+class BlankTileProvider extends TileProvider {
+  /// A transparent 1 × 1 PNG.
+  static final _blank = MemoryImage(
+    img.encodePng(img.Image(width: 1, height: 1, numChannels: 4)),
+  );
+
+  @override
+  ImageProvider getImage(TileCoordinates coordinates, TileLayer options) =>
+      _blank;
 }

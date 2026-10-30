@@ -1,13 +1,19 @@
 import 'package:clean_gallery/core/router/home_shell.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/enums.dart';
+import 'package:clean_gallery/domain/geo.dart';
+import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/features/cleanup/cleanup_list_screen.dart';
 import 'package:clean_gallery/features/cleanup/cleanup_lists.dart';
 import 'package:clean_gallery/features/duplicates/duplicates_screen.dart';
+import 'package:clean_gallery/features/editor/editor_screen.dart';
 import 'package:clean_gallery/features/library/albums_screen.dart';
 import 'package:clean_gallery/features/library/media_timeline_view.dart';
+import 'package:clean_gallery/features/map/map_area_screen.dart';
+import 'package:clean_gallery/features/map/map_screen.dart';
 import 'package:clean_gallery/features/onboarding/onboarding_controller.dart';
 import 'package:clean_gallery/features/onboarding/onboarding_screen.dart';
+import 'package:clean_gallery/features/scan/scan_screen.dart';
 import 'package:clean_gallery/features/settings/settings_screen.dart';
 import 'package:clean_gallery/features/stats/stats_screen.dart';
 import 'package:clean_gallery/features/swipe/swipe_screen.dart';
@@ -51,6 +57,22 @@ abstract final class AppRoutes {
 
   /// A swipe session, above the tabs: `/swipe?source=<key>&name=<title>`.
   static const swipe = '/swipe';
+
+  /// The map of located items, above the tabs. Takes an optional `GeoPoint`
+  /// to open on as `extra`.
+  static const map = '/map';
+
+  /// The items of one cluster of the map. Requires its `GeoArea` as
+  /// `extra`.
+  static const mapArea = '/map/area';
+
+  /// The photo editor, above the tabs. Requires the photo (`MediaItem`) as
+  /// `extra`.
+  static const editor = '/editor';
+
+  /// The document scanner, above the tabs. Requires the photo
+  /// (`MediaItem`) as `extra`.
+  static const scan = '/scan';
 }
 
 /// Album pages under the Albums tab: `/albums/<key>?name=<title>`.
@@ -145,6 +167,15 @@ GoRouter appRouter(Ref ref) {
           state.extra is! MediaSelection) {
         return AppRoutes.camera;
       }
+      if ((state.matchedLocation == AppRoutes.editor ||
+              state.matchedLocation == AppRoutes.scan) &&
+          state.extra is! MediaItem) {
+        return AppRoutes.camera;
+      }
+      if (state.matchedLocation == AppRoutes.mapArea &&
+          state.extra is! GeoArea) {
+        return AppRoutes.map;
+      }
       if (state.matchedLocation == AppRoutes.swipe &&
           SwipeSource.parse(state.uri.queryParameters['source'] ?? '') ==
               null) {
@@ -174,15 +205,39 @@ GoRouter appRouter(Ref ref) {
         ),
       ),
       GoRoute(
+        path: AppRoutes.editor,
+        builder: (context, state) =>
+            EditorScreen(photo: state.extra! as MediaItem),
+      ),
+      GoRoute(
+        path: AppRoutes.scan,
+        builder: (context, state) =>
+            ScanScreen(photo: state.extra! as MediaItem),
+      ),
+      GoRoute(
+        path: AppRoutes.map,
+        builder: (context, state) => MapScreen(
+          center: state.extra is GeoPoint ? state.extra! as GeoPoint : null,
+        ),
+        routes: [
+          GoRoute(
+            path: 'area',
+            builder: (context, state) =>
+                MapAreaScreen(area: state.extra! as GeoArea),
+          ),
+        ],
+      ),
+      GoRoute(
         path: AppRoutes.swipe,
         builder: (context, state) => SwipeScreen(
           source: SwipeSource.parse(state.uri.queryParameters['source']!)!,
           title: state.uri.queryParameters['name'] ?? '',
         ),
       ),
-      StatefulShellRoute.indexedStack(
+      StatefulShellRoute(
         builder: (context, state, navigationShell) =>
             HomeShell(navigationShell: navigationShell),
+        navigatorContainerBuilder: _branchContainer,
         // Order must match the destinations of HomeShell.
         branches: [
           _branch(
@@ -285,6 +340,32 @@ StatefulShellBranch _branch(
         builder: (context, state) =>
             page(context, AppLocalizations.of(context)),
       ),
+    ],
+  );
+}
+
+/// The tabs' navigators in an [IndexedStack], as
+/// `StatefulShellRoute.indexedStack` does, with the heroes of hidden tabs
+/// turned off: the Camera tab and an album page can show the same item, and
+/// two heroes with one tag in the shell break the flight to the viewer or
+/// the duplicates screen.
+Widget _branchContainer(
+  BuildContext context,
+  StatefulNavigationShell navigationShell,
+  List<Widget> children,
+) {
+  final current = navigationShell.currentIndex;
+  return IndexedStack(
+    index: current,
+    children: [
+      for (final (index, child) in children.indexed)
+        Offstage(
+          offstage: index != current,
+          child: TickerMode(
+            enabled: index == current,
+            child: HeroMode(enabled: index == current, child: child),
+          ),
+        ),
     ],
   );
 }

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:clean_gallery/core/media/duplicates.dart';
+import 'package:clean_gallery/core/media/location_scan.dart';
 import 'package:clean_gallery/core/media/media_index.dart';
 import 'package:clean_gallery/core/media/selection_bar.dart';
 import 'package:clean_gallery/core/router/compact_nav_bar.dart';
@@ -53,10 +54,13 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     unawaited(offerExpiredTrashPurge(context, ref));
   }
 
-  /// Syncs the media index, then looks for new exact duplicates.
+  /// Syncs the media index, then reads new locations and looks for new
+  /// duplicates, side by side (on separate native threads).
   Future<void> _syncAndScan() async {
     await ref.read(mediaIndexProvider.notifier).sync();
-    if (mounted) await ref.read(duplicateScanProvider.notifier).run();
+    if (!mounted) return;
+    unawaited(ref.read(locationScanProvider.notifier).run());
+    await ref.read(duplicateScanProvider.notifier).run();
   }
 
   @override

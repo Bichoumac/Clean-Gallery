@@ -7,19 +7,27 @@ import 'package:clean_gallery/core/media/media_providers.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/core/theme/app_theme.dart';
+import 'package:clean_gallery/domain/album.dart';
+import 'package:clean_gallery/domain/duplicate_group.dart';
 import 'package:clean_gallery/domain/media_item.dart';
+import 'package:clean_gallery/features/viewer/group_strip.dart';
+import 'package:clean_gallery/features/viewer/info_panel.dart';
 import 'package:clean_gallery/features/viewer/video_page.dart';
 import 'package:clean_gallery/features/viewer/zoomable_image.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 /// Full-screen viewer: swipe between the items of a selection.
 ///
 /// Opened from a grid with [ViewerArgs]; reads the same media list as the
 /// grid, so no item is loaded twice. Tapping toggles the controls and the
 /// system bars. Always dark, whatever the app theme, so photos stand out.
+///
+/// When the item shown is in a duplicate group, a [GroupStrip] at the
+/// bottom shows the group and sorts it photo by photo (keep or trash).
 class ViewerScreen extends ConsumerStatefulWidget {
   /// Creates the viewer.
   const ViewerScreen({required this.args, super.key});
@@ -41,6 +49,24 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
 
   /// Read in [initState]: `ref` cannot be used in [dispose].
   late final DuplicateScan _scan;
+
+  /// Duplicate group shown in the strip, as when the viewer reached it, so
+  /// it stays while its items go to the trash.
+  DuplicateGroup? _group;
+
+  /// Id of the item [_group] was looked up for; `null` to look it up again
+  /// for the item shown.
+  String? _groupFor;
+
+  /// Ids kept and trashed from the strip in [_group], and the items
+  /// trashed, last one last, for Undo.
+  Set<String> _kept = {};
+  Set<String> _trashed = {};
+  List<MediaItem> _trashLog = [];
+
+  /// Id of the item to show once the list is updated (after a trash or an
+  /// undo), or `null`.
+  String? _pendingTarget;
 
   @override
   void initState() {
@@ -85,6 +111,78 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
     }
   }
 
+  /// Shows [item]: its page when it is in the list, or a viewer of its own
+  /// otherwise (a copy in another folder than the grid's).
+  void _open(MediaItem item, List<MediaItem> items) {
+    final i = items.indexWhere((it) => it.id == item.id);
+    if (i >= 0) {
+      _pages.jumpToPage(i);
+      return;
+    }
+    context.pushReplacement(
+      AppRoutes.viewer,
+      extra: ViewerArgs(
+        selection: MediaSelection(ids: [item.id]),
+        initialIndex: 0,
+      ),
+    );
+  }
+
+  /// The item of [_group] after [current] still to sort (neither kept nor
+  /// trashed), going round the group, or `null` when there is none.
+  MediaItem? _nextToSort(String current) {
+    final members = _group?.items ?? const <MediaItem>[];
+    final start = members.indexWhere((m) => m.id == current);
+    for (var step = 1; step < members.length; step++) {
+      final member = members[(start + step) % members.length];
+      if (!_kept.contains(member.id) && !_trashed.contains(member.id)) {
+        return member;
+      }
+    }
+    return null;
+  }
+
+  void _keep(MediaItem item, List<MediaItem> items) {
+    unawaited(HapticFeedback.selectionClick());
+    setState(() => _kept = {..._kept, item.id});
+    if (_nextToSort(item.id) case final next?) _open(next, items);
+  }
+
+  Future<void> _trash(MediaItem item) async {
+    unawaited(HapticFeedback.selectionClick());
+    setState(() {
+      _trashed = {..._trashed, item.id};
+      _kept = {..._kept}..remove(item.id);
+      _trashLog = [..._trashLog, item];
+      _pendingTarget = _nextToSort(item.id)?.id;
+    });
+    await ref.read(mediaActionsProvider).trash([item]);
+  }
+
+  Future<void> _restore(MediaItem item) async {
+    setState(() {
+      _trashed = {..._trashed}..remove(item.id);
+      _trashLog = [
+        for (final i in _trashLog)
+          if (i.id != item.id) i,
+      ];
+      _pendingTarget = item.id;
+    });
+    await ref.read(mediaActionsProvider).restore([item.id]);
+  }
+
+  /// Opens the document scanner on [photo], then shows the page it saved.
+  Future<void> _scanDocument(MediaItem photo) async {
+    final saved = await context.push<String>(AppRoutes.scan, extra: photo);
+    if (saved != null && mounted) setState(() => _pendingTarget = saved);
+  }
+
+  /// Opens the editor on [photo], then shows the photo it saved.
+  Future<void> _edit(MediaItem photo) async {
+    final saved = await context.push<String>(AppRoutes.editor, extra: photo);
+    if (saved != null && mounted) setState(() => _pendingTarget = saved);
+  }
+
   void _toggleControls() {
     setState(() => _controlsVisible = !_controlsVisible);
     unawaited(
@@ -112,6 +210,30 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
         if (mounted) Navigator.of(context).maybePop();
       });
     }
+    final groups = ref.watch(libraryGroupsByItemProvider).value;
+    if (_groupFor == null && groups != null && items.isNotEmpty) {
+      final current = items[index];
+      _group = groups[current.id];
+      _groupFor = current.id;
+      _kept = {};
+      _trashed = {};
+      _trashLog = [];
+    }
+    if (_pendingTarget case final target?) {
+      final i = items.indexWhere((it) => it.id == target);
+      if (i >= 0) {
+        _pendingTarget = null;
+        if (i != index) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted && _pages.hasClients) _pages.jumpToPage(i);
+          });
+        }
+      }
+    }
+    final group = _group;
+    final shown = items.isEmpty ? null : items[index];
+    final inGroup =
+        shown != null && (group?.items.any((m) => m.id == shown.id) ?? false);
     if (!_precachedInitial && items.isNotEmpty) {
       _precachedInitial = true;
       WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -139,6 +261,12 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
                         setState(() {
                           _index = i;
                           _zoomed = false;
+                          // Within the group the strip stays; elsewhere the
+                          // group of the new item is looked up.
+                          final inStrip =
+                              _group?.items.any((m) => m.id == items[i].id) ??
+                              false;
+                          _groupFor = inStrip ? items[i].id : null;
                         });
                         unawaited(_precacheNeighbors(items, i));
                       },
@@ -151,6 +279,7 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
                                 isCurrent: i == index,
                                 controlsVisible: _controlsVisible,
                                 onTap: _toggleControls,
+                                bottomInset: _actionBarHeight,
                               )
                             : ZoomableImage(
                                 key: ValueKey(item.id),
@@ -172,7 +301,66 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
                         child: AnimatedOpacity(
                           opacity: _controlsVisible ? 1 : 0,
                           duration: const Duration(milliseconds: 200),
-                          child: _TopBar(item: items[index]),
+                          child: _TopBar(
+                            item: items[index],
+                            onScan: () => _scanDocument(items[index]),
+                          ),
+                        ),
+                      ),
+                    ),
+                    // The group strip, then the actions, pinned to the
+                    // bottom with their own height like the top bar.
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 0,
+                      child: IgnorePointer(
+                        ignoring: !_controlsVisible,
+                        child: AnimatedOpacity(
+                          opacity: _controlsVisible ? 1 : 0,
+                          duration: const Duration(milliseconds: 200),
+                          child: DecoratedBox(
+                            decoration: const BoxDecoration(
+                              gradient: LinearGradient(
+                                begin: Alignment.bottomCenter,
+                                end: Alignment.topCenter,
+                                colors: [Colors.black54, Colors.transparent],
+                              ),
+                            ),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                // Not over a video's playback controls.
+                                if (group != null &&
+                                    shown != null &&
+                                    !shown.isVideo)
+                                  GroupStrip(
+                                    group: group,
+                                    current: inGroup ? shown.id : '',
+                                    kept: _kept,
+                                    trashed: _trashed,
+                                    onOpen: (item) => _open(item, items),
+                                    onRestore: (item) =>
+                                        unawaited(_restore(item)),
+                                    onKeep: inGroup
+                                        ? () => _keep(shown, items)
+                                        : null,
+                                    onTrash: inGroup
+                                        ? () => unawaited(_trash(shown))
+                                        : null,
+                                    onUndo: _trashLog.isEmpty
+                                        ? null
+                                        : () => unawaited(
+                                            _restore(_trashLog.last),
+                                          ),
+                                  ),
+                                _ActionBar(
+                                  item: items[index],
+                                  onEdit: () => _edit(items[index]),
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
                     ),
@@ -184,17 +372,16 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
   }
 }
 
-/// Back button, date and file name over a dark gradient.
-/// Back button, date and file name, and the actions on the current item:
-/// share, favorite, move to trash. Edit and info come in M6.
-class _TopBar extends ConsumerWidget {
-  const _TopBar({required this.item});
+/// Back button, date and file name over a dark gradient. The actions are
+/// in the [_ActionBar] at the bottom.
+class _TopBar extends StatelessWidget {
+  const _TopBar({required this.item, required this.onScan});
 
   final MediaItem item;
+  final VoidCallback onScan;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final fileName = item.fileName;
     return DecoratedBox(
@@ -236,32 +423,80 @@ class _TopBar extends ConsumerWidget {
                   ],
                 ),
               ),
-              IconButton(
-                tooltip: l10n.actionShare,
-                color: Colors.white,
-                onPressed: () => shareWithOptions(context, ref, [item]),
-                icon: const Icon(Icons.share_rounded),
-              ),
-              IconButton(
-                tooltip: item.isFavorite
-                    ? l10n.actionUnfavorite
-                    : l10n.actionFavorite,
-                color: Colors.white,
-                onPressed: () => toggleFavorite(context, ref, [item]),
-                icon: Icon(
-                  item.isFavorite
-                      ? Icons.favorite_rounded
-                      : Icons.favorite_border_rounded,
+              if (!item.isVideo)
+                IconButton(
+                  tooltip: AppLocalizations.of(context).scanAction,
+                  color: Colors.white,
+                  onPressed: onScan,
+                  icon: const Icon(Icons.document_scanner_outlined),
                 ),
-              ),
-              IconButton(
-                tooltip: l10n.actionTrash,
-                color: Colors.white,
-                onPressed: () => trashWithUndo(context, ref, [item]),
-                icon: const Icon(Icons.delete_outline_rounded),
-              ),
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+/// Height of the [_ActionBar], above the system navigation bar.
+const _actionBarHeight = 64.0;
+
+/// The actions on the item shown, at the bottom of the screen within reach
+/// of the thumb: share, favorite, edit (photos), details, move to trash.
+class _ActionBar extends ConsumerWidget {
+  const _ActionBar({required this.item, required this.onEdit});
+
+  final MediaItem item;
+  final VoidCallback onEdit;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    return SafeArea(
+      top: false,
+      child: SizedBox(
+        height: _actionBarHeight,
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            IconButton(
+              tooltip: l10n.actionShare,
+              color: Colors.white,
+              onPressed: () => shareWithOptions(context, ref, [item]),
+              icon: const Icon(Icons.share_rounded),
+            ),
+            IconButton(
+              tooltip: item.isFavorite
+                  ? l10n.actionUnfavorite
+                  : l10n.actionFavorite,
+              color: Colors.white,
+              onPressed: () => toggleFavorite(context, ref, [item]),
+              icon: Icon(
+                item.isFavorite
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
+              ),
+            ),
+            if (!item.isVideo)
+              IconButton(
+                tooltip: l10n.actionEdit,
+                color: Colors.white,
+                onPressed: onEdit,
+                icon: const Icon(Icons.tune_rounded),
+              ),
+            IconButton(
+              tooltip: l10n.actionInfo,
+              color: Colors.white,
+              onPressed: () => showInfoPanel(context, item),
+              icon: const Icon(Icons.info_outline_rounded),
+            ),
+            IconButton(
+              tooltip: l10n.actionTrash,
+              color: Colors.white,
+              onPressed: () => trashWithUndo(context, ref, [item]),
+              icon: const Icon(Icons.delete_outline_rounded),
+            ),
+          ],
         ),
       ),
     );
