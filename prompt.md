@@ -29,6 +29,7 @@ The project must be **thoroughly documented in Markdown throughout development**
 - Sharing: `share_plus`
 - Map: `flutter_map` + OpenStreetMap tiles + marker clustering
 - Image processing and filters: `image` and/or color matrices
+- Face detection and face embeddings (People, added 2026-11-01): small on-device models with licenses that allow a commercial app, run natively; candidate pair YuNet (detection) + SFace (embeddings) from the OpenCV model zoo. The choice gets an ADR before any code (see [People](#people-face-recognition-added-2026-11-01)).
 - Background work: `workmanager`
 - Ads: `google_mobile_ads` (AdMob) + Google **UMP SDK** for consent (bundled with `google_mobile_ads`)
 - In-app purchase: `in_app_purchase` (official plugin)
@@ -78,6 +79,13 @@ Expected `lib/` structure:
 - `trash`: asset_id, `trashed_at`, `expires_at`, original folder
 - `swipe_history`: session, order, asset_id, action (`keep` / `trash` / `favorite`)
 - `settings`: key/value (including the cached ad-free status and whether the one-time upgrade prompt has been shown)
+- Added 2026-11-01, final columns decided in each milestone:
+  - `user_albums`: id, name, cover asset id (optional), created_at, sort order
+  - `user_album_items`: album_id, asset_id, added_at (an item can be in several albums)
+  - `faces`: id, asset_id, bounding box, landmarks, embedding (blob), quality, person_id, `assigned_by` (`auto` / `user`), `analysis_version`
+  - `persons`: id, name (optional), cover face id, hidden, created_at
+  - `face_rejections`: face_id, person_id ("Not this person": never assigned again)
+  - `memories`: id, kind (`on_this_day`, `month_years_ago`, `trip`…), period start and end, created_at, seen_at, dismissed
 
 Set up migrations from day one. `analysis_version` allows re-running analyses when an algorithm changes.
 
@@ -178,6 +186,42 @@ Thresholds are exposed in Settings as sensitivity presets (Low / Medium / High) 
 ### Search
 - Combinable filters: date range, type (photo / video / screenshot), folder, favorites, file name, geographic area (picked on the map).
 
+### User albums (added 2026-11-01)
+- **Create an album** from the Albums tab (*New album*) or from the selection bar of any grid (*Add to album* → pick an existing album or *New album*).
+- **Add to an existing album** the same way, from a multi-selection or from the viewer's actions.
+- An album page works like a folder page (timeline, sort, search, selection, viewer, slideshow) and also offers: *Remove from album* (the photo stays on the device), *Rename*, *Choose cover*, *Delete album* (the photos stay on the device).
+- **Kind of album — to confirm (Q4)**. Recommended: **app albums**, stored in the database only. A photo can be in several albums, nothing is moved or copied, the Camera timeline keeps its photos, no system confirmation is needed. Drawback: other gallery apps do not see them, and they are lost when the app is uninstalled (unless exported). The alternative, **real folders** (`Pictures/<Album>/`), moves the files (one system confirmation per batch, none with "Media management"): visible everywhere, but a photo can be in one folder only and moved camera photos leave the Camera tab. Copying instead of moving would create the exact duplicates the app itself reports, so it is not offered.
+- Albums tab: a **My albums** section between the virtual albums and the device folders.
+- Trashed items disappear from albums; restored items come back in them.
+
+### People (face recognition) (added 2026-11-01)
+- **On-device only**: faces are detected and compared on the phone; no image, face or measurement is ever sent anywhere. This is the only machine-learning feature of the app (see [Out of scope](#out-of-scope-do-not-build)).
+- **Opt-in**, off by default — to confirm (Q1): a card in the Albums tab and a switch in Settings explain what it does before the first scan. *Delete face data* in Settings erases every face, person and name.
+- **Scan**: incremental, in the background while the app is open, like the similar photos analysis (pauses in the viewer, progress shown, resumes later). Photos only, not videos — to confirm (Q2). Faces too small or blurry are ignored.
+- **Grouping**: face embeddings compared by cosine distance and grouped into persons; a person appears once it has at least N photos (N to be tuned on the product owner's photos, around 3). A sensitivity setting like the similar photos one.
+- **People** in the Albums tab: a row of round face thumbnails, *See all*, then a grid of all persons; a person opens a timeline of their photos (sort, search, selection, slideshow).
+- **Naming** a person (optional); named persons first.
+- **Merge** two persons (the user's request: one person recognized as two): from a person's page *Merge with…* → pick the other person, or select several persons in the grid → *Merge*. Their faces move to one person, the name is chosen when both have one. Merges are kept when the grouping runs again (faces assigned by the user are never moved by the automatic grouping).
+- **Corrections**: on a person's page, select photos → *Not this person* (stored in `face_rejections`); *Hide this person* (removed from People, kept in the database).
+- **Viewer and info panel**: the persons found in the photo, each opening their page — to confirm (Q3).
+- **Search**: a *Person* chip among the criteria.
+- **Privacy and legal**: face measurements are biometric data under the GDPR, even when they stay on the device. Opt-in, a clear explanation, deletion at any time and no transfer keep the app on the safe side; the release checklist (`docs/release.md`, M12) must cover the Play Console *Data safety* answers for it.
+- **Model**: detection and embedding models must have licenses that allow use in an app with ads; many published face recognition weights are for research only. The choice, its license, its size (a few MB) and its speed on the Galaxy A54 are recorded in an ADR before any code.
+
+### Slideshows and memories (added 2026-11-01)
+- **Manual slideshow**: a *Slideshow* button on every album page (folders, user albums, Favorites, persons, search results), on a multi-selection, and from a **date range** (Albums → *Slideshow* → pick a period, with the period choices of the sort sheet).
+- **Playback**: full screen, dark, screen kept on; photos one after another with a transition (crossfade, slow zoom "Ken Burns"); tap to show controls (pause, previous, next, close, speed); videos — to confirm (Q6): recommended, play muted up to 10 s, then move on. Duplicates (except the best one) and blurry photos are skipped by default.
+- **Options** (sheet before starting, remembered): duration per photo (3 / 5 / 8 s), transition, order (by date / shuffled), include videos, music — to confirm (Q7).
+- **Automatic memories**: the app builds memories by itself from the capture dates:
+  - **On this day**: photos taken on today's date 1, 2, 3… years ago ("1 year ago", "3 years ago").
+  - **This month, N years ago** when a day has too few photos.
+  - Later, possibly: trips (photos far from the usual places, from the locations already read for the map), a person over the years.
+  - A memory needs a minimum number of good photos (not blurry, one per duplicate group), else it is skipped.
+- **How often — to confirm (Q5)**: a setting *Memories*: Off / Every day / Every week / Every month (default every week). Recommended delivery: a **memory card at the top of the Camera tab** when the app is opened, tap → slideshow, ✕ → dismissed. Optional **notification** ("1 year ago today: 24 photos"): needs a daily background task (WorkManager) and the notification permission on Android 13+; the task only reads the local database and never deletes ([ADR 0013](docs/decisions/0013-trash-purge-without-background-job.md) still applies to deletes).
+- Past memories stay in a **Memories** list (Albums tab) until dismissed.
+- No ads in slideshows, memories or People.
+- **Not included**: exporting a slideshow as a video file, casting to a TV, online music — to confirm (Q8).
+
 ### Monetization: light ads + "Remove ads" purchase
 
 **Principle: ads must be as unobtrusive as possible.** The app must remain pleasant to use in its free version.
@@ -188,7 +232,7 @@ Thresholds are exposed in Settings as sensitivity presets (Low / Medium / High) 
 
 **Strictly forbidden:**
 - Interstitial (full-screen) ads, rewarded ads, video ads, app-open ads.
-- Any ad in the viewer, swipe mode, editor, duplicates screens, trash, onboarding, map, search or settings.
+- Any ad in the viewer, swipe mode, editor, duplicates screens, trash, onboarding, map, search, settings, People, user albums, slideshows or memories.
 - Any ad that shifts the layout unexpectedly (reserve the banner's space to avoid layout jumps).
 
 **Consent (GDPR / EEA):**
@@ -221,7 +265,7 @@ Thresholds are exposed in Settings as sensitivity presets (Low / Medium / High) 
 
 
 ### Settings
-Trash retention period, duplicate sensitivity (+ advanced mode), time window, screenshot age, large video threshold, remove GPS on share by default, default column count, theme (system / light / dark), language, permission status, re-run analysis, clear cache, "Remove ads" / "Restore purchase", privacy & ad choices (consent form), privacy policy link, about.
+Trash retention period, duplicate sensitivity (+ advanced mode), time window, People on/off + face grouping sensitivity + delete face data, memories frequency (+ notification), slideshow defaults, screenshot age, large video threshold, remove GPS on share by default, default column count, theme (system / light / dark), language, permission status, re-run analysis, clear cache, "Remove ads" / "Restore purchase", privacy & ad choices (consent form), privacy policy link, about.
 
 ## User interface
 - **Very simple, modern and intuitive.** Material 3, dynamic colors (Material You), dark mode, rounded corners, subtle and smooth animations.
@@ -293,7 +337,8 @@ Each feature file follows the same structure:
 ## Out of scope (do not build)
 - Locked private folder (planned for v1.1)
 - iOS version (planned later, but the architecture must allow it)
-- Any AI or machine-learning-based detection
+- Any AI or machine-learning-based detection, **except on-device face recognition for People** (requested by the product owner on 2026-11-01). Duplicates, blur, Enhance and the scanner stay without machine learning.
+- Exporting slideshows as video files, casting, cloud sync or shared albums
 - Subscriptions or any paid feature other than "Remove ads"
 
 ## Quality
@@ -317,7 +362,12 @@ Build in this order. **At the end of each milestone, stop** and provide: a summa
 - **M5 — Cleanup**: Clean tab, swipe mode with undo, blurry photos, screenshots, large videos.
 - **M6 — Advanced viewer and editing**: translucent info panel, editor, filters.
 - **M7 — Exploration**: map, search.
-- **M8 — Monetization**: AdMob integration (banner in Folders, native card in Clean tab), UMP consent flow, "Remove ads" in-app purchase with restore, ad-free state, upgrade entry points. Create `docs/monetization.md`.
-- **M9 — Polish and release preparation**: performance optimization, accessibility, complete EN/FR translations, app icon, "About" screen, privacy policy link in About and Settings. Create `docs/release.md` with a checklist of everything I need to fill in on the Play Console (store listing, "Contains ads" declaration, Data safety form, content rating, in-app product setup, closed testing requirements). Final documentation review: every file accurate, no broken links.
+Milestones M8 to M10 were added on 2026-11-01 for the product owner's new features; monetization and polish move to M11 and M12. **Order to confirm (Q9)**; the other documentation files still say M8 / M9 until then.
+
+- **M8 — User albums**: app albums (or real folders, Q4), *Add to album* from the selection bar and the viewer, album pages, rename, cover, delete, *My albums* in the Albums tab. Create `docs/features/user-albums.md`.
+- **M9 — Slideshows and memories**: slideshow player and options, entry points (album pages, selection, date range), memories (On this day…), memory card, Memories list, frequency setting, optional notification. Create `docs/features/slideshow.md` and `docs/features/memories.md`.
+- **M10 — People**: model choice (ADR first), opt-in, face scan, grouping, People section and person pages, naming, merging, corrections, Person chip in the search, *Delete face data*. Create `docs/features/people.md` and a *Faces* section in `docs/analysis-engine.md`.
+- **M11 — Monetization**: AdMob integration (banner in Folders, native card in Clean tab), UMP consent flow, "Remove ads" in-app purchase with restore, ad-free state, upgrade entry points. Create `docs/monetization.md`.
+- **M12 — Polish and release preparation**: performance optimization, accessibility, complete EN/FR translations, app icon, "About" screen, privacy policy link in About and Settings. Create `docs/release.md` with a checklist of everything I need to fill in on the Play Console (store listing, "Contains ads" declaration, Data safety form, content rating, in-app product setup, closed testing requirements). Final documentation review: every file accurate, no broken links.
 
 If a requirement seems technically problematic or ambiguous, flag it and propose a solution **before** implementing it.

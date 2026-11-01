@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-10-30 — Milestone M7
+Last updated: 2026-11-01 — Milestone M7
 
 ## Milestones
 
@@ -15,9 +15,32 @@ Last updated: 2026-10-30 — Milestone M7
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Merged into `main` (PR #5) |
 | M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Merged into `main` (PR #6) |
 | M6 | Advanced viewer and editing | Merged into `main` (PR #7, 2026-10-30); filters merged after (PR #8, 2026-10-30) |
-| M7 | Exploration: map, search | Map built in M6. **Search** on branch `m7-search`, confirmed on the phone, pull request opened 2026-10-30 (to review and merge) |
-| M8 | Monetization | Not started |
-| M9 | Polish and release preparation | Not started |
+| M7 | Exploration: map, search | Merged into `main` (PR #9, 2026-10-30); map built in M6 |
+| M8 | User albums | Specified 2026-11-01, questions open |
+| M9 | Slideshows and memories | Specified 2026-11-01, questions open |
+| M10 | People (on-device face recognition, merging) | Specified 2026-11-01, questions open |
+| M11 | Monetization (was M8) | Not started |
+| M12 | Polish and release preparation (was M9) | Not started |
+
+M8 to M10 were added at the product owner's request on 2026-11-01; their order is question 9 below. Other files still call monetization M8 and polish M9 until the order is confirmed.
+
+## New features — open questions (2026-11-01)
+
+The product owner asked for People (face recognition with merging), user albums and slideshows with automatic memories. The specification is in [prompt.md](../prompt.md#user-albums-added-2026-11-01). Before building:
+
+| # | Question | Proposal |
+| --- | --- | --- |
+| Q1 | People: opt-in (off until turned on) or on by default? | Opt-in, explained first: biometric data under the GDPR. |
+| Q2 | People: faces in videos too? | Photos only. |
+| Q3 | People: persons shown in the viewer's info panel? | Yes. |
+| Q4 | Albums: app albums (database) or real folders (files moved)? | App albums. |
+| Q5 | Memories: card in the app only, or a notification too (background task, notification permission)? How often by default? | Card at the top of Camera; notification as an option, off by default; every week. |
+| Q6 | Slideshows: videos included? | Yes, muted, up to 10 s. |
+| Q7 | Slideshows: music? None, a few free tracks bundled, or a track picked from the phone? | None at first; a track from the phone later. |
+| Q8 | Out of scope confirmed: video export, casting, cloud sharing? | Yes. |
+| Q9 | Order: albums → slideshows and memories → People → monetization → polish? | Yes: albums are needed by slideshows; People is the largest and riskiest. |
+
+The brief excluded all machine learning; on-device face recognition for People is now the one exception (product owner, 2026-11-01).
 
 ## M7 — Exploration
 
@@ -42,8 +65,8 @@ The map and its mini map were built in M6 (see below). M7 adds the search.
 
 ### Next steps
 
-1. ~~Device tests and pull request~~ done on 2026-10-30; merge the pull request of `m7-search`.
-2. **M8**: monetization.
+1. ~~Device tests and pull request~~ done on 2026-10-30; merged as PR #9 the same day.
+2. Answer the open questions above, then **M8**: user albums.
 
 ## M6 — Advanced viewer and editing
 
