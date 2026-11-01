@@ -2,11 +2,11 @@
 
 All notable changes to this project are documented here, one section per milestone. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-10-30 — Milestone M7
+Last updated: 2026-11-01 — Milestone M7
 
 ## [Unreleased]
 
-Nothing yet: M8 (monetization) comes next.
+Nothing yet: M8 (user albums) comes next, then M9 slideshows and memories, M10 People, M11 monetization and M12 polish.
 
 ## [M7] — 2026-10-30 — Search, and the M6 filters
 

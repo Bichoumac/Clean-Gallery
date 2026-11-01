@@ -2,7 +2,7 @@
 
 The Settings tab: display, trash, sharing, analysis and permissions. The rest of the brief's settings arrive with the features they control.
 
-Last updated: 2026-10-27 — Milestone M5
+Last updated: 2026-11-01 — Milestone M5
 
 ## Purpose
 
@@ -35,7 +35,7 @@ Let the user choose how the app looks and behaves, and see and change its permis
 
 The sort order of each tab and album is also saved (see [library.md](library.md#sorting-and-date-filter)); the date filter is not, since presets such as "Last 7 days" would become stale.
 
-Still to come, from the brief: clear cache (merged into *Analyze the library again*: the app's only cache is the media index; thumbnails come from Android's own cache), "Remove ads" / "Restore purchase" and privacy & ad choices (M8), privacy policy and about (M9).
+Still to come, from the brief: clear cache (merged into *Analyze the library again*: the app's only cache is the media index; thumbnails come from Android's own cache), "Remove ads" / "Restore purchase" and privacy & ad choices (M11), privacy policy and about (M12).
 
 ## Screens and widgets
 

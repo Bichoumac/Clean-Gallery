@@ -2,7 +2,7 @@
 
 Every documentation file in the repository, with a one-line description. Start with [progress.md](progress.md) to see where the project stands.
 
-Last updated: 2026-10-30 — Milestone M7
+Last updated: 2026-11-01 — Milestone M7
 
 ## Project
 
@@ -25,7 +25,7 @@ Last updated: 2026-10-30 — Milestone M7
 | [analysis-engine.md](analysis-engine.md) | Analysis algorithms (capture dates, exact duplicates, bursts, similar photos, best pick), thresholds, rationale and performance. |
 | [testing.md](testing.md) | Test strategy, commands and fixtures. |
 
-Planned files: `monetization.md` (M8), `release.md` (M9).
+Planned files: `features/user-albums.md` (M8), `features/slideshow.md` and `features/memories.md` (M9), `features/people.md` (M10), `monetization.md` (M11), `release.md` (M12).
 
 ## Features
 

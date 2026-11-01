@@ -2,7 +2,7 @@
 
 Browsing the device's photos and videos: the Camera and Videos timelines, the Albums tab and album pages.
 
-Last updated: 2026-10-30 — Milestone M7
+Last updated: 2026-11-01 — Milestone M7
 
 ## Purpose
 
@@ -182,4 +182,4 @@ Tables: `assets` (the index), `trash_entries`, `settings` (`media_index_version`
 
 - Photos taken while the app stays open appear after pull-to-refresh or the next return to the app (no `ContentObserver` yet, [ADR 0015](../decisions/0015-persistent-media-index.md#alternatives-considered)).
 - The date filter is not saved across launches (on purpose); the default column count and the sort of each view are ([settings.md](settings.md)).
-- On the first device tests, new thumbnails appeared slowly after scrolling far. Prefetching, a larger image cache, fixed row heights and then the native thumbnail loader were added. To be measured again on a device (M9 target: 60 fps).
+- On the first device tests, new thumbnails appeared slowly after scrolling far. Prefetching, a larger image cache, fixed row heights and then the native thumbnail loader were added. To be measured again on a device (M12 target: 60 fps).

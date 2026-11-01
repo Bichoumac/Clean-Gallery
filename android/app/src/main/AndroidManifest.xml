@@ -10,7 +10,7 @@
         android:maxSdkVersion="32" />
     <!-- GPS coordinates in EXIF metadata. -->
     <uses-permission android:name="android.permission.ACCESS_MEDIA_LOCATION" />
-    <!-- Map tiles from OpenStreetMap (and ads from M8). No media is sent. -->
+    <!-- Map tiles from OpenStreetMap (and ads from M11). No media is sent. -->
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Optional "Media management" special access, Android 12+. The app works without it. -->
     <uses-permission android:name="android.permission.MANAGE_MEDIA" />

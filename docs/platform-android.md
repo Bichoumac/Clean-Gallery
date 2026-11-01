@@ -2,7 +2,7 @@
 
 Android-specific configuration: SDK levels, permissions and the native Kotlin MethodChannel. Everything here is reached from Dart through interfaces in `lib/platform/`, so the rest of the app stays platform-agnostic.
 
-Last updated: 2026-10-29 — Milestone M6
+Last updated: 2026-11-01 — Milestone M6
 
 ## SDK levels
 
@@ -38,7 +38,7 @@ Declared in [AndroidManifest.xml](../android/app/src/main/AndroidManifest.xml).
 | `READ_EXTERNAL_STORAGE` | 11–12 (`maxSdkVersion 32`) | Onboarding | Read media before Android 13. |
 | `ACCESS_MEDIA_LOCATION` | 11+ | Onboarding, after media access | Read GPS coordinates from EXIF; otherwise Android strips them. |
 | `MANAGE_MEDIA` | 12+ | Optional, from onboarding and settings | "Media management": delete and favorite without a confirmation prompt each time. |
-| `INTERNET` | all | Never (normal permission) | Map tiles from OpenStreetMap (M6), ads from M8. Debug builds had it from M0 for Flutter tooling. No media or metadata is sent ([ADR 0022](decisions/0022-map-tiles-and-grid-clusters.md)). |
+| `INTERNET` | all | Never (normal permission) | Map tiles from OpenStreetMap (M6), ads from M11. Debug builds had it from M0 for Flutter tooling. No media or metadata is sent ([ADR 0022](decisions/0022-map-tiles-and-grid-clusters.md)). |
 
 **Never declared:** `MANAGE_EXTERNAL_STORAGE`. A test fails if it appears in a manifest.
 

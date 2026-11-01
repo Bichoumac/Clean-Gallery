@@ -83,7 +83,7 @@ flutter build appbundle --release \
   -PadmobAppId=<app id>
 ```
 
-Release signing is not configured yet (planned for M9).
+Release signing is not configured yet (planned for M12).
 
 ## Documentation
 

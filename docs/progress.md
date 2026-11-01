@@ -16,31 +16,32 @@ Last updated: 2026-11-01 — Milestone M7
 | M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Merged into `main` (PR #6) |
 | M6 | Advanced viewer and editing | Merged into `main` (PR #7, 2026-10-30); filters merged after (PR #8, 2026-10-30) |
 | M7 | Exploration: map, search | Merged into `main` (PR #9, 2026-10-30); map built in M6 |
-| M8 | User albums | Specified 2026-11-01, questions open |
-| M9 | Slideshows and memories | Specified 2026-11-01, questions open |
-| M10 | People (on-device face recognition, merging) | Specified 2026-11-01, questions open |
+| M8 | User albums | Specified and approved 2026-11-01, next |
+| M9 | Slideshows, saved slideshows, memories, rituals | Specified and approved 2026-11-01 |
+| M10 | People (on-device face recognition, merging) | Specified and approved 2026-11-01 |
 | M11 | Monetization (was M8) | Not started |
 | M12 | Polish and release preparation (was M9) | Not started |
 
-M8 to M10 were added at the product owner's request on 2026-11-01; their order is question 9 below. Other files still call monetization M8 and polish M9 until the order is confirmed.
+M8 to M10 were added at the product owner's request on 2026-11-01; monetization and polish moved from M8 and M9.
 
-## New features — open questions (2026-11-01)
+## New features — decisions (2026-11-01)
 
-The product owner asked for People (face recognition with merging), user albums and slideshows with automatic memories. The specification is in [prompt.md](../prompt.md#user-albums-added-2026-11-01). Before building:
+The product owner asked for People (face recognition with merging), user albums and slideshows with automatic memories, and answered the open questions the same day. The specification is in [prompt.md](../prompt.md#user-albums-added-2026-11-01).
 
-| # | Question | Proposal |
+| # | Topic | Decision |
 | --- | --- | --- |
-| Q1 | People: opt-in (off until turned on) or on by default? | Opt-in, explained first: biometric data under the GDPR. |
-| Q2 | People: faces in videos too? | Photos only. |
-| Q3 | People: persons shown in the viewer's info panel? | Yes. |
-| Q4 | Albums: app albums (database) or real folders (files moved)? | App albums. |
-| Q5 | Memories: card in the app only, or a notification too (background task, notification permission)? How often by default? | Card at the top of Camera; notification as an option, off by default; every week. |
-| Q6 | Slideshows: videos included? | Yes, muted, up to 10 s. |
-| Q7 | Slideshows: music? None, a few free tracks bundled, or a track picked from the phone? | None at first; a track from the phone later. |
-| Q8 | Out of scope confirmed: video export, casting, cloud sharing? | Yes. |
-| Q9 | Order: albums → slideshows and memories → People → monetization → polish? | Yes: albums are needed by slideshows; People is the largest and riskiest. |
+| Q1 | People: on or off by default | Opt-in, explained before the first scan. |
+| Q2 | People: videos | Photos only. |
+| Q3 | People in the info panel | Yes. |
+| Q4 | Kind of album | App albums in the database; no file is ever moved, copied or deleted for an album. |
+| Q5 | Memories | Card in the app, and a small notification once a week, **without a background task**: scheduled notifications only, the slideshow is built when it is opened. Rituals: recurring slideshows the user schedules. |
+| Q6 | Videos in slideshows | Yes, muted, 10 s at most. |
+| Q7 | Music | The user picks: free tracks bundled with the app, or a track from the phone. |
+| Q8 | Saving and sharing | Slideshows are saved on the user's tap and play again at any time (no video file). Sharing and casting to a TV: later, kept in mind. |
+| Q9 | Order | M8 albums, M9 slideshows and memories, M10 People, M11 monetization, M12 polish. |
+| — | Face model | Bundled in the app, runs on the phone only, never downloaded, no cloud or ML Kit; a test checks it uses no network. |
 
-The brief excluded all machine learning; on-device face recognition for People is now the one exception (product owner, 2026-11-01).
+The brief excluded all machine learning; on-device face recognition for People is the one exception.
 
 ## M7 — Exploration
 
@@ -66,7 +67,7 @@ The map and its mini map were built in M6 (see below). M7 adds the search.
 ### Next steps
 
 1. ~~Device tests and pull request~~ done on 2026-10-30; merged as PR #9 the same day.
-2. Answer the open questions above, then **M8**: user albums.
+2. **M8**: user albums (questions answered on 2026-11-01).
 
 ## M6 — Advanced viewer and editing
 
@@ -326,9 +327,9 @@ Merged into `main`. Summary:
 
 ## Known issues (all milestones)
 
-- The splash screen and launcher icon are Flutter's defaults (planned for M9).
-- Onboarding illustrations are Material icons (custom artwork in M9).
-- Release builds are signed with the debug key (planned for M9).
+- The splash screen and launcher icon are Flutter's defaults (planned for M12).
+- Onboarding illustrations are Material icons (custom artwork in M12).
+- Release builds are signed with the debug key (planned for M12).
 - The debug APK is about 200 MB (every CPU architecture and debug symbols); Google Play delivers split release bundles.
 
 ## Open questions

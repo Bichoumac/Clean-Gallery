@@ -2,7 +2,7 @@
 
 Sort photos one at a time: swipe left to move a photo to the trash, right to keep it. Opened from the Stats tab.
 
-Last updated: 2026-10-27 — Milestone M5
+Last updated: 2026-11-01 — Milestone M5
 
 ## Purpose
 
@@ -88,4 +88,4 @@ Routes: `/stats/swipe` (sources, in the Stats branch) and `/swipe?source=<key>&n
 
 - No entry from an album page or a month header yet; the Stats tab is the only way in.
 - A session keeps no list of its items: a month session resumes with the items of that month at the time, so a photo whose date is corrected moves to its new month.
-- The brief's ad rules exclude swipe mode: no ad is ever shown here (M8).
+- The brief's ad rules exclude swipe mode: no ad is ever shown here (M11).

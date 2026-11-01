@@ -2,7 +2,7 @@
 
 Entry point for AI assistants working on Clean Gallery. Read this first, then follow the links to `docs/` for depth.
 
-Last updated: 2026-10-29 — Milestone M6
+Last updated: 2026-11-01 — Milestone M6
 
 ## Project summary
 
@@ -10,7 +10,7 @@ Last updated: 2026-10-29 — Milestone M6
 - Everything runs on device: no media or metadata ever leaves the phone.
 - Free with two light ad placements; one non-consumable "Remove ads" purchase.
 - Android only for now; all platform code sits behind interfaces so iOS can be added later.
-- Built milestone by milestone (M0 to M9); the current state is in [docs/progress.md](docs/progress.md).
+- Built milestone by milestone (M0 to M12); the current state is in [docs/progress.md](docs/progress.md).
 
 ## Essential commands
 
@@ -71,6 +71,9 @@ Full details and diagrams: [docs/architecture.md](docs/architecture.md).
 7. No production IDs or secrets in the source. Use `--dart-define` and Gradle properties.
 8. Update the documentation in the same commit as the code change. A milestone is not done until `docs/progress.md`, `CHANGELOG.md` and the affected feature docs are updated.
 9. Significant technical choices get an ADR in `docs/decisions/`.
+10. Face recognition (People) runs on the phone only: models bundled in the app, never downloaded, no cloud API or ML Kit, no network call from the face code (a test enforces it).
+11. User albums and saved slideshows never move, copy or delete a file: they are lists in the database.
+12. No background work that reads media or the database: memories and rituals only schedule notifications; the app builds the slideshow when it is opened.
 
 ## Where to read more
 
