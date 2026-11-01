@@ -56,6 +56,8 @@ Future<void> addToAlbum(
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
+        // With an action, it would stay until closed.
+        persist: false,
         content: Text(
           added == 0 && existing != null
               ? l10n.alreadyInAlbumSnack(name)

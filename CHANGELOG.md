@@ -21,6 +21,10 @@ Next: M9 slideshows and memories, M10 People, M11 monetization and M12 polish.
 - The selection bar keeps three buttons (share, favorite, trash) and puts the other actions in a **More** menu: add to album, select all, and a page's own actions. *Select all* is always offered there.
 - Milestones renumbered: monetization is now M11, polish M12.
 
+### Fixed
+
+- Snackbars with a button (Undo, Open) close by themselves after a few seconds instead of staying until closed and covering the selection bar (Flutter keeps them by default; product owner, 2026-11-01).
+
 ## [M7] — 2026-10-30 — Search, and the M6 filters
 
 The map, planned in M7, came with M6.

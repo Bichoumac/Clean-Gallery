@@ -2,7 +2,7 @@
 
 Visual identity of Clean Gallery: palette, typography, shapes and navigation. The goal is an app that feels distinct from stock Google apps while staying calm and uncluttered.
 
-Last updated: 2026-10-25 — Milestone M2
+Last updated: 2026-11-01 — Milestone M8
 
 Source: [app_theme.dart](../lib/core/theme/app_theme.dart), [compact_nav_bar.dart](../lib/core/router/compact_nav_bar.dart). Why this direction was chosen: [ADR 0008](decisions/0008-navigation-and-visual-identity.md).
 
@@ -104,7 +104,8 @@ Tabs use `TabPage`: 20 dp side margins, a `displaySmall` title 24 dp below the s
 
 - Long press a thumbnail to start; drag without lifting to select a range; tap to add or remove.
 - Selected cell: shrunk by 10 dp with 14 dp corners and a 22 dp lime check top left; other cells show a white ring.
-- The navigation bar is replaced by the **selection bar** at the same place and size: close, "N selected", then action icons (share, favorite, trash; restore and delete for good in the trash).
+- The navigation bar is replaced by the **selection bar** at the same place and size: close, "N selected", then up to four action icons (share, favorite, trash; restore and delete for good in the trash); beyond four actions, the fourth place is a **More** menu (⋮) with the rest (add to album, select all…).
+- **Snackbars** float above the bar; those with a button (Undo, Open) close by themselves like the others (`persist: false`), so they never hide the bar for long.
 
 ## Album tiles
 

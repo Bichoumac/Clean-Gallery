@@ -114,6 +114,8 @@ Future<void> trashWithUndo(
     ..hideCurrentSnackBar()
     ..showSnackBar(
       SnackBar(
+        // With an action, it would stay until closed.
+        persist: false,
         content: Text(l10n.trashedSnack(items.length)),
         action: SnackBarAction(
           label: l10n.actionUndo,

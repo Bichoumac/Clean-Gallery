@@ -128,6 +128,8 @@ class UserAlbumScreen extends ConsumerWidget {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+          // With an action, it would stay until closed.
+          persist: false,
           content: Text(l10n.albumDeletedSnack),
           action: SnackBarAction(
             label: l10n.actionUndo,
@@ -151,6 +153,8 @@ class UserAlbumScreen extends ConsumerWidget {
       ..hideCurrentSnackBar()
       ..showSnackBar(
         SnackBar(
+          // With an action, it would stay until closed.
+          persist: false,
           content: Text(l10n.removedFromAlbumSnack(items.length)),
           action: SnackBarAction(
             label: l10n.actionUndo,

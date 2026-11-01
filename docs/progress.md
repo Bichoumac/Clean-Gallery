@@ -59,7 +59,7 @@ The brief excluded all machine learning; on-device face recognition for People i
 ### Known issues
 
 - Not tested on the phone yet.
-- A snackbar with an action (Undo, Open) stays until it is closed or another one replaces it, and covers the selection bar meanwhile (Flutter's behaviour for snackbars with an action; already the case for the trash's Undo).
+- Fixed at the product owner's request (2026-11-01): snackbars with a button (Undo, Open) stayed until closed, covering the selection bar, since Flutter keeps them by default; they now close by themselves (`persist: false`).
 
 ### Next steps
 
