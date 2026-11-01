@@ -152,6 +152,8 @@ From a release build of branch `specs-albums-slideshows-people`. The first launc
 | 93 | Move a photo of an album to the trash, then restore it | It leaves the album (count −1), then comes back. |
 | 94 | The system gallery app, and the phone's file manager | No new folder, no copy: the albums exist only in Clean Gallery. |
 
+Result on the Galaxy A54, reported by the product owner on 2026-11-01 after installing commit `c1b116f` (snackbars with a button closing by themselves): "ça marche". Every M8 item (84 to 94) is confirmed.
+
 ### M7 — search, to verify on a device
 
 From a release build of branch `m7-search`.

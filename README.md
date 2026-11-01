@@ -8,7 +8,7 @@ The app is free with two small, unobtrusive ad placements, and a single "Remove 
 
 ## Status
 
-Milestones **M0** to **M7** are merged (the map came with M6). **M8 — User albums** is built and waiting for the device test; slideshows and memories (M9) and People, with on-device face recognition (M10), are specified. See [docs/progress.md](docs/progress.md) for details and the device checklist.
+Milestones **M0** to **M7** are merged (the map came with M6). **M8 — User albums** is confirmed on the phone and in review; slideshows and memories (M9) and People, with on-device face recognition (M10), are specified. See [docs/progress.md](docs/progress.md) for details and the device checklist.
 
 ## Features
 

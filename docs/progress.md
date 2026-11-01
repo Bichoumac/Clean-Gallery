@@ -16,7 +16,7 @@ Last updated: 2026-11-01 — Milestone M8
 | M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Merged into `main` (PR #6) |
 | M6 | Advanced viewer and editing | Merged into `main` (PR #7, 2026-10-30); filters merged after (PR #8, 2026-10-30) |
 | M7 | Exploration: map, search | Merged into `main` (PR #9, 2026-10-30); map built in M6 |
-| M8 | User albums | Built on branch `specs-albums-slideshows-people` (2026-11-01), to test on the phone |
+| M8 | User albums | Branch `specs-albums-slideshows-people`, confirmed on the phone and pushed 2026-11-01 (pull request to open and merge) |
 | M9 | Slideshows, saved slideshows, memories, rituals | Specified and approved 2026-11-01 |
 | M10 | People (on-device face recognition, merging) | Specified and approved 2026-11-01 |
 | M11 | Monetization (was M8) | Not started |
@@ -58,12 +58,12 @@ The brief excluded all machine learning; on-device face recognition for People i
 
 ### Known issues
 
-- Not tested on the phone yet.
+- Confirmed on the Galaxy A54 on 2026-11-01, items 84 to 94 ("ça marche"); the selection bar's More menu approved as is.
 - Fixed at the product owner's request (2026-11-01): snackbars with a button (Undo, Open) stayed until closed, covering the selection bar, since Flutter keeps them by default; they now close by themselves (`persist: false`).
 
 ### Next steps
 
-1. Device test (items 84 to 94), then push and pull request.
+1. ~~Device test (items 84 to 94), then push~~ done on 2026-11-01; open and merge the pull request.
 2. **M9**: slideshows and memories.
 
 ## M7 — Exploration
