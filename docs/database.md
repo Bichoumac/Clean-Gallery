@@ -2,7 +2,7 @@
 
 The app stores its index, analysis results, trash and settings in a local SQLite database managed by Drift. It runs on a background isolate so queries never block the UI. This file lists the schema, indexes and migration history.
 
-Last updated: 2026-10-28 — Milestone M6
+Last updated: 2026-11-01 — Milestone M8
 
 Source: [tables.dart](../lib/core/database/tables.dart), [app_database.dart](../lib/core/database/app_database.dart).
 
@@ -108,6 +108,27 @@ The brief calls this table `trash`. The Dart class is `TrashEntries` (table `tra
 
 Written by `SwipeRepository` since M5: one row per decision, the last row removed on *Undo*, every row of a session removed on *Start over* ([features/swipe.md](features/swipe.md)).
 
+### `user_albums`
+
+Albums created by the user (schema version 6, M8). Only lists: no file is moved, copied or deleted for an album ([ADR 0025](decisions/0025-user-albums-in-the-database.md), [features/user-albums.md](features/user-albums.md)).
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `id` | INTEGER PK autoincrement | |
+| `name` | TEXT | Trimmed; unique ignoring case, checked by the app |
+| `cover_asset_id` | INTEGER, nullable | Item chosen as the cover; not a foreign key, ignored when the item left the album, the index or is trashed; `null`: the newest item |
+| `created_at` | INTEGER (date) | Albums are listed newest first |
+
+### `user_album_items`
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `album_id` | INTEGER FK → `user_albums.id` | Cascade: deleting an album removes its list |
+| `asset_id` | INTEGER | MediaStore id. **Not** a foreign key: items that leave the index without leaving the device (limited access, rebuilt index) stay in their albums; items deleted for good are removed by `UserAlbumRepository.forget` |
+| `added_at` | INTEGER (date) | |
+
+Primary key (`album_id`, `asset_id`): an item is once in an album, and can be in several albums.
+
 ### `settings`
 
 | Column | Type |
@@ -135,7 +156,7 @@ Known keys are constants in `SettingKeys` ([settings_repository.dart](../lib/cor
 | `screenshot_age_days` | int, 1–3650 | Age from which screenshots are offered for cleaning (default 30) |
 | `large_video_megabytes` | int, 1–100000 | Size from which videos are offered for cleaning (default 100) |
 | `media_index_version` | text | MediaStore version (`MediaStore.getVersion`) of the last complete index sync; unset before the first one |
-| `view_sort:<filter>:<folder id>` | `<field>:<asc\|desc>` | Saved sort of one timeline, e.g. `view_sort:photos:` → `size:desc` |
+| `view_sort:<filter>:<folder id>[:user<album id>]` | `<field>:<asc\|desc>` | Saved sort of one timeline, e.g. `view_sort:photos:` → `size:desc`; a user album adds `:user<id>` |
 
 They are read together by `SettingsRepository.loadAppSettings` before the first frame; invalid values fall back to the defaults ([settings.md](features/settings.md)).
 
@@ -145,6 +166,7 @@ They are read together by `SettingsRepository.loadAppSettings` before the first 
 | --- | --- | --- |
 | `assets_taken_at` | `assets(taken_at)` | Timelines in date order, date ranges, album covers |
 | `assets_bucket_id` | `assets(bucket_id)` | Album pages, the Albums tab's grouping |
+| `user_album_items_asset` | `user_album_items(asset_id)` | Albums holding given items (*Already in it*), removing items deleted for good |
 
 Other indexes (`assets(content_hash)`, `assets(capture_at)`, `trash_entries(expires_at)`) are added with the queries that need them, so each one is justified by a real query.
 
@@ -166,4 +188,5 @@ Every schema change:
 | 3 | M5 | `assets.brightness`. Upgrades from version 1 get it from the version 2 table rebuild, which uses today's columns. |
 | 4 | M6 | `assets.contrast`; from version 3, version 2 photos at a sharpness of 30 or more move to analysis version 3. |
 | 5 | M6 | `assets.location_read`, for the map: every item's location is read once after the update. |
+| 6 | M8 | Tables `user_albums` and `user_album_items`, index `user_album_items_asset`. |
 | 2 | M3 | Media index: `assets.bucket_id`, `taken_at`, `media_revision`; indexes `assets_taken_at`, `assets_bucket_id`. The table is rebuilt (`alterTable`): rows written by the M2 trash move their date from `capture_at` to `taken_at`, since `capture_at` is now reserved for the engine. |

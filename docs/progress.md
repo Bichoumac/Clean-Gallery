@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-11-01 — Milestone M7
+Last updated: 2026-11-01 — Milestone M8
 
 ## Milestones
 
@@ -16,7 +16,7 @@ Last updated: 2026-11-01 — Milestone M7
 | M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Merged into `main` (PR #6) |
 | M6 | Advanced viewer and editing | Merged into `main` (PR #7, 2026-10-30); filters merged after (PR #8, 2026-10-30) |
 | M7 | Exploration: map, search | Merged into `main` (PR #9, 2026-10-30); map built in M6 |
-| M8 | User albums | Specified and approved 2026-11-01, next |
+| M8 | User albums | Built on branch `specs-albums-slideshows-people` (2026-11-01), to test on the phone |
 | M9 | Slideshows, saved slideshows, memories, rituals | Specified and approved 2026-11-01 |
 | M10 | People (on-device face recognition, merging) | Specified and approved 2026-11-01 |
 | M11 | Monetization (was M8) | Not started |
@@ -43,6 +43,29 @@ The product owner asked for People (face recognition with merging), user albums 
 
 The brief excluded all machine learning; on-device face recognition for People is the one exception.
 
+## M8 — User albums
+
+### Done
+
+- **User albums** (2026-11-01, branch `specs-albums-slideshows-people`, with the M9 and M10 specification): *My albums* in the Albums tab, *New album*, *Add to album* from any selection (More menu) and from the viewer, album pages with *Remove from album* (Undo), *Use as cover*, *Rename*, *Delete album* (Undo). Lists in the database only, schema version 6 ([features/user-albums.md](features/user-albums.md), [ADR 0025](decisions/0025-user-albums-in-the-database.md)). 387 tests. Device checklist: [testing.md](testing.md#m8--user-albums-to-verify-on-a-device) items 84 to 94.
+
+### Decisions
+
+- **App albums only**: no file moved, copied or deleted (product owner, 2026-11-01).
+- **Selection bar**: three buttons and a **More** menu, since a fourth button left too little room for the count on a phone; *Add to album* and *Select all* are in the menu. To review after the device test.
+- **Without any album**, *My albums* is one line and a button, so the folders do not move down by a whole row of tiles.
+- Albums are listed newest first; names are unique ignoring case.
+
+### Known issues
+
+- Not tested on the phone yet.
+- A snackbar with an action (Undo, Open) stays until it is closed or another one replaces it, and covers the selection bar meanwhile (Flutter's behaviour for snackbars with an action; already the case for the trash's Undo).
+
+### Next steps
+
+1. Device test (items 84 to 94), then push and pull request.
+2. **M9**: slideshows and memories.
+
 ## M7 — Exploration
 
 The map and its mini map were built in M6 (see below). M7 adds the search.
@@ -67,7 +90,7 @@ The map and its mini map were built in M6 (see below). M7 adds the search.
 ### Next steps
 
 1. ~~Device tests and pull request~~ done on 2026-10-30; merged as PR #9 the same day.
-2. **M8**: user albums (questions answered on 2026-11-01).
+2. **M8**: user albums, built on 2026-11-01 (see above).
 
 ## M6 — Advanced viewer and editing
 

@@ -109,6 +109,9 @@ abstract class MediaSelection with _$MediaSelection {
     /// Folder id, or `null` for the whole library.
     String? albumId,
 
+    /// Id of a user album (`UserAlbum.id`), or `null` for any item.
+    int? userAlbumId,
+
     /// Sort order; newest first by default.
     @Default(MediaSort.newest) MediaSort sort,
 
@@ -177,4 +180,32 @@ abstract class Album with _$Album {
 
   /// Selection of this album's media.
   MediaSelection get selection => MediaSelection(albumId: id);
+}
+
+/// An album created by the user, as shown in the Albums tab.
+///
+/// Only a list in the database: its items stay where they are on the
+/// device.
+@freezed
+abstract class UserAlbum with _$UserAlbum {
+  /// Creates a user album.
+  const factory UserAlbum({
+    /// Database identifier.
+    required int id,
+
+    /// Name chosen by the user.
+    required String name,
+
+    /// Number of photos and videos, trashed ones left out.
+    required int count,
+
+    /// Cover: the item chosen by the user, or the newest; `null` when the
+    /// album is empty.
+    MediaItem? cover,
+  }) = _UserAlbum;
+
+  const UserAlbum._();
+
+  /// Selection of this album's media.
+  MediaSelection get selection => MediaSelection(userAlbumId: id);
 }

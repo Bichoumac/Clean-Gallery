@@ -70,10 +70,12 @@ void main() {
     await tester.longPress(find.byType(MediaThumbnail).first);
     await tester.pumpAndSettle();
     expect(find.text('1 selected'), findsOneWidget);
-    await tester.tap(find.byTooltip('Select all'));
+    // In the selection bar's More menu.
+    await tester.tap(find.byTooltip('More'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Select all'));
     await tester.pumpAndSettle();
     expect(find.text('2 selected'), findsOneWidget);
-    expect(find.byTooltip('Select all'), findsNothing);
 
     await tester.tap(find.byTooltip('Move to trash'));
     await tester.pumpAndSettle();

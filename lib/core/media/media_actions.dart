@@ -86,6 +86,7 @@ final class MediaActions {
       // Hidden first, so they never reappear when their trash entries go.
       _ref.read(deletedIdsProvider.notifier).add(ids);
       await _ref.read(trashRepositoryProvider).forget(ids);
+      await _ref.read(userAlbumRepositoryProvider).forget(ids);
       _ref.read(mediaIndexProvider.notifier).changed();
     }
     return done;

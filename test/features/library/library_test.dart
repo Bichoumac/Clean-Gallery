@@ -77,9 +77,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('All media'), findsOneWidget);
     expect(find.text('Favorites'), findsOneWidget);
-    expect(find.text('Camera'), findsOneWidget);
     expect(find.text('4 items'), findsOneWidget); // All media.
     expect(find.text('1 item'), findsOneWidget); // Favorites.
+    // My albums comes before the folders: scroll them up.
+    await tester.drag(
+      find.descendant(
+        of: find.byType(AlbumsScreen),
+        matching: find.byType(Scrollable),
+      ),
+      const Offset(0, -400),
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Camera'), findsOneWidget);
     expect(find.text('2 items'), findsOneWidget); // Camera.
   });
 

@@ -2,7 +2,7 @@
 
 Browsing the device's photos and videos: the Camera and Videos timelines, the Albums tab and album pages.
 
-Last updated: 2026-11-01 — Milestone M7
+Last updated: 2026-11-01 — Milestone M8
 
 ## Purpose
 
@@ -14,7 +14,7 @@ Show every photo and video on the device, newest first, grouped by day or month,
 2. **Pinch** with two fingers: spreading shows fewer, larger thumbnails (down to 2 columns); pinching shows more (up to 6). From 5 columns, headers switch from days to months.
 3. **Pull down** to pick up changes at once (new photos, deletions made in another app). The app also does it at launch and when it returns to the foreground.
 4. **Tap a thumbnail**: the viewer opens on that item ([viewer.md](viewer.md)).
-5. **Albums tab**: "All media", "Favorites", "Map" ([map.md](map.md)) and "Trash", then "Folders" sorted by size. Tapping one opens its timeline, with a back button.
+5. **Albums tab**: "All media", "Favorites", "Map" ([map.md](map.md)) and "Trash", then **My albums**, the user's own albums ([user-albums.md](user-albums.md)), then "Folders" sorted by size. Tapping one opens its timeline, with a back button.
 6. **Sort and filter**: the button next to the title opens a sheet (see below). The Camera, Videos, Albums and album page titles also have a magnifier that searches that timeline ([search.md](search.md)).
 7. **Duplicates**: when a grid holds extra copies, a tile above the photos opens them ([duplicates.md](duplicates.md)).
 8. **Stacks**: duplicates taken one after the other show as one thumbnail (see below).
@@ -37,7 +37,7 @@ Code: `buildCells` in [timeline.dart](../../lib/domain/timeline.dart) (pure Dart
 
 - **Long press** a thumbnail to start selecting; **drag** without lifting to select every item between the first one and the finger (if the first item was already selected, the drag deselects). Near the top or bottom edge the grid scrolls by itself.
 - **Tap** adds or removes an item; **back** or the close button leaves selection mode.
-- The selection bar offers **share** ([sharing.md](sharing.md)), **favorite** ([favorites.md](favorites.md)) and **move to trash** with *Undo* ([trash.md](trash.md)).
+- The selection bar offers **share** ([sharing.md](sharing.md)), **favorite** ([favorites.md](favorites.md)) and **move to trash** with *Undo* ([trash.md](trash.md)); its **More** menu (⋮) holds **add to album** ([user-albums.md](user-albums.md)), **select all** and the page's own actions (a user album's *Remove from album*, *Use as cover*). The bar has room for four buttons next to the count on a phone, so beyond four actions the first three stay buttons.
 - Trashed items disappear from every list at once.
 
 ## Fast scrolling

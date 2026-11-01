@@ -22,6 +22,7 @@ import 'package:clean_gallery/features/swipe/swipe_screen.dart';
 import 'package:clean_gallery/features/swipe/swipe_source.dart';
 import 'package:clean_gallery/features/swipe/swipe_sources_screen.dart';
 import 'package:clean_gallery/features/trash/trash_screen.dart';
+import 'package:clean_gallery/features/user_albums/user_album_screen.dart';
 import 'package:clean_gallery/features/viewer/viewer_screen.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/widgets.dart';
@@ -94,6 +95,9 @@ abstract final class AlbumRoutes {
 
   /// Location of the app trash, a page of its own under Albums.
   static const trash = '${AppRoutes.albums}/trash';
+
+  /// Location of the user album with [id].
+  static String userAlbum(int id) => '${AppRoutes.albums}/mine/$id';
 
   /// Location of the album with [key] (a virtual key or a folder id).
   static String location(String key, String name) => Uri(
@@ -295,6 +299,12 @@ GoRouter appRouter(Ref ref) {
                   GoRoute(
                     path: 'trash',
                     builder: (context, state) => const TrashScreen(),
+                  ),
+                  GoRoute(
+                    path: 'mine/:id',
+                    builder: (context, state) => UserAlbumScreen(
+                      albumId: int.parse(state.pathParameters['id']!),
+                    ),
                   ),
                   GoRoute(
                     path: ':key',

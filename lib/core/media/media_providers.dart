@@ -48,6 +48,10 @@ class MediaList extends _$MediaList {
       mediaIndexProvider.select((s) => s.revision),
       (_, _) => unawaited(_reload()),
     );
+    // A user album: items added or removed change the list.
+    if (selection.userAlbumId != null) {
+      ref.listen(userAlbumItemChangesProvider, (_, _) => unawaited(_reload()));
+    }
     // Sorted by duplicates: new groups change the order.
     if (selection.sort.field == MediaSortField.duplicates) {
       ref.listen(

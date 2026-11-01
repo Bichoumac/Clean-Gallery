@@ -23,6 +23,8 @@ part 'app_database.g.dart';
     TrashEntries,
     SwipeHistory,
     Settings,
+    UserAlbums,
+    UserAlbumItems,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -45,7 +47,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Current schema version. Bump it for every schema change.
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   /// Migration steps, applied in order from the installed version.
   @override
@@ -92,6 +94,12 @@ class AppDatabase extends _$AppDatabase {
       if (from >= 2 && from < 5) {
         // Whether the location was read, for the map (M7, built in M6).
         await m.addColumn(assets, assets.locationRead);
+      }
+      if (from < 6) {
+        // User albums (M8).
+        await m.createTable(userAlbums);
+        await m.createTable(userAlbumItems);
+        await m.createIndex(userAlbumItemsAsset);
       }
       if (from == 3) {
         // Analysis version 3 only adds the contrast, and the contrast only

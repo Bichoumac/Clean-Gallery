@@ -10,12 +10,14 @@ import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/domain/trashed_item.dart';
 import 'package:clean_gallery/features/library/media_timeline_view.dart';
+import 'package:clean_gallery/features/user_albums/user_album_actions.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-/// Albums tab: "All media" and "Favorites", then the device folders.
+/// Albums tab: "All media", "Favorites", the map and the trash, then the
+/// user's albums (*My albums*), then the device folders.
 ///
 /// The Trash is a page of the app, not a MediaStore album. The Duplicates
 /// virtual album joins the top row in M3.
@@ -55,6 +57,7 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
     }
     final trash = ref.watch(trashItemsProvider).value ?? const <TrashedItem>[];
     final located = ref.watch(locatedMediaProvider).value;
+    final mine = ref.watch(userAlbumsProvider).value ?? const <UserAlbum>[];
 
     return RefreshIndicator(
       onRefresh: () => ref.read(mediaIndexProvider.notifier).sync(),
@@ -121,6 +124,56 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
               ],
             ),
           ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Semantics(
+                    header: true,
+                    child: Text(
+                      l10n.userAlbumsTitle,
+                      style: textTheme.titleLarge,
+                    ),
+                  ),
+                  // No album yet: a line and a button, not a row of tiles.
+                  if (mine.isEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4, bottom: 12),
+                      child: Text(
+                        l10n.userAlbumsHint,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    FilledButton.tonalIcon(
+                      onPressed: () => createAlbum(context, ref),
+                      icon: const Icon(Icons.add_rounded),
+                      label: Text(l10n.userAlbumNew),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          if (mine.isNotEmpty)
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: _AlbumGrid(
+                tiles: [
+                  const _NewAlbumTile(),
+                  for (final album in mine)
+                    _AlbumTile(
+                      name: album.name,
+                      location: AlbumRoutes.userAlbum(album.id),
+                      knownCount: album.count,
+                      knownCover: album.cover,
+                    ),
+                ],
+              ),
+            ),
           if (folders.isNotEmpty)
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
@@ -199,6 +252,54 @@ class _AlbumGrid extends StatelessWidget {
       crossAxisSpacing: 12,
       childAspectRatio: 0.78,
       children: tiles,
+    );
+  }
+}
+
+/// First tile of *My albums* once there is an album: creates another.
+class _NewAlbumTile extends ConsumerWidget {
+  const _NewAlbumTile();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    return Semantics(
+      button: true,
+      label: l10n.userAlbumNew,
+      excludeSemantics: true,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(24),
+        onTap: () => createAlbum(context, ref),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Expanded(
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(color: theme.colorScheme.outlineVariant),
+                ),
+                child: Center(
+                  child: CircleAvatar(
+                    radius: 28,
+                    backgroundColor: theme.colorScheme.primaryContainer,
+                    child: Icon(
+                      Icons.add_rounded,
+                      size: 32,
+                      color: theme.colorScheme.onPrimaryContainer,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(l10n.userAlbumNew, style: theme.textTheme.titleSmall),
+            // Same height as the count line of the other tiles.
+            Text('', style: theme.textTheme.bodySmall),
+          ],
+        ),
+      ),
     );
   }
 }
