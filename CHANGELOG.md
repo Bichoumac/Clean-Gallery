@@ -2,11 +2,28 @@
 
 All notable changes to this project are documented here, one section per milestone. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-10-30 — Milestone M7
+Last updated: 2026-11-01 — Milestone M8
 
 ## [Unreleased]
 
-Nothing yet: M8 (monetization) comes next.
+Next: M9 slideshows and memories, M10 People, M11 monetization and M12 polish.
+
+## [M8] — 2026-11-01 — User albums
+
+### Added
+
+- **User albums** (*My albums* in the Albums tab): create, add a selection or the photo of the viewer to a new or existing album, remove from the album with Undo, use as cover, rename, delete with Undo. An album is only a list in the database: no file is moved, copied or deleted, and an item can be in several albums ([docs/features/user-albums.md](docs/features/user-albums.md), [ADR 0025](docs/decisions/0025-user-albums-in-the-database.md)).
+- Database schema version 6: `user_albums`, `user_album_items`.
+- Specification of M9 (slideshows, saved slideshows, memories, rituals) and M10 (People, on-device face recognition with merging), with the product owner's decisions ([docs/progress.md](docs/progress.md#new-features--decisions-2026-11-01)).
+
+### Changed
+
+- The selection bar keeps three buttons (share, favorite, trash) and puts the other actions in a **More** menu: add to album, select all, and a page's own actions. *Select all* is always offered there.
+- Milestones renumbered: monetization is now M11, polish M12.
+
+### Fixed
+
+- Snackbars with a button (Undo, Open) close by themselves after a few seconds instead of staying until closed and covering the selection bar (Flutter keeps them by default; product owner, 2026-11-01).
 
 ## [M7] — 2026-10-30 — Search, and the M6 filters
 

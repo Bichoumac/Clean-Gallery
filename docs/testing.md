@@ -2,7 +2,7 @@
 
 How Clean Gallery is tested: test layers, commands, fakes and fixtures. Every milestone adds tests for what it builds; a milestone is not done until the suite passes.
 
-Last updated: 2026-10-30 — Milestone M7
+Last updated: 2026-11-01 — Milestone M8
 
 ## Commands
 
@@ -44,7 +44,9 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 
 | File | What it checks |
 | --- | --- |
-| [app_database_test.dart](../test/core/database/app_database_test.dart) | Schema version, migration 1 → 2 with a trashed item, enum storage, foreign keys, cascade delete, settings repository. |
+| [app_database_test.dart](../test/core/database/app_database_test.dart) | Schema version, migration 1 → 2 with a trashed item, later migrations up to 5 → 6 (user albums), enum storage, foreign keys, cascade delete (assets, user albums), settings repository. |
+| [user_album_repository_test.dart](../test/core/database/user_album_repository_test.dart) | User albums: creating, adding (only new items counted), several albums per item, trash and missing items, removing, forgetting, cover, rename, delete and restore. |
+| [user_albums_test.dart](../test/features/user_albums/user_albums_test.dart) | User albums in the app: My albums, name rules, adding from a selection and the viewer, *Already in it*, remove with Undo, rename, delete with Undo. |
 | [onboarding_controller_test.dart](../test/features/onboarding/onboarding_controller_test.dart) | Permission flow for granted, limited and denied access; persistence of completion. |
 | [onboarding_screen_test.dart](../test/features/onboarding/onboarding_screen_test.dart) | Privacy promise shown, full flow, skip, returning users skip onboarding. |
 | [dependency_rules_test.dart](../test/architecture/dependency_rules_test.dart) | Pure-Dart engine and domain, no direct Android imports in features, no `MANAGE_EXTERNAL_STORAGE`. |
@@ -99,7 +101,7 @@ flutter build apk --release --target-platform android-arm64
 adb install -r build/app/outputs/flutter-apk/app-release.apk
 ```
 
-Release builds are signed with the debug key for now (M9), so they install over a debug build and keep the app data.
+Release builds are signed with the debug key for now (M12), so they install over a debug build and keep the app data.
 
 Automated tests use fakes and never touch Android. The items below can only be checked on a real phone or a working emulator. Each milestone adds its own items; tick them in the pull request or commit that verifies them, with the device and Android version used.
 
@@ -131,6 +133,26 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 12 | Kill the app mid-onboarding, relaunch | any | Onboarding restarts from the first page. |
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
+
+### M8 — user albums, to verify on a device
+
+From a release build of branch `specs-albums-slideshows-people`. The first launch migrates the database to schema version 6 (two new tables; nothing is read again).
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 84 | Albums tab, scroll below Corbeille | **Mes albums**, one line ("Rassemblez photos et vidéos sans les déplacer…") and a **Nouvel album** button; then the folders as before. |
+| 85 | **Nouvel album**, *Créer* with an empty name, then type `Vacances` → *Créer* | *Saisissez un nom* under the field; then the empty album opens, explaining *Plus → Ajouter à un album*. Back: *Mes albums* shows a *Nouvel album* tile and *Vacances*, 0 éléments. |
+| 86 | Camera: long press two photos → ⋮ (*Plus*) → **Ajouter à un album** → *Vacances* | The menu also holds *Tout sélectionner*. Snackbar *2 éléments ajoutés à Vacances*, **Ouvrir** opens the album with the two photos; its tile shows the newest as cover and *2 éléments*. |
+| 87 | The same two photos again → *Ajouter à un album* | *Vacances* reads *Déjà dedans*; tapping it: *Déjà dans Vacances*. With a third photo selected: *2 déjà dedans*, then *Ajouté à Vacances*. |
+| 88 | Viewer → **Ajouter à un album** (new button of the bottom bar) → *Nouvel album* `Famille` | *Ajouté à Famille*; the album exists with that photo. |
+| 89 | In *Vacances*: select one photo → ⋮ → **Utiliser comme couverture** | *Couverture modifiée*; the album's tile uses it. |
+| 90 | In *Vacances*: select a photo → ⋮ → **Retirer de l'album**, then *Annuler* | The photo leaves the album and comes back; it is still in Camera and in its folder all along. |
+| 91 | Album ⋮ (*Options de l'album*) → **Renommer** `Famille` (the other album's name), then `Été 2026` | *Un album porte déjà ce nom*; then the title and the tile read *Été 2026*. |
+| 92 | Album ⋮ → **Supprimer l'album** | *Supprimer « Été 2026 » ?* says its items stay on the phone; after *Supprimer*, the page closes, *Album supprimé…* with *Annuler*; every photo is still in Camera and in the system gallery (Google Photos / Samsung Gallery). *Annuler* brings the album back with its photos and cover. |
+| 93 | Move a photo of an album to the trash, then restore it | It leaves the album (count −1), then comes back. |
+| 94 | The system gallery app, and the phone's file manager | No new folder, no copy: the albums exist only in Clean Gallery. |
+
+Result on the Galaxy A54, reported by the product owner on 2026-11-01 after installing commit `c1b116f` (snackbars with a button closing by themselves): "ça marche". Every M8 item (84 to 94) is confirmed.
 
 ### M7 — search, to verify on a device
 

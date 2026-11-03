@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-10-30 — Milestone M7
+Last updated: 2026-11-01 — Milestone M8
 
 ## Milestones
 
@@ -15,9 +15,56 @@ Last updated: 2026-10-30 — Milestone M7
 | M4 | Engine level 2: perceptual hashes, similar photos, dashboard | Merged into `main` (PR #5) |
 | M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Merged into `main` (PR #6) |
 | M6 | Advanced viewer and editing | Merged into `main` (PR #7, 2026-10-30); filters merged after (PR #8, 2026-10-30) |
-| M7 | Exploration: map, search | Map built in M6. **Search** on branch `m7-search`, confirmed on the phone, pull request opened 2026-10-30 (to review and merge) |
-| M8 | Monetization | Not started |
-| M9 | Polish and release preparation | Not started |
+| M7 | Exploration: map, search | Merged into `main` (PR #9, 2026-10-30); map built in M6 |
+| M8 | User albums | Branch `specs-albums-slideshows-people`, confirmed on the phone and pushed 2026-11-01 (pull request to open and merge) |
+| M9 | Slideshows, saved slideshows, memories, rituals | Specified and approved 2026-11-01 |
+| M10 | People (on-device face recognition, merging) | Specified and approved 2026-11-01 |
+| M11 | Monetization (was M8) | Not started |
+| M12 | Polish and release preparation (was M9) | Not started |
+
+M8 to M10 were added at the product owner's request on 2026-11-01; monetization and polish moved from M8 and M9.
+
+## New features — decisions (2026-11-01)
+
+The product owner asked for People (face recognition with merging), user albums and slideshows with automatic memories, and answered the open questions the same day. The specification is in [prompt.md](../prompt.md#user-albums-added-2026-11-01).
+
+| # | Topic | Decision |
+| --- | --- | --- |
+| Q1 | People: on or off by default | Opt-in, explained before the first scan. |
+| Q2 | People: videos | Photos only. |
+| Q3 | People in the info panel | Yes. |
+| Q4 | Kind of album | App albums in the database; no file is ever moved, copied or deleted for an album. |
+| Q5 | Memories | Card in the app, and a small notification once a week, **without a background task**: scheduled notifications only, the slideshow is built when it is opened. Rituals: recurring slideshows the user schedules. |
+| Q6 | Videos in slideshows | Yes, muted, 10 s at most. |
+| Q7 | Music | The user picks: free tracks bundled with the app, or a track from the phone. |
+| Q8 | Saving and sharing | Slideshows are saved on the user's tap and play again at any time (no video file). Sharing and casting to a TV: later, kept in mind. |
+| Q9 | Order | M8 albums, M9 slideshows and memories, M10 People, M11 monetization, M12 polish. |
+| — | Face model | Bundled in the app, runs on the phone only, never downloaded, no cloud or ML Kit; a test checks it uses no network. |
+
+The brief excluded all machine learning; on-device face recognition for People is the one exception.
+
+## M8 — User albums
+
+### Done
+
+- **User albums** (2026-11-01, branch `specs-albums-slideshows-people`, with the M9 and M10 specification): *My albums* in the Albums tab, *New album*, *Add to album* from any selection (More menu) and from the viewer, album pages with *Remove from album* (Undo), *Use as cover*, *Rename*, *Delete album* (Undo). Lists in the database only, schema version 6 ([features/user-albums.md](features/user-albums.md), [ADR 0025](decisions/0025-user-albums-in-the-database.md)). 387 tests. Device checklist: [testing.md](testing.md#m8--user-albums-to-verify-on-a-device) items 84 to 94.
+
+### Decisions
+
+- **App albums only**: no file moved, copied or deleted (product owner, 2026-11-01).
+- **Selection bar**: three buttons and a **More** menu, since a fourth button left too little room for the count on a phone; *Add to album* and *Select all* are in the menu. To review after the device test.
+- **Without any album**, *My albums* is one line and a button, so the folders do not move down by a whole row of tiles.
+- Albums are listed newest first; names are unique ignoring case.
+
+### Known issues
+
+- Confirmed on the Galaxy A54 on 2026-11-01, items 84 to 94 ("ça marche"); the selection bar's More menu approved as is.
+- Fixed at the product owner's request (2026-11-01): snackbars with a button (Undo, Open) stayed until closed, covering the selection bar, since Flutter keeps them by default; they now close by themselves (`persist: false`).
+
+### Next steps
+
+1. ~~Device test (items 84 to 94), then push~~ done on 2026-11-01; open and merge the pull request.
+2. **M9**: slideshows and memories.
 
 ## M7 — Exploration
 
@@ -42,8 +89,8 @@ The map and its mini map were built in M6 (see below). M7 adds the search.
 
 ### Next steps
 
-1. ~~Device tests and pull request~~ done on 2026-10-30; merge the pull request of `m7-search`.
-2. **M8**: monetization.
+1. ~~Device tests and pull request~~ done on 2026-10-30; merged as PR #9 the same day.
+2. **M8**: user albums, built on 2026-11-01 (see above).
 
 ## M6 — Advanced viewer and editing
 
@@ -303,9 +350,9 @@ Merged into `main`. Summary:
 
 ## Known issues (all milestones)
 
-- The splash screen and launcher icon are Flutter's defaults (planned for M9).
-- Onboarding illustrations are Material icons (custom artwork in M9).
-- Release builds are signed with the debug key (planned for M9).
+- The splash screen and launcher icon are Flutter's defaults (planned for M12).
+- Onboarding illustrations are Material icons (custom artwork in M12).
+- Release builds are signed with the debug key (planned for M12).
 - The debug APK is about 200 MB (every CPU architecture and debug symbols); Google Play delivers split release bundles.
 
 ## Open questions

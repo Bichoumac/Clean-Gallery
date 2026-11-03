@@ -218,3 +218,47 @@ class Settings extends Table {
   @override
   Set<Column<Object>> get primaryKey => {key};
 }
+
+/// Albums created by the user (schema version 6).
+///
+/// An album is only a list in the database: the app never moves, copies or
+/// deletes a file for it, so deleting an album or uninstalling the app
+/// leaves every photo on the device (ADR 0025).
+@DataClassName('UserAlbumRow')
+class UserAlbums extends Table {
+  /// Auto-incremented identifier.
+  IntColumn get id => integer().autoIncrement()();
+
+  /// Name chosen by the user.
+  TextColumn get name => text()();
+
+  /// Item chosen as the cover, or `null` for the newest item. Not a
+  /// foreign key: a cover that left the album or the device is ignored.
+  IntColumn get coverAssetId => integer().nullable()();
+
+  /// When the album was created; albums are listed newest first.
+  DateTimeColumn get createdAt => dateTime()();
+}
+
+/// Items of the user albums. An item can be in several albums.
+///
+/// [assetId] is not a foreign key to `assets`: with limited access, or
+/// while the index is rebuilt, items leave the index without leaving the
+/// device, and the album must keep them. Rows whose item is not indexed
+/// are simply not shown; items deleted for good are removed from albums.
+@DataClassName('UserAlbumItemRow')
+@TableIndex(name: 'user_album_items_asset', columns: {#assetId})
+class UserAlbumItems extends Table {
+  /// Album the item belongs to.
+  IntColumn get albumId =>
+      integer().references(UserAlbums, #id, onDelete: KeyAction.cascade)();
+
+  /// MediaStore id of the item.
+  IntColumn get assetId => integer()();
+
+  /// When the item was added.
+  DateTimeColumn get addedAt => dateTime()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {albumId, assetId};
+}

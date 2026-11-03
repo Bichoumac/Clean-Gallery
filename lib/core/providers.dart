@@ -6,7 +6,9 @@ import 'package:clean_gallery/core/database/media_index_repository.dart';
 import 'package:clean_gallery/core/database/settings_repository.dart';
 import 'package:clean_gallery/core/database/swipe_repository.dart';
 import 'package:clean_gallery/core/database/trash_repository.dart';
+import 'package:clean_gallery/core/database/user_album_repository.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
+import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/trashed_item.dart';
 import 'package:clean_gallery/platform/android/android_media_source.dart';
 import 'package:clean_gallery/platform/android/android_permission_service.dart';
@@ -69,6 +71,26 @@ TrashRepository trashRepository(Ref ref) =>
 @Riverpod(keepAlive: true)
 SwipeRepository swipeRepository(Ref ref) =>
     SwipeRepository(ref.watch(appDatabaseProvider));
+
+/// Albums created by the user.
+@Riverpod(keepAlive: true)
+UserAlbumRepository userAlbumRepository(Ref ref) => UserAlbumRepository(
+  ref.watch(appDatabaseProvider),
+  correctedDates: ref.watch(
+    appSettingsControllerProvider.select((s) => s.correctedDates),
+  ),
+);
+
+/// The user's albums with their count and cover, newest album first.
+@Riverpod(keepAlive: true)
+Stream<List<UserAlbum>> userAlbums(Ref ref) =>
+    ref.watch(userAlbumRepositoryProvider).watchAlbums();
+
+/// A number increased each time items are added to or removed from a user
+/// album.
+@Riverpod(keepAlive: true)
+Stream<int> userAlbumItemChanges(Ref ref) =>
+    ref.watch(userAlbumRepositoryProvider).watchItemChanges();
 
 /// Ids of trashed items. Every media list hides them.
 @Riverpod(keepAlive: true)

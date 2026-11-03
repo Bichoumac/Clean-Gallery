@@ -2,7 +2,7 @@
 
 The Stats tab: the storage dashboard. How much space the photos and videos take, how much cleaning could free, and that space by category.
 
-Last updated: 2026-10-27 — Milestone M5
+Last updated: 2026-11-01 — Milestone M5
 
 ## Purpose
 
@@ -77,5 +77,5 @@ The counts follow the default picks, not changes made on the duplicates screen: 
 
 ## Known limitations / future work
 
-- The native ad card (M8) will sit below the categories.
+- The native ad card (M11) will sit below the categories.
 - Opening the trash switches to the Albums tab, where the Trash page lives.

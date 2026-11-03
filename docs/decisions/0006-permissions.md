@@ -2,7 +2,7 @@
 
 How media permissions are requested, how the optional "Media management" access works, and the constraints that come with `minSdk 30`.
 
-Last updated: 2026-10-25 — Milestone M0
+Last updated: 2026-11-01 — Milestone M0
 
 - **Status**: Accepted
 - **Date**: 2026-10-25
@@ -21,7 +21,7 @@ The brief sets `minSdk 30` (Android 11), forbids `MANAGE_EXTERNAL_STORAGE`, and 
 
 ## Open point: Google Play policy for `MANAGE_MEDIA`
 
-Google Play restricts some media-related permissions to apps whose core purpose needs them, and may ask for a declaration in the Play Console. A gallery and cleanup app is the intended use case for `MANAGE_MEDIA`, but this must be confirmed against the current policy before the first release. If it is refused, the app already works without it. Tracked in [progress.md](../progress.md) and the release checklist (M9).
+Google Play restricts some media-related permissions to apps whose core purpose needs them, and may ask for a declaration in the Play Console. A gallery and cleanup app is the intended use case for `MANAGE_MEDIA`, but this must be confirmed against the current policy before the first release. If it is refused, the app already works without it. Tracked in [progress.md](../progress.md) and the release checklist (M12).
 
 ## Consequences
 

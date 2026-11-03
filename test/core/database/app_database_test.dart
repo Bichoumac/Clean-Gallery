@@ -27,8 +27,8 @@ void main() {
     takenAt: DateTime(2026),
   );
 
-  test('schema version is 5', () {
-    expect(db.schemaVersion, 5);
+  test('schema version is 6', () {
+    expect(db.schemaVersion, 6);
   });
 
   test('stores enums by name', () async {
@@ -279,6 +279,59 @@ void main() {
     expect(row.locationRead, isFalse);
     expect(row.contrast, 40);
     expect(row.analysisVersion, 3);
+  });
+
+  test('migration 5 → 6 creates the user album tables', () async {
+    final old = AppDatabase(
+      NativeDatabase.memory(
+        setup: (raw) {
+          raw
+            ..execute(
+              'CREATE TABLE "settings" ("key" TEXT NOT NULL, '
+              '"value" TEXT NOT NULL, PRIMARY KEY ("key"))',
+            )
+            ..execute("INSERT INTO settings VALUES ('k', 'v')")
+            ..userVersion = 5;
+        },
+      ),
+    );
+    addTearDown(old.close);
+
+    expect(await old.select(old.settings).get(), hasLength(1));
+    final id = await old
+        .into(old.userAlbums)
+        .insert(
+          UserAlbumsCompanion.insert(name: 'A', createdAt: DateTime(2026)),
+        );
+    await old
+        .into(old.userAlbumItems)
+        .insert(
+          UserAlbumItemsCompanion.insert(
+            albumId: id,
+            assetId: 7,
+            addedAt: DateTime(2026),
+          ),
+        );
+    expect(await old.select(old.userAlbumItems).get(), hasLength(1));
+  });
+
+  test('deleting a user album cascades to its items', () async {
+    final id = await db
+        .into(db.userAlbums)
+        .insert(
+          UserAlbumsCompanion.insert(name: 'A', createdAt: DateTime(2026)),
+        );
+    await db
+        .into(db.userAlbumItems)
+        .insert(
+          UserAlbumItemsCompanion.insert(
+            albumId: id,
+            assetId: 7,
+            addedAt: DateTime(2026),
+          ),
+        );
+    await (db.delete(db.userAlbums)..where((t) => t.id.equals(id))).go();
+    expect(await db.select(db.userAlbumItems).get(), isEmpty);
   });
 
   group('SettingsRepository', () {

@@ -2,7 +2,7 @@
 
 First-launch flow that states the privacy promise and asks for the permissions the app needs.
 
-Last updated: 2026-10-25 — Milestone M0
+Last updated: 2026-11-01 — Milestone M0
 
 ## Purpose
 
@@ -57,7 +57,7 @@ flowchart TD
 - **Denied**: the user can continue; a message says the permission can be changed later in Settings.
 - **"Media management" unavailable** (Android 11, or no settings screen on the device): the button does nothing and the app falls back to MediaStore confirmation prompts.
 - **App killed during onboarding**: the flag is only written at the end, so onboarding restarts from the first page.
-- The ad consent form (M8) is shown after onboarding, never before the permission pages.
+- The ad consent form (M11) is shown after onboarding, never before the permission pages.
 
 ## Tests
 
@@ -66,6 +66,6 @@ flowchart TD
 
 ## Known limitations / future work
 
-- Illustrations are Material icons; custom artwork in M9.
+- Illustrations are Material icons; custom artwork in M12.
 - Permission status and changes from Settings come in M2.
 - Partial access detection needs a check on a real Android 14 device.

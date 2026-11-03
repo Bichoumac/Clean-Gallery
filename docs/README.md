@@ -2,7 +2,7 @@
 
 Every documentation file in the repository, with a one-line description. Start with [progress.md](progress.md) to see where the project stands.
 
-Last updated: 2026-10-30 — Milestone M7
+Last updated: 2026-11-01 — Milestone M8
 
 ## Project
 
@@ -25,7 +25,7 @@ Last updated: 2026-10-30 — Milestone M7
 | [analysis-engine.md](analysis-engine.md) | Analysis algorithms (capture dates, exact duplicates, bursts, similar photos, best pick), thresholds, rationale and performance. |
 | [testing.md](testing.md) | Test strategy, commands and fixtures. |
 
-Planned files: `monetization.md` (M8), `release.md` (M9).
+Planned files: `features/slideshow.md` and `features/memories.md` (M9), `features/people.md` (M10), `monetization.md` (M11), `release.md` (M12).
 
 ## Features
 
@@ -46,6 +46,7 @@ Planned files: `monetization.md` (M8), `release.md` (M9).
 | [features/editor.md](features/editor.md) | Photo editor: crop, straighten, adjustments, Enhance, vignette, pencil, blur, pixelate, texts, saving. |
 | [features/scan.md](features/scan.md) | Document scanner: page corners, perspective, color / gray / black and white. |
 | [features/search.md](features/search.md) | Search: file name, type, favorites, folder, area picked on the map, dates. |
+| [features/user-albums.md](features/user-albums.md) | User albums: create, add from a selection or the viewer, remove, cover, rename, delete; no file is ever moved. |
 
 One file per feature is added as each feature is built.
 
@@ -77,3 +78,4 @@ One file per feature is added as each feature is built.
 | [0022](decisions/0022-map-tiles-and-grid-clusters.md) | Map: OpenStreetMap tiles with flutter_map, clusters on a grid |
 | [0023](decisions/0023-editor-color-matrix-preview.md) | Editor: the edit as data, one paint function for preview and saving |
 | [0024](decisions/0024-document-scanner.md) | Document scanner: Otsu threshold, perspective on the canvas |
+| [0025](decisions/0025-user-albums-in-the-database.md) | User albums in the database, never as folders |

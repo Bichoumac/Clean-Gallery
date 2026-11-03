@@ -111,7 +111,8 @@ abstract class AppSettings with _$AppSettings {
 /// them never sorts the tab searched in.
 String viewKey(MediaSelection base) =>
     '${base.nameContains == null ? '' : 'search:'}'
-    '${base.filter.name}:${base.albumId ?? ''}';
+    '${base.filter.name}:${base.albumId ?? ''}'
+    '${base.userAlbumId == null ? '' : ':user${base.userAlbumId}'}';
 
 /// [sort] as stored text, e.g. `size:desc`.
 String encodeSort(MediaSort sort) =>

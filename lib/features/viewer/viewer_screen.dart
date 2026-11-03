@@ -10,6 +10,7 @@ import 'package:clean_gallery/core/theme/app_theme.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/duplicate_group.dart';
 import 'package:clean_gallery/domain/media_item.dart';
+import 'package:clean_gallery/features/user_albums/user_album_actions.dart';
 import 'package:clean_gallery/features/viewer/group_strip.dart';
 import 'package:clean_gallery/features/viewer/info_panel.dart';
 import 'package:clean_gallery/features/viewer/video_page.dart';
@@ -442,7 +443,8 @@ class _TopBar extends StatelessWidget {
 const _actionBarHeight = 64.0;
 
 /// The actions on the item shown, at the bottom of the screen within reach
-/// of the thumb: share, favorite, edit (photos), details, move to trash.
+/// of the thumb: share, favorite, edit (photos), add to album, details,
+/// move to trash.
 class _ActionBar extends ConsumerWidget {
   const _ActionBar({required this.item, required this.onEdit});
 
@@ -484,6 +486,12 @@ class _ActionBar extends ConsumerWidget {
                 onPressed: onEdit,
                 icon: const Icon(Icons.tune_rounded),
               ),
+            IconButton(
+              tooltip: l10n.actionAddToAlbum,
+              color: Colors.white,
+              onPressed: () => addToAlbum(context, ref, [item]),
+              icon: const Icon(Icons.library_add_outlined),
+            ),
             IconButton(
               tooltip: l10n.actionInfo,
               color: Colors.white,

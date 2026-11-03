@@ -504,8 +504,8 @@ final class MediaIndexRepository {
     );
   }
 
-  /// Condition selecting the rows of [selection] (filter, folder, dates,
-  /// size, area, favorites, name).
+  /// Condition selecting the rows of [selection] (filter, folder, user
+  /// album, dates, size, area, favorites, name).
   Expression<bool> _matches($AssetsTable t, MediaSelection selection) {
     final dates = selection.dates;
     return Expression.and([
@@ -530,6 +530,12 @@ final class MediaIndexRepository {
       if (selection.minSizeBytes case final bytes?)
         t.sizeBytes.isBiggerOrEqualValue(bytes),
       if (selection.albumId case final albumId?) t.bucketId.equals(albumId),
+      if (selection.userAlbumId case final album?)
+        t.id.isInQuery(
+          _db.selectOnly(_db.userAlbumItems)
+            ..addColumns([_db.userAlbumItems.assetId])
+            ..where(_db.userAlbumItems.albumId.equals(album)),
+        ),
       if (selection.ids case final ids?)
         t.id.isIn([for (final id in ids) ?int.tryParse(id)]),
       if (selection.area case final area?) ...[

@@ -19,6 +19,7 @@ import 'package:clean_gallery/features/library/fast_scroller.dart';
 import 'package:clean_gallery/features/library/pinch_to_change_columns.dart';
 import 'package:clean_gallery/features/library/sort_filter_sheet.dart';
 import 'package:clean_gallery/features/search/search_controller.dart';
+import 'package:clean_gallery/features/user_albums/user_album_actions.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
 import 'package:flutter/material.dart';
@@ -26,6 +27,14 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+/// Extra actions of a timeline's [SelectionBar] for the [picked] items, e.g.
+/// *Remove from album* on a user album; [clearSelection] leaves selection
+/// mode.
+typedef SelectionActionsBuilder = List<SelectionAction> Function(
+  List<MediaItem> picked,
+  VoidCallback clearSelection,
+);
 
 /// Gap between thumbnails, in logical pixels.
 const _gap = 2.0;
@@ -48,6 +57,9 @@ class MediaTimelineView extends ConsumerWidget {
     this.showSearch = false,
     this.compact = false,
     this.showDuplicates = true,
+    this.emptyBody,
+    this.headerActions = const [],
+    this.selectionActions,
     super.key,
   });
 
@@ -85,6 +97,17 @@ class MediaTimelineView extends ConsumerWidget {
   /// results, whose duplicates are not looked for on their own.
   final bool showDuplicates;
 
+  /// Help text of the empty state, instead of the default one.
+  final String? emptyBody;
+
+  /// Buttons after the title, before the search and sort buttons, e.g. a
+  /// user album's menu.
+  final List<Widget> headerActions;
+
+  /// Actions added at the end of the selection bar, see
+  /// [SelectionActionsBuilder].
+  final SelectionActionsBuilder? selectionActions;
+
   Future<void> _refresh(WidgetRef ref) async {
     ref.invalidate(mediaAccessProvider);
     await ref.read(mediaIndexProvider.notifier).sync();
@@ -101,6 +124,7 @@ class MediaTimelineView extends ConsumerWidget {
       summary: summary,
       showSearch: showSearch,
       compact: compact,
+      actions: headerActions,
     );
     if (access == MediaAccess.denied) {
       return _Scaffolding(
@@ -130,7 +154,7 @@ class MediaTimelineView extends ConsumerWidget {
               if (shown.dates != null)
                 _FilteredEmptyState(base: selection)
               else
-                _EmptyState(title: emptyTitle),
+                _EmptyState(title: emptyTitle, body: emptyBody),
             ],
           ),
           AsyncData(:final value) => _Timeline(
@@ -141,6 +165,7 @@ class MediaTimelineView extends ConsumerWidget {
             columns: columns,
             stackDuplicates: stackDuplicates,
             showDuplicates: showDuplicates,
+            selectionActions: selectionActions,
           ),
           AsyncError() => _Scaffolding(
             header: header,
@@ -174,6 +199,7 @@ class _Timeline extends ConsumerStatefulWidget {
     required this.columns,
     required this.stackDuplicates,
     required this.showDuplicates,
+    required this.selectionActions,
   });
 
   final Widget header;
@@ -183,6 +209,7 @@ class _Timeline extends ConsumerStatefulWidget {
   final int columns;
   final bool stackDuplicates;
   final bool showDuplicates;
+  final SelectionActionsBuilder? selectionActions;
 
   @override
   ConsumerState<_Timeline> createState() => _TimelineState();
@@ -640,15 +667,9 @@ class _TimelineState extends ConsumerState<_Timeline> {
                   child: SelectionBar(
                     count: picked.length,
                     onClose: _clearSelection,
+                    // Share, favorite and trash as buttons; the rest in
+                    // the More menu.
                     actions: [
-                      if (picked.length < widget.items.length)
-                        SelectionAction(
-                          icon: Icons.select_all_rounded,
-                          label: l10n.selectionSelectAll,
-                          onPressed: () => _setPicked({
-                            for (final item in widget.items) item.id,
-                          }),
-                        ),
                       SelectionAction(
                         icon: Icons.share_rounded,
                         label: l10n.actionShare,
@@ -675,6 +696,25 @@ class _TimelineState extends ConsumerState<_Timeline> {
                           unawaited(trashWithUndo(context, ref, picked));
                           _clearSelection();
                         },
+                      ),
+                      SelectionAction(
+                        icon: Icons.library_add_outlined,
+                        label: l10n.actionAddToAlbum,
+                        onPressed: () {
+                          unawaited(addToAlbum(context, ref, picked));
+                          _clearSelection();
+                        },
+                      ),
+                      SelectionAction(
+                        icon: Icons.select_all_rounded,
+                        label: l10n.selectionSelectAll,
+                        onPressed: () => _setPicked({
+                          for (final item in widget.items) item.id,
+                        }),
+                      ),
+                      ...?widget.selectionActions?.call(
+                        picked,
+                        _clearSelection,
                       ),
                     ],
                   ),
@@ -815,6 +855,7 @@ class _TimelineHeader extends ConsumerWidget {
     required this.showBackButton,
     required this.showSearch,
     required this.compact,
+    required this.actions,
     this.subtitle,
     this.summary,
   });
@@ -826,6 +867,7 @@ class _TimelineHeader extends ConsumerWidget {
   final bool compact;
   final String? subtitle;
   final String? summary;
+  final List<Widget> actions;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -863,6 +905,7 @@ class _TimelineHeader extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                ...actions,
                 if (showSearch) SearchButton(scope: base, place: title),
                 IconButton(
                   tooltip: l10n.sortFilterTooltip,
@@ -1041,15 +1084,16 @@ class _Message extends StatelessWidget {
 }
 
 class _EmptyState extends StatelessWidget {
-  const _EmptyState({required this.title});
+  const _EmptyState({required this.title, this.body});
 
   final String title;
+  final String? body;
 
   @override
   Widget build(BuildContext context) => _Message(
     icon: Icons.photo_library_outlined,
     title: title,
-    body: AppLocalizations.of(context).libraryEmptyBody,
+    body: body ?? AppLocalizations.of(context).libraryEmptyBody,
   );
 }
 

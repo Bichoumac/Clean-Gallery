@@ -98,6 +98,15 @@ void main() {
     await pumpTestApp(tester, media: source());
     await tester.tap(find.byTooltip('Albums'));
     await tester.pumpAndSettle();
+    // My albums comes before the folders: scroll them up.
+    await tester.drag(
+      find.descendant(
+        of: find.byType(AlbumsScreen),
+        matching: find.byType(Scrollable),
+      ),
+      const Offset(0, -400),
+    );
+    await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Sort by'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Duplicates'));

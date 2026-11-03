@@ -46,6 +46,9 @@ class SelectionAction {
 /// Floating pill replacing the navigation bar while items are selected:
 /// a close button, the selection count and the actions.
 ///
+/// At most [maxButtons] buttons fit next to the count on a phone: with more
+/// actions, the first ones are buttons and the others go in a *More* menu.
+///
 /// Same place, height and look as [CompactNavBar], so entering selection
 /// mode does not move anything.
 class SelectionBar extends StatelessWidget {
@@ -66,12 +69,20 @@ class SelectionBar extends StatelessWidget {
   /// Leaves selection mode.
   final VoidCallback onClose;
 
+  /// Number of buttons after the count, *More* included.
+  static const maxButtons = 4;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     const height = CompactNavBar.height;
+    final overflow = actions.length > maxButtons;
+    final buttons = overflow ? actions.sublist(0, maxButtons - 1) : actions;
+    final menu = overflow
+        ? actions.sublist(maxButtons - 1)
+        : const <SelectionAction>[];
     return SafeArea(
       top: false,
       child: Padding(
@@ -108,11 +119,31 @@ class SelectionBar extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                    for (final action in actions)
+                    for (final action in buttons)
                       IconButton(
                         tooltip: action.label,
                         onPressed: count == 0 ? null : action.onPressed,
                         icon: Icon(action.icon),
+                      ),
+                    if (menu.isNotEmpty)
+                      PopupMenuButton<SelectionAction>(
+                        tooltip: l10n.selectionMore,
+                        enabled: count > 0,
+                        icon: const Icon(Icons.more_vert_rounded),
+                        onSelected: (action) => action.onPressed(),
+                        itemBuilder: (context) => [
+                          for (final action in menu)
+                            PopupMenuItem(
+                              value: action,
+                              child: Row(
+                                children: [
+                                  Icon(action.icon),
+                                  const SizedBox(width: 12),
+                                  Expanded(child: Text(action.label)),
+                                ],
+                              ),
+                            ),
+                        ],
                       ),
                     const SizedBox(width: 4),
                   ],
