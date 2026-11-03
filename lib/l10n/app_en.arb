@@ -573,5 +573,6 @@
   "settingsRitualsCount": "{count, plural, =0{None active} =1{1 active} other{{count} active}}",
   "@settingsRitualsCount": {"placeholders": {"count": {"type": "int"}}},
   "settingsSlideshowDefaultsHelp": "Time per photo, transition, music",
-  "slideshowsHint": "Play an album, a selection or a period, with music. Memories show up here too."
+  "slideshowsHint": "Play an album, a selection or a period, with music. Memories show up here too.",
+  "slideshowAlbum": "Album"
 }

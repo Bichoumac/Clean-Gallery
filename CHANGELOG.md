@@ -13,6 +13,7 @@ Next: M10 People, M11 monetization and M12 polish.
 ### Added
 
 - **Slideshows** from every album page (folders, All media, Favorites, user albums, search results, map areas), a selection (More → *Slideshow*) or a period (Albums → Slideshows → *Slideshow*): options sheet remembered for the next time (3 / 5 / 8 s per photo, crossfade or slow zoom, by date or shuffled, muted videos of 10 s at most, skipping duplicates and blurry photos, music); full-screen player with the screen kept on, controls on a tap, replay at the end ([docs/features/slideshow.md](docs/features/slideshow.md)).
+- **Custom slideshow**: Albums → Slideshows → *Slideshow* picks an album (all media, Favorites, a user album or a folder) and a period.
 - **Music**: a track from the phone through the system file picker, without any audio permission; it loops, pauses with the slideshow and fades out.
 - **Saved slideshows** (*Save*, in the player or at its end): listed in Albums → Slideshows, played again with their own order and options, renamed, deleted with Undo. No video file is written ([ADR 0026](docs/decisions/0026-saved-slideshows-without-video.md)).
 - **Memories**: "On this day" and "This week, N years ago", from the camera's good photos, as cards at the top of the Camera tab (play, ✕ with Undo) and a *Memories* list ([docs/features/memories.md](docs/features/memories.md)).

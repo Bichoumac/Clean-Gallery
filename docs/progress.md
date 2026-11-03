@@ -51,7 +51,8 @@ The brief excluded all machine learning; on-device face recognition for People i
 - **Music**: none, or a track from the phone through the system file picker (no audio permission, a persistable read access to that file only, given back when unused). Bundled tracks: the list is ready but empty (see Decisions).
 - **Memories** (2026-11-03): "On this day" and "This week, N years ago" from the camera's good photos, found while the app is open; cards at the top of the Camera tab (play, ✕ with Undo); a *Memories* list in the Albums tab ([features/memories.md](features/memories.md)).
 - **Rituals and notifications**, without background work: Settings → Slideshows and memories (memories off / weekly / monthly, notification with day and time, rituals, slideshow defaults); the Rituals page; notifications planned by the app and shown by a receiver that reads nothing else, set again after a reboot ([ADR 0027](decisions/0027-notifications-without-background-work.md)).
-- Schema version 7: `slideshows`, `slideshow_items`, `memories`, `rituals` ([database.md](database.md#migrations)). 420 tests. Device checklist: [testing.md](testing.md#m9--slideshows-and-memories-to-verify-on-a-device) items 95 to 115.
+- **Custom slideshow album** (2026-11-04, asked by the product owner after installing the first build): the custom slideshow (Albums → Slideshows → *Slideshow*) asks for an album (all media, Favorites, a user album or a folder) as well as the period. Fixed the same day: closing a slideshow without music while it played raised an error when the screen closed, which could leave the screen kept on.
+- Schema version 7: `slideshows`, `slideshow_items`, `memories`, `rituals` ([database.md](database.md#migrations)). 421 tests. Device checklist: [testing.md](testing.md#m9--slideshows-and-memories-to-verify-on-a-device) items 95 to 115.
 
 ### Decisions
 

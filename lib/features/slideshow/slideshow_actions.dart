@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clean_gallery/core/media/media_providers.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
@@ -35,8 +36,8 @@ Future<void> startSlideshow(
   await playSlideshow(context, source, options: chosen.options);
 }
 
-/// Asks for a period with the options, then plays the photos and videos
-/// of that period (Albums → *Slideshow*).
+/// Asks for an album and a period with the options, then plays the photos
+/// and videos of that album in that period (Albums → *Slideshow*).
 Future<void> startPeriodSlideshow(BuildContext context, WidgetRef ref) async {
   final now = DateTime.now();
   final chosen = await showSlideshowOptions(
@@ -45,20 +46,35 @@ Future<void> startPeriodSlideshow(BuildContext context, WidgetRef ref) async {
     period: datePresetRange(DatePreset.last30Days, now),
   );
   if (chosen == null || !context.mounted) return;
+  final l10n = AppLocalizations.of(context);
   final dates = chosen.dates;
-  final title = dates == null
-      ? AppLocalizations.of(context).filterAllTime
+  final album = chosen.album;
+  final period = dates == null
+      ? l10n.filterAllTime
       : dateFilterLabel(context, dates, now);
+  // "Holidays · Last 30 days", or the period alone for the whole library.
+  final title = album == null ? period : '${album.name} · $period';
   await playSlideshow(
     context,
-    SelectionSlideshow(MediaSelection(dates: dates), title: title),
+    SelectionSlideshow(
+      (album?.selection ?? MediaSelection.all).copyWith(dates: dates),
+      title: title,
+    ),
     options: chosen.options,
   );
 }
 
-/// What the options sheet returns: the options, and the period when one
-/// was asked.
-typedef SlideshowChoice = ({SlideshowOptions options, DateFilter? dates});
+/// What the options sheet returns: the options, and the period and album
+/// when they were asked (`null` album: the whole library).
+typedef SlideshowChoice = ({
+  SlideshowOptions options,
+  DateFilter? dates,
+  SlideshowAlbum? album,
+});
+
+/// An album a custom slideshow can play: Favorites, a user album or a
+/// device folder.
+typedef SlideshowAlbum = ({MediaSelection selection, String name});
 
 /// Shows the slideshow options, starting from the user's defaults; with
 /// [period], also the period choices, starting from it. *Start* saves the
@@ -259,7 +275,8 @@ class _TitleDialogState extends State<_TitleDialog> {
 
 /// The options of a slideshow: time per photo, transition, order, videos,
 /// skipping duplicates and blurry photos, music; with [askPeriod], the
-/// period first. *Start* (or *Save* for [asDefaults]) returns them.
+/// album and the period first. *Start* (or *Save* for [asDefaults])
+/// returns them.
 class SlideshowOptionsSheet extends ConsumerStatefulWidget {
   /// Creates the sheet.
   const SlideshowOptionsSheet({
@@ -291,6 +308,9 @@ class SlideshowOptionsSheet extends ConsumerStatefulWidget {
 class _SlideshowOptionsSheetState extends ConsumerState<SlideshowOptionsSheet> {
   late SlideshowOptions _options = widget.initial;
   late DateFilter? _dates = widget.period;
+
+  /// Album picked, or `null` for every photo and video.
+  SlideshowAlbum? _album;
   final _now = DateTime.now();
 
   /// A phone track picked earlier, still offered after choosing another.
@@ -332,6 +352,11 @@ class _SlideshowOptionsSheetState extends ConsumerState<SlideshowOptionsSheet> {
               style: theme.textTheme.titleLarge,
             ),
             if (widget.askPeriod) ...[
+              heading(l10n.slideshowAlbum),
+              _AlbumMenu(
+                album: _album,
+                onChanged: (album) => setState(() => _album = album),
+              ),
               heading(l10n.slideshowPeriod),
               DateRangeChips(
                 dates: _dates,
@@ -460,8 +485,11 @@ class _SlideshowOptionsSheetState extends ConsumerState<SlideshowOptionsSheet> {
               ),
             const SizedBox(height: 20),
             FilledButton.icon(
-              onPressed: () =>
-                  Navigator.pop(context, (options: _options, dates: _dates)),
+              onPressed: () => Navigator.pop(context, (
+                options: _options,
+                dates: _dates,
+                album: _album,
+              )),
               icon: Icon(
                 widget.asDefaults
                     ? Icons.check_rounded
@@ -474,6 +502,54 @@ class _SlideshowOptionsSheetState extends ConsumerState<SlideshowOptionsSheet> {
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Choice of the album a custom slideshow plays: every photo and video,
+/// Favorites, the user's albums, then the device folders.
+class _AlbumMenu extends ConsumerWidget {
+  const _AlbumMenu({required this.album, required this.onChanged});
+
+  final SlideshowAlbum? album;
+  final ValueChanged<SlideshowAlbum?> onChanged;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final mine = ref.watch(userAlbumsProvider).value ?? const <UserAlbum>[];
+    final folders = ref.watch(albumsProvider).value ?? const <Album>[];
+    final choices = <SlideshowAlbum?>[
+      null,
+      (selection: MediaSelection.favorites, name: l10n.albumsFavorites),
+      for (final a in mine) (selection: a.selection, name: a.name),
+      for (final f in folders) (selection: f.selection, name: f.name),
+    ];
+    return DropdownMenu<SlideshowAlbum?>(
+      expandedInsets: EdgeInsets.zero,
+      initialSelection: album,
+      leadingIcon: const Icon(Icons.photo_album_outlined),
+      // Long lists of folders: typing narrows them.
+      enableFilter: true,
+      requestFocusOnTap: false,
+      menuHeight: 360,
+      onSelected: onChanged,
+      dropdownMenuEntries: [
+        for (final choice in choices)
+          DropdownMenuEntry(
+            value: choice,
+            label: choice?.name ?? l10n.albumsAllMedia,
+            leadingIcon: Icon(switch (choice) {
+              null => Icons.photo_library_outlined,
+              (:final selection, name: _) when selection.userAlbumId != null =>
+                Icons.collections_bookmark_outlined,
+              (:final selection, name: _)
+                  when selection.filter == MediaFilter.favorites =>
+                Icons.favorite_border_rounded,
+              _ => Icons.folder_outlined,
+            }),
+          ),
+      ],
     );
   }
 }

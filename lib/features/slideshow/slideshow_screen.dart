@@ -66,13 +66,15 @@ class _SlideshowScreenState extends ConsumerState<SlideshowScreen>
   /// Fade-out of the music at the end, cancelled by a replay.
   Timer? _fade;
 
-  /// Read once: `ref` cannot be used in [dispose].
-  late final MusicPlayer _music = ref.read(musicPlayerProvider);
-  late final PlatformBridge _bridge = ref.read(platformBridgeProvider);
+  /// Read in [initState]: `ref` cannot be used in [dispose].
+  late final MusicPlayer _music;
+  late final PlatformBridge _bridge;
 
   @override
   void initState() {
     super.initState();
+    _music = ref.read(musicPlayerProvider);
+    _bridge = ref.read(platformBridgeProvider);
     unawaited(_bridge.setKeepScreenOn(on: true));
     unawaited(
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky),

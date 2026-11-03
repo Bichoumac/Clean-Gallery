@@ -151,7 +151,7 @@ From a release build of branch `m9-slideshows-memories`. The first launch migrat
 | 103 | Albums tab → **Diaporamas** | A *Diaporama* tile, then the saved slideshow (cover, count). A tap plays it with its own options and music, in the same order. |
 | 104 | Long press the saved slideshow → *Renommer*, then *Supprimer* → *Annuler* | Renamed; deleted with *Diaporama supprimé…*, brought back by *Annuler*. The photos never move. |
 | 105 | Camera: select 3 photos → ⋮ → **Diaporama** → *Lancer* | Only those 3 photos play. |
-| 106 | Albums → Diaporamas → **Diaporama** tile | The sheet starts with a *Période* (Tout, 7 derniers jours, …, Personnalisée): the photos and videos of that period play. |
+| 106 | Albums → Diaporamas → **Diaporama** | The sheet starts with an **Album** list (*Tous les médias*, Favoris, your albums, then the folders; typing filters it) and a *Période* (Tout, 7 derniers jours, …, Personnalisée). Pick a folder and *Tout*: only that folder plays, titled "<dossier> · Tout". |
 | 107 | A user album page, search results, an area of the map | The same *Diaporama* button, playing what the page shows (date range included). |
 | 108 | Camera tab, with photos from a year ago this week or today | A **souvenir** card at the top: cover, *Cette semaine, il y a 1 an* or *Ce jour-là, il y a 1 an*, dates and number of photos. A tap plays it (blurry photos and duplicates left out). |
 | 109 | ✕ on the card, then *Annuler* | *Souvenir masqué*; the card leaves and comes back. ✕ again: it stays hidden after a relaunch. |

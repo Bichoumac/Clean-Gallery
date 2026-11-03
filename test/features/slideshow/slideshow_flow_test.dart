@@ -1,6 +1,8 @@
 import 'package:clean_gallery/core/media/media_thumbnail.dart';
+import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/slideshow.dart';
 import 'package:clean_gallery/features/memories/memory_card.dart';
+import 'package:clean_gallery/features/slideshow/slideshow_actions.dart';
 import 'package:clean_gallery/features/slideshow/slideshow_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -120,6 +122,57 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
     expect(find.text('Replay'), findsOneWidget);
     await tester.tap(find.text('Close'));
+    await tester.pumpAndSettle();
+  });
+
+  testApp('a custom slideshow plays the album and period picked', (
+    tester,
+  ) async {
+    final items = [
+      for (var i = 1; i <= 4; i++)
+        testItem(i, takenAt: now.subtract(Duration(minutes: i))),
+    ];
+    await pumpTestApp(
+      tester,
+      media: FakeMediaSource(
+        items: items,
+        folders: const [Album(id: 'trip', name: 'Trip', count: 2)],
+        folderItems: {
+          'trip': [items[0], items[2]],
+        },
+      ),
+    );
+    await tester.tap(find.byTooltip('Albums'));
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(
+      find.widgetWithText(FilledButton, 'Slideshow'),
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Slideshow'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.widgetWithText(FilledButton, 'Slideshow'));
+    await tester.pumpAndSettle();
+
+    // Every photo and video by default; pick the folder.
+    expect(find.text('Album'), findsOneWidget);
+    await tester.tap(find.byType(DropdownMenu<SlideshowAlbum?>));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Trip').last);
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Start'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Start'));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    expect(find.byType(SlideshowScreen), findsOneWidget);
+    await tester.tapAt(const Offset(180, 400));
+    await tester.pump(const Duration(milliseconds: 300));
+    // Only the folder's two photos, in the last 30 days.
+    expect(find.text('1 of 2'), findsOneWidget);
+    expect(find.text('Trip · Last 30 days'), findsOneWidget);
+    await tester.tap(find.byTooltip('Close'));
     await tester.pumpAndSettle();
   });
 

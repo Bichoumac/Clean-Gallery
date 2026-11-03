@@ -2,7 +2,7 @@
 
 Full-screen slideshows of an album, a selection, a period or a memory, with a crossfade or a slow zoom, muted videos and music; saved on the user's tap to play again.
 
-Last updated: 2026-11-03 — Milestone M9
+Last updated: 2026-11-04 — Milestone M9
 
 ## Purpose
 
@@ -13,7 +13,7 @@ Look back at photos without swiping through them one by one, as the product owne
 1. **Start**:
    - the **Slideshow** button (▶ in a frame) in the title of every album page: folders, All media, Favorites, user albums, search results, an area of the map. It plays what the page shows, its date range included;
    - a **selection** in any timeline: More (⋮) → *Slideshow*;
-   - **Albums tab → Slideshows → Slideshow**: the options sheet asks for a **period** first (all time, last 7 or 30 days, this year, last year, or a custom range, as in the sort sheet);
+   - **Albums tab → Slideshows → Slideshow** (a custom slideshow): the options sheet asks first for an **album** (*All media* by default, Favorites, the user's albums, then the device folders; typing narrows the list) and a **period** (all time, last 7 or 30 days, this year, last year, or a custom range, as in the sort sheet; last 30 days by default). The title reads "Trip · Last 30 days" (product owner, 2026-11-04);
    - a **memory** card or the *Memories* list ([memories.md](memories.md)), a **saved slideshow** tile, or a **ritual** notification: these play at once, without the options sheet.
 2. **Options sheet** (remembered for the next one): time per photo (3, 5 or 8 s), transition (*Crossfade* or *Slow zoom*), order (*By date* or *Shuffled*), *Include videos* (muted, 10 s at most), *Skip duplicates and blurry photos* (on by default), music. **Start**.
 3. **Playing**: full screen, black, the screen kept on and the system bars hidden. A tap shows the controls for 3 s: close, title, *Save*, position ("3 of 24"), previous, pause / play, next. Pausing also pauses the music and the zoom.
@@ -55,7 +55,7 @@ The music loops, pauses with the slideshow and fades out at the end. A track tha
 | Widget | File |
 | --- | --- |
 | `SlideshowScreen` (route `/slideshow`, `SlideshowArgs` as `extra`), `_Slide` (photo with zoom, muted video), `_Controls`, `_EndOverlay` | [slideshow_screen.dart](../../lib/features/slideshow/slideshow_screen.dart) |
-| `SlideshowOptionsSheet`, `startSlideshow`, `startPeriodSlideshow`, `playSlideshow`, `saveSlideshow`, rename, delete, `releaseUnusedMusic` | [slideshow_actions.dart](../../lib/features/slideshow/slideshow_actions.dart) |
+| `SlideshowOptionsSheet` (with `_AlbumMenu` for a custom slideshow), `startSlideshow`, `startPeriodSlideshow`, `playSlideshow`, `saveSlideshow`, rename, delete, `releaseUnusedMusic` | [slideshow_actions.dart](../../lib/features/slideshow/slideshow_actions.dart) |
 | `SlideshowSource` (selection, picked items, saved, memory, ritual), `SlideshowBuilder` | [slideshow_builder.dart](../../lib/features/slideshow/slideshow_builder.dart) |
 | Title button (`slideshowTitle`), selection action | [media_timeline_view.dart](../../lib/features/library/media_timeline_view.dart) |
 | *Slideshows* section of the Albums tab, saved slideshow menu | [albums_screen.dart](../../lib/features/library/albums_screen.dart) |
@@ -87,7 +87,7 @@ Items deleted for good leave every saved slideshow (`MediaActions.deleteForever`
 - [slideshow_repository_test.dart](../../test/core/database/slideshow_repository_test.dart): order and options kept, newest first, trash not counted, rename, delete and undo, `forget`.
 - [slideshow_builder_test.dart](../../test/features/slideshow/slideshow_builder_test.dart): oldest first without trashed, blurry or duplicate items, videos left out, shuffle, a saved slideshow's order, a ritual with a deleted album.
 - [cleanup_selection_test.dart](../../test/core/database/cleanup_selection_test.dart): `goodOnly` leaves out exactly the blurry and dark list.
-- [slideshow_flow_test.dart](../../test/features/slideshow/slideshow_flow_test.dart): a selection → options → player (screen kept on, music, controls, pause) → end → save → replay from the Albums tab.
+- [slideshow_flow_test.dart](../../test/features/slideshow/slideshow_flow_test.dart): a selection → options → player (screen kept on, music, controls, pause) → end → save → replay from the Albums tab; a custom slideshow of the album and period picked, closed while playing.
 
 ## Known limitations / future work
 

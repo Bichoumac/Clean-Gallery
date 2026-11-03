@@ -512,5 +512,6 @@
   "settingsRitualsHelp": "Des diaporamas qui reviennent, par exemple chaque dimanche",
   "settingsRitualsCount": "{count, plural, =0{Aucun actif} =1{1 actif} other{{count} actifs}}",
   "settingsSlideshowDefaultsHelp": "Durée par photo, transition, musique",
-  "slideshowsHint": "Lancez un album, une sélection ou une période, en musique. Vos souvenirs apparaîtront aussi ici."
+  "slideshowsHint": "Lancez un album, une sélection ou une période, en musique. Vos souvenirs apparaîtront aussi ici.",
+  "slideshowAlbum": "Album"
 }
