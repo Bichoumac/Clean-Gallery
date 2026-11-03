@@ -2,13 +2,13 @@
 
 All notable changes to this project are documented here, one section per milestone. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-11-03 — Milestone M9
+Last updated: 2026-11-04 — Milestone M9
 
 ## [Unreleased]
 
 Next: M10 People, M11 monetization and M12 polish.
 
-## [M9] — 2026-11-03 — Slideshows and memories
+## [M9] — 2026-11-04 — Slideshows and memories
 
 ### Added
 

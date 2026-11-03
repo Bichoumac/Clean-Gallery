@@ -2,7 +2,7 @@
 
 How the product owner and the AI assistant work together on Clean Gallery, the constraints of the development machine, and where to pick up. Read it at the start of every session, after [AGENTS.md](../AGENTS.md).
 
-Last updated: 2026-11-01 — Milestone M8
+Last updated: 2026-11-04 — Milestone M9
 
 ## Where to pick up
 
@@ -11,8 +11,10 @@ Quick resume (keep this short; history is in [progress.md](progress.md) and git)
 - **M6 is merged**, filters included (PRs #7 and #8, 2026-10-30). **M7 search is merged** (PR #9, 2026-10-30), everything confirmed on the phone (items 71 to 83 of [testing.md](testing.md#m7--search-to-verify-on-a-device), [search.md](features/search.md)).
 - **Everything built in M6 is confirmed on the Galaxy A54** (items 1 to 64 of [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device)): info panel with mini map, stacks of duplicates in the timelines, map (brought forward from M7), viewer group strip (Keep / Trash), sorts by number of duplicates, viewer actions at the bottom, editor ([editor.md](features/editor.md)), document scanner ([scan.md](features/scan.md)).
 - **Left from M6**: nothing. Not wanted for now: batch editing; scanner camera capture.
-- **New features asked on 2026-11-01**: user albums, slideshows and memories, People (face recognition with merging). Specified in [prompt.md](../prompt.md#user-albums-added-2026-11-01) on branch `specs-albums-slideshows-people`; the product owner's answers are in [progress.md](progress.md#new-features--decisions-2026-11-01). **M8 user albums is on the same branch**, confirmed on the phone (items 84 to 94 of [testing.md](testing.md#m8--user-albums-to-verify-on-a-device)) and pushed on 2026-11-01. First ask whether its pull request was merged; if merged, start **M9 slideshows and memories** from `main` (spec in [prompt.md](../prompt.md#slideshows-and-memories-added-2026-11-01)).
-- **Next milestones**: M8 user albums, M9 slideshows and memories, M10 People, M11 monetization, M12 polish ([progress.md](progress.md)).
+- **M8 user albums is merged** (PR #10, 2026-11-01).
+- **M9 slideshows and memories** is on branch `m9-slideshows-memories`, reported working on the phone ("ça marche bien", 2026-11-04) and pushed on 2026-11-04; the product owner opens the pull request. First ask whether it was merged; if merged, start **M10 People** from `main` (spec in [prompt.md](../prompt.md); an ADR on the face model comes first). Open point: the product owner picks 2 or 3 CC0 tracks for the bundled music ([slideshow.md](features/slideshow.md#music)).
+- **Next milestones**: M10 People, M11 monetization, M12 polish ([progress.md](progress.md)).
+- **Phone over USB**: the laptop's webcam is a Xiaomi USB device too; run `p.sh` only once the phone shows in `lsusb` (Samsung, MTP mode), or it may pick the webcam.
 - **Key design points to keep**: one paint function (`paintEdit`, `paintPage`) for preview and saving; the native side only writes JPEG + EXIF (`PhotoSaver.kt`); every delete through the app trash; pure Dart in `lib/analysis/` and `lib/domain/`; on the phone (Impeller), avoid blend-mode masks in layers, use clips (blur bug of 2026-10-29).
 - **Commands that save tokens**: run tests to a file and read only the summary (`flutter test --timeout 60s > <scratchpad>/t.log 2>&1; tail -1 …`; piping into `grep` hides progress until the end); widget tests that decode images need `tester.runAsync` (see `waitUntil` in [scan_test.dart](../test/features/scan/scan_test.dart)); never `pkill -f` a pattern that appears in your own command line; `gh` is installed but not logged in: give the `pull/new/<branch>` link.
 

@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-11-03 — Milestone M9
+Last updated: 2026-11-04 — Milestone M9
 
 ## Milestones
 
@@ -17,7 +17,7 @@ Last updated: 2026-11-03 — Milestone M9
 | M6 | Advanced viewer and editing | Merged into `main` (PR #7, 2026-10-30); filters merged after (PR #8, 2026-10-30) |
 | M7 | Exploration: map, search | Merged into `main` (PR #9, 2026-10-30); map built in M6 |
 | M8 | User albums | Merged into `main` (PR #10, 2026-11-01) |
-| M9 | Slideshows, saved slideshows, memories, rituals | Branch `m9-slideshows-memories`, built 2026-11-03; device test to do |
+| M9 | Slideshows, saved slideshows, memories, rituals | Branch `m9-slideshows-memories`, working on the phone and pushed 2026-11-04 (pull request to open and merge) |
 | M10 | People (on-device face recognition, merging) | Specified and approved 2026-11-01 |
 | M11 | Monetization (was M8) | Not started |
 | M12 | Polish and release preparation (was M9) | Not started |
@@ -67,13 +67,13 @@ The brief excluded all machine learning; on-device face recognition for People i
 
 ### Known issues
 
-- Not yet tried on the phone (items 95 to 115).
+- Tried on the Galaxy A54 on 2026-11-04: "ça marche bien" (an overall report, not item by item; [testing.md](testing.md#m9--slideshows-and-memories-to-verify-on-a-device)).
 - Notifications are planned 8 weeks (weekly) or 6 months (monthly) ahead; they stop if the app is not opened for that long, until the next launch.
 - Memories use the camera's photos only (no videos, no other folders).
 
 ### Next steps
 
-1. Device test (items 95 to 115), then push and open the pull request.
+1. ~~Device test, then push~~ done on 2026-11-04; the product owner opens and merges the pull request.
 2. The product owner's CC0 tracks for the bundled music.
 3. **M10**: People.
 

@@ -2,13 +2,13 @@
 
 A photo and video gallery for Android, built with Flutter, with cleanup tools: a virtual folder of likely duplicates, a swipe-to-sort mode and a trash with a configurable retention period. **Your photos never leave your device.**
 
-Last updated: 2026-11-03 — Milestone M9
+Last updated: 2026-11-04 — Milestone M9
 
 The app is free with two small, unobtrusive ad placements, and a single "Remove ads" in-app purchase. Every feature is available to everyone.
 
 ## Status
 
-Milestones **M0** to **M8** are merged (the map came with M6). **M9 — Slideshows and memories** is built and waits for its device test; People, with on-device face recognition (M10), is specified. See [docs/progress.md](docs/progress.md) for details and the device checklist.
+Milestones **M0** to **M8** are merged (the map came with M6). **M9 — Slideshows and memories** works on the phone and is in review; People, with on-device face recognition (M10), is specified. See [docs/progress.md](docs/progress.md) for details and the device checklist.
 
 ## Features
 

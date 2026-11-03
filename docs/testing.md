@@ -2,7 +2,7 @@
 
 How Clean Gallery is tested: test layers, commands, fakes and fixtures. Every milestone adds tests for what it builds; a milestone is not done until the suite passes.
 
-Last updated: 2026-11-03 — Milestone M9
+Last updated: 2026-11-04 — Milestone M9
 
 ## Commands
 
@@ -161,6 +161,8 @@ From a release build of branch `m9-slideshows-memories`. The first launch migrat
 | 113 | Restart the phone before the time of a ritual | The notification still comes (set again after the reboot). |
 | 114 | A ritual's ⋮ → *Lire maintenant*; its switch off; *Supprimer* → *Annuler* | Plays at once; no notification while off; deleted and restored. |
 | 115 | Refuse the notification permission (or turn it off in the system settings), then turn on a ritual | *Les notifications sont désactivées…* with *Réglages*; the memory card still shows in the app. |
+
+Result on the Galaxy A54: after the first build (commit `654e04f`, 2026-11-03), the product owner found it "très cool" and asked to pick the album of a custom slideshow (item 106 updated). After installing commit `102c3b2` (album choice, and the fix for closing a slideshow without music), the product owner reported on 2026-11-04: "ça marche bien". The report was overall, not item by item.
 
 ### M8 — user albums, to verify on a device
 
