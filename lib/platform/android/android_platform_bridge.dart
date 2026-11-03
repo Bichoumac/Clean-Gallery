@@ -239,6 +239,10 @@ final class AndroidPlatformBridge implements PlatformBridge {
     final version = await _channel.invokeMethod<int>('sdkVersion');
     return version ?? 0;
   }
+
+  @override
+  Future<void> setKeepScreenOn({required bool on}) =>
+      _channel.invokeMethod<void>('setKeepScreenOn', {'on': on});
 }
 
 /// Uncompressed RGBA 8888 image returned by the native side.

@@ -16,7 +16,7 @@ void main() {
     expect(weekOf(DateTime(2025, 11, 9)).start, DateTime(2025, 11, 3));
     // Across a month and a year.
     expect(
-      weekOf(DateTime(2026, 1, 1)),
+      weekOf(DateTime(2026)),
       DateFilter(start: DateTime(2025, 12, 29), end: DateTime(2026, 1, 5)),
     );
   });

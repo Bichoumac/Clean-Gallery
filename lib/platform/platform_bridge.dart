@@ -56,4 +56,7 @@ abstract interface class PlatformBridge {
     required int height,
     required Uint8List rgba,
   });
+
+  /// Keeps the screen on while [on], e.g. during a slideshow.
+  Future<void> setKeepScreenOn({required bool on});
 }

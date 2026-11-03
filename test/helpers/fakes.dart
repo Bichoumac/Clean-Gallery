@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/enums.dart';
@@ -5,9 +7,12 @@ import 'package:clean_gallery/domain/geo.dart';
 import 'package:clean_gallery/domain/gray_image.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/domain/media_metadata.dart';
+import 'package:clean_gallery/domain/slideshow.dart';
 import 'package:clean_gallery/platform/media_source.dart';
+import 'package:clean_gallery/platform/music_player.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
 import 'package:clean_gallery/platform/platform_bridge.dart';
+import 'package:clean_gallery/platform/reminder_service.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/painting.dart';
 import 'package:flutter/services.dart';
@@ -138,6 +143,105 @@ class FakePlatformBridge implements PlatformBridge {
     mapRequests.add((latitude, longitude));
     return true;
   }
+
+  /// Whether the screen is kept on.
+  bool keepScreenOn = false;
+
+  @override
+  Future<void> setKeepScreenOn({required bool on}) async => keepScreenOn = on;
+}
+
+/// [MusicPlayer] that records what it is asked to play.
+class FakeMusicPlayer implements MusicPlayer {
+  /// Music playing, or `null`.
+  SlideshowMusic? playing;
+
+  /// Whether the track is paused.
+  bool paused = false;
+
+  /// Last volume set.
+  double volume = 1;
+
+  /// Whether [play] succeeds; `false` acts as a deleted file.
+  bool playable = true;
+
+  /// Track returned by [pick]; `null` acts as a cancelled picker.
+  DeviceMusic? picked;
+
+  /// Tracks given back with [release].
+  final released = <String>[];
+
+  @override
+  Future<bool> play(SlideshowMusic music, {double volume = 1}) async {
+    if (music is NoMusic || !playable) return false;
+    playing = music;
+    paused = false;
+    this.volume = volume;
+    return true;
+  }
+
+  @override
+  Future<void> pause() async => paused = true;
+
+  @override
+  Future<void> resume() async => paused = false;
+
+  @override
+  Future<void> setVolume(double volume) async => this.volume = volume;
+
+  @override
+  Future<void> stop() async => playing = null;
+
+  @override
+  Future<DeviceMusic?> pick() async => picked;
+
+  @override
+  Future<void> release(String uri) async => released.add(uri);
+}
+
+/// [ReminderService] that keeps the scheduled reminders.
+class FakeReminderService implements ReminderService {
+  /// Reminders of the last [schedule] call.
+  List<Reminder> scheduled = const [];
+
+  /// Whether notifications are allowed.
+  bool allowed = false;
+
+  /// Whether [requestPermission] grants them.
+  bool grant = true;
+
+  /// Number of permission requests.
+  int requests = 0;
+
+  /// Payload returned once by [takeLaunchPayload].
+  String? launchPayload;
+
+  /// Feeds [taps].
+  final tapController = StreamController<String>.broadcast();
+
+  @override
+  Future<void> schedule(List<Reminder> reminders) async =>
+      scheduled = reminders;
+
+  @override
+  Future<bool> canNotify() async => allowed;
+
+  @override
+  Future<bool> requestPermission() async {
+    requests++;
+    if (grant) allowed = true;
+    return allowed;
+  }
+
+  @override
+  Future<String?> takeLaunchPayload() async {
+    final payload = launchPayload;
+    launchPayload = null;
+    return payload;
+  }
+
+  @override
+  Stream<String> get taps => tapController.stream;
 }
 
 /// A 1 × 1 transparent PNG, used as every image of [FakeMediaSource].

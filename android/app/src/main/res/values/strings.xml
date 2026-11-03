@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Notification channel of memories and rituals, in the system settings. -->
+    <string name="reminder_channel">Memories and slideshows</string>
+</resources>
