@@ -140,6 +140,10 @@ abstract class MediaSelection with _$MediaSelection {
     /// search: a search without a name has an empty one, so its results
     /// never share the view (sort, dates) of the tab it searches in.
     String? nameContains,
+
+    /// Whether blurry and very dark photos are left out (slideshows and
+    /// memories); screenshots and videos are kept.
+    @Default(false) bool goodOnly,
   }) = _MediaSelection;
 
   /// Every photo, newest first.

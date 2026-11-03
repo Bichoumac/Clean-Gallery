@@ -27,8 +27,8 @@ void main() {
     takenAt: DateTime(2026),
   );
 
-  test('schema version is 6', () {
-    expect(db.schemaVersion, 6);
+  test('schema version is 7', () {
+    expect(db.schemaVersion, 7);
   });
 
   test('stores enums by name', () async {
@@ -314,6 +314,49 @@ void main() {
         );
     expect(await old.select(old.userAlbumItems).get(), hasLength(1));
   });
+
+  test(
+    'migration 6 → 7 creates the slideshow, memory and ritual tables',
+    () async {
+      final old = AppDatabase(
+        NativeDatabase.memory(
+          setup: (raw) {
+            raw
+              ..execute(
+                'CREATE TABLE "settings" ("key" TEXT NOT NULL, '
+                '"value" TEXT NOT NULL, PRIMARY KEY ("key"))',
+              )
+              ..execute("INSERT INTO settings VALUES ('k', 'v')")
+              ..userVersion = 6;
+          },
+        ),
+      );
+      addTearDown(old.close);
+
+      expect(await old.select(old.settings).get(), hasLength(1));
+      final id = await old
+          .into(old.slideshows)
+          .insert(
+            SlideshowsCompanion.insert(
+              title: 'A',
+              options: '{}',
+              createdAt: DateTime(2026),
+            ),
+          );
+      await old
+          .into(old.slideshowItems)
+          .insert(
+            SlideshowItemsCompanion.insert(
+              slideshowId: id,
+              position: 0,
+              assetId: 7,
+            ),
+          );
+      expect(await old.select(old.slideshowItems).get(), hasLength(1));
+      expect(await old.select(old.memories).get(), isEmpty);
+      expect(await old.select(old.rituals).get(), isEmpty);
+    },
+  );
 
   test('deleting a user album cascades to its items', () async {
     final id = await db

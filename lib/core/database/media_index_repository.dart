@@ -547,6 +547,7 @@ final class MediaIndexRepository {
       if (selection.favoritesOnly) t.isFavorite.equals(true),
       if (selection.nameContains?.trim() case final name? when name.isNotEmpty)
         t.fileName.like('%${_escapeLike(name)}%', escapeChar: r'\'),
+      if (selection.goodOnly) _good(t),
       if (dates?.start case final start?) _date(t).isBiggerOrEqualValue(start),
       if (dates?.end case final end?) _date(t).isSmallerThanValue(end),
     ]);
@@ -561,6 +562,18 @@ final class MediaIndexRepository {
         (t.contrast.isNull() |
             t.contrast.isSmallerOrEqualValue(0) |
             relativeSharpness.isSmallerThan(hazyLimit));
+  }
+
+  /// Condition leaving out the photos of the cleanup list of blurry and
+  /// dark ones ([MediaFilter.poorQuality]); unmeasured photos are kept.
+  Expression<bool> _good($AssetsTable t) {
+    final poor = coalesce<bool>([
+      _blurry(t) | t.brightness.isSmallerThanValue(darkBelow),
+      const Constant(false),
+    ]);
+    return t.kind.equalsValue(MediaKind.video) |
+        t.isScreenshot.equals(true) |
+        poor.not();
   }
 
   /// [text] with the wildcards of LIKE (`%`, `_`) and the escape character
