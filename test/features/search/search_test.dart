@@ -117,7 +117,7 @@ void main() {
         of: find.byType(AlbumsScreen),
         matching: find.byType(Scrollable),
       ),
-      const Offset(0, -400),
+      const Offset(0, -600),
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text('WhatsApp Images'));

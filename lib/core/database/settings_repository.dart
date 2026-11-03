@@ -2,6 +2,7 @@ import 'package:clean_gallery/analysis/similarity.dart';
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/core/settings/app_settings.dart';
 import 'package:clean_gallery/domain/album.dart';
+import 'package:clean_gallery/domain/slideshow.dart';
 
 /// Keys of the `settings` table. Add new keys here, never inline strings.
 abstract final class SettingKeys {
@@ -55,6 +56,25 @@ abstract final class SettingKeys {
 
   /// [AppSettings.largeVideoMegabytes].
   static const largeVideoMegabytes = 'large_video_megabytes';
+
+  /// [AppSettings.slideshowOptions], as `SlideshowOptions.encode` writes
+  /// them.
+  static const slideshowOptions = 'slideshow_options';
+
+  /// [AppSettings.memories], by name.
+  static const memories = 'memories';
+
+  /// [AppSettings.memoriesWeekday].
+  static const memoriesWeekday = 'memories_weekday';
+
+  /// [AppSettings.memoriesMonthDay].
+  static const memoriesMonthDay = 'memories_month_day';
+
+  /// [AppSettings.memoriesMinute].
+  static const memoriesMinute = 'memories_minute';
+
+  /// [AppSettings.memoriesNotify].
+  static const memoriesNotify = 'memories_notify';
 }
 
 /// Reads and writes application settings in the `settings` table.
@@ -183,6 +203,33 @@ final class SettingsRepository {
         1,
         100000,
       ),
+      slideshowOptions: SlideshowOptions.decode(
+        values[SettingKeys.slideshowOptions],
+      ),
+      memories: byName(
+        MemoriesFrequency.values,
+        SettingKeys.memories,
+        defaults.memories,
+      ),
+      memoriesWeekday: intIn(
+        SettingKeys.memoriesWeekday,
+        defaults.memoriesWeekday,
+        DateTime.monday,
+        DateTime.sunday,
+      ),
+      memoriesMonthDay: intIn(
+        SettingKeys.memoriesMonthDay,
+        defaults.memoriesMonthDay,
+        1,
+        28,
+      ),
+      memoriesMinute: intIn(
+        SettingKeys.memoriesMinute,
+        defaults.memoriesMinute,
+        0,
+        24 * 60 - 1,
+      ),
+      memoriesNotify: values[SettingKeys.memoriesNotify] == 'true',
     );
   }
 }

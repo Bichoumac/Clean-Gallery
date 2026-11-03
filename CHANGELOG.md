@@ -2,11 +2,24 @@
 
 All notable changes to this project are documented here, one section per milestone. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-11-01 — Milestone M8
+Last updated: 2026-11-03 — Milestone M9
 
 ## [Unreleased]
 
-Next: M9 slideshows and memories, M10 People, M11 monetization and M12 polish.
+Next: M10 People, M11 monetization and M12 polish.
+
+## [M9] — 2026-11-03 — Slideshows and memories
+
+### Added
+
+- **Slideshows** from every album page (folders, All media, Favorites, user albums, search results, map areas), a selection (More → *Slideshow*) or a period (Albums → Slideshows → *Slideshow*): options sheet remembered for the next time (3 / 5 / 8 s per photo, crossfade or slow zoom, by date or shuffled, muted videos of 10 s at most, skipping duplicates and blurry photos, music); full-screen player with the screen kept on, controls on a tap, replay at the end ([docs/features/slideshow.md](docs/features/slideshow.md)).
+- **Music**: a track from the phone through the system file picker, without any audio permission; it loops, pauses with the slideshow and fades out.
+- **Saved slideshows** (*Save*, in the player or at its end): listed in Albums → Slideshows, played again with their own order and options, renamed, deleted with Undo. No video file is written ([ADR 0026](docs/decisions/0026-saved-slideshows-without-video.md)).
+- **Memories**: "On this day" and "This week, N years ago", from the camera's good photos, as cards at the top of the Camera tab (play, ✕ with Undo) and a *Memories* list ([docs/features/memories.md](docs/features/memories.md)).
+- **Rituals**: recurring slideshows (the week's photos, the month's photos, a saved slideshow, an album), every week or month at a set time, with a notification; Settings → *Slideshows and memories* (memories off / weekly / monthly, memories notification with its day and time, rituals, slideshow defaults). Nothing runs in the background: the app plans the notifications, Android only shows them and sets them again after a reboot ([ADR 0027](docs/decisions/0027-notifications-without-background-work.md)).
+- Permissions `POST_NOTIFICATIONS` (asked when a notification is turned on) and `RECEIVE_BOOT_COMPLETED`.
+- Database schema version 7: `slideshows`, `slideshow_items`, `memories`, `rituals`.
+- `MusicPlayer` and `ReminderService` platform interfaces; channel methods for music, the file picker, keeping the screen on and notifications ([docs/platform-android.md](docs/platform-android.md)).
 
 ## [M8] — 2026-11-01 — User albums
 

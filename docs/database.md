@@ -1,8 +1,8 @@
 # Database
 
-The app stores its index, analysis results, trash and settings in a local SQLite database managed by Drift. It runs on a background isolate so queries never block the UI. This file lists the schema, indexes and migration history.
+The app stores its index, analysis results, trash, albums, saved slideshows, memories, rituals and settings in a local SQLite database managed by Drift. It runs on a background isolate so queries never block the UI. This file lists the schema, indexes and migration history.
 
-Last updated: 2026-11-01 — Milestone M8
+Last updated: 2026-11-03 — Milestone M9
 
 Source: [tables.dart](../lib/core/database/tables.dart), [app_database.dart](../lib/core/database/app_database.dart).
 
@@ -129,6 +129,56 @@ Albums created by the user (schema version 6, M8). Only lists: no file is moved,
 
 Primary key (`album_id`, `asset_id`): an item is once in an album, and can be in several albums.
 
+### `slideshows`
+
+Slideshows saved by the user (schema version 7, M9). Saved on the user's tap only; nothing is rendered or exported ([ADR 0026](decisions/0026-saved-slideshows-without-video.md), [features/slideshow.md](features/slideshow.md)).
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `id` | INTEGER PK autoincrement | |
+| `title` | TEXT | Trimmed |
+| `options` | TEXT | JSON written by `SlideshowOptions.encode`: `seconds`, `transition`, `order`, `videos`, `skip`, `music` (`{type: none \| bundled \| device, id?, uri?, name?}`); invalid values read as the defaults |
+| `created_at` | INTEGER (date) | Listed newest first |
+
+### `slideshow_items`
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `slideshow_id` | INTEGER FK → `slideshows.id` | Cascade: deleting a slideshow removes its list |
+| `position` | INTEGER | Playing order from 0; gaps after `forget` are kept |
+| `asset_id` | INTEGER | MediaStore id. **Not** a foreign key, as in `user_album_items`; removed by `SlideshowRepository.forget` when the item is deleted for good |
+
+Primary key (`slideshow_id`, `position`).
+
+### `memories`
+
+Automatic memories met so far (schema version 7, M9), shown in the *Memories* list until dismissed ([features/memories.md](features/memories.md)). Only the period is stored; its photos are read again when it plays.
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `key` | TEXT PK | `<kind>:<first day>`, e.g. `thisWeek:2025-11-03` |
+| `kind` | TEXT | `onThisDay` / `thisWeek` |
+| `years_ago` | INTEGER | 1 or more |
+| `start`, `end` | INTEGER (date) | The period; `end` excluded |
+| `photo_count` | INTEGER | Good photos when found |
+| `found_at` | INTEGER (date) | Listed most recently found first |
+| `dismissed` | BOOLEAN | ✕ on the card or in the list; found again, it stays dismissed |
+
+### `rituals`
+
+Recurring slideshows scheduled by the user (schema version 7, M9). Only notifications are scheduled for them ([ADR 0027](decisions/0027-notifications-without-background-work.md)).
+
+| Column | Type | Notes |
+| --- | --- | --- |
+| `id` | INTEGER PK autoincrement | Notification ids derive from it |
+| `content` | TEXT | `lastWeek` / `lastMonth` / `savedSlideshow` / `userAlbum` |
+| `target_id` | INTEGER, nullable | Saved slideshow or user album; not a foreign key, a missing target is shown as such |
+| `repeat` | TEXT | `weekly` / `monthly` |
+| `day` | INTEGER | 1–7 (Monday to Sunday) or 1–28 |
+| `minute` | INTEGER | Minutes past midnight, 0–1439 |
+| `enabled` | BOOLEAN | Notifications scheduled |
+| `created_at` | INTEGER (date) | Listed in that order |
+
 ### `settings`
 
 | Column | Type |
@@ -155,6 +205,12 @@ Known keys are constants in `SettingKeys` ([settings_repository.dart](../lib/cor
 | `similarity_window` | int, 0–60 | Advanced mode: time window in seconds (default 10) |
 | `screenshot_age_days` | int, 1–3650 | Age from which screenshots are offered for cleaning (default 30) |
 | `large_video_megabytes` | int, 1–100000 | Size from which videos are offered for cleaning (default 100) |
+| `slideshow_options` | JSON | Default slideshow options, as in `slideshows.options` |
+| `memories` | `off` / `weekly` / `monthly` | Memories (default `weekly`) |
+| `memories_weekday` | int, 1–7 | Day of the weekly memories notification (default 7, Sunday) |
+| `memories_month_day` | int, 1–28 | Day of the monthly one (default 1) |
+| `memories_minute` | int, 0–1439 | Its time (default 1140, 7 pm) |
+| `memories_notify` | bool | Memories notification on (default `false`) |
 | `media_index_version` | text | MediaStore version (`MediaStore.getVersion`) of the last complete index sync; unset before the first one |
 | `view_sort:<filter>:<folder id>[:user<album id>]` | `<field>:<asc\|desc>` | Saved sort of one timeline, e.g. `view_sort:photos:` → `size:desc`; a user album adds `:user<id>` |
 
@@ -167,6 +223,7 @@ They are read together by `SettingsRepository.loadAppSettings` before the first 
 | `assets_taken_at` | `assets(taken_at)` | Timelines in date order, date ranges, album covers |
 | `assets_bucket_id` | `assets(bucket_id)` | Album pages, the Albums tab's grouping |
 | `user_album_items_asset` | `user_album_items(asset_id)` | Albums holding given items (*Already in it*), removing items deleted for good |
+| `slideshow_items_asset` | `slideshow_items(asset_id)` | Removing items deleted for good from saved slideshows |
 
 Other indexes (`assets(content_hash)`, `assets(capture_at)`, `trash_entries(expires_at)`) are added with the queries that need them, so each one is justified by a real query.
 
@@ -189,4 +246,5 @@ Every schema change:
 | 4 | M6 | `assets.contrast`; from version 3, version 2 photos at a sharpness of 30 or more move to analysis version 3. |
 | 5 | M6 | `assets.location_read`, for the map: every item's location is read once after the update. |
 | 6 | M8 | Tables `user_albums` and `user_album_items`, index `user_album_items_asset`. |
+| 7 | M9 | Tables `slideshows`, `slideshow_items`, `memories` and `rituals`, index `slideshow_items_asset`. |
 | 2 | M3 | Media index: `assets.bucket_id`, `taken_at`, `media_revision`; indexes `assets_taken_at`, `assets_bucket_id`. The table is rebuilt (`alterTable`): rows written by the M2 trash move their date from `capture_at` to `taken_at`, since `capture_at` is now reserved for the engine. |

@@ -21,6 +21,7 @@ class MapAreaScreen extends StatelessWidget {
         title: l10n.mapAreaTitle,
         emptyTitle: l10n.mapAreaTitle,
         showBackButton: true,
+        slideshowTitle: l10n.mapAreaTitle,
       ),
     );
   }

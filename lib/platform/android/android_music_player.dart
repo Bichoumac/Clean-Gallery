@@ -50,9 +50,7 @@ final class AndroidMusicPlayer implements MusicPlayer {
 
   @override
   Future<DeviceMusic?> pick() async {
-    final picked = await _channel.invokeMapMethod<String, Object?>(
-      'pickMusic',
-    );
+    final picked = await _channel.invokeMapMethod<String, Object?>('pickMusic');
     final uri = picked?['uri'];
     if (uri is! String) return null;
     final name = picked?['name'];

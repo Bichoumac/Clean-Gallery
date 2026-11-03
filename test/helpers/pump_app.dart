@@ -22,6 +22,8 @@ Future<void> pumpTestApp(
   FakeMediaSource? media,
   FakePermissionService? permissions,
   FakePlatformBridge? bridge,
+  FakeMusicPlayer? music,
+  FakeReminderService? reminders,
   AppSettings settings = const AppSettings(),
   AppDatabase? database,
 }) async {
@@ -44,6 +46,10 @@ Future<void> pumpTestApp(
         ),
         platformBridgeProvider.overrideWithValue(
           bridge ?? FakePlatformBridge(),
+        ),
+        musicPlayerProvider.overrideWithValue(music ?? FakeMusicPlayer()),
+        reminderServiceProvider.overrideWithValue(
+          reminders ?? FakeReminderService(),
         ),
         initialOnboardingCompletedProvider.overrideWithValue(
           onboardingCompleted,

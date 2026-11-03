@@ -351,6 +351,17 @@ final class MediaIndexRepository {
     return row == null ? null : _toItem(row);
   }
 
+  /// Oldest item of [selection], leaving out trashed items: how far back
+  /// memories can go.
+  Future<MediaItem?> oldest(MediaSelection selection) async {
+    final query = _db.select(_db.assets)
+      ..where((t) => _matches(t, selection) & _notTrashed(t))
+      ..orderBy(_order(const MediaSort(descending: false)))
+      ..limit(1);
+    final row = await query.getSingleOrNull();
+    return row == null ? null : _toItem(row);
+  }
+
   /// Where the date shown for item [id] comes from, or `null` when the
   /// item is not indexed. Without [correctedDates], or before the date is
   /// resolved, it is the platform's file date ([DateSource.file]).

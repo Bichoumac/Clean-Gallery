@@ -4,7 +4,12 @@ import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/location_scan.dart';
 import 'package:clean_gallery/core/media/media_index.dart';
 import 'package:clean_gallery/core/media/selection_bar.dart';
+import 'package:clean_gallery/core/providers.dart';
+import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/core/router/compact_nav_bar.dart';
+import 'package:clean_gallery/features/memories/memory_providers.dart';
+import 'package:clean_gallery/features/memories/reminder_planner.dart';
+import 'package:clean_gallery/features/slideshow/slideshow_builder.dart';
 import 'package:clean_gallery/features/trash/trash_purge.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -35,17 +40,69 @@ class HomeShell extends ConsumerStatefulWidget {
 class _HomeShellState extends ConsumerState<HomeShell> {
   late final AppLifecycleListener _lifecycle;
 
+  /// Memory and ritual notifications tapped while the app runs.
+  StreamSubscription<String>? _reminderTaps;
+
   @override
   void initState() {
     super.initState();
     _lifecycle = AppLifecycleListener(onResume: _onForeground);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _onForeground());
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _onForeground();
+      unawaited(_openLaunchReminder());
+    });
+    _reminderTaps = ref
+        .read(reminderServiceProvider)
+        .taps
+        .listen((payload) => unawaited(_openReminder(payload)));
   }
 
   @override
   void dispose() {
     _lifecycle.dispose();
+    unawaited(_reminderTaps?.cancel());
     super.dispose();
+  }
+
+  /// Opens what the notification that started the app is about, if any.
+  Future<void> _openLaunchReminder() async {
+    final payload = await ref.read(reminderServiceProvider).takeLaunchPayload();
+    if (payload != null) await _openReminder(payload);
+  }
+
+  /// A memory or ritual notification was tapped: builds and plays its
+  /// slideshow now (nothing was prepared in the background). Memories
+  /// play today's first one, or open the *Memories* list when there is
+  /// none any more.
+  Future<void> _openReminder(String payload) async {
+    if (!mounted) return;
+    final router = GoRouter.of(context);
+    if (ritualIdOf(payload) case final id?) {
+      unawaited(
+        router.push(
+          AppRoutes.slideshow,
+          extra: SlideshowArgs(source: RitualSlideshow(id)),
+        ),
+      );
+      return;
+    }
+    if (payload != memoriesPayload) return;
+    // Wait for the index, so today's memories can be found.
+    if (!ref.read(mediaIndexProvider).ready) {
+      await ref.read(mediaIndexProvider.notifier).sync();
+    }
+    final memories = await ref.read(todaysMemoriesProvider.future);
+    if (!mounted) return;
+    if (memories.isEmpty) {
+      router.go(AlbumRoutes.memories);
+    } else {
+      unawaited(
+        router.push(
+          AppRoutes.slideshow,
+          extra: SlideshowArgs(source: MemorySlideshow(memories.first)),
+        ),
+      );
+    }
   }
 
   void _onForeground() {
@@ -68,6 +125,8 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     final l10n = AppLocalizations.of(context);
     final navigationShell = widget.navigationShell;
     final selecting = ref.watch(selectionModeProvider);
+    // Keeps the memory and ritual notifications set while the app runs.
+    ref.watch(reminderSyncProvider);
     return Scaffold(
       extendBody: true,
       body: navigationShell,

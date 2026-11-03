@@ -3,19 +3,28 @@ import 'dart:ui' show PlatformDispatcher;
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/core/database/duplicate_repository.dart';
 import 'package:clean_gallery/core/database/media_index_repository.dart';
+import 'package:clean_gallery/core/database/memory_repository.dart';
 import 'package:clean_gallery/core/database/settings_repository.dart';
+import 'package:clean_gallery/core/database/slideshow_repository.dart';
 import 'package:clean_gallery/core/database/swipe_repository.dart';
 import 'package:clean_gallery/core/database/trash_repository.dart';
 import 'package:clean_gallery/core/database/user_album_repository.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
 import 'package:clean_gallery/domain/album.dart';
+import 'package:clean_gallery/domain/memory.dart';
+import 'package:clean_gallery/domain/ritual.dart';
+import 'package:clean_gallery/domain/slideshow.dart';
 import 'package:clean_gallery/domain/trashed_item.dart';
 import 'package:clean_gallery/platform/android/android_media_source.dart';
+import 'package:clean_gallery/platform/android/android_music_player.dart';
 import 'package:clean_gallery/platform/android/android_permission_service.dart';
 import 'package:clean_gallery/platform/android/android_platform_bridge.dart';
+import 'package:clean_gallery/platform/android/android_reminder_service.dart';
 import 'package:clean_gallery/platform/media_source.dart';
+import 'package:clean_gallery/platform/music_player.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
 import 'package:clean_gallery/platform/platform_bridge.dart';
+import 'package:clean_gallery/platform/reminder_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -92,6 +101,35 @@ Stream<List<UserAlbum>> userAlbums(Ref ref) =>
 Stream<int> userAlbumItemChanges(Ref ref) =>
     ref.watch(userAlbumRepositoryProvider).watchItemChanges();
 
+/// Slideshows saved by the user.
+@Riverpod(keepAlive: true)
+SlideshowRepository slideshowRepository(Ref ref) => SlideshowRepository(
+  ref.watch(appDatabaseProvider),
+  correctedDates: ref.watch(
+    appSettingsControllerProvider.select((s) => s.correctedDates),
+  ),
+);
+
+/// Saved slideshows with their count and cover, newest first.
+@Riverpod(keepAlive: true)
+Stream<List<SavedSlideshow>> savedSlideshows(Ref ref) =>
+    ref.watch(slideshowRepositoryProvider).watchSaved();
+
+/// Memories met so far and rituals.
+@Riverpod(keepAlive: true)
+MemoryRepository memoryRepository(Ref ref) =>
+    MemoryRepository(ref.watch(appDatabaseProvider));
+
+/// Memories not dismissed, most recently found first: the *Memories* list.
+@Riverpod(keepAlive: true)
+Stream<List<Memory>> storedMemories(Ref ref) =>
+    ref.watch(memoryRepositoryProvider).watchMemories();
+
+/// The user's rituals, oldest first.
+@Riverpod(keepAlive: true)
+Stream<List<Ritual>> rituals(Ref ref) =>
+    ref.watch(memoryRepositoryProvider).watchRituals();
+
 /// Ids of trashed items. Every media list hides them.
 @Riverpod(keepAlive: true)
 Stream<Set<String>> trashedIds(Ref ref) =>
@@ -105,6 +143,14 @@ Stream<List<TrashedItem>> trashItems(Ref ref) =>
 /// Platform-specific features. Overridden in tests with a fake.
 @Riverpod(keepAlive: true)
 PlatformBridge platformBridge(Ref ref) => AndroidPlatformBridge();
+
+/// Slideshow music. Overridden in tests with a fake.
+@Riverpod(keepAlive: true)
+MusicPlayer musicPlayer(Ref ref) => AndroidMusicPlayer();
+
+/// Notifications at set times. Overridden in tests with a fake.
+@Riverpod(keepAlive: true)
+ReminderService reminderService(Ref ref) => AndroidReminderService();
 
 /// Runtime permissions. Overridden in tests with a fake.
 @Riverpod(keepAlive: true)

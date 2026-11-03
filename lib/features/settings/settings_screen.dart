@@ -9,6 +9,7 @@ import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/router/home_shell.dart';
 import 'package:clean_gallery/core/settings/app_settings.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
+import 'package:clean_gallery/features/memories/memories_settings.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
 import 'package:flutter/material.dart';
@@ -220,6 +221,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   controller.setRemoveGpsOnShare(value: value),
             ),
           ],
+        ),
+        _Section(
+          title: l10n.settingsSlideshows,
+          children: const [MemoriesSettings()],
         ),
         const _AnalysisSection(),
         const _PermissionsSection(),

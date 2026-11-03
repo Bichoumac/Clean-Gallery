@@ -3,6 +3,8 @@ import 'package:clean_gallery/core/database/settings_repository.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/settings/app_settings.dart';
 import 'package:clean_gallery/domain/album.dart';
+import 'package:clean_gallery/domain/ritual.dart';
+import 'package:clean_gallery/domain/slideshow.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'settings_controller.g.dart';
@@ -138,5 +140,45 @@ class AppSettingsController extends _$AppSettingsController {
       SettingKeys.similarityWindow,
       '${value.window.inSeconds}',
     );
+  }
+
+  /// Remembers [options] as the defaults of the next slideshow.
+  Future<void> setSlideshowOptions(SlideshowOptions options) async {
+    state = state.copyWith(slideshowOptions: options);
+    await _repository.write(SettingKeys.slideshowOptions, options.encode());
+  }
+
+  /// Sets how often memories are offered.
+  Future<void> setMemories(MemoriesFrequency frequency) async {
+    state = state.copyWith(memories: frequency);
+    await _repository.write(SettingKeys.memories, frequency.name);
+  }
+
+  /// Sets the day and time of the memories notification: [time]'s day is
+  /// a day of the week or of the month after its repeat.
+  Future<void> setMemoriesTime(RecurringTime time) async {
+    final valid = time.valid;
+    state = valid.repeat == Repeat.weekly
+        ? state.copyWith(
+            memoriesWeekday: valid.day,
+            memoriesMinute: valid.minute,
+          )
+        : state.copyWith(
+            memoriesMonthDay: valid.day,
+            memoriesMinute: valid.minute,
+          );
+    await _repository.write(
+      valid.repeat == Repeat.weekly
+          ? SettingKeys.memoriesWeekday
+          : SettingKeys.memoriesMonthDay,
+      '${valid.day}',
+    );
+    await _repository.write(SettingKeys.memoriesMinute, '${valid.minute}');
+  }
+
+  /// Sets whether a notification says when memories are ready.
+  Future<void> setMemoriesNotify({required bool value}) async {
+    state = state.copyWith(memoriesNotify: value);
+    await _repository.writeBool(SettingKeys.memoriesNotify, value: value);
   }
 }

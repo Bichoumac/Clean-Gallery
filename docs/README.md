@@ -2,7 +2,7 @@
 
 Every documentation file in the repository, with a one-line description. Start with [progress.md](progress.md) to see where the project stands.
 
-Last updated: 2026-11-01 — Milestone M8
+Last updated: 2026-11-03 — Milestone M9
 
 ## Project
 
@@ -25,7 +25,7 @@ Last updated: 2026-11-01 — Milestone M8
 | [analysis-engine.md](analysis-engine.md) | Analysis algorithms (capture dates, exact duplicates, bursts, similar photos, best pick), thresholds, rationale and performance. |
 | [testing.md](testing.md) | Test strategy, commands and fixtures. |
 
-Planned files: `features/slideshow.md` and `features/memories.md` (M9), `features/people.md` (M10), `monetization.md` (M11), `release.md` (M12).
+Planned files: `features/people.md` (M10), `monetization.md` (M11), `release.md` (M12).
 
 ## Features
 
@@ -47,6 +47,8 @@ Planned files: `features/slideshow.md` and `features/memories.md` (M9), `feature
 | [features/scan.md](features/scan.md) | Document scanner: page corners, perspective, color / gray / black and white. |
 | [features/search.md](features/search.md) | Search: file name, type, favorites, folder, area picked on the map, dates. |
 | [features/user-albums.md](features/user-albums.md) | User albums: create, add from a selection or the viewer, remove, cover, rename, delete; no file is ever moved. |
+| [features/slideshow.md](features/slideshow.md) | Slideshows: entry points, options, music, player, saved slideshows. |
+| [features/memories.md](features/memories.md) | Memories ("This week, 1 year ago"), memory card and list, rituals, notifications without background work. |
 
 One file per feature is added as each feature is built.
 
@@ -79,3 +81,5 @@ One file per feature is added as each feature is built.
 | [0023](decisions/0023-editor-color-matrix-preview.md) | Editor: the edit as data, one paint function for preview and saving |
 | [0024](decisions/0024-document-scanner.md) | Document scanner: Otsu threshold, perspective on the canvas |
 | [0025](decisions/0025-user-albums-in-the-database.md) | User albums in the database, never as folders |
+| [0026](decisions/0026-saved-slideshows-without-video.md) | Slideshows played live, saved as lists |
+| [0027](decisions/0027-notifications-without-background-work.md) | Memory and ritual notifications without background work |

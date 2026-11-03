@@ -2,13 +2,13 @@
 
 A photo and video gallery for Android, built with Flutter, with cleanup tools: a virtual folder of likely duplicates, a swipe-to-sort mode and a trash with a configurable retention period. **Your photos never leave your device.**
 
-Last updated: 2026-11-01 — Milestone M8
+Last updated: 2026-11-03 — Milestone M9
 
 The app is free with two small, unobtrusive ad placements, and a single "Remove ads" in-app purchase. Every feature is available to everyone.
 
 ## Status
 
-Milestones **M0** to **M7** are merged (the map came with M6). **M8 — User albums** is confirmed on the phone and in review; slideshows and memories (M9) and People, with on-device face recognition (M10), are specified. See [docs/progress.md](docs/progress.md) for details and the device checklist.
+Milestones **M0** to **M8** are merged (the map came with M6). **M9 — Slideshows and memories** is built and waits for its device test; People, with on-device face recognition (M10), is specified. See [docs/progress.md](docs/progress.md) for details and the device checklist.
 
 ## Features
 
@@ -23,8 +23,8 @@ Milestones **M0** to **M7** are merged (the map came with M6). **M8 — User alb
 | Cleanup | Swipe mode, blurry photos, screenshots, large videos | M5 ✓ |
 | Editing | Info panel, editor (crop, straighten, adjustments, Enhance, vignette, pencil, blur, pixelate, texts), document scanner, filters | M6 ✓ |
 | Exploration | Map with clusters and mini map, search with combinable criteria (name, type, favorites, folder, area on the map, dates) | Map M6 ✓, search M7 ✓ |
-| User albums | Create albums, add photos to a new or existing album; no file is moved | M8 |
-| Slideshows and memories | Slideshows from an album or a period; automatic memories ("1 year ago") | Planned |
+| User albums | Create albums, add photos to a new or existing album; no file is moved | M8 ✓ |
+| Slideshows and memories | Slideshows from an album, a selection or a period, with music; saved slideshows; automatic memories ("1 year ago"); rituals with a notification, no background work | M9 |
 | People | On-device face recognition, merge two persons | Planned |
 | Monetization | Banner (Albums), native card (Stats), consent, "Remove ads" purchase | Planned |
 
