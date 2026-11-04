@@ -2,7 +2,7 @@
 
 How Clean Gallery is tested: test layers, commands, fakes and fixtures. Every milestone adds tests for what it builds; a milestone is not done until the suite passes.
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 ## Commands
 
@@ -136,7 +136,7 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 
 ### Visual refresh — to verify on a device
 
-For when the [visual refresh](visual-refresh.md) is built. Nothing below can be checked yet.
+The [visual refresh](visual-refresh.md) is built. None of these has been checked on a phone yet.
 
 | # | Do | Expected |
 | --- | --- | --- |

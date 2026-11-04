@@ -79,7 +79,7 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Restore'));
     await tester.pumpAndSettle();
-    expect(find.text('Trash is empty'), findsOneWidget);
+    expect(find.text('Nothing to throw away'), findsOneWidget);
   });
 
   testApp('delete for good after confirming', (tester) async {
@@ -101,7 +101,7 @@ void main() {
     expect(bridge.deleteRequests, [
       ['1'],
     ]);
-    expect(find.text('Trash is empty'), findsOneWidget);
+    expect(find.text('Nothing to throw away'), findsOneWidget);
   });
 
   testApp('declining the system prompt keeps the item', (tester) async {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/media_actions.dart';
@@ -6,6 +7,7 @@ import 'package:clean_gallery/core/media/media_formatting.dart';
 import 'package:clean_gallery/core/media/media_providers.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/router/app_router.dart';
+import 'package:clean_gallery/core/theme/app_motion.dart';
 import 'package:clean_gallery/core/theme/app_theme.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/duplicate_group.dart';
@@ -16,7 +18,9 @@ import 'package:clean_gallery/features/viewer/info_panel.dart';
 import 'package:clean_gallery/features/viewer/video_page.dart';
 import 'package:clean_gallery/features/viewer/zoomable_image.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/physics.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -40,7 +44,23 @@ class ViewerScreen extends ConsumerStatefulWidget {
   ConsumerState<ViewerScreen> createState() => _ViewerScreenState();
 }
 
-class _ViewerScreenState extends ConsumerState<ViewerScreen> {
+class _ViewerScreenState extends ConsumerState<ViewerScreen>
+    with SingleTickerProviderStateMixin {
+  /// Share of the screen height a pull must reach to close the viewer.
+  static const _pullDistance = 0.25;
+
+  /// Downward speed, in logical pixels per second, that closes the viewer
+  /// whatever the distance (a flick).
+  static const _pullSpeed = 700.0;
+
+  /// How far the photo is pulled down, in logical pixels.
+  final _pull = ValueNotifier<double>(0);
+
+  /// Brings the photo back after a pull released early.
+  late final AnimationController _pullBack = AnimationController.unbounded(
+    vsync: this,
+  )..addListener(() => _pull.value = _pullBack.value);
+
   late final _pages = PageController(initialPage: widget.args.initialIndex);
   late int _index = widget.args.initialIndex;
   bool _controlsVisible = true;
@@ -80,6 +100,8 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
   @override
   void dispose() {
     _scan.resume();
+    _pullBack.dispose();
+    _pull.dispose();
     _pages.dispose();
     // Leave the viewer with system bars and free rotation restored.
     unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
@@ -184,6 +206,42 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
     if (saved != null && mounted) setState(() => _pendingTarget = saved);
   }
 
+  /// Whether the grid behind is drawn. The route stays opaque otherwise, so
+  /// the grid does not cost anything while photos are looked at.
+  void _showBehind({required bool show}) {
+    ModalRoute.of(context)?.overlayEntries.first.opaque = !show;
+  }
+
+  void _onPullStart(DragStartDetails details) {
+    _pullBack.stop();
+    _showBehind(show: true);
+  }
+
+  void _onPullUpdate(DragUpdateDetails details) {
+    _pull.value = math.max(0, _pull.value + (details.primaryDelta ?? 0));
+  }
+
+  void _onPullEnd(DragEndDetails details) {
+    final speed = details.primaryVelocity ?? 0;
+    final height = MediaQuery.sizeOf(context).height;
+    if (_pull.value > height * _pullDistance || speed > _pullSpeed) {
+      // The hero flies back to its thumbnail from where the photo is now.
+      _closing = true;
+      Navigator.of(context).maybePop();
+    } else if (AppMotion.reduced(context)) {
+      _pull.value = 0;
+      _showBehind(show: false);
+    } else {
+      _pullBack
+          .animateWith(
+            SpringSimulation(AppMotion.spring, _pull.value, 0, speed),
+          )
+          .whenCompleteOrCancel(() {
+            if (mounted && _pull.value == 0) _showBehind(show: false);
+          });
+    }
+  }
+
   void _toggleControls() {
     setState(() => _controlsVisible = !_controlsVisible);
     unawaited(
@@ -247,49 +305,74 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
         child: Scaffold(
-          backgroundColor: Colors.black,
+          // The grid shows behind while a photo is pulled down.
+          backgroundColor: Colors.transparent,
           body: items.isEmpty
-              ? const Center(child: CircularProgressIndicator())
+              ? const ColoredBox(
+                  color: Colors.black,
+                  child: Center(child: CircularProgressIndicator()),
+                )
               : Stack(
                   children: [
-                    PageView.builder(
-                      controller: _pages,
-                      physics: _zoomed
-                          ? const NeverScrollableScrollPhysics()
-                          : const PageScrollPhysics(),
-                      itemCount: items.length,
-                      onPageChanged: (i) {
-                        setState(() {
-                          _index = i;
-                          _zoomed = false;
-                          // Within the group the strip stays; elsewhere the
-                          // group of the new item is looked up.
-                          final inStrip =
-                              _group?.items.any((m) => m.id == items[i].id) ??
-                              false;
-                          _groupFor = inStrip ? items[i].id : null;
-                        });
-                        unawaited(_precacheNeighbors(items, i));
-                      },
-                      itemBuilder: (context, i) {
-                        final item = items[i];
-                        return item.isVideo
-                            ? VideoPage(
-                                key: ValueKey(item.id),
-                                item: item,
-                                isCurrent: i == index,
-                                controlsVisible: _controlsVisible,
-                                onTap: _toggleControls,
-                                bottomInset: _actionBarHeight,
-                              )
-                            : ZoomableImage(
-                                key: ValueKey(item.id),
-                                item: item,
-                                onTap: _toggleControls,
-                                onZoomChanged: (zoomed) =>
-                                    setState(() => _zoomed = zoomed),
-                              );
-                      },
+                    ValueListenableBuilder<double>(
+                      valueListenable: _pull,
+                      builder: (context, pull, _) => Positioned.fill(
+                        child: ColoredBox(
+                          color: Colors.black.withValues(
+                            alpha: (1 - _pullProgress(context, pull) * 3).clamp(
+                              0.0,
+                              1.0,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                    _Pullable(
+                      pull: _pull,
+                      // Photos only, at 1× zoom: a zoomed photo pans.
+                      enabled: !_zoomed && !(shown?.isVideo ?? true),
+                      onStart: _onPullStart,
+                      onUpdate: _onPullUpdate,
+                      onEnd: _onPullEnd,
+                      child: PageView.builder(
+                        controller: _pages,
+                        physics: _zoomed
+                            ? const NeverScrollableScrollPhysics()
+                            : const PageScrollPhysics(),
+                        itemCount: items.length,
+                        onPageChanged: (i) {
+                          setState(() {
+                            _index = i;
+                            _zoomed = false;
+                            // Within the group the strip stays; elsewhere the
+                            // group of the new item is looked up.
+                            final inStrip =
+                                _group?.items.any((m) => m.id == items[i].id) ??
+                                false;
+                            _groupFor = inStrip ? items[i].id : null;
+                          });
+                          unawaited(_precacheNeighbors(items, i));
+                        },
+                        itemBuilder: (context, i) {
+                          final item = items[i];
+                          return item.isVideo
+                              ? VideoPage(
+                                  key: ValueKey(item.id),
+                                  item: item,
+                                  isCurrent: i == index,
+                                  controlsVisible: _controlsVisible,
+                                  onTap: _toggleControls,
+                                  bottomInset: _actionBarHeight,
+                                )
+                              : ZoomableImage(
+                                  key: ValueKey(item.id),
+                                  item: item,
+                                  onTap: _toggleControls,
+                                  onZoomChanged: (zoomed) =>
+                                      setState(() => _zoomed = zoomed),
+                                );
+                        },
+                      ),
                     ),
                     // Pinned to the top with its own height: a full-screen
                     // overlay would swallow page swipes and video controls.
@@ -297,14 +380,17 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
                       top: 0,
                       left: 0,
                       right: 0,
-                      child: IgnorePointer(
-                        ignoring: !_controlsVisible,
-                        child: AnimatedOpacity(
-                          opacity: _controlsVisible ? 1 : 0,
-                          duration: const Duration(milliseconds: 200),
-                          child: _TopBar(
-                            item: items[index],
-                            onScan: () => _scanDocument(items[index]),
+                      child: _FadesWithPull(
+                        pull: _pull,
+                        child: IgnorePointer(
+                          ignoring: !_controlsVisible,
+                          child: AnimatedOpacity(
+                            opacity: _controlsVisible ? 1 : 0,
+                            duration: AppMotion.of(context, AppMotion.standard),
+                            child: _TopBar(
+                              item: items[index],
+                              onScan: () => _scanDocument(items[index]),
+                            ),
                           ),
                         ),
                       ),
@@ -315,51 +401,54 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
                       left: 0,
                       right: 0,
                       bottom: 0,
-                      child: IgnorePointer(
-                        ignoring: !_controlsVisible,
-                        child: AnimatedOpacity(
-                          opacity: _controlsVisible ? 1 : 0,
-                          duration: const Duration(milliseconds: 200),
-                          child: DecoratedBox(
-                            decoration: const BoxDecoration(
-                              gradient: LinearGradient(
-                                begin: Alignment.bottomCenter,
-                                end: Alignment.topCenter,
-                                colors: [Colors.black54, Colors.transparent],
-                              ),
-                            ),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Not over a video's playback controls.
-                                if (group != null &&
-                                    shown != null &&
-                                    !shown.isVideo)
-                                  GroupStrip(
-                                    group: group,
-                                    current: inGroup ? shown.id : '',
-                                    kept: _kept,
-                                    trashed: _trashed,
-                                    onOpen: (item) => _open(item, items),
-                                    onRestore: (item) =>
-                                        unawaited(_restore(item)),
-                                    onKeep: inGroup
-                                        ? () => _keep(shown, items)
-                                        : null,
-                                    onTrash: inGroup
-                                        ? () => unawaited(_trash(shown))
-                                        : null,
-                                    onUndo: _trashLog.isEmpty
-                                        ? null
-                                        : () => unawaited(
-                                            _restore(_trashLog.last),
-                                          ),
-                                  ),
-                                _ActionBar(
-                                  item: items[index],
-                                  onEdit: () => _edit(items[index]),
+                      child: _FadesWithPull(
+                        pull: _pull,
+                        child: IgnorePointer(
+                          ignoring: !_controlsVisible,
+                          child: AnimatedOpacity(
+                            opacity: _controlsVisible ? 1 : 0,
+                            duration: AppMotion.of(context, AppMotion.standard),
+                            child: DecoratedBox(
+                              decoration: const BoxDecoration(
+                                gradient: LinearGradient(
+                                  begin: Alignment.bottomCenter,
+                                  end: Alignment.topCenter,
+                                  colors: [Colors.black54, Colors.transparent],
                                 ),
-                              ],
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  // Not over a video's playback controls.
+                                  if (group != null &&
+                                      shown != null &&
+                                      !shown.isVideo)
+                                    GroupStrip(
+                                      group: group,
+                                      current: inGroup ? shown.id : '',
+                                      kept: _kept,
+                                      trashed: _trashed,
+                                      onOpen: (item) => _open(item, items),
+                                      onRestore: (item) =>
+                                          unawaited(_restore(item)),
+                                      onKeep: inGroup
+                                          ? () => _keep(shown, items)
+                                          : null,
+                                      onTrash: inGroup
+                                          ? () => unawaited(_trash(shown))
+                                          : null,
+                                      onUndo: _trashLog.isEmpty
+                                          ? null
+                                          : () => unawaited(
+                                              _restore(_trashLog.last),
+                                            ),
+                                    ),
+                                  _ActionBar(
+                                    item: items[index],
+                                    onEdit: () => _edit(items[index]),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
@@ -371,6 +460,71 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen> {
       ),
     );
   }
+}
+
+/// How far [pull] is, from 0 to a whole screen height.
+double _pullProgress(BuildContext context, double pull) =>
+    (pull / MediaQuery.sizeOf(context).height).clamp(0.0, 1.0);
+
+/// The pages of the viewer: a vertical drag moves and shrinks them.
+///
+/// The drag is only listened to when [enabled]. It competes with the page
+/// view's horizontal drag and the photo's zoom in the gesture arena: the
+/// direction of the finger picks the page view or the pull, a second finger
+/// picks the zoom.
+class _Pullable extends StatelessWidget {
+  const _Pullable({
+    required this.pull,
+    required this.enabled,
+    required this.onStart,
+    required this.onUpdate,
+    required this.onEnd,
+    required this.child,
+  });
+
+  final ValueListenable<double> pull;
+  final bool enabled;
+  final GestureDragStartCallback onStart;
+  final GestureDragUpdateCallback onUpdate;
+  final GestureDragEndCallback onEnd;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    key: const ValueKey('viewer-pull'),
+    onVerticalDragStart: enabled ? onStart : null,
+    onVerticalDragUpdate: enabled ? onUpdate : null,
+    onVerticalDragEnd: enabled ? onEnd : null,
+    child: ValueListenableBuilder<double>(
+      valueListenable: pull,
+      child: child,
+      builder: (context, value, child) {
+        final scale = 1 - _pullProgress(context, value) * 0.4;
+        return Transform.translate(
+          offset: Offset(0, value),
+          child: Transform.scale(scale: scale, child: child),
+        );
+      },
+    ),
+  );
+}
+
+/// [child], fading out as soon as a photo is pulled down.
+class _FadesWithPull extends StatelessWidget {
+  const _FadesWithPull({required this.pull, required this.child});
+
+  final ValueListenable<double> pull;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => ValueListenableBuilder<double>(
+    valueListenable: pull,
+    child: child,
+    builder: (context, value, child) => Opacity(
+      opacity: (1 - _pullProgress(context, value) * 8).clamp(0.0, 1.0),
+      child: child,
+    ),
+  );
 }
 
 /// Back button, date and file name over a dark gradient. The actions are

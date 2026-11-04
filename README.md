@@ -2,13 +2,13 @@
 
 A photo and video gallery for Android, built with Flutter, with cleanup tools: a virtual folder of likely duplicates, a swipe-to-sort mode and a trash with a configurable retention period. **Your photos never leave your device.**
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 The app is free with two small, unobtrusive ad placements, and a single "Remove ads" in-app purchase. Every feature is available to everyone.
 
 ## Status
 
-Milestones **M0** to **M9** are merged (the map came with M6). People, with on-device face recognition (M10), is specified, and so is a [visual refresh](docs/visual-refresh.md) with a new identity and logo. See [docs/progress.md](docs/progress.md) for details and the device checklist.
+Milestones **M0** to **M9** are merged (the map came with M6). People, with on-device face recognition (M10), is specified. A [visual refresh](docs/visual-refresh.md) with a new identity and logo is built, to test on a device. See [docs/progress.md](docs/progress.md) for details and the device checklist.
 
 ## Features
 
@@ -25,7 +25,7 @@ Milestones **M0** to **M9** are merged (the map came with M6). People, with on-d
 | Exploration | Map with clusters and mini map, search with combinable criteria (name, type, favorites, folder, area on the map, dates) | Map M6 ✓, search M7 ✓ |
 | User albums | Create albums, add photos to a new or existing album; no file is moved | M8 ✓ |
 | Slideshows and memories | Slideshows from an album, a selection or a period, with music; saved slideshows; automatic memories ("1 year ago"); rituals with a notification, no background work | M9 |
-| Visual refresh | Warm Éclat Soleil identity, logo and app icon, mosaics, motion | Specified |
+| Visual refresh | Warm Éclat Soleil identity, logo and app icon, mosaics, motion | Built, to test on a device |
 | People | On-device face recognition, merge two persons | Planned |
 | Monetization | Banner (Albums), native card (Stats), consent, "Remove ads" purchase | Planned |
 

@@ -101,17 +101,19 @@ abstract final class AppTheme {
     final rounded = RoundedRectangleBorder(
       borderRadius: BorderRadius.circular(cornerRadius),
     );
+    final textTheme = _textTheme(scheme);
     return ThemeData(
       colorScheme: scheme,
       useMaterial3: true,
       scaffoldBackgroundColor: scheme.surface,
       fontFamily: textFont,
-      textTheme: _textTheme(scheme),
+      textTheme: textTheme,
       appBarTheme: AppBarTheme(
         backgroundColor: scheme.surface,
         surfaceTintColor: Colors.transparent,
         elevation: 0,
         scrolledUnderElevation: 0,
+        titleTextStyle: textTheme.headlineMedium,
       ),
       cardTheme: CardThemeData(
         color: scheme.surfaceContainerLow,
@@ -138,7 +140,7 @@ abstract final class AppTheme {
           foregroundColor: scheme.onPrimaryContainer,
           minimumSize: const Size(48, 56),
           shape: const StadiumBorder(),
-          textStyle: _weighted(const TextStyle(fontSize: 16), 800),
+          textStyle: textTheme.labelLarge?.copyWith(fontSize: 16),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -147,14 +149,14 @@ abstract final class AppTheme {
           minimumSize: const Size(48, 48),
           shape: const StadiumBorder(),
           side: BorderSide(color: scheme.outline),
-          textStyle: _weighted(const TextStyle(fontSize: 14), 800),
+          textStyle: textTheme.labelLarge,
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: scheme.onSurfaceVariant,
           minimumSize: const Size(48, 48),
-          textStyle: _weighted(const TextStyle(fontSize: 14), 800),
+          textStyle: textTheme.labelLarge,
         ),
       ),
       chipTheme: ChipThemeData(

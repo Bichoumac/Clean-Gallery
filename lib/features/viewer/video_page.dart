@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clean_gallery/core/brand/glass.dart';
 import 'package:clean_gallery/core/media/media_formatting.dart';
 import 'package:clean_gallery/core/media/media_thumbnail.dart';
 import 'package:clean_gallery/core/providers.dart';
@@ -193,8 +194,6 @@ class _VideoControlsState extends State<VideoControls> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final colors = Theme.of(context).colorScheme;
-
     return ValueListenableBuilder<VideoPlayerValue>(
       valueListenable: controller,
       builder: (context, value, _) {
@@ -214,16 +213,12 @@ class _VideoControlsState extends State<VideoControls> {
         return Stack(
           children: [
             Center(
-              child: IconButton.filled(
+              child: GlassIconButton(
                 tooltip: label,
+                icon: icon,
+                size: 72,
                 iconSize: 36,
-                style: IconButton.styleFrom(
-                  backgroundColor: colors.primaryContainer,
-                  foregroundColor: colors.onPrimaryContainer,
-                  minimumSize: const Size(72, 72),
-                ),
                 onPressed: () => _togglePlay(value),
-                icon: Icon(icon),
               ),
             ),
             Align(
@@ -258,17 +253,27 @@ class _VideoControlsState extends State<VideoControls> {
                           style: const TextStyle(color: Colors.white),
                         ),
                         Expanded(
-                          child: Slider(
-                            value: sliderMs,
-                            max: maxMs,
-                            onChangeStart: (ms) => setState(() => _dragMs = ms),
-                            onChanged: (ms) => setState(() => _dragMs = ms),
-                            onChangeEnd: (ms) async {
-                              await controller.seekTo(
-                                Duration(milliseconds: ms.round()),
-                              );
-                              if (mounted) setState(() => _dragMs = null);
-                            },
+                          // White: no accent over a video.
+                          child: SliderTheme(
+                            data: const SliderThemeData(
+                              activeTrackColor: Colors.white,
+                              inactiveTrackColor: Colors.white30,
+                              thumbColor: Colors.white,
+                              overlayColor: Colors.white12,
+                            ),
+                            child: Slider(
+                              value: sliderMs,
+                              max: maxMs,
+                              onChangeStart: (ms) =>
+                                  setState(() => _dragMs = ms),
+                              onChanged: (ms) => setState(() => _dragMs = ms),
+                              onChangeEnd: (ms) async {
+                                await controller.seekTo(
+                                  Duration(milliseconds: ms.round()),
+                                );
+                                if (mounted) setState(() => _dragMs = null);
+                              },
+                            ),
                           ),
                         ),
                         Text(

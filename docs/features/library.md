@@ -2,7 +2,7 @@
 
 Browsing the device's photos and videos: the Camera and Videos timelines, the Albums tab and album pages.
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 ## Purpose
 
@@ -124,9 +124,9 @@ flowchart TD
     H -->|No| J[Timeline grid] -.->|background| K[Rest of the list from the index]
 ```
 
-## Planned look
+## Look
 
-Grids get a neutral background and Bricolage titles. The Albums tab becomes a mosaic ([mockup](../design-assets/mockups/screens/03-albums.png)). Not built yet: [visual refresh](../visual-refresh.md), [mockup](../design-assets/mockups/screens/02-grid-dark.png).
+Grids sit on a neutral background (`surfaceContainerLowest`) with Bricolage titles and section headers. The Albums tab starts with a mosaic: *All media* across the width, then Favorites (sun), Map, Slideshows and Trash; *My albums* and *Folders* follow. The *Slideshows* tile opens a page with *Slideshow*, *Memories* and the saved slideshows. Mockups: [grid](../design-assets/mockups/screens/02-grid-dark.png), [Albums](../design-assets/mockups/screens/03-albums.png).
 
 ## Screens and widgets
 

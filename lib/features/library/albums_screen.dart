@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clean_gallery/core/brand/mosaic_tile.dart';
 import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/location_scan.dart';
 import 'package:clean_gallery/core/media/media_index.dart';
@@ -22,9 +23,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-/// Albums tab: "All media", "Favorites", the map and the trash, then the
-/// user's albums (*My albums*), the slideshows (*Slideshow* for a period,
-/// *Memories*, saved slideshows), then the device folders.
+/// Albums tab: a mosaic with "All media", "Favorites", the map, the slideshows
+/// and the trash, then the user's albums (*My albums*) and the device folders.
 ///
 /// The Trash is a page of the app, not a MediaStore album. The Duplicates
 /// virtual album joins the top row in M3.
@@ -78,7 +78,7 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
           SliverSafeArea(
             bottom: false,
             sliver: SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 24, 20, 24),
+              padding: const EdgeInsets.fromLTRB(14, 24, 8, 24),
               sliver: SliverToBoxAdapter(
                 child: Row(
                   children: [
@@ -98,45 +98,18 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            sliver: _AlbumGrid(
-              tiles: [
-                _AlbumTile(
-                  selection: MediaSelection.all,
-                  name: l10n.albumsAllMedia,
-                  location: AlbumRoutes.location(
-                    AlbumRoutes.allKey,
-                    l10n.albumsAllMedia,
-                  ),
-                ),
-                _AlbumTile(
-                  selection: MediaSelection.favorites,
-                  name: l10n.albumsFavorites,
-                  location: AlbumRoutes.location(
-                    AlbumRoutes.favoritesKey,
-                    l10n.albumsFavorites,
-                  ),
-                  icon: Icons.favorite_rounded,
-                ),
-                _AlbumTile(
-                  name: l10n.mapTitle,
-                  location: AppRoutes.map,
-                  knownCount: located?.length,
-                  knownCover: located?.firstOrNull?.item,
-                  icon: Icons.map_rounded,
-                ),
-                _AlbumTile(
-                  name: l10n.trashTitle,
-                  location: AlbumRoutes.trash,
-                  knownCount: trash.length,
-                  knownCover: trash.firstOrNull?.item,
-                  icon: Icons.delete_outline_rounded,
-                ),
-              ],
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            sliver: SliverToBoxAdapter(
+              child: _TopMosaic(
+                located: located?.length,
+                locatedCover: located?.firstOrNull?.item,
+                slideshows: saved.length + memories.length,
+                trash: trash.length,
+              ),
             ),
           ),
           SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
+            padding: const EdgeInsets.fromLTRB(14, 28, 14, 12),
             sliver: SliverToBoxAdapter(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -145,7 +118,7 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
                     header: true,
                     child: Text(
                       l10n.userAlbumsTitle,
-                      style: textTheme.titleLarge,
+                      style: textTheme.headlineSmall,
                     ),
                   ),
                   // No album yet: a line and a button, not a row of tiles.
@@ -171,7 +144,7 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
           ),
           if (mine.isNotEmpty)
             SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 14),
               sliver: _AlbumGrid(
                 tiles: [
                   _ActionTile(
@@ -189,85 +162,9 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
                 ],
               ),
             ),
-          SliverPadding(
-            padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
-            sliver: SliverToBoxAdapter(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Semantics(
-                    header: true,
-                    child: Text(
-                      l10n.slideshowsTitle,
-                      style: textTheme.titleLarge,
-                    ),
-                  ),
-                  // Nothing saved nor found yet: a line and a button, not a
-                  // row of tiles.
-                  if (saved.isEmpty && memories.isEmpty) ...[
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4, bottom: 12),
-                      child: Text(
-                        l10n.slideshowsHint,
-                        style: textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
-                        ),
-                      ),
-                    ),
-                    FilledButton.tonalIcon(
-                      onPressed: () =>
-                          unawaited(startPeriodSlideshow(context, ref)),
-                      icon: const Icon(Icons.play_arrow_rounded),
-                      label: Text(l10n.actionSlideshow),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-          ),
-          if (saved.isNotEmpty || memories.isNotEmpty)
-            SliverPadding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              sliver: _AlbumGrid(
-                tiles: [
-                  _ActionTile(
-                    label: l10n.actionSlideshow,
-                    icon: Icons.play_arrow_rounded,
-                    onTap: () => unawaited(startPeriodSlideshow(context, ref)),
-                  ),
-                  if (memories.isNotEmpty)
-                    _AlbumTile(
-                      name: l10n.memoriesTitle,
-                      location: AlbumRoutes.memories,
-                      knownCount: memories.length,
-                      selection: memories.first.selection.copyWith(
-                        goodOnly: true,
-                      ),
-                      countLabel: l10n.memoryCount(memories.length),
-                      icon: Icons.auto_awesome_rounded,
-                    ),
-                  for (final slideshow in saved)
-                    _AlbumTile(
-                      name: slideshow.title,
-                      location: AlbumRoutes.memories,
-                      knownCount: slideshow.count,
-                      knownCover: slideshow.cover,
-                      icon: Icons.slideshow_rounded,
-                      onTap: () => unawaited(
-                        playSlideshow(
-                          context,
-                          SavedSlideshowSource(slideshow.id),
-                        ),
-                      ),
-                      onLongPress: () =>
-                          unawaited(_slideshowMenu(context, ref, slideshow)),
-                    ),
-                ],
-              ),
-            ),
           if (folders.isNotEmpty)
             SliverPadding(
-              padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
+              padding: const EdgeInsets.fromLTRB(14, 28, 14, 12),
               sliver: SliverToBoxAdapter(
                 child: Row(
                   children: [
@@ -276,7 +173,7 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
                         header: true,
                         child: Text(
                           l10n.albumsFolders,
-                          style: textTheme.titleLarge,
+                          style: textTheme.headlineSmall,
                         ),
                       ),
                     ),
@@ -304,7 +201,7 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
               ),
             ),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
             sliver: _AlbumGrid(
               tiles: [
                 for (final album in folders)
@@ -330,6 +227,324 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
   }
 }
 
+/// Radius of album covers.
+const _coverRadius = 22.0;
+
+/// The top of the Albums tab: *All media* across the width, then Favorites as
+/// the one sun tile, the map, the slideshows and the trash.
+class _TopMosaic extends ConsumerWidget {
+  const _TopMosaic({
+    required this.located,
+    required this.locatedCover,
+    required this.slideshows,
+    required this.trash,
+  });
+
+  final int? located;
+  final MediaItem? locatedCover;
+  final int slideshows;
+  final int trash;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final colors = Theme.of(context).colorScheme;
+    final favorites = ref
+        .watch(mediaCountProvider(MediaSelection.favorites))
+        .value;
+    return Column(
+      children: [
+        const _AllMediaTile(),
+        const SizedBox(height: MosaicTile.gap),
+        MosaicRow(
+          left: _IconTile(
+            icon: Icons.favorite_rounded,
+            name: l10n.albumsFavorites,
+            count: favorites,
+            color: colors.primaryContainer,
+            foreground: colors.onPrimaryContainer,
+            onTap: () => context.push(
+              AlbumRoutes.location(
+                AlbumRoutes.favoritesKey,
+                l10n.albumsFavorites,
+              ),
+            ),
+          ),
+          right: _IconTile(
+            icon: Icons.place_outlined,
+            name: l10n.mapTitle,
+            count: located,
+            onTap: () => context.push(AppRoutes.map),
+          ),
+        ),
+        const SizedBox(height: MosaicTile.gap),
+        MosaicRow(
+          left: _IconTile(
+            icon: Icons.slideshow_rounded,
+            name: l10n.slideshowsTitle,
+            count: slideshows,
+            onTap: () => context.push(AlbumRoutes.slideshows),
+          ),
+          right: _IconTile(
+            icon: Icons.delete_outline_rounded,
+            name: l10n.trashTitle,
+            count: trash,
+            onTap: () => context.push(AlbumRoutes.trash),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+/// *All media*, across the width: its cover under a scrim, its name and count.
+class _AllMediaTile extends ConsumerWidget {
+  const _AllMediaTile();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final cover = ref.watch(albumCoverProvider(MediaSelection.all)).value;
+    final count = ref.watch(mediaCountProvider(MediaSelection.all)).value;
+    final name = l10n.albumsAllMedia;
+    return Semantics(
+      button: true,
+      label: [name, if (count != null) l10n.albumItemCount(count)].join(', '),
+      excludeSemantics: true,
+      child: SizedBox(
+        height: 168,
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(28),
+          child: InkWell(
+            onTap: () =>
+                context.push(AlbumRoutes.location(AlbumRoutes.allKey, name)),
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                ColoredBox(color: theme.colorScheme.surfaceContainerHigh),
+                if (cover != null)
+                  IgnorePointer(
+                    child: MediaThumbnail(
+                      item: cover,
+                      pixelSize: 768,
+                      hero: false,
+                    ),
+                  ),
+                // Keeps the white text readable on any photo.
+                const DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [Color(0x00000000), Color(0xB3000000)],
+                      stops: [0.4, 1],
+                    ),
+                  ),
+                ),
+                Positioned(
+                  left: 16,
+                  right: 16,
+                  bottom: 14,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.headlineSmall?.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
+                      if (count != null)
+                        Text(
+                          l10n.albumItemCount(count),
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: Colors.white,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A tile of the top mosaic: an icon at the top, a name and a count at the
+/// bottom.
+class _IconTile extends StatelessWidget {
+  const _IconTile({
+    required this.icon,
+    required this.name,
+    required this.onTap,
+    this.count,
+    this.color,
+    this.foreground,
+  });
+
+  final IconData icon;
+  final String name;
+  final int? count;
+  final Color? color;
+  final Color? foreground;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    final count = this.count;
+    return MosaicTile(
+      semanticLabel: [
+        name,
+        if (count != null) l10n.albumItemCount(count),
+      ].join(', '),
+      color: color,
+      onTap: onTap,
+      top: Icon(icon, size: 24, color: foreground ?? colors.onSurface),
+      bottom: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Scales down rather than cut a word at large text sizes.
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              name,
+              maxLines: 1,
+              style: theme.textTheme.titleMedium?.copyWith(color: foreground),
+            ),
+          ),
+          Text(
+            count == null ? '' : l10n.albumItemCount(count),
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: foreground ?? colors.onSurfaceVariant,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// The page of the *Slideshows* tile: *Slideshow* for a period, *Memories*,
+/// saved slideshows.
+class SlideshowsScreen extends ConsumerWidget {
+  /// Creates the page.
+  const SlideshowsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final saved =
+        ref.watch(savedSlideshowsProvider).value ?? const <SavedSlideshow>[];
+    final memories =
+        ref.watch(storedMemoriesProvider).value ?? const <Memory>[];
+    return CustomScrollView(
+      slivers: [
+        SliverSafeArea(
+          bottom: false,
+          sliver: SliverPadding(
+            padding: const EdgeInsets.fromLTRB(4, 24, 14, 16),
+            sliver: SliverToBoxAdapter(
+              child: Row(
+                children: [
+                  const BackButton(),
+                  Expanded(
+                    child: Text(
+                      l10n.slideshowsTitle,
+                      style: theme.textTheme.headlineLarge,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+        // Nothing saved nor found yet: a line and a button, not a row of
+        // tiles.
+        if (saved.isEmpty && memories.isEmpty)
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: Text(
+                      l10n.slideshowsHint,
+                      style: theme.textTheme.bodyMedium?.copyWith(
+                        color: theme.colorScheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ),
+                  FilledButton.icon(
+                    onPressed: () =>
+                        unawaited(startPeriodSlideshow(context, ref)),
+                    icon: const Icon(Icons.play_arrow_rounded),
+                    label: Text(l10n.actionSlideshow),
+                  ),
+                ],
+              ),
+            ),
+          )
+        else
+          SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            sliver: _AlbumGrid(
+              tiles: [
+                _ActionTile(
+                  label: l10n.actionSlideshow,
+                  icon: Icons.play_arrow_rounded,
+                  onTap: () => unawaited(startPeriodSlideshow(context, ref)),
+                ),
+                if (memories.isNotEmpty)
+                  _AlbumTile(
+                    name: l10n.memoriesTitle,
+                    location: AlbumRoutes.memories,
+                    knownCount: memories.length,
+                    selection: memories.first.selection.copyWith(
+                      goodOnly: true,
+                    ),
+                    countLabel: l10n.memoryCount(memories.length),
+                    icon: Icons.auto_awesome_rounded,
+                  ),
+                for (final slideshow in saved)
+                  _AlbumTile(
+                    name: slideshow.title,
+                    location: AlbumRoutes.memories,
+                    knownCount: slideshow.count,
+                    knownCover: slideshow.cover,
+                    icon: Icons.slideshow_rounded,
+                    onTap: () => unawaited(
+                      playSlideshow(
+                        context,
+                        SavedSlideshowSource(slideshow.id),
+                      ),
+                    ),
+                    onLongPress: () =>
+                        unawaited(_slideshowMenu(context, ref, slideshow)),
+                  ),
+              ],
+            ),
+          ),
+        SliverToBoxAdapter(
+          child: SizedBox(height: CompactNavBar.contentInset(context)),
+        ),
+      ],
+    );
+  }
+}
+
 class _AlbumGrid extends StatelessWidget {
   const _AlbumGrid({required this.tiles});
 
@@ -339,9 +554,9 @@ class _AlbumGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return SliverGrid.count(
       crossAxisCount: 2,
-      mainAxisSpacing: 16,
-      crossAxisSpacing: 12,
-      childAspectRatio: 0.78,
+      mainAxisSpacing: 14,
+      crossAxisSpacing: MosaicTile.gap,
+      childAspectRatio: 0.82,
       children: tiles,
     );
   }
@@ -368,7 +583,7 @@ class _ActionTile extends StatelessWidget {
       label: label,
       excludeSemantics: true,
       child: InkWell(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(_coverRadius),
         onTap: onTap,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -376,7 +591,7 @@ class _ActionTile extends StatelessWidget {
             Expanded(
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(24),
+                  borderRadius: BorderRadius.circular(_coverRadius),
                   border: Border.all(color: theme.colorScheme.outlineVariant),
                 ),
                 child: Center(
@@ -482,7 +697,7 @@ class _AlbumTile extends ConsumerWidget {
       ].join(', '),
       excludeSemantics: true,
       child: InkWell(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(_coverRadius),
         onTap: onTap ?? () => context.push(location),
         onLongPress: onLongPress,
         child: Column(
@@ -490,7 +705,7 @@ class _AlbumTile extends ConsumerWidget {
           children: [
             Expanded(
               child: ClipRRect(
-                borderRadius: BorderRadius.circular(24),
+                borderRadius: BorderRadius.circular(_coverRadius),
                 child: Stack(
                   fit: StackFit.expand,
                   children: [

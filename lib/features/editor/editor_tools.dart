@@ -19,6 +19,29 @@ const penWidths = [0.006, 0.014, 0.03];
 /// plates.
 const areaWidths = [0.04, 0.08, 0.14];
 
+/// A slider of the editor: neutral, in the accent only when it [active]ly
+/// changes the photo, so the accent always says what is being edited.
+class _ToolSlider extends StatelessWidget {
+  const _ToolSlider({required this.active, required this.child});
+
+  final bool active;
+  final Slider child;
+
+  @override
+  Widget build(BuildContext context) {
+    if (active) return child;
+    return SliderTheme(
+      data: const SliderThemeData(
+        activeTrackColor: Colors.white,
+        inactiveTrackColor: Colors.white24,
+        thumbColor: Colors.white,
+        overlayColor: Colors.white12,
+      ),
+      child: child,
+    );
+  }
+}
+
 /// A row of chips that scrolls sideways.
 class _ChipRow extends StatelessWidget {
   const _ChipRow({required this.children});
@@ -171,15 +194,18 @@ class CropTools extends StatelessWidget {
             children: [
               const Icon(Icons.straighten_rounded, size: 20),
               Expanded(
-                child: Slider(
-                  value: angle,
-                  min: -45,
-                  max: 45,
-                  divisions: 180,
-                  label: '${angle.toStringAsFixed(1)}°',
-                  semanticFormatterCallback: (v) =>
-                      '${l10n.editorStraighten} ${v.toStringAsFixed(1)}°',
-                  onChanged: onAngle,
+                child: _ToolSlider(
+                  active: angle != 0,
+                  child: Slider(
+                    value: angle,
+                    min: -45,
+                    max: 45,
+                    divisions: 180,
+                    label: '${angle.toStringAsFixed(1)}°',
+                    semanticFormatterCallback: (v) =>
+                        '${l10n.editorStraighten} ${v.toStringAsFixed(1)}°',
+                    onChanged: onAngle,
+                  ),
                 ),
               ),
               // Tap the value to straighten no more.
@@ -258,14 +284,17 @@ class AdjustTools extends StatelessWidget {
           child: Row(
             children: [
               Expanded(
-                child: Slider(
-                  value: value,
-                  min: -1,
-                  divisions: 200,
-                  label: '${(value * 100).round()}',
-                  semanticFormatterCallback: (v) =>
-                      '${label(selected)} ${(v * 100).round()}',
-                  onChanged: onChanged,
+                child: _ToolSlider(
+                  active: value != 0,
+                  child: Slider(
+                    value: value,
+                    min: -1,
+                    divisions: 200,
+                    label: '${(value * 100).round()}',
+                    semanticFormatterCallback: (v) =>
+                        '${label(selected)} ${(v * 100).round()}',
+                    onChanged: onChanged,
+                  ),
                 ),
               ),
               SizedBox(
@@ -370,13 +399,16 @@ class FilterTools extends StatelessWidget {
             child: Row(
               children: [
                 Expanded(
-                  child: Slider(
-                    value: strength,
-                    divisions: 100,
-                    label: '$percent',
-                    semanticFormatterCallback: (v) =>
-                        '${l10n.editorFilterStrength} ${(v * 100).round()}',
-                    onChanged: onStrength,
+                  child: _ToolSlider(
+                    active: true,
+                    child: Slider(
+                      value: strength,
+                      divisions: 100,
+                      label: '$percent',
+                      semanticFormatterCallback: (v) =>
+                          '${l10n.editorFilterStrength} ${(v * 100).round()}',
+                      onChanged: onStrength,
+                    ),
                   ),
                 ),
                 SizedBox(
@@ -645,13 +677,16 @@ class TextTools extends StatelessWidget {
             children: [
               const Icon(Icons.format_size_rounded, size: 20),
               Expanded(
-                child: Slider(
-                  value: text.size,
-                  min: 0.02,
-                  max: 0.2,
-                  semanticFormatterCallback: (v) =>
-                      '${l10n.editorTextSize} ${(v * 100).round()}',
-                  onChanged: (size) => onChange(text.copyWith(size: size)),
+                child: _ToolSlider(
+                  active: false,
+                  child: Slider(
+                    value: text.size,
+                    min: 0.02,
+                    max: 0.2,
+                    semanticFormatterCallback: (v) =>
+                        '${l10n.editorTextSize} ${(v * 100).round()}',
+                    onChanged: (size) => onChange(text.copyWith(size: size)),
+                  ),
                 ),
               ),
             ],

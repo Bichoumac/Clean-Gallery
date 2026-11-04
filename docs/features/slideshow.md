@@ -2,7 +2,7 @@
 
 Full-screen slideshows of an album, a selection, a period or a memory, with a crossfade or a slow zoom, muted videos and music; saved on the user's tap to play again.
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 ## Purpose
 
@@ -50,9 +50,9 @@ The music loops, pauses with the slideshow and fades out at the end. A track tha
 
 *Shuffled* shuffles that list once. A saved slideshow plays its saved list as it is, skipping items trashed or no longer on the device.
 
-## Planned look
+## Look
 
-Controls with a thin position bar and round glass buttons; an end screen with the first photo ([mockup](../design-assets/mockups/screens/18-slideshow-end.png)). Not built yet: [visual refresh](../visual-refresh.md), [mockup](../design-assets/mockups/screens/06-memory-player.png).
+Controls with a thin position bar, a large title and round glass buttons ([mockup](../design-assets/mockups/screens/06-memory-player.png)). The end screen shows the first photo fading into the surface, then *Replay*, *Save* and *Close* ([mockup](../design-assets/mockups/screens/18-slideshow-end.png)). A memory shows its title on screen.
 
 ## Screens and widgets
 
@@ -62,7 +62,7 @@ Controls with a thin position bar and round glass buttons; an end screen with th
 | `SlideshowOptionsSheet` (with `_AlbumMenu` for a custom slideshow), `startSlideshow`, `startPeriodSlideshow`, `playSlideshow`, `saveSlideshow`, rename, delete, `releaseUnusedMusic` | [slideshow_actions.dart](../../lib/features/slideshow/slideshow_actions.dart) |
 | `SlideshowSource` (selection, picked items, saved, memory, ritual), `SlideshowBuilder` | [slideshow_builder.dart](../../lib/features/slideshow/slideshow_builder.dart) |
 | Title button (`slideshowTitle`), selection action | [media_timeline_view.dart](../../lib/features/library/media_timeline_view.dart) |
-| *Slideshows* section of the Albums tab, saved slideshow menu | [albums_screen.dart](../../lib/features/library/albums_screen.dart) |
+| *Slideshows* page of the Albums tab (`SlideshowsScreen`), saved slideshow menu | [albums_screen.dart](../../lib/features/library/albums_screen.dart) |
 | *Slideshow defaults* in Settings | [memories_settings.dart](../../lib/features/memories/memories_settings.dart) |
 
 ## State and data

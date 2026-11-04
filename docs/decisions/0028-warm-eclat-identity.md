@@ -2,9 +2,9 @@
 
 The product owner replaced the lime identity with a warmer, more modern one and chose a logo. This ADR records the choice and the alternatives; values are in [design.md](../design.md), the work in [visual-refresh.md](../visual-refresh.md).
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
-- **Status**: Accepted (specified, not built yet)
+- **Status**: Accepted, built
 - **Date**: 2026-11-04
 - **Supersedes**: the colors and typeface of [ADR 0008](0008-navigation-and-visual-identity.md); its navigation stands
 

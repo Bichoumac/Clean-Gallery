@@ -2,7 +2,7 @@
 
 The Stats tab: the storage dashboard. How much space the photos and videos take, how much cleaning could free, and that space by category.
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 ## Purpose
 
@@ -11,7 +11,7 @@ Show at a glance whether cleaning is worth it, and lead to the tool that does it
 ## User flows
 
 1. **Stats tab** (fourth icon of the bar).
-2. The accent card shows **Space you could free** in large type, *Out of 52 GB used by your photos and videos*, a bar of that share, and the split *Photos 12 GB · Videos 40 GB*. While the analysis runs, *Your library is being analyzed. The value grows as it goes.*
+2. The accent card shows **Space you could free** in large type, *Out of 52 GB used by your photos and videos*, a gauge of that share, and the split *Photos 12 GB · Videos 40 GB*. While the analysis runs, *Your library is being analyzed. The value grows as it goes.*
 3. The first card lists what can be freed now, each with its item count and size:
    - **Identical copies**: extra copies of the same file → opens the duplicates screen for the whole library, on the *Identical copies* chip.
    - **Bursts**: burst shots other than the best → the same screen, on *Bursts*.
@@ -43,19 +43,19 @@ flowchart TD
 | In the trash | Every trashed item. |
 | Space you could free | Every category above + trash. |
 
-Each item counts once. The bar shows that sum against the used space plus the trash, since trashed items are no longer part of the used space but still take room.
+Each item counts once. The gauge shows that sum against the used space, as eight petals; with a large trash it can be full, since trashed items are no longer part of the used space but still take room.
 
 The counts follow the default picks, not changes made on the duplicates screen: the screen's picks are not saved.
 
-## Planned look
+## Look
 
-The bar of the hero card becomes a gauge in the shape of the logo, and the category rows become a mosaic of tiles. Every category stays ([gauge rules](../visual-refresh.md#the-stats-gauge)). Not built yet: [visual refresh](../visual-refresh.md), [mockup](../design-assets/mockups/screens/04-stats-dark.png).
+The hero card has a gauge in the shape of the logo instead of a bar, and the categories are a mosaic of tiles; every category stays ([gauge rules](../visual-refresh.md#the-stats-gauge)). [Mockups](../design-assets/mockups/screens/04-stats-dark.png).
 
 ## Screens and widgets
 
 | Widget | File |
 | --- | --- |
-| `StatsScreen`, hero card, category rows | [stats_screen.dart](../../lib/features/stats/stats_screen.dart) |
+| `StatsScreen`, hero card, category tiles | [stats_screen.dart](../../lib/features/stats/stats_screen.dart) |
 
 ## State and data
 
@@ -69,8 +69,8 @@ The bar of the hero card becomes a gauge in the shape of the logo, and the categ
 ## Edge cases and error handling
 
 - **While the values load**: every value shows "—".
-- **Empty library or nothing to clean**: 0 B, an empty bar, "Nothing" under each category.
-- **Analysis in progress**: the values grow as groups are found; the hint under the bar says so, followed by "Analyzing: N of M items".
+- **Empty library or nothing to clean**: 0 B, no lit petal, "Nothing" under each category.
+- **Analysis in progress**: the values grow as groups are found; the hint on the card says so, followed by "Analyzing: N of M items".
 - **Identical copies**, **Bursts** and **Similar photos** open the duplicates screen of the whole library on that kind's chip (`/duplicates?kind=exact|burst|similar`).
 
 ## Tests

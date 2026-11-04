@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clean_gallery/core/brand/empty_state.dart';
 import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/duplicates_tile.dart';
 import 'package:clean_gallery/core/media/media_actions.dart';
@@ -1094,18 +1095,21 @@ class _Skeleton extends StatelessWidget {
   }
 }
 
-/// Centered icon, title and help text inside a page.
+/// Centered icon, title and help text inside a page, for what is not an
+/// empty state: an error or the access prompt.
 class _Message extends StatelessWidget {
   const _Message({
     required this.icon,
     required this.title,
     required this.body,
+    this.iconColor,
     this.action,
   });
 
   final IconData icon;
   final String title;
   final String body;
+  final Color? iconColor;
   final Widget? action;
 
   @override
@@ -1115,20 +1119,16 @@ class _Message extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(32, 64, 32, 0),
       child: Column(
         children: [
-          Container(
-            width: 88,
-            height: 88,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHigh,
-              borderRadius: BorderRadius.circular(28),
-            ),
-            child: Icon(icon, size: 40, color: theme.colorScheme.onSurface),
+          Icon(
+            icon,
+            size: 56,
+            color: iconColor ?? theme.colorScheme.onSurfaceVariant,
           ),
           const SizedBox(height: 24),
           Text(
             title,
             textAlign: TextAlign.center,
-            style: theme.textTheme.titleLarge,
+            style: theme.textTheme.headlineMedium,
           ),
           const SizedBox(height: 8),
           Text(
@@ -1152,8 +1152,7 @@ class _EmptyState extends StatelessWidget {
   final String? body;
 
   @override
-  Widget build(BuildContext context) => _Message(
-    icon: Icons.photo_library_outlined,
+  Widget build(BuildContext context) => EmptyState(
     title: title,
     body: body ?? AppLocalizations.of(context).libraryEmptyBody,
   );
@@ -1168,8 +1167,7 @@ class _FilteredEmptyState extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    return _Message(
-      icon: Icons.event_busy_rounded,
+    return EmptyState(
       title: l10n.filterEmptyTitle,
       body: l10n.filterEmptyBody,
       action: OutlinedButton(
@@ -1191,6 +1189,7 @@ class _ErrorState extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return _Message(
       icon: Icons.error_outline_rounded,
+      iconColor: Theme.of(context).colorScheme.error,
       title: l10n.libraryLoadError,
       body: '',
       action: OutlinedButton(

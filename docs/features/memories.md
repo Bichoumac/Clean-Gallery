@@ -2,7 +2,7 @@
 
 Automatic memories ("This week, 1 year ago") built from the capture dates while the app is open, a weekly or monthly notification, and rituals: recurring slideshows the user schedules. Nothing runs in the background.
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 ## Purpose
 
@@ -53,9 +53,9 @@ The thresholds are first values, to adjust on real libraries (decision of 2026-1
 - `ReminderService.schedule` hands them to Android, which shows them at their time and sets them again after a reboot ([platform-android.md](../platform-android.md#notifications-at-set-times)). Times may be a few minutes late (inexact alarm, no special permission).
 - Payloads: `memories`, `ritual:<id>`. The home shell opens them on a tap, at launch (`takeLaunchPayload`) or while the app runs (`taps`).
 
-## Planned look
+## Look
 
-Memory cards with a large title over the photo ([mockup](../design-assets/mockups/screens/02-grid-dark.png)). A new status bar icon: the rosace. Not built yet: [visual refresh](../visual-refresh.md), [mockup](../design-assets/mockups/screens/10-rituals.png).
+Memory cards of 216 × 150 dp with a large title over the photo ([mockup](../design-assets/mockups/screens/02-grid-dark.png)); the status bar icon is the rosace ([mockup](../design-assets/mockups/screens/10-rituals.png)).
 
 ## Screens and widgets
 

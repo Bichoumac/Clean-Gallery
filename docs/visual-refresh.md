@@ -2,11 +2,11 @@
 
 Implementation brief for moving the app to the Éclat Soleil identity: mockups, screen by screen changes, code to change, copy, order of work and what to check. Values live in [design.md](design.md), the reasons in [ADR 0028](decisions/0028-warm-eclat-identity.md).
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 ## Status and scope
 
-Specified and approved by the product owner on 2026-11-04. **Nothing is built yet.** Its place among the milestones is to be decided ([progress.md](progress.md)).
+Specified and approved by the product owner on 2026-11-04, **built on branch `visual-refresh`** the same day, before M10. The device checks are still to do ([testing.md](testing.md#visual-refresh--to-verify-on-a-device)).
 
 - **In scope**: theme, fonts, layouts of the listed screens, empty states, motion, launcher and notification icons, launch screen.
 - **Out of scope**: what features do, their rules and their data. A screen keeps every action and every piece of information it has today, even when a mockup leaves one out to stay readable. No new permission, no network, no new package is needed.
@@ -98,6 +98,17 @@ Widgets read the scheme, so most of the work is in a few files.
 | Docs | [architecture.md](architecture.md) (fonts row), [AGENTS.md](../AGENTS.md), the *Status* note of [design.md](design.md), and the *Planned look* section of each feature file, which then describes the present. |
 
 Line numbers are those of commit `8db1be3`.
+
+## Choices made while building
+
+The brief left these open; they follow its rule that a screen keeps every action.
+
+- **Slideshows tile**: *Slideshow*, *Memories* and the saved slideshows moved from a section of the Albums tab to a page opened by the tile (`/albums/slideshows`).
+- **End of a slideshow**: no string was added, so it shows the slideshow's title and its number of photos, not the mockup's "Fin du diaporama". A memory now shows its title in the player.
+- **Sort session**: the mockups leave Undo and the name of the source out of the end screen; they stay.
+- **Stats order**: Similar, Large videos, Identical copies, Bursts, then *Sort mode*, then Screenshots, Poor quality and the trash.
+- **Extra string**: `statsGaugeLabel`, the sentence a screen reader says for the gauge.
+- **Grid to viewer** keeps the existing `Hero` flight, without the `spring` token.
 
 ## Copy
 

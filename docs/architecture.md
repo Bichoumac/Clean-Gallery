@@ -67,7 +67,7 @@ The brief lists `core/`, `analysis/`, `platform/` and `features/` under `lib/`. 
 | [lib/features/duplicates/](../lib/features/duplicates/) | Duplicates screen and its selection. See [features/duplicates.md](features/duplicates.md). |
 | [lib/features/settings/](../lib/features/settings/) | Settings tab. See [features/settings.md](features/settings.md). |
 | [lib/features/stats/](../lib/features/stats/) | Stats tab: storage dashboard and its summary ([stats.md](features/stats.md)). |
-| [assets/fonts/manrope/](../assets/fonts/manrope/) | Bundled Manrope variable font and its license. |
+| [assets/fonts/manrope/](../assets/fonts/manrope/), [assets/fonts/bricolage_grotesque/](../assets/fonts/bricolage_grotesque/) | Bundled variable fonts and their licenses: Manrope for text, Bricolage Grotesque for titles. |
 | [lib/l10n/](../lib/l10n/) | ARB files for English and French. |
 
 ## Dependency rules

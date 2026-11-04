@@ -306,9 +306,9 @@ class _ClusterMarker extends ConsumerWidget {
             Positioned.fill(
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: colors.surface,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: colors.surface, width: 3),
+                  border: Border.all(color: Colors.white, width: 3),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(13),

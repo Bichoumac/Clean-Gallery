@@ -2,11 +2,11 @@
 
 Visual identity of Clean Gallery, **Éclat Soleil**: palette, typography, shapes, components, motion and logo. The interface disappears around the photos and shows its character only where there are none.
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
-> **Status: approved, not built yet.** This file describes the target. Until the [visual refresh](visual-refresh.md) is done, the app still uses the previous lime palette and Manrope alone: [app_theme.dart](../lib/core/theme/app_theme.dart) is what runs today. New widgets read colors and text styles from the theme, so they follow both. Why this direction: [ADR 0028](decisions/0028-warm-eclat-identity.md).
+Why this direction: [ADR 0028](decisions/0028-warm-eclat-identity.md). Built as described in the [visual refresh](visual-refresh.md).
 
-Source: [app_theme.dart](../lib/core/theme/app_theme.dart), [compact_nav_bar.dart](../lib/core/router/compact_nav_bar.dart). Mockups: [design-assets/mockups/](design-assets/mockups/).
+Source: [app_theme.dart](../lib/core/theme/app_theme.dart), [app_motion.dart](../lib/core/theme/app_motion.dart), [lib/core/brand/](../lib/core/brand/) (mark, gauge, glass bars, mosaic tiles, empty state), [compact_nav_bar.dart](../lib/core/router/compact_nav_bar.dart). Mockups: [design-assets/mockups/](design-assets/mockups/).
 
 ## Principles
 

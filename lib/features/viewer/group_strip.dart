@@ -1,3 +1,4 @@
+import 'package:clean_gallery/core/brand/best_pill.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/domain/duplicate_group.dart';
 import 'package:clean_gallery/domain/media_item.dart';
@@ -255,27 +256,7 @@ class _Thumb extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 4),
-              if (best)
-                DecoratedBox(
-                  decoration: BoxDecoration(
-                    color: colors.primary,
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 5),
-                    child: Text(
-                      l10n.duplicatesBest,
-                      maxLines: 1,
-                      overflow: TextOverflow.fade,
-                      softWrap: false,
-                      style: TextStyle(
-                        color: colors.onPrimary,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                  ),
-                ),
+              if (best) const BestPill(compact: true),
             ],
           ),
         ),

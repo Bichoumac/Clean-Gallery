@@ -196,9 +196,9 @@ class TabPage extends StatelessWidget {
       bottom: false,
       child: ListView(
         padding: EdgeInsets.fromLTRB(
-          20,
+          14,
           24,
-          20,
+          14,
           CompactNavBar.contentInset(context),
         ),
         children: [
@@ -210,7 +210,7 @@ class TabPage extends StatelessWidget {
                 Expanded(
                   child: Text(
                     title,
-                    style: Theme.of(context).textTheme.headlineMedium,
+                    style: Theme.of(context).textTheme.headlineLarge,
                   ),
                 ),
               ],

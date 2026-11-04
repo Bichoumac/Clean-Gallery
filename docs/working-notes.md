@@ -2,7 +2,7 @@
 
 How the product owner and the AI assistant work together on Clean Gallery, the constraints of the development machine, and where to pick up. Read it at the start of every session, after [AGENTS.md](../AGENTS.md).
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 ## Where to pick up
 
@@ -13,10 +13,11 @@ Quick resume (keep this short; history is in [progress.md](progress.md) and git)
 - **Left from M6**: nothing. Not wanted for now: batch editing; scanner camera capture.
 - **M8 user albums is merged** (PR #10, 2026-11-01).
 - **M9 slideshows and memories is merged** (PR #11, 2026-11-04). Next by the plan: **M10 People** from `main` (spec in [prompt.md](../prompt.md); an ADR on the face model comes first).
-- **Visual refresh**: the product owner approved the warm Éclat Soleil identity and its logo on 2026-11-04; specified on branch `design-warm-eclat`, nothing built ([visual-refresh.md](visual-refresh.md)). First ask whether that branch was merged and whether to build it before M10. Open point: the product owner picks 2 or 3 CC0 tracks for the bundled music ([slideshow.md](features/slideshow.md#music)).
-- **Next milestones**: M10 People, M11 monetization, M12 polish, and the visual refresh to schedule ([progress.md](progress.md)).
+- **Visual refresh**: built on branch `visual-refresh` on 2026-11-04, not tested on the phone yet ([visual-refresh.md](visual-refresh.md), checks in [testing.md](testing.md#visual-refresh--to-verify-on-a-device)). Open point: the product owner picks 2 or 3 CC0 tracks for the bundled music ([slideshow.md](features/slideshow.md#music)).
+- **Next milestones**: M10 People, M11 monetization, M12 polish ([progress.md](progress.md)).
 - **Phone over USB**: the laptop's webcam is a Xiaomi USB device too; run `p.sh` only once the phone shows in `lsusb` (Samsung, MTP mode), or it may pick the webcam.
 - **Key design points to keep**: one paint function (`paintEdit`, `paintPage`) for preview and saving; the native side only writes JPEG + EXIF (`PhotoSaver.kt`); every delete through the app trash; pure Dart in `lib/analysis/` and `lib/domain/`; on the phone (Impeller), avoid blend-mode masks in layers, use clips (blur bug of 2026-10-29).
+- **Checking a look without the phone**: a temporary widget test can load the real fonts with `FontLoader` and write PNG files with `matchesGoldenFile` and `--update-goldens`; delete it afterwards. Without the fonts, text renders as blocks, which also shows a style that forgot its font family.
 - **Commands that save tokens**: run tests to a file and read only the summary (`flutter test --timeout 60s > <scratchpad>/t.log 2>&1; tail -1 …`; piping into `grep` hides progress until the end); widget tests that decode images need `tester.runAsync` (see `waitUntil` in [scan_test.dart](../test/features/scan/scan_test.dart)); never `pkill -f` a pattern that appears in your own command line; `gh` is installed but not logged in: give the `pull/new/<branch>` link.
 
 ## Working with the product owner

@@ -86,7 +86,7 @@ void main() {
     // Both photos, 3 s each, then the end.
     await tester.pumpAndSettle();
     expect(find.text('Replay'), findsOneWidget);
-    await tester.tap(find.widgetWithText(FilledButton, 'Save'));
+    await tester.tap(find.widgetWithText(OutlinedButton, 'Save'));
     await tester.pumpAndSettle();
     await tester.enterText(find.byType(TextField), 'Today');
     await tester.tap(
@@ -106,10 +106,10 @@ void main() {
     expect(bridge.keepScreenOn, isFalse);
     expect(music.playing, isNull);
 
-    // Listed in the Albums tab, playing again on a tap.
+    // Listed under Albums → Slideshows, playing again on a tap.
     await tester.tap(find.byTooltip('Albums'));
     await tester.pumpAndSettle();
-    await tester.drag(find.byType(Scrollable).last, const Offset(0, -500));
+    await tester.tap(find.text('Slideshows'));
     await tester.pumpAndSettle();
     expect(find.text('Today'), findsOneWidget);
     await tester.tap(find.text('Today'));
@@ -144,12 +144,7 @@ void main() {
     );
     await tester.tap(find.byTooltip('Albums'));
     await tester.pumpAndSettle();
-    await tester.scrollUntilVisible(
-      find.widgetWithText(FilledButton, 'Slideshow'),
-      200,
-      scrollable: find.byType(Scrollable).first,
-    );
-    await tester.ensureVisible(find.widgetWithText(FilledButton, 'Slideshow'));
+    await tester.tap(find.text('Slideshows'));
     await tester.pumpAndSettle();
     await tester.tap(find.widgetWithText(FilledButton, 'Slideshow'));
     await tester.pumpAndSettle();

@@ -1,3 +1,5 @@
+import 'package:clean_gallery/core/brand/mosaic_tile.dart';
+import 'package:clean_gallery/core/brand/petal_mark.dart';
 import 'package:clean_gallery/core/media/analysis_progress.dart';
 import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/media_formatting.dart';
@@ -37,115 +39,75 @@ class StatsScreen extends ConsumerWidget {
       extra: duplicateScope(MediaSelection.all),
     );
 
+    const gap = SizedBox(height: MosaicTile.gap);
     return TabPage(
       title: l10n.navStats,
       children: [
         _HeroCard(summary: summary, scanning: scanning),
-        const SizedBox(height: 16),
-        Card(
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            children: [
-              _CategoryRow(
-                icon: Icons.copy_all_rounded,
-                label: l10n.statsExact,
-                detail: summary == null
-                    ? null
-                    : l10n.statsItems(summary.exact.count),
-                value: size(summary?.exact.bytes),
-                onTap: () => openDuplicates(DuplicateKind.exact),
-              ),
-              const Divider(indent: 64),
-              _CategoryRow(
-                icon: Icons.burst_mode_rounded,
-                label: l10n.statsBursts,
-                detail: summary == null
-                    ? null
-                    : l10n.statsItems(summary.burst.count),
-                value: size(summary?.burst.bytes),
-                onTap: () => openDuplicates(DuplicateKind.burst),
-              ),
-              const Divider(indent: 64),
-              _CategoryRow(
-                icon: Icons.photo_library_outlined,
-                label: l10n.statsSimilar,
-                detail: summary == null
-                    ? null
-                    : l10n.statsItems(summary.similar.count),
-                value: size(summary?.similar.bytes),
-                onTap: () => openDuplicates(DuplicateKind.similar),
-              ),
-              const Divider(indent: 64),
-              _CategoryRow(
-                icon: Icons.delete_outline_rounded,
-                label: l10n.statsTrash,
-                detail: summary == null
-                    ? null
-                    : l10n.statsItems(summary.trash.count),
-                value: size(summary?.trash.bytes),
-                onTap: () => context.go(AlbumRoutes.trash),
-              ),
-            ],
+        gap,
+        MosaicRow(
+          left: _CategoryTile(
+            label: l10n.statsSimilar,
+            value: size(summary?.similar.bytes),
+            count: summary?.similar.count,
+            onTap: () => openDuplicates(DuplicateKind.similar),
+          ),
+          right: _CategoryTile(
+            label: l10n.statsLargeVideos,
+            value: size(summary?.largeVideos.bytes),
+            count: summary?.largeVideos.count,
+            onTap: () =>
+                context.go(CleanupRoutes.location(CleanupList.largeVideos)),
           ),
         ),
-        const SizedBox(height: 16),
-        Card(
-          clipBehavior: Clip.antiAlias,
-          child: _CategoryRow(
-            icon: Icons.swipe_rounded,
-            label: l10n.swipeTitle,
-            detail: l10n.swipeEntryHelp,
-            value: '',
-            onTap: () => context.go(SwipeRoutes.sources),
+        gap,
+        MosaicRow(
+          left: _CategoryTile(
+            label: l10n.statsExact,
+            value: size(summary?.exact.bytes),
+            count: summary?.exact.count,
+            onTap: () => openDuplicates(DuplicateKind.exact),
+          ),
+          right: _CategoryTile(
+            label: l10n.statsBursts,
+            value: size(summary?.burst.bytes),
+            count: summary?.burst.count,
+            onTap: () => openDuplicates(DuplicateKind.burst),
           ),
         ),
-        const SizedBox(height: 16),
-        Card(
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            children: [
-              _CategoryRow(
-                icon: Icons.screenshot_rounded,
-                label: l10n.statsScreenshots,
-                detail: summary == null
-                    ? null
-                    : l10n.statsItems(summary.screenshots.count),
-                value: size(summary?.screenshots.bytes),
-                onTap: () =>
-                    context.go(CleanupRoutes.location(CleanupList.screenshots)),
-              ),
-              const Divider(indent: 64),
-              _CategoryRow(
-                icon: Icons.movie_rounded,
-                label: l10n.statsLargeVideos,
-                detail: summary == null
-                    ? null
-                    : l10n.statsItems(summary.largeVideos.count),
-                value: size(summary?.largeVideos.bytes),
-                onTap: () =>
-                    context.go(CleanupRoutes.location(CleanupList.largeVideos)),
-              ),
-              const Divider(indent: 64),
-              _CategoryRow(
-                icon: Icons.blur_on_rounded,
-                label: l10n.statsBlurry,
-                detail: summary == null
-                    ? null
-                    : l10n.statsItems(summary.poorQuality.count),
-                value: size(summary?.poorQuality.bytes),
-                onTap: () =>
-                    context.go(CleanupRoutes.location(CleanupList.poorQuality)),
-              ),
-            ],
+        gap,
+        const _SortTile(),
+        gap,
+        MosaicRow(
+          left: _CategoryTile(
+            label: l10n.statsScreenshots,
+            value: size(summary?.screenshots.bytes),
+            count: summary?.screenshots.count,
+            onTap: () =>
+                context.go(CleanupRoutes.location(CleanupList.screenshots)),
           ),
+          right: _CategoryTile(
+            label: l10n.statsBlurry,
+            value: size(summary?.poorQuality.bytes),
+            count: summary?.poorQuality.count,
+            onTap: () =>
+                context.go(CleanupRoutes.location(CleanupList.poorQuality)),
+          ),
+        ),
+        gap,
+        _CategoryTile(
+          label: l10n.statsTrash,
+          value: size(summary?.trash.bytes),
+          count: summary?.trash.count,
+          onTap: () => context.go(AlbumRoutes.trash),
         ),
       ],
     );
   }
 }
 
-/// The lime card: space that cleaning could free, out of the space the
-/// library takes, as a number and a bar.
+/// The sun card: space that cleaning could free, out of the space the library
+/// takes, as a number and a gauge in the shape of the logo.
 class _HeroCard extends StatelessWidget {
   const _HeroCard({required this.summary, required this.scanning});
 
@@ -158,59 +120,61 @@ class _HeroCard extends StatelessWidget {
     final theme = Theme.of(context);
     final colors = theme.colorScheme;
     final summary = this.summary;
-    final faded = colors.onPrimaryContainer.withValues(alpha: 0.7);
+    final ink = colors.onPrimaryContainer;
+    final faded = ink.withValues(alpha: 0.75);
     final used = summary?.usedBytes ?? 0;
     final reclaimable = summary?.reclaimableBytes ?? 0;
-    // The trash is not part of the used space; the bar can still fill up.
-    final fraction = used + (summary?.trash.bytes ?? 0) == 0
-        ? 0.0
-        : (reclaimable / (used + summary!.trash.bytes)).clamp(0.0, 1.0);
+    final percent = used <= 0
+        ? (reclaimable > 0 ? 100 : 0)
+        : (reclaimable / used * 100).round().clamp(0, 100);
 
     return Card(
       color: colors.primaryContainer,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              l10n.statsReclaimableTitle,
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: colors.onPrimaryContainer,
-              ),
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Expanded(
+                  child: Text(
+                    l10n.statsReclaimableTitle,
+                    style: theme.textTheme.titleSmall?.copyWith(color: ink),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Semantics(
+                  label: l10n.statsGaugeLabel(percent),
+                  child: PetalGauge(
+                    lit: gaugePetals(reclaimable: reclaimable, used: used),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 8),
-            Text(
-              summary == null
-                  ? l10n.statsValueUnknown
-                  : formatBytes(context, reclaimable),
-              style: theme.textTheme.displayLarge?.copyWith(
-                color: colors.onPrimaryContainer,
+            // Scales down to fit at large text sizes instead of being clipped.
+            FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.centerStart,
+              child: Text(
+                summary == null
+                    ? l10n.statsValueUnknown
+                    : formatBytes(context, reclaimable),
+                maxLines: 1,
+                style: theme.textTheme.displayLarge?.copyWith(color: ink),
               ),
             ),
             if (summary != null) ...[
               const SizedBox(height: 4),
               Text(
                 l10n.statsUsed(formatBytes(context, used)),
-                style: theme.textTheme.bodyMedium?.copyWith(color: faded),
+                style: theme.textTheme.bodySmall?.copyWith(color: faded),
               ),
-              const SizedBox(height: 16),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(4),
-                child: LinearProgressIndicator(
-                  value: fraction,
-                  minHeight: 8,
-                  color: colors.onPrimaryContainer,
-                  backgroundColor: colors.onPrimaryContainer.withValues(
-                    alpha: 0.15,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
               Text(
                 _breakdown(context, summary),
-                style: theme.textTheme.bodyMedium?.copyWith(color: faded),
+                style: theme.textTheme.bodySmall?.copyWith(color: faded),
               ),
             ],
             if (scanning) ...[
@@ -238,72 +202,104 @@ String _breakdown(BuildContext context, StorageSummary summary) {
   return '${l10n.statsPhotos} $photos  ·  ${l10n.statsVideos} $videos';
 }
 
-/// One cleanup category: icon, name, item count and reclaimable size.
-class _CategoryRow extends StatelessWidget {
-  const _CategoryRow({
-    required this.icon,
+/// One cleanup category: its name at the top, then the size it could free and
+/// its number of items.
+class _CategoryTile extends StatelessWidget {
+  const _CategoryTile({
     required this.label,
     required this.value,
-    this.detail,
-    this.onTap,
+    required this.onTap,
+    this.count,
   });
 
-  final IconData icon;
   final String label;
   final String value;
-  final String? detail;
-  final VoidCallback? onTap;
+  final int? count;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final colors = theme.colorScheme;
-    return InkWell(
+    final detail = switch (count) {
+      final n? => l10n.statsItems(n),
+      null => null,
+    };
+    return MosaicTile(
+      semanticLabel: [label, value, ?detail].join(', '),
       onTap: onTap,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        child: Row(
-          children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                color: colors.surfaceContainerHighest,
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Icon(icon, size: 20, color: colors.onSurface),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(label, style: theme.textTheme.titleSmall),
-                  if (detail case final detail?)
-                    Text(
-                      detail,
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: colors.onSurfaceVariant,
-                      ),
-                    ),
-                ],
-              ),
-            ),
-            Text(
-              value,
-              style: theme.textTheme.titleMedium?.copyWith(
-                color: onTap == null
-                    ? colors.onSurfaceVariant
-                    : colors.onSurface,
-              ),
-            ),
-            if (onTap != null) ...[
-              const SizedBox(width: 4),
-              Icon(Icons.chevron_right_rounded, color: colors.onSurfaceVariant),
-            ],
-          ],
+      top: Text(
+        label,
+        style: theme.textTheme.bodyMedium?.copyWith(
+          color: theme.colorScheme.onSurfaceVariant,
+          fontWeight: FontWeight.w600,
         ),
       ),
+      bottom: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: AlignmentDirectional.centerStart,
+            child: Text(
+              value,
+              maxLines: 1,
+              style: theme.textTheme.headlineMedium,
+            ),
+          ),
+          if (detail != null)
+            Text(
+              detail,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// *Sort mode*, the one wide tile in the inverse color.
+class _SortTile extends StatelessWidget {
+  const _SortTile();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final colors = theme.colorScheme;
+    return MosaicTile(
+      semanticLabel: '${l10n.swipeTitle}, ${l10n.swipeEntryHelp}',
+      color: colors.inverseSurface,
+      minHeight: 0,
+      onTap: () => context.go(SwipeRoutes.sources),
+      top: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.swipeTitle,
+                  style: theme.textTheme.titleMedium?.copyWith(
+                    color: colors.onInverseSurface,
+                  ),
+                ),
+                Text(
+                  l10n.swipeEntryHelp,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: colors.onInverseSurface.withValues(alpha: 0.75),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 8),
+          Icon(Icons.arrow_forward_rounded, color: colors.onInverseSurface),
+        ],
+      ),
+      bottom: const SizedBox.shrink(),
     );
   }
 }

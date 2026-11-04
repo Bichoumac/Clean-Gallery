@@ -2,7 +2,7 @@
 
 Finding photos and videos by combining criteria: part of the file name, type, favorites, folder, an area picked on the map, and a date range.
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 ## Purpose
 
@@ -51,9 +51,9 @@ The brief: "Combinable filters: date range, type (photo / video / screenshot), f
 - [search_selection_test.dart](../../test/core/database/search_selection_test.dart): part of a name ignoring case and spaces around, empty name, literal `%` and `_`, favorites combined with type and name.
 - [search_test.dart](../../test/features/search/search_test.dart): the magnifier in the three tabs; the search limited to Camera, Videos, a folder page and Favorites, with the chips that apply; everything without criteria, name and clear, type and favorites combined, type toggled off, a period picked and removed, folder picked and removed, area picked on the map, sort kept when a criterion changes.
 
-## Planned look
+## Look
 
-A pill search field, and the mark in the empty state. Not built yet: [visual refresh](../visual-refresh.md), [mockup](../design-assets/mockups/screens/17-search-empty.png).
+A pill search field, a neutral results page, and the mark in the empty state. [Mockup](../design-assets/mockups/screens/17-search-empty.png).
 
 ## Known limitations / future work
 

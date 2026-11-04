@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:clean_gallery/analysis/image_quality.dart';
+import 'package:clean_gallery/core/brand/best_pill.dart';
+import 'package:clean_gallery/core/brand/empty_state.dart';
 import 'package:clean_gallery/core/media/analysis_progress.dart';
 import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/media_actions.dart';
@@ -405,7 +407,7 @@ class _Member extends StatelessWidget {
           SizedBox.square(
             dimension: _thumbSide,
             child: ClipRRect(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(18),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
@@ -422,30 +424,11 @@ class _Member extends StatelessWidget {
                       ),
                     ),
                   if (isBest)
-                    PositionedDirectional(
+                    const PositionedDirectional(
                       top: 8,
                       start: 8,
                       // Taps go through to the photo.
-                      child: IgnorePointer(
-                        child: DecoratedBox(
-                          decoration: BoxDecoration(
-                            color: colors.primary,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            child: Text(
-                              l10n.duplicatesBest,
-                              style: theme.textTheme.labelMedium?.copyWith(
-                                color: colors.onPrimary,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
+                      child: IgnorePointer(child: BestPill()),
                     ),
                   PositionedDirectional(
                     top: 0,
@@ -503,38 +486,14 @@ class _Empty extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
     return Center(
-      child: Padding(
+      child: EmptyState(
         padding: const EdgeInsets.all(32),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.filter_none_rounded,
-              size: 48,
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              scanning ? l10n.duplicatesScanning : l10n.duplicatesEmpty,
-              style: theme.textTheme.titleMedium,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 8),
-            if (scanning)
-              AnalysisProgressText(
-                style: theme.textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              )
-            else
-              Text(
-                l10n.duplicatesEmptyHelp,
-                style: theme.textTheme.bodyMedium,
-                textAlign: TextAlign.center,
-              ),
-          ],
-        ),
+        title: scanning ? l10n.duplicatesScanning : l10n.duplicatesEmpty,
+        body: scanning ? null : l10n.duplicatesEmptyHelp,
+        bodyWidget: scanning
+            ? const AnalysisProgressText(textAlign: TextAlign.center)
+            : null,
       ),
     );
   }

@@ -109,6 +109,9 @@ abstract final class AlbumRoutes {
   /// Location of the app trash, a page of its own under Albums.
   static const trash = '${AppRoutes.albums}/trash';
 
+  /// Location of the *Slideshows* page.
+  static const slideshows = '${AppRoutes.albums}/slideshows';
+
   /// Location of the *Memories* list.
   static const memories = '${AppRoutes.albums}/memories';
 
@@ -345,6 +348,10 @@ GoRouter appRouter(Ref ref) {
                   GoRoute(
                     path: 'trash',
                     builder: (context, state) => const TrashScreen(),
+                  ),
+                  GoRoute(
+                    path: 'slideshows',
+                    builder: (context, state) => const SlideshowsScreen(),
                   ),
                   GoRoute(
                     path: 'memories',

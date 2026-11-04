@@ -1,5 +1,5 @@
-import 'dart:ui' show ImageFilter;
-
+import 'package:clean_gallery/core/brand/glass.dart';
+import 'package:clean_gallery/core/theme/app_motion.dart';
 import 'package:flutter/material.dart';
 
 /// One destination of [CompactNavBar].
@@ -59,40 +59,26 @@ class CompactNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final colors = Theme.of(context).colorScheme;
     return SafeArea(
       top: false,
       child: Padding(
         padding: const EdgeInsets.only(bottom: bottomMargin),
         child: Center(
           heightFactor: 1,
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(height / 2),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  color: colors.surfaceContainer.withValues(alpha: 0.86),
-                  borderRadius: BorderRadius.circular(height / 2),
-                  border: Border.all(color: colors.outlineVariant),
-                ),
-                child: SizedBox(
-                  height: height,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 4),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        for (var i = 0; i < destinations.length; i++)
-                          _NavItem(
-                            destination: destinations[i],
-                            selected: i == selectedIndex,
-                            onTap: () => onSelected(i),
-                          ),
-                      ],
+          child: GlassPill(
+            height: height,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  for (var i = 0; i < destinations.length; i++)
+                    _NavItem(
+                      destination: destinations[i],
+                      selected: i == selectedIndex,
+                      onTap: () => onSelected(i),
                     ),
-                  ),
-                ),
+                ],
               ),
             ),
           ),
@@ -131,15 +117,15 @@ class _NavItem extends StatelessWidget {
             height: 48,
             child: Center(
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOutCubic,
+                duration: AppMotion.of(context, AppMotion.standard),
+                curve: AppMotion.curve,
                 width: selected ? 48 : 40,
-                height: 36,
+                height: 38,
                 decoration: BoxDecoration(
                   color: selected
                       ? colors.primaryContainer
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(18),
+                  borderRadius: BorderRadius.circular(19),
                 ),
                 child: Icon(
                   selected ? destination.selectedIcon : destination.icon,

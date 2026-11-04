@@ -2,7 +2,7 @@
 
 First-launch flow that states the privacy promise and asks for the permissions the app needs.
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 ## Purpose
 
@@ -34,9 +34,9 @@ flowchart TD
     B -->|Skip| I
 ```
 
-## Planned look
+## Look
 
-The first page becomes a poster: sun background, large mark, big headline. Pages 2 and 3 share its layout. Not built yet: [visual refresh](../visual-refresh.md), [mockup](../design-assets/mockups/screens/01-onboarding.png).
+The first page is a poster: sun background, large mark appearing petal by petal, big headline, ink button. Pages 2 and 3 share its layout on `surface`, with the mark in the empty state colors. Above 150 % text size the mark is left out so the text stays readable. [Mockup](../design-assets/mockups/screens/01-onboarding.png).
 
 ## Screens and widgets
 

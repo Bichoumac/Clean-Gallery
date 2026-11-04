@@ -7,6 +7,8 @@ import '../../helpers/fakes.dart';
 import '../../helpers/pump_app.dart';
 
 void main() {
+  group('pull down', pullDownTests);
+
   final items = [
     testItem(1, takenAt: DateTime(2026, 10, 25, 12)),
     testItem(2, takenAt: DateTime(2026, 10, 25, 11)),
@@ -114,5 +116,108 @@ void main() {
     );
     final screen = tester.getSize(find.byType(PageView));
     expect(tester.getSize(topBar).height, lessThan(screen.height / 4));
+  });
+}
+
+void pullDownTests() {
+  final items = [
+    testItem(1, takenAt: DateTime(2026, 10, 25, 12)),
+    testItem(2, takenAt: DateTime(2026, 10, 25, 11)),
+  ];
+
+  Future<void> open(WidgetTester tester) async {
+    await pumpTestApp(tester, media: FakeMediaSource(items: items));
+    await tester.tap(find.byType(MediaThumbnail).first);
+    await tester.pumpAndSettle();
+    expect(find.byType(ViewerScreen), findsOneWidget);
+  }
+
+  /// Offset of the pages from their place.
+  double pulled(WidgetTester tester) =>
+      tester.getTopLeft(find.byType(PageView)).dy;
+
+  testApp('a photo pulled a little springs back', (tester) async {
+    await open(tester);
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byType(PageView)),
+    );
+    for (var i = 0; i < 5; i++) {
+      await gesture.moveBy(const Offset(0, 10));
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    expect(pulled(tester), greaterThan(0));
+    await tester.pump(const Duration(milliseconds: 500));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(find.byType(ViewerScreen), findsOneWidget);
+    expect(pulled(tester), moreOrLessEquals(0, epsilon: 0.5));
+  });
+
+  testApp('a photo pulled far returns to the grid', (tester) async {
+    await open(tester);
+    final height = tester.getSize(find.byType(PageView)).height;
+    final gesture = await tester.startGesture(
+      tester.getCenter(find.byType(PageView)),
+    );
+    for (var i = 0; i < 8; i++) {
+      await gesture.moveBy(Offset(0, height * 0.05));
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    await tester.pump(const Duration(milliseconds: 500));
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(find.byType(ViewerScreen), findsNothing);
+  });
+
+  testApp('a flick down returns to the grid', (tester) async {
+    await open(tester);
+    await tester.fling(find.byType(PageView), const Offset(0, 120), 1500);
+    await tester.pumpAndSettle();
+    expect(find.byType(ViewerScreen), findsNothing);
+  });
+
+  testApp('pulling up does nothing', (tester) async {
+    await open(tester);
+    await tester.drag(find.byType(PageView), const Offset(0, -300));
+    await tester.pumpAndSettle();
+    expect(find.byType(ViewerScreen), findsOneWidget);
+    expect(pulled(tester), 0);
+  });
+
+  testApp('a zoomed photo pans: pulling down does not close the viewer', (
+    tester,
+  ) async {
+    await open(tester);
+    final center = tester.getCenter(find.byType(PageView));
+    final a = await tester.startGesture(center - const Offset(30, 0));
+    final b = await tester.startGesture(center + const Offset(30, 0));
+    for (var i = 0; i < 25; i++) {
+      await a.moveBy(const Offset(-4, 0));
+      await b.moveBy(const Offset(4, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await a.up();
+    await b.up();
+    await tester.pumpAndSettle();
+
+    await tester.fling(find.byType(PageView), const Offset(0, 400), 1500);
+    await tester.pumpAndSettle();
+    expect(find.byType(ViewerScreen), findsOneWidget);
+    expect(pulled(tester), 0);
+  });
+
+  testApp('pulling the info panel closes the panel, not the viewer', (
+    tester,
+  ) async {
+    await open(tester);
+    await tester.tap(find.byTooltip('Details'));
+    await tester.pumpAndSettle();
+    final panel = find.byType(BottomSheet);
+    expect(panel, findsOneWidget);
+
+    await tester.fling(panel, const Offset(0, 300), 1500);
+    await tester.pumpAndSettle();
+    expect(find.byType(BottomSheet), findsNothing);
+    expect(find.byType(ViewerScreen), findsOneWidget);
   });
 }

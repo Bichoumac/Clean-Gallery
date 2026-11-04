@@ -2,7 +2,7 @@
 
 Sort photos one at a time: swipe left to move a photo to the trash, right to keep it. Opened from the Stats tab.
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 ## Purpose
 
@@ -52,9 +52,9 @@ flowchart TD
 - **Start over** forgets the session's decisions; trashed items stay in the trash and do not come back.
 - Videos show their thumbnail with a play icon; they are not played.
 
-## Planned look
+## Look
 
-The card fills the screen, with a floating bar for the buttons. The end is a full sun screen with the complete mark ([mockup](../design-assets/mockups/screens/08-sort-summary.png)). Not built yet: [visual refresh](../visual-refresh.md), [mockup](../design-assets/mockups/screens/05-sort.png).
+Always dark. The card fills the screen, with a floating glass bar for the buttons; stamps in sentence case, *Keep* in sun and *Trash* in `error`. The end is a full sun screen revealed from the side the last card left by, with the complete mark. Mockups: [session](../design-assets/mockups/screens/05-sort.png), [end](../design-assets/mockups/screens/08-sort-summary.png).
 
 ## Screens and widgets
 
