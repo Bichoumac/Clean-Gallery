@@ -351,6 +351,17 @@ final class MediaIndexRepository {
     return row == null ? null : _toItem(row);
   }
 
+  /// Oldest item of [selection], leaving out trashed items: how far back
+  /// memories can go.
+  Future<MediaItem?> oldest(MediaSelection selection) async {
+    final query = _db.select(_db.assets)
+      ..where((t) => _matches(t, selection) & _notTrashed(t))
+      ..orderBy(_order(const MediaSort(descending: false)))
+      ..limit(1);
+    final row = await query.getSingleOrNull();
+    return row == null ? null : _toItem(row);
+  }
+
   /// Where the date shown for item [id] comes from, or `null` when the
   /// item is not indexed. Without [correctedDates], or before the date is
   /// resolved, it is the platform's file date ([DateSource.file]).
@@ -547,6 +558,7 @@ final class MediaIndexRepository {
       if (selection.favoritesOnly) t.isFavorite.equals(true),
       if (selection.nameContains?.trim() case final name? when name.isNotEmpty)
         t.fileName.like('%${_escapeLike(name)}%', escapeChar: r'\'),
+      if (selection.goodOnly) _good(t),
       if (dates?.start case final start?) _date(t).isBiggerOrEqualValue(start),
       if (dates?.end case final end?) _date(t).isSmallerThanValue(end),
     ]);
@@ -561,6 +573,18 @@ final class MediaIndexRepository {
         (t.contrast.isNull() |
             t.contrast.isSmallerOrEqualValue(0) |
             relativeSharpness.isSmallerThan(hazyLimit));
+  }
+
+  /// Condition leaving out the photos of the cleanup list of blurry and
+  /// dark ones ([MediaFilter.poorQuality]); unmeasured photos are kept.
+  Expression<bool> _good($AssetsTable t) {
+    final poor = coalesce<bool>([
+      _blurry(t) | t.brightness.isSmallerThanValue(darkBelow),
+      const Constant(false),
+    ]);
+    return t.kind.equalsValue(MediaKind.video) |
+        t.isScreenshot.equals(true) |
+        poor.not();
   }
 
   /// [text] with the wildcards of LIKE (`%`, `_`) and the escape character

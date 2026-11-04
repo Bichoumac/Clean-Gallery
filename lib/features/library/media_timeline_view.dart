@@ -19,6 +19,8 @@ import 'package:clean_gallery/features/library/fast_scroller.dart';
 import 'package:clean_gallery/features/library/pinch_to_change_columns.dart';
 import 'package:clean_gallery/features/library/sort_filter_sheet.dart';
 import 'package:clean_gallery/features/search/search_controller.dart';
+import 'package:clean_gallery/features/slideshow/slideshow_actions.dart';
+import 'package:clean_gallery/features/slideshow/slideshow_builder.dart';
 import 'package:clean_gallery/features/user_albums/user_album_actions.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
@@ -60,6 +62,8 @@ class MediaTimelineView extends ConsumerWidget {
     this.emptyBody,
     this.headerActions = const [],
     this.selectionActions,
+    this.slideshowTitle,
+    this.topContent,
     super.key,
   });
 
@@ -108,6 +112,15 @@ class MediaTimelineView extends ConsumerWidget {
   /// [SelectionActionsBuilder].
   final SelectionActionsBuilder? selectionActions;
 
+  /// Title of a slideshow of this timeline, or `null` for no *Slideshow*
+  /// button in the title (tabs). The slideshow plays what the timeline
+  /// shows, its date range included.
+  final String? slideshowTitle;
+
+  /// Shown above the grid, under the title, e.g. the memory cards of the
+  /// Camera tab.
+  final Widget? topContent;
+
   Future<void> _refresh(WidgetRef ref) async {
     ref.invalidate(mediaAccessProvider);
     await ref.read(mediaIndexProvider.notifier).sync();
@@ -125,6 +138,7 @@ class MediaTimelineView extends ConsumerWidget {
       showSearch: showSearch,
       compact: compact,
       actions: headerActions,
+      slideshowTitle: slideshowTitle,
     );
     if (access == MediaAccess.denied) {
       return _Scaffolding(
@@ -166,6 +180,8 @@ class MediaTimelineView extends ConsumerWidget {
             stackDuplicates: stackDuplicates,
             showDuplicates: showDuplicates,
             selectionActions: selectionActions,
+            topContent: topContent,
+            title: title,
           ),
           AsyncError() => _Scaffolding(
             header: header,
@@ -200,6 +216,8 @@ class _Timeline extends ConsumerStatefulWidget {
     required this.stackDuplicates,
     required this.showDuplicates,
     required this.selectionActions,
+    required this.topContent,
+    required this.title,
   });
 
   final Widget header;
@@ -210,6 +228,10 @@ class _Timeline extends ConsumerStatefulWidget {
   final bool stackDuplicates;
   final bool showDuplicates;
   final SelectionActionsBuilder? selectionActions;
+  final Widget? topContent;
+
+  /// Title of the page, proposed for a slideshow of picked items.
+  final String title;
 
   @override
   ConsumerState<_Timeline> createState() => _TimelineState();
@@ -606,6 +628,7 @@ class _TimelineState extends ConsumerState<_Timeline> {
                 children: [
                   widget.header,
                   ?widget.banner,
+                  ?widget.topContent,
                   // Duplicates are looked for by folder, not by place.
                   if (widget.showDuplicates && widget.selection.area == null)
                     DuplicatesTile(selection: widget.selection),
@@ -703,6 +726,22 @@ class _TimelineState extends ConsumerState<_Timeline> {
                         onPressed: () {
                           unawaited(addToAlbum(context, ref, picked));
                           _clearSelection();
+                        },
+                      ),
+                      SelectionAction(
+                        icon: Icons.slideshow_rounded,
+                        label: l10n.actionSlideshow,
+                        onPressed: () {
+                          // Picked items, in the order of the timeline.
+                          final ids = [for (final item in picked) item.id];
+                          _clearSelection();
+                          unawaited(
+                            startSlideshow(
+                              context,
+                              ref,
+                              PickedSlideshow(ids, title: widget.title),
+                            ),
+                          );
                         },
                       ),
                       SelectionAction(
@@ -858,9 +897,11 @@ class _TimelineHeader extends ConsumerWidget {
     required this.actions,
     this.subtitle,
     this.summary,
+    this.slideshowTitle,
   });
 
   final MediaSelection base;
+  final String? slideshowTitle;
   final String title;
   final bool showBackButton;
   final bool showSearch;
@@ -905,6 +946,18 @@ class _TimelineHeader extends ConsumerWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                 ),
+                if (slideshowTitle case final name?)
+                  IconButton(
+                    tooltip: l10n.actionSlideshow,
+                    onPressed: () => unawaited(
+                      startSlideshow(
+                        context,
+                        ref,
+                        SelectionSlideshow(shown, title: name),
+                      ),
+                    ),
+                    icon: const Icon(Icons.slideshow_rounded),
+                  ),
                 ...actions,
                 if (showSearch) SearchButton(scope: base, place: title),
                 IconButton(

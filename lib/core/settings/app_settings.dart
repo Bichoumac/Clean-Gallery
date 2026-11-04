@@ -1,5 +1,7 @@
 import 'package:clean_gallery/analysis/similarity.dart';
 import 'package:clean_gallery/domain/album.dart';
+import 'package:clean_gallery/domain/ritual.dart';
+import 'package:clean_gallery/domain/slideshow.dart';
 import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'app_settings.freezed.dart';
@@ -26,6 +28,19 @@ enum LanguagePreference {
 
   /// French.
   french,
+}
+
+/// How often memories are offered, in Settings.
+enum MemoriesFrequency {
+  /// No memory card and no notification.
+  off,
+
+  /// Every week (the default): the notification, when turned on, comes
+  /// on a day of the week.
+  weekly,
+
+  /// Every month, on a day of the month.
+  monthly,
 }
 
 /// User settings, stored in the `settings` table and read before the first
@@ -82,6 +97,25 @@ abstract class AppSettings with _$AppSettings {
 
     /// Size from which videos are offered for cleaning, in megabytes.
     @Default(100) int largeVideoMegabytes,
+
+    /// Options of the last slideshow, the defaults of the next one.
+    @Default(SlideshowOptions()) SlideshowOptions slideshowOptions,
+
+    /// How often memories are offered.
+    @Default(MemoriesFrequency.weekly) MemoriesFrequency memories,
+
+    /// Day of the week of the memories notification, when weekly.
+    @Default(DateTime.sunday) int memoriesWeekday,
+
+    /// Day of the month of the memories notification, when monthly.
+    @Default(1) int memoriesMonthDay,
+
+    /// Time of the memories notification, in minutes past midnight.
+    @Default(19 * 60) int memoriesMinute,
+
+    /// Whether a notification says when memories are ready. Off until the
+    /// user turns it on, which asks for the notification permission.
+    @Default(false) bool memoriesNotify,
   }) = _AppSettings;
 
   const AppSettings._();
@@ -91,6 +125,22 @@ abstract class AppSettings with _$AppSettings {
       similaritySensitivity == SimilaritySensitivity.custom
       ? customThresholds
       : SimilarityThresholds.of(similaritySensitivity);
+
+  /// When the memories notification comes, or `null` when memories are
+  /// off.
+  RecurringTime? get memoriesTime => switch (memories) {
+    MemoriesFrequency.off => null,
+    MemoriesFrequency.weekly => RecurringTime(
+      repeat: Repeat.weekly,
+      day: memoriesWeekday,
+      minute: memoriesMinute,
+    ),
+    MemoriesFrequency.monthly => RecurringTime(
+      repeat: Repeat.monthly,
+      day: memoriesMonthDay,
+      minute: memoriesMinute,
+    ),
+  };
 
   /// Smallest and largest trash retention, in days.
   static const minRetentionDays = 1;

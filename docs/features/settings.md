@@ -1,8 +1,8 @@
 # Settings
 
-The Settings tab: display, trash, sharing, analysis and permissions. The rest of the brief's settings arrive with the features they control.
+The Settings tab: display, trash, cleanup, sharing, slideshows and memories, analysis and permissions. The rest of the brief's settings arrive with the features they control.
 
-Last updated: 2026-11-01 — Milestone M5
+Last updated: 2026-11-03 — Milestone M9
 
 ## Purpose
 
@@ -26,6 +26,10 @@ Let the user choose how the app looks and behaves, and see and change its permis
 | Cleanup | Screenshots count as old after | 7 d / 30 d / 90 d / 1 yr | 30 days | The Old screenshots list and its Stats row ([cleanup.md](cleanup.md)) |
 | Cleanup | Videos count as large from | 50 / 100 / 250 / 500 MB | 100 MB | The Large videos list and its Stats row |
 | Sharing | Remove location when sharing | On / Off | On | Default of the share sheet switch |
+| Slideshows and memories | Memories | Off / Every week / Every month | Every week | Off hides the memory card and stops its notification ([memories.md](memories.md)) |
+| Slideshows and memories | Notification | On / Off, then day and time | Off; Sunday (or the 1st) at 19:00 | Turning it on asks for the notification permission (Android 13+); refused, it stays off |
+| Slideshows and memories | Rituals | Page | — | Recurring slideshows with their notifications ([memories.md](memories.md#user-flows)) |
+| Slideshows and memories | Slideshow defaults | Options sheet | 5 s, slow zoom, by date, videos, skip duplicates and blurry, no music | The options proposed before each slideshow; also saved by every *Start* ([slideshow.md](slideshow.md)) |
 | Analysis | Similar photos | Low / Medium / High | Medium | How eager the similar photo search is; changing it regroups at once from the stored hashes ([analysis-engine.md](../analysis-engine.md#sensitivity)) |
 | Analysis | Advanced mode | On / Off, then three sliders | Off | On: no preset selected; *Any date: difference up to* (strict, 0–10 of 64), *Taken close in time: difference up to* (loose, 0–20 of 64), *Close in time means within* (0–60 seconds). Starts from the preset in use; off returns to Medium. Saved when the finger is lifted |
 | Analysis | Analyze the library again | Button | — | Forgets dates, burst ids, content and perceptual hashes and duplicate groups, then syncs and scans again; a spinner and "Analyzing: N of M items" show while it runs. Media, trash, settings and pairs marked "Not duplicates" are kept |
@@ -42,6 +46,7 @@ Still to come, from the brief: clear cache (merged into *Analyze the library aga
 | Widget | File |
 | --- | --- |
 | `SettingsScreen` and its sections | [settings_screen.dart](../../lib/features/settings/settings_screen.dart) |
+| `MemoriesSettings` (Slideshows and memories) | [memories_settings.dart](../../lib/features/memories/memories_settings.dart) |
 
 ## State and data
 

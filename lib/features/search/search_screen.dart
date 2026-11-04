@@ -284,6 +284,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 emptyTitle: l10n.searchEmpty,
                 compact: true,
                 showDuplicates: false,
+                slideshowTitle: l10n.searchIn(widget.args.place),
               ),
             ),
           ),

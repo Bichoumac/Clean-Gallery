@@ -1,4 +1,6 @@
 import 'package:clean_gallery/domain/enums.dart';
+import 'package:clean_gallery/domain/memory.dart';
+import 'package:clean_gallery/domain/ritual.dart';
 import 'package:drift/drift.dart';
 
 /// Media items indexed from the device, keyed by their MediaStore id.
@@ -261,4 +263,112 @@ class UserAlbumItems extends Table {
 
   @override
   Set<Column<Object>> get primaryKey => {albumId, assetId};
+}
+
+/// Slideshows saved by the user (schema version 7).
+///
+/// Saved on the user's tap only, to play again: no video file is written
+/// (ADR 0026).
+@DataClassName('SlideshowRow')
+class Slideshows extends Table {
+  /// Auto-incremented identifier.
+  IntColumn get id => integer().autoIncrement()();
+
+  /// Title chosen by the user.
+  TextColumn get title => text()();
+
+  /// Its options and music, as `SlideshowOptions.encode` writes them.
+  TextColumn get options => text()();
+
+  /// When it was saved; slideshows are listed newest first.
+  DateTimeColumn get createdAt => dateTime()();
+}
+
+/// Items of the saved slideshows, in playing order.
+///
+/// [assetId] is not a foreign key, as in `user_album_items`: items that
+/// leave the index are kept and skipped while playing; items deleted for
+/// good are removed.
+@DataClassName('SlideshowItemRow')
+@TableIndex(name: 'slideshow_items_asset', columns: {#assetId})
+class SlideshowItems extends Table {
+  /// Slideshow the item belongs to.
+  IntColumn get slideshowId =>
+      integer().references(Slideshows, #id, onDelete: KeyAction.cascade)();
+
+  /// Place of the item in the slideshow, from 0.
+  IntColumn get position => integer()();
+
+  /// MediaStore id of the item.
+  IntColumn get assetId => integer()();
+
+  @override
+  Set<Column<Object>> get primaryKey => {slideshowId, position};
+}
+
+/// Automatic memories met so far (schema version 7), shown in the
+/// *Memories* list until dismissed.
+///
+/// Only the period is stored; its photos are read again when it plays.
+@DataClassName('MemoryRow')
+class Memories extends Table {
+  /// `Memory.key`, e.g. `thisWeek:2025-11-03`.
+  TextColumn get key => text()();
+
+  /// Day or week.
+  TextColumn get kind => textEnum<MemoryKind>()();
+
+  /// How many years before it was found.
+  IntColumn get yearsAgo => integer()();
+
+  /// First instant of the period.
+  DateTimeColumn get start => dateTime()();
+
+  /// Instant after the period.
+  DateTimeColumn get end => dateTime()();
+
+  /// Number of good photos when it was found.
+  IntColumn get photoCount => integer()();
+
+  /// When the app first found it; the list shows the newest first.
+  DateTimeColumn get foundAt => dateTime()();
+
+  /// Whether the user dismissed it (✕): neither the card nor the list
+  /// shows it again.
+  BoolColumn get dismissed => boolean().withDefault(const Constant(false))();
+
+  @override
+  Set<Column<Object>> get primaryKey => {key};
+}
+
+/// Recurring slideshows scheduled by the user (schema version 7).
+///
+/// Only notifications are scheduled for them; the slideshow is built when
+/// the app is opened (ADR 0027).
+@DataClassName('RitualRow')
+class Rituals extends Table {
+  /// Auto-incremented identifier.
+  IntColumn get id => integer().autoIncrement()();
+
+  /// What it plays.
+  TextColumn get content => textEnum<RitualContent>()();
+
+  /// Saved slideshow or user album id, for those contents. Not a foreign
+  /// key: a ritual whose target is gone is shown as such.
+  IntColumn get targetId => integer().nullable()();
+
+  /// Weekly or monthly.
+  TextColumn get repeat => textEnum<Repeat>()();
+
+  /// Day of the week (1–7) or of the month (1–28).
+  IntColumn get day => integer()();
+
+  /// Minutes past midnight.
+  IntColumn get minute => integer()();
+
+  /// Whether its notifications are scheduled.
+  BoolColumn get enabled => boolean().withDefault(const Constant(true))();
+
+  /// When it was created; rituals are listed in that order.
+  DateTimeColumn get createdAt => dateTime()();
 }

@@ -128,5 +128,8 @@ void main() {
     expect(await ids(CleanupList.poorQuality), unorderedEquals(['2', '3']));
     final sharp = await repository.load(const MediaSelection(ids: ['1']));
     expect(sharp.single.sharpness, 500);
+    // Slideshows leave out exactly those, and keep unmeasured photos.
+    final good = await repository.load(const MediaSelection(goodOnly: true));
+    expect(good.map((i) => i.id), unorderedEquals(['1', '4', '5', '6']));
   });
 }

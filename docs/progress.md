@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-11-01 — Milestone M8
+Last updated: 2026-11-04 — Milestone M9
 
 ## Milestones
 
@@ -16,8 +16,8 @@ Last updated: 2026-11-01 — Milestone M8
 | M5 | Cleanup: swipe mode, blurry, screenshots, large videos | Merged into `main` (PR #6) |
 | M6 | Advanced viewer and editing | Merged into `main` (PR #7, 2026-10-30); filters merged after (PR #8, 2026-10-30) |
 | M7 | Exploration: map, search | Merged into `main` (PR #9, 2026-10-30); map built in M6 |
-| M8 | User albums | Branch `specs-albums-slideshows-people`, confirmed on the phone and pushed 2026-11-01 (pull request to open and merge) |
-| M9 | Slideshows, saved slideshows, memories, rituals | Specified and approved 2026-11-01 |
+| M8 | User albums | Merged into `main` (PR #10, 2026-11-01) |
+| M9 | Slideshows, saved slideshows, memories, rituals | Branch `m9-slideshows-memories`, working on the phone and pushed 2026-11-04 (pull request to open and merge) |
 | M10 | People (on-device face recognition, merging) | Specified and approved 2026-11-01 |
 | M11 | Monetization (was M8) | Not started |
 | M12 | Polish and release preparation (was M9) | Not started |
@@ -43,6 +43,40 @@ The product owner asked for People (face recognition with merging), user albums 
 
 The brief excluded all machine learning; on-device face recognition for People is the one exception.
 
+## M9 — Slideshows and memories
+
+### Done
+
+- **Slideshows** (2026-11-03, branch `m9-slideshows-memories`): a *Slideshow* button on every album page (folders, All media, Favorites, user albums, search results, map areas), *Slideshow* in the selection's More menu, and Albums → Slideshows → *Slideshow* for a period. Options sheet (time per photo 3 / 5 / 8 s, crossfade or slow zoom, by date or shuffled, videos muted 10 s at most, skipping duplicates and blurry photos, music), remembered. Full-screen player with the screen kept on, controls on a tap, end screen. **Saved slideshows** (items in order and options, no video file) in the Albums tab: play, rename, delete with Undo ([features/slideshow.md](features/slideshow.md), [ADR 0026](decisions/0026-saved-slideshows-without-video.md)).
+- **Music**: none, or a track from the phone through the system file picker (no audio permission, a persistable read access to that file only, given back when unused). Bundled tracks: the list is ready but empty (see Decisions).
+- **Memories** (2026-11-03): "On this day" and "This week, N years ago" from the camera's good photos, found while the app is open; cards at the top of the Camera tab (play, ✕ with Undo); a *Memories* list in the Albums tab ([features/memories.md](features/memories.md)).
+- **Rituals and notifications**, without background work: Settings → Slideshows and memories (memories off / weekly / monthly, notification with day and time, rituals, slideshow defaults); the Rituals page; notifications planned by the app and shown by a receiver that reads nothing else, set again after a reboot ([ADR 0027](decisions/0027-notifications-without-background-work.md)).
+- **Custom slideshow album** (2026-11-04, asked by the product owner after installing the first build): the custom slideshow (Albums → Slideshows → *Slideshow*) asks for an album (all media, Favorites, a user album or a folder) as well as the period. Fixed the same day: closing a slideshow without music while it played raised an error when the screen closed, which could leave the screen kept on.
+- Schema version 7: `slideshows`, `slideshow_items`, `memories`, `rituals` ([database.md](database.md#migrations)). 421 tests. Device checklist: [testing.md](testing.md#m9--slideshows-and-memories-to-verify-on-a-device) items 95 to 115.
+
+### Decisions
+
+- **Bundled music** (2026-11-03, product owner): M9 ships *None* and *Track from the phone*; the product owner picks 2 or 3 CC0 tracks, then they are added to `bundledTracks` with their credits in About.
+- **People** entry points (slideshow of a person, ritual on a person) come with M10.
+- **Inexact notification times** (2026-11-03, product owner): no "Alarms & reminders" permission; a notification may come a few minutes late.
+- **Memory thresholds** (2026-11-03, product owner): 8 good photos for a week, 6 for a day; weeks run Monday to Sunday. To adjust after trying them on real libraries.
+- **Memories notification off by default**: the spec asks for the permission when it is turned on, never at onboarding, so it starts off; memories themselves are on (weekly) and show as cards.
+- **One memory per year**: the day when it has enough photos, otherwise the week, so two cards never show the same photos.
+- **Memory notifications only when there are memories**: the app checks each planned date while it is open, so none says "ready" for nothing.
+- **No new package**: `video_player` already plays videos; the music, file picker, screen and notifications are on the existing native channel (ADR 0026, ADR 0027).
+
+### Known issues
+
+- Tried on the Galaxy A54 on 2026-11-04: "ça marche bien" (an overall report, not item by item; [testing.md](testing.md#m9--slideshows-and-memories-to-verify-on-a-device)).
+- Notifications are planned 8 weeks (weekly) or 6 months (monthly) ahead; they stop if the app is not opened for that long, until the next launch.
+- Memories use the camera's photos only (no videos, no other folders).
+
+### Next steps
+
+1. ~~Device test, then push~~ done on 2026-11-04; the product owner opens and merges the pull request.
+2. The product owner's CC0 tracks for the bundled music.
+3. **M10**: People.
+
 ## M8 — User albums
 
 ### Done
@@ -63,8 +97,8 @@ The brief excluded all machine learning; on-device face recognition for People i
 
 ### Next steps
 
-1. ~~Device test (items 84 to 94), then push~~ done on 2026-11-01; open and merge the pull request.
-2. **M9**: slideshows and memories.
+1. ~~Device test (items 84 to 94), then push~~ done on 2026-11-01; merged as PR #10.
+2. ~~**M9**: slideshows and memories~~ built on 2026-11-03.
 
 ## M7 — Exploration
 

@@ -54,4 +54,18 @@ void main() {
       );
     }
   });
+
+  test('notifications read neither photos nor the database (ADR 0027)', () {
+    // The only code that runs while the app is closed: the alarm and boot
+    // receiver. It may read its list of notifications, nothing else.
+    final reminders = File(
+      'android/app/src/main/kotlin/com/bichoumac/clean_gallery/Reminders.kt',
+    ).readAsStringSync();
+    final forbidden = RegExp(
+      r'MediaStore|ContentResolver|contentResolver|SQLite|\.db\b|'
+      r'clean_gallery\.sqlite|MediaIndex|FlutterEngine|WorkManager',
+    );
+    expect(forbidden.allMatches(reminders).map((m) => m[0]), isEmpty);
+    expect(reminders, contains('class ReminderReceiver'));
+  });
 }

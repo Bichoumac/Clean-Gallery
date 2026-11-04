@@ -2,7 +2,7 @@
 
 Entry point for AI assistants working on Clean Gallery. Read this first, then follow the links to `docs/` for depth.
 
-Last updated: 2026-11-01 — Milestone M8
+Last updated: 2026-11-03 — Milestone M9
 
 ## Project summary
 
@@ -39,7 +39,7 @@ Generated files are not committed. After editing a class annotated with `@DriftD
 | `lib/core/` | Theme, database, router, providers, config | adding app-wide infrastructure. |
 | `lib/core/media/` | `MediaIndex` (syncs the `assets` table with the device), `DuplicateScan` (certain duplicates, perceptual hashes, similar groups), media list providers reading it, the duplicates tile, thumbnail widget, formatting, `MediaActions`, selection bar | adding media code shared by several features. |
 | `lib/core/settings/` | `AppSettings` and its controller | adding a user setting (also add a key in `SettingKeys`). |
-| `lib/platform/` | Interfaces (`MediaSource`, `PlatformBridge`, `PermissionService`, …) | adding a platform capability: interface here, implementation in `platform/android/`. |
+| `lib/platform/` | Interfaces (`MediaSource`, `PlatformBridge`, `PermissionService`, `MusicPlayer`, `ReminderService`, …) | adding a platform capability: interface here, implementation in `platform/android/`. |
 | `lib/platform/android/` | Android implementations | implementing an interface for Android. |
 | `lib/features/<feature>/` | Screens, controllers, feature logic | building a user-facing feature. |
 | `lib/l10n/` | ARB files (`app_en.arb`, `app_fr.arb`) | adding any user-visible string. |
@@ -73,7 +73,7 @@ Full details and diagrams: [docs/architecture.md](docs/architecture.md).
 9. Significant technical choices get an ADR in `docs/decisions/`.
 10. Face recognition (People) runs on the phone only: models bundled in the app, never downloaded, no cloud API or ML Kit, no network call from the face code (a test enforces it).
 11. User albums and saved slideshows never move, copy or delete a file: they are lists in the database.
-12. No background work that reads media or the database: memories and rituals only schedule notifications; the app builds the slideshow when it is opened.
+12. No background work that reads media or the database: memories and rituals only schedule notifications; the app builds the slideshow when it is opened. `ReminderReceiver` reads only its list of notifications (a test enforces it, [ADR 0027](docs/decisions/0027-notifications-without-background-work.md)).
 
 ## Where to read more
 

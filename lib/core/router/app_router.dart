@@ -3,6 +3,7 @@ import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/domain/geo.dart';
 import 'package:clean_gallery/domain/media_item.dart';
+import 'package:clean_gallery/domain/slideshow.dart';
 import 'package:clean_gallery/features/cleanup/cleanup_list_screen.dart';
 import 'package:clean_gallery/features/cleanup/cleanup_lists.dart';
 import 'package:clean_gallery/features/duplicates/duplicates_screen.dart';
@@ -11,12 +12,17 @@ import 'package:clean_gallery/features/library/albums_screen.dart';
 import 'package:clean_gallery/features/library/media_timeline_view.dart';
 import 'package:clean_gallery/features/map/map_area_screen.dart';
 import 'package:clean_gallery/features/map/map_screen.dart';
+import 'package:clean_gallery/features/memories/memories_screen.dart';
+import 'package:clean_gallery/features/memories/memory_card.dart';
+import 'package:clean_gallery/features/memories/rituals_screen.dart';
 import 'package:clean_gallery/features/onboarding/onboarding_controller.dart';
 import 'package:clean_gallery/features/onboarding/onboarding_screen.dart';
 import 'package:clean_gallery/features/scan/scan_screen.dart';
 import 'package:clean_gallery/features/search/search_controller.dart';
 import 'package:clean_gallery/features/search/search_screen.dart';
 import 'package:clean_gallery/features/settings/settings_screen.dart';
+import 'package:clean_gallery/features/slideshow/slideshow_builder.dart';
+import 'package:clean_gallery/features/slideshow/slideshow_screen.dart';
 import 'package:clean_gallery/features/stats/stats_screen.dart';
 import 'package:clean_gallery/features/swipe/swipe_screen.dart';
 import 'package:clean_gallery/features/swipe/swipe_source.dart';
@@ -83,6 +89,13 @@ abstract final class AppRoutes {
 
   /// The map, to pick the area a search is limited to; pops a `GeoArea`.
   static const mapPick = '/map/pick';
+
+  /// The slideshow player, above the tabs. Requires [SlideshowArgs] as
+  /// `extra`.
+  static const slideshow = '/slideshow';
+
+  /// The rituals, under Settings.
+  static const rituals = '/settings/rituals';
 }
 
 /// Album pages under the Albums tab: `/albums/<key>?name=<title>`.
@@ -95,6 +108,9 @@ abstract final class AlbumRoutes {
 
   /// Location of the app trash, a page of its own under Albums.
   static const trash = '${AppRoutes.albums}/trash';
+
+  /// Location of the *Memories* list.
+  static const memories = '${AppRoutes.albums}/memories';
 
   /// Location of the user album with [id].
   static String userAlbum(int id) => '${AppRoutes.albums}/mine/$id';
@@ -148,6 +164,20 @@ final class ViewerArgs {
   final int initialIndex;
 }
 
+/// What the slideshow player plays, and with which options (the user's
+/// defaults when `null`).
+@immutable
+final class SlideshowArgs {
+  /// Creates slideshow arguments.
+  const SlideshowArgs({required this.source, this.options});
+
+  /// What to play.
+  final SlideshowSource source;
+
+  /// Options chosen just before, if any.
+  final SlideshowOptions? options;
+}
+
 /// The application router.
 ///
 /// While onboarding is incomplete, every location redirects to
@@ -185,6 +215,10 @@ GoRouter appRouter(Ref ref) {
           state.extra is! MediaItem) {
         return AppRoutes.camera;
       }
+      if (state.matchedLocation == AppRoutes.slideshow &&
+          state.extra is! SlideshowArgs) {
+        return AppRoutes.camera;
+      }
       if (state.matchedLocation == AppRoutes.mapArea &&
           state.extra is! GeoArea) {
         return AppRoutes.map;
@@ -208,6 +242,17 @@ GoRouter appRouter(Ref ref) {
           transitionsBuilder: (context, animation, _, child) =>
               FadeTransition(opacity: animation, child: child),
         ),
+      ),
+      GoRoute(
+        path: AppRoutes.slideshow,
+        pageBuilder: (context, state) {
+          final args = state.extra! as SlideshowArgs;
+          return CustomTransitionPage(
+            child: SlideshowScreen(source: args.source, options: args.options),
+            transitionsBuilder: (context, animation, _, child) =>
+                FadeTransition(opacity: animation, child: child),
+          );
+        },
       ),
       GoRoute(
         path: AppRoutes.duplicates,
@@ -278,6 +323,7 @@ GoRouter appRouter(Ref ref) {
               title: l10n.navCamera,
               emptyTitle: l10n.libraryEmptyCamera,
               showSearch: true,
+              topContent: const MemoryCards(),
             ),
           ),
           _branch(
@@ -301,6 +347,10 @@ GoRouter appRouter(Ref ref) {
                     builder: (context, state) => const TrashScreen(),
                   ),
                   GoRoute(
+                    path: 'memories',
+                    builder: (context, state) => const MemoriesScreen(),
+                  ),
+                  GoRoute(
                     path: 'mine/:id',
                     builder: (context, state) => UserAlbumScreen(
                       albumId: int.parse(state.pathParameters['id']!),
@@ -310,14 +360,16 @@ GoRouter appRouter(Ref ref) {
                     path: ':key',
                     builder: (context, state) {
                       final l10n = AppLocalizations.of(context);
+                      final name = state.uri.queryParameters['name'] ?? '';
                       return MediaTimelineView(
                         selection: AlbumRoutes.selectionFor(
                           state.pathParameters['key']!,
                         ),
-                        title: state.uri.queryParameters['name'] ?? '',
+                        title: name,
                         emptyTitle: l10n.libraryEmptyAlbum,
                         showBackButton: true,
                         showSearch: true,
+                        slideshowTitle: name,
                       );
                     },
                   ),
@@ -359,6 +411,12 @@ GoRouter appRouter(Ref ref) {
               GoRoute(
                 path: AppRoutes.settings,
                 builder: (context, state) => const SettingsScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'rituals',
+                    builder: (context, state) => const RitualsScreen(),
+                  ),
+                ],
               ),
             ],
           ),

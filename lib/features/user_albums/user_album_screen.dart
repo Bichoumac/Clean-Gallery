@@ -35,6 +35,7 @@ class UserAlbumScreen extends ConsumerWidget {
       emptyBody: l10n.userAlbumEmptyBody,
       showBackButton: true,
       showSearch: true,
+      slideshowTitle: album?.name,
       headerActions: [
         if (album != null)
           PopupMenuButton<_AlbumAction>(

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/location_scan.dart';
 import 'package:clean_gallery/core/media/media_index.dart';
@@ -8,8 +10,12 @@ import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/core/router/compact_nav_bar.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/media_item.dart';
+import 'package:clean_gallery/domain/memory.dart';
+import 'package:clean_gallery/domain/slideshow.dart';
 import 'package:clean_gallery/domain/trashed_item.dart';
 import 'package:clean_gallery/features/library/media_timeline_view.dart';
+import 'package:clean_gallery/features/slideshow/slideshow_actions.dart';
+import 'package:clean_gallery/features/slideshow/slideshow_builder.dart';
 import 'package:clean_gallery/features/user_albums/user_album_actions.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -17,7 +23,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 /// Albums tab: "All media", "Favorites", the map and the trash, then the
-/// user's albums (*My albums*), then the device folders.
+/// user's albums (*My albums*), the slideshows (*Slideshow* for a period,
+/// *Memories*, saved slideshows), then the device folders.
 ///
 /// The Trash is a page of the app, not a MediaStore album. The Duplicates
 /// virtual album joins the top row in M3.
@@ -58,6 +65,10 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
     final trash = ref.watch(trashItemsProvider).value ?? const <TrashedItem>[];
     final located = ref.watch(locatedMediaProvider).value;
     final mine = ref.watch(userAlbumsProvider).value ?? const <UserAlbum>[];
+    final saved =
+        ref.watch(savedSlideshowsProvider).value ?? const <SavedSlideshow>[];
+    final memories =
+        ref.watch(storedMemoriesProvider).value ?? const <Memory>[];
 
     return RefreshIndicator(
       onRefresh: () => ref.read(mediaIndexProvider.notifier).sync(),
@@ -163,13 +174,93 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16),
               sliver: _AlbumGrid(
                 tiles: [
-                  const _NewAlbumTile(),
+                  _ActionTile(
+                    label: l10n.userAlbumNew,
+                    icon: Icons.add_rounded,
+                    onTap: () => createAlbum(context, ref),
+                  ),
                   for (final album in mine)
                     _AlbumTile(
                       name: album.name,
                       location: AlbumRoutes.userAlbum(album.id),
                       knownCount: album.count,
                       knownCover: album.cover,
+                    ),
+                ],
+              ),
+            ),
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(20, 28, 20, 12),
+            sliver: SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Semantics(
+                    header: true,
+                    child: Text(
+                      l10n.slideshowsTitle,
+                      style: textTheme.titleLarge,
+                    ),
+                  ),
+                  // Nothing saved nor found yet: a line and a button, not a
+                  // row of tiles.
+                  if (saved.isEmpty && memories.isEmpty) ...[
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4, bottom: 12),
+                      child: Text(
+                        l10n.slideshowsHint,
+                        style: textTheme.bodyMedium?.copyWith(
+                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
+                    FilledButton.tonalIcon(
+                      onPressed: () =>
+                          unawaited(startPeriodSlideshow(context, ref)),
+                      icon: const Icon(Icons.play_arrow_rounded),
+                      label: Text(l10n.actionSlideshow),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+          if (saved.isNotEmpty || memories.isNotEmpty)
+            SliverPadding(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              sliver: _AlbumGrid(
+                tiles: [
+                  _ActionTile(
+                    label: l10n.actionSlideshow,
+                    icon: Icons.play_arrow_rounded,
+                    onTap: () => unawaited(startPeriodSlideshow(context, ref)),
+                  ),
+                  if (memories.isNotEmpty)
+                    _AlbumTile(
+                      name: l10n.memoriesTitle,
+                      location: AlbumRoutes.memories,
+                      knownCount: memories.length,
+                      selection: memories.first.selection.copyWith(
+                        goodOnly: true,
+                      ),
+                      countLabel: l10n.memoryCount(memories.length),
+                      icon: Icons.auto_awesome_rounded,
+                    ),
+                  for (final slideshow in saved)
+                    _AlbumTile(
+                      name: slideshow.title,
+                      location: AlbumRoutes.memories,
+                      knownCount: slideshow.count,
+                      knownCover: slideshow.cover,
+                      icon: Icons.slideshow_rounded,
+                      onTap: () => unawaited(
+                        playSlideshow(
+                          context,
+                          SavedSlideshowSource(slideshow.id),
+                        ),
+                      ),
+                      onLongPress: () =>
+                          unawaited(_slideshowMenu(context, ref, slideshow)),
                     ),
                 ],
               ),
@@ -256,21 +347,29 @@ class _AlbumGrid extends StatelessWidget {
   }
 }
 
-/// First tile of *My albums* once there is an album: creates another.
-class _NewAlbumTile extends ConsumerWidget {
-  const _NewAlbumTile();
+/// A tile that starts something rather than opening an album: *New album*
+/// (first tile of *My albums* once there is one), *Slideshow*.
+class _ActionTile extends StatelessWidget {
+  const _ActionTile({
+    required this.label,
+    required this.icon,
+    required this.onTap,
+  });
+
+  final String label;
+  final IconData icon;
+  final VoidCallback onTap;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final l10n = AppLocalizations.of(context);
+  Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Semantics(
       button: true,
-      label: l10n.userAlbumNew,
+      label: label,
       excludeSemantics: true,
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
-        onTap: () => createAlbum(context, ref),
+        onTap: onTap,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -285,7 +384,7 @@ class _NewAlbumTile extends ConsumerWidget {
                     radius: 28,
                     backgroundColor: theme.colorScheme.primaryContainer,
                     child: Icon(
-                      Icons.add_rounded,
+                      icon,
                       size: 32,
                       color: theme.colorScheme.onPrimaryContainer,
                     ),
@@ -294,7 +393,12 @@ class _NewAlbumTile extends ConsumerWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Text(l10n.userAlbumNew, style: theme.textTheme.titleSmall),
+            Text(
+              label,
+              style: theme.textTheme.titleSmall,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
             // Same height as the count line of the other tiles.
             Text('', style: theme.textTheme.bodySmall),
           ],
@@ -314,7 +418,19 @@ class _AlbumTile extends ConsumerWidget {
     this.knownCover,
     this.icon,
     this.duplicates,
+    this.onTap,
+    this.onLongPress,
+    this.countLabel,
   });
+
+  /// Text under the name instead of the item count.
+  final String? countLabel;
+
+  /// Runs instead of opening [location], e.g. playing a slideshow.
+  final VoidCallback? onTap;
+
+  /// Shows the tile's options, e.g. those of a saved slideshow.
+  final VoidCallback? onLongPress;
 
   /// Number of items in a duplicate group, shown after the count when the
   /// folders are sorted by duplicates.
@@ -358,13 +474,17 @@ class _AlbumTile extends ConsumerWidget {
       button: true,
       label: [
         name,
-        if (count != null) l10n.albumItemCount(count),
+        if (countLabel case final label?)
+          label
+        else if (count != null)
+          l10n.albumItemCount(count),
         if (duplicates case final n? when n > 0) l10n.albumDuplicateCount(n),
       ].join(', '),
       excludeSemantics: true,
       child: InkWell(
         borderRadius: BorderRadius.circular(24),
-        onTap: () => context.push(location),
+        onTap: onTap ?? () => context.push(location),
+        onLongPress: onLongPress,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -405,7 +525,7 @@ class _AlbumTile extends ConsumerWidget {
             if (count != null)
               Text(
                 [
-                  l10n.albumItemCount(count),
+                  countLabel ?? l10n.albumItemCount(count),
                   if (duplicates case final n? when n > 0)
                     l10n.albumDuplicateCount(n),
                 ].join(' · '),
@@ -419,3 +539,60 @@ class _AlbumTile extends ConsumerWidget {
     );
   }
 }
+
+/// Options of a saved slideshow, on a long press of its tile: play, edit
+/// its options, rename, delete.
+Future<void> _slideshowMenu(
+  BuildContext context,
+  WidgetRef ref,
+  SavedSlideshow slideshow,
+) async {
+  final l10n = AppLocalizations.of(context);
+  final action = await showModalBottomSheet<_SlideshowAction>(
+    context: context,
+    showDragHandle: true,
+    builder: (context) => SafeArea(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
+            child: Text(
+              slideshow.title,
+              style: Theme.of(context).textTheme.titleLarge,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          ListTile(
+            leading: const Icon(Icons.play_arrow_rounded),
+            title: Text(l10n.slideshowPlay),
+            onTap: () => Navigator.pop(context, _SlideshowAction.play),
+          ),
+          ListTile(
+            leading: const Icon(Icons.edit_outlined),
+            title: Text(l10n.actionRename),
+            onTap: () => Navigator.pop(context, _SlideshowAction.rename),
+          ),
+          ListTile(
+            leading: const Icon(Icons.delete_outline_rounded),
+            title: Text(l10n.actionDelete),
+            subtitle: Text(l10n.slideshowDeleteHint),
+            onTap: () => Navigator.pop(context, _SlideshowAction.delete),
+          ),
+        ],
+      ),
+    ),
+  );
+  if (action == null || !context.mounted) return;
+  switch (action) {
+    case _SlideshowAction.play:
+      await playSlideshow(context, SavedSlideshowSource(slideshow.id));
+    case _SlideshowAction.rename:
+      await renameSavedSlideshow(context, ref, slideshow);
+    case _SlideshowAction.delete:
+      await deleteSavedSlideshow(context, ref, slideshow);
+  }
+}
+
+enum _SlideshowAction { play, rename, delete }

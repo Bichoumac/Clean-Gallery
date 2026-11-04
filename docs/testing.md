@@ -2,7 +2,7 @@
 
 How Clean Gallery is tested: test layers, commands, fakes and fixtures. Every milestone adds tests for what it builds; a milestone is not done until the suite passes.
 
-Last updated: 2026-11-01 — Milestone M8
+Last updated: 2026-11-04 — Milestone M9
 
 ## Commands
 
@@ -133,6 +133,36 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 12 | Kill the app mid-onboarding, relaunch | any | Onboarding restarts from the first page. |
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
+
+### M9 — slideshows and memories, to verify on a device
+
+From a release build of branch `m9-slideshows-memories`. The first launch migrates the database to schema version 7 (four new tables; nothing is read again). For a memory to show, the camera needs at least 6 good photos taken on today's date, or 8 during this week (Monday to Sunday), one year ago or more.
+
+| # | Check | Expected |
+| --- | --- | --- |
+| 95 | Open a folder (e.g. Camera) from the Albums tab | A **Diaporama** button (▶ in a frame) in the title, before the magnifier. |
+| 96 | Tap it | A sheet: *Durée par photo* 3 / 5 / 8 s, *Transition* Fondu / Zoom lent, *Ordre* Par date / Aléatoire, *Inclure les vidéos*, *Sauter les doublons et les photos floues*, *Musique* (Aucune, *Choisir un morceau sur le téléphone*, a line saying bundled music comes soon). |
+| 97 | **Lancer** with 3 s and *Zoom lent* | Full screen, black, no status or navigation bar; oldest photo first; each photo slowly zooms in or out and fades into the next. The screen does not turn off after 30 s. |
+| 98 | Tap the screen | Close, title, *Enregistrer*, "3 sur 24", previous, pause, next; they hide after 3 s. *Pause* stops the photo and the zoom; *Lire* continues. |
+| 99 | A folder with videos, *Inclure les vidéos* on | Videos play without sound, at most 10 s, then the next item. Off: no video. |
+| 100 | Options → *Choisir un morceau sur le téléphone* → pick an MP3 | The system file picker opens (no permission asked); the track's name is chosen in the list; it plays in a loop, pauses with the slideshow, and fades out at the end. |
+| 101 | Delete or move that MP3 with the file manager, start a slideshow with it | *La musique ne peut pas être lue…*; the slideshow plays without music. |
+| 102 | Let a slideshow end | *Revoir*, *Enregistrer*, *Fermer*. **Enregistrer** → title (the folder's name proposed) → *Enregistrer*: *Enregistré dans Albums → Diaporamas*; *Enregistrer* is no longer offered. |
+| 103 | Albums tab → **Diaporamas** | A *Diaporama* tile, then the saved slideshow (cover, count). A tap plays it with its own options and music, in the same order. |
+| 104 | Long press the saved slideshow → *Renommer*, then *Supprimer* → *Annuler* | Renamed; deleted with *Diaporama supprimé…*, brought back by *Annuler*. The photos never move. |
+| 105 | Camera: select 3 photos → ⋮ → **Diaporama** → *Lancer* | Only those 3 photos play. |
+| 106 | Albums → Diaporamas → **Diaporama** | The sheet starts with an **Album** list (*Tous les médias*, Favoris, your albums, then the folders; typing filters it) and a *Période* (Tout, 7 derniers jours, …, Personnalisée). Pick a folder and *Tout*: only that folder plays, titled "<dossier> · Tout". |
+| 107 | A user album page, search results, an area of the map | The same *Diaporama* button, playing what the page shows (date range included). |
+| 108 | Camera tab, with photos from a year ago this week or today | A **souvenir** card at the top: cover, *Cette semaine, il y a 1 an* or *Ce jour-là, il y a 1 an*, dates and number of photos. A tap plays it (blurry photos and duplicates left out). |
+| 109 | ✕ on the card, then *Annuler* | *Souvenir masqué*; the card leaves and comes back. ✕ again: it stays hidden after a relaunch. |
+| 110 | Albums → Diaporamas → **Souvenirs** | Every memory found and not hidden; tap plays, ✕ hides. |
+| 111 | Réglages → **Diaporamas et souvenirs** → *Notification* on | Android asks to allow notifications (first time only). Then the day and time (default *Dimanche*, 19:00). *Désactivés* hides the memory card. |
+| 112 | Réglages → **Rituels** → *Nouveau rituel*: *Les photos de la semaine*, *Chaque semaine*, today, in 3 minutes → *Enregistrer* | The ritual is listed as "Chaque mardi à …". Within a few minutes of that time (Android may be late), a notification *Votre diaporama est prêt — Les photos de la semaine*; a tap opens the app and plays the last seven days' photos. |
+| 113 | Restart the phone before the time of a ritual | The notification still comes (set again after the reboot). |
+| 114 | A ritual's ⋮ → *Lire maintenant*; its switch off; *Supprimer* → *Annuler* | Plays at once; no notification while off; deleted and restored. |
+| 115 | Refuse the notification permission (or turn it off in the system settings), then turn on a ritual | *Les notifications sont désactivées…* with *Réglages*; the memory card still shows in the app. |
+
+Result on the Galaxy A54: after the first build (commit `654e04f`, 2026-11-03), the product owner found it "très cool" and asked to pick the album of a custom slideshow (item 106 updated). After installing commit `102c3b2` (album choice, and the fix for closing a slideshow without music), the product owner reported on 2026-11-04: "ça marche bien". The report was overall, not item by item.
 
 ### M8 — user albums, to verify on a device
 

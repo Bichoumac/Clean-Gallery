@@ -2,6 +2,8 @@ import 'package:clean_gallery/analysis/image_quality.dart';
 import 'package:clean_gallery/core/database/tables.dart';
 // Used by the generated part for enum-typed columns.
 import 'package:clean_gallery/domain/enums.dart';
+import 'package:clean_gallery/domain/memory.dart';
+import 'package:clean_gallery/domain/ritual.dart';
 import 'package:drift/drift.dart';
 import 'package:drift_flutter/drift_flutter.dart';
 
@@ -25,6 +27,10 @@ part 'app_database.g.dart';
     Settings,
     UserAlbums,
     UserAlbumItems,
+    Slideshows,
+    SlideshowItems,
+    Memories,
+    Rituals,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -47,7 +53,7 @@ class AppDatabase extends _$AppDatabase {
 
   /// Current schema version. Bump it for every schema change.
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   /// Migration steps, applied in order from the installed version.
   @override
@@ -100,6 +106,14 @@ class AppDatabase extends _$AppDatabase {
         await m.createTable(userAlbums);
         await m.createTable(userAlbumItems);
         await m.createIndex(userAlbumItemsAsset);
+      }
+      if (from < 7) {
+        // Saved slideshows, memories and rituals (M9).
+        await m.createTable(slideshows);
+        await m.createTable(slideshowItems);
+        await m.createIndex(slideshowItemsAsset);
+        await m.createTable(memories);
+        await m.createTable(rituals);
       }
       if (from == 3) {
         // Analysis version 3 only adds the contrast, and the contrast only

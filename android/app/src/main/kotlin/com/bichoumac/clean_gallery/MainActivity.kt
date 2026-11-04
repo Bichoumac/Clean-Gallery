@@ -8,6 +8,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.MediaStore
 import android.provider.Settings
+import android.view.WindowManager
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodCall
@@ -49,11 +50,32 @@ class MainActivity : FlutterActivity() {
     /** Favorites, permanent deletion and sharing. */
     private val actions by lazy { MediaActions(this, worker, mainHandler) }
 
+    /** Music of the slideshows and the audio file picker. */
+    private val music by lazy { SlideshowMusic(this) }
+
+    /** Channel telling Dart that a memory or ritual notification was tapped. */
+    private var reminderChannel: MethodChannel? = null
+
+    /**
+     * Payload of the notification that opened the app, kept until Dart is
+     * ready to read it (`takeReminderPayload`).
+     */
+    private var launchPayload: String? = null
+
     /** Registers the platform channel once the engine is ready. */
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
         MethodChannel(flutterEngine.dartExecutor.binaryMessenger, CHANNEL)
             .setMethodCallHandler(::handle)
+        reminderChannel = MethodChannel(flutterEngine.dartExecutor.binaryMessenger, REMINDER_CHANNEL)
+        launchPayload = intent?.getStringExtra(Reminders.EXTRA_PAYLOAD)
+    }
+
+    /** A notification tapped while the app runs: tells Dart at once. */
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        val payload = intent.getStringExtra(Reminders.EXTRA_PAYLOAD) ?: return
+        reminderChannel?.invokeMethod("reminderTapped", payload)
     }
 
     /** Dispatches a method call from Dart and replies with its result. */
@@ -142,6 +164,50 @@ class MainActivity : FlutterActivity() {
                     result.success(openMap(latitude, longitude))
                 }
             }
+            "setKeepScreenOn" -> {
+                if (call.argument<Boolean>("on") == true) {
+                    window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                } else {
+                    window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                }
+                result.success(null)
+            }
+            "musicPlay" -> music.play(
+                call.argument<String>("uri"),
+                call.argument<String>("asset"),
+                call.argument<Double>("volume") ?: 1.0,
+                result,
+            )
+            "musicPause" -> {
+                music.pause()
+                result.success(null)
+            }
+            "musicResume" -> {
+                music.resume()
+                result.success(null)
+            }
+            "musicVolume" -> {
+                music.setVolume(call.argument<Double>("volume") ?: 1.0)
+                result.success(null)
+            }
+            "musicStop" -> {
+                music.stop()
+                result.success(null)
+            }
+            "pickMusic" -> music.pick(result)
+            "releaseMusic" -> {
+                call.argument<String>("uri")?.let(music::release)
+                result.success(null)
+            }
+            "scheduleReminders" -> {
+                Reminders.schedule(applicationContext, Reminders.Reminder.listFrom(call.argument("reminders")))
+                result.success(null)
+            }
+            "canNotify" -> result.success(Reminders.canNotify(applicationContext))
+            "takeReminderPayload" -> {
+                result.success(launchPayload)
+                launchPayload = null
+            }
             else -> result.notImplemented()
         }
     }
@@ -211,10 +277,12 @@ class MainActivity : FlutterActivity() {
         }
     }
 
-    /** Routes the result of MediaStore favorite and delete requests. */
+    /** Routes the result of MediaStore requests and of the audio file picker. */
     @Deprecated("Activity API used by MediaStore requests")
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (!actions.onActivityResult(requestCode, resultCode)) {
+        if (!actions.onActivityResult(requestCode, resultCode) &&
+            !music.onActivityResult(requestCode, resultCode, data)
+        ) {
             @Suppress("DEPRECATION")
             super.onActivityResult(requestCode, resultCode, data)
         }
@@ -226,11 +294,15 @@ class MainActivity : FlutterActivity() {
         hasher.shutdownNow()
         mediaIndex.shutdown()
         thumbnails.shutdown()
+        music.stop()
         super.onDestroy()
     }
 
     private companion object {
         /** Name of the MethodChannel shared with the Dart side. */
         const val CHANNEL = "clean_gallery/platform"
+
+        /** Channel from Kotlin to Dart for tapped notifications. */
+        const val REMINDER_CHANNEL = "clean_gallery/reminders"
     }
 }

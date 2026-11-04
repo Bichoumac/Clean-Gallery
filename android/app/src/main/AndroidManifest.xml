@@ -14,6 +14,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <!-- Optional "Media management" special access, Android 12+. The app works without it. -->
     <uses-permission android:name="android.permission.MANAGE_MEDIA" />
+    <!-- Memory and ritual notifications, Android 13+; asked when the first one is turned on. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Sets the next memory or ritual notification again after a reboot; reads nothing else. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
         android:label="Clean Gallery"
@@ -46,6 +50,17 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!-- Shows memory and ritual notifications at their time, and sets the
+             alarm again after a reboot or an update. Reads no photo and no
+             database (ADR 0027). -->
+        <receiver
+            android:name=".ReminderReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+        </receiver>
         <!-- Serves the temporary copies shared without GPS data (cache/share/). -->
         <provider
             android:name="androidx.core.content.FileProvider"

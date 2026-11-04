@@ -2,7 +2,7 @@
 
 Android-specific configuration: SDK levels, permissions and the native Kotlin MethodChannel. Everything here is reached from Dart through interfaces in `lib/platform/`, so the rest of the app stays platform-agnostic.
 
-Last updated: 2026-11-01 — Milestone M6
+Last updated: 2026-11-03 — Milestone M9
 
 ## SDK levels
 
@@ -38,6 +38,8 @@ Declared in [AndroidManifest.xml](../android/app/src/main/AndroidManifest.xml).
 | `READ_EXTERNAL_STORAGE` | 11–12 (`maxSdkVersion 32`) | Onboarding | Read media before Android 13. |
 | `ACCESS_MEDIA_LOCATION` | 11+ | Onboarding, after media access | Read GPS coordinates from EXIF; otherwise Android strips them. |
 | `MANAGE_MEDIA` | 12+ | Optional, from onboarding and settings | "Media management": delete and favorite without a confirmation prompt each time. |
+| `POST_NOTIFICATIONS` | 13+ | When the memories notification or a ritual is turned on, never at onboarding | Memory and ritual notifications ([features/memories.md](features/memories.md)). Refused: the memory card still shows. |
+| `RECEIVE_BOOT_COMPLETED` | all | Never (normal permission) | Sets the next memory or ritual notification again after a reboot; the receiver reads nothing else ([ADR 0027](decisions/0027-notifications-without-background-work.md)). |
 | `INTERNET` | all | Never (normal permission) | Map tiles from OpenStreetMap (M6), ads from M11. Debug builds had it from M0 for Flutter tooling. No media or metadata is sent ([ADR 0022](decisions/0022-map-tiles-and-grid-clusters.md)). |
 
 **Never declared:** `MANAGE_EXTERNAL_STORAGE`. A test fails if it appears in a manifest.
@@ -92,25 +94,44 @@ Methods run on a worker thread (`mediaSnapshot`, `mediaDetails`, `mediaMetadata`
 | `setFavorite` | `items`: `List<{id, video, mimeType}>`, `favorite`: `bool` | `bool`: applied (`false` if declined) | `busy` (another request open), `request_failed` | `MediaStore.createFavoriteRequest` for the whole batch, launched with `startIntentSenderForResult`; the result arrives in `onActivityResult`. Implemented in [MediaActions.kt](../android/app/src/main/kotlin/com/bichoumac/clean_gallery/MediaActions.kt). |
 | `deleteMedia` | `items`: `List<{id, video, mimeType}>` | `bool`: deleted (`false` if declined) | `busy`, `request_failed` | `MediaStore.createDeleteRequest` for the whole batch: one system confirmation, none with "Media management". Only the trash calls it. |
 | `share` | `items`: `List<{id, video, mimeType}>`, `removeLocation`: `bool` | `null` once the share sheet is open | `share_failed` | MediaStore URIs, or copies without GPS for photos when `removeLocation` ([sharing.md](features/sharing.md)). |
+| `setKeepScreenOn` | `on`: `bool` | `null` | none | `FLAG_KEEP_SCREEN_ON` on the window, during slideshows. |
+| `musicPlay` | `uri`: `String?` (a picked document) or `asset`: `String?` (a bundled track), `volume`: `double` | `bool`: playing | none | A `MediaPlayer` in a loop, replacing any track; `false` when the file cannot be read (moved, deleted, access lost). [SlideshowMusic.kt](../android/app/src/main/kotlin/com/bichoumac/clean_gallery/SlideshowMusic.kt). |
+| `musicPause`, `musicResume`, `musicStop` | none | `null` | none | |
+| `musicVolume` | `volume`: `double` 0–1 | `null` | none | The fade-out at the end. |
+| `pickMusic` | none | `{uri, name}` or `null` when cancelled | none | `ACTION_OPEN_DOCUMENT` with `audio/*`, then `takePersistableUriPermission` (read): no audio permission, access to that file only. |
+| `releaseMusic` | `uri`: `String` | `null` | none | `releasePersistableUriPermission`, once no slideshow uses the track. |
+| `scheduleReminders` | `reminders`: `List<{id, at (epoch ms), title, body, payload}>` | `null` | none | Replaces the pending notifications, see below. |
+| `canNotify` | none | `bool` | none | `NotificationManagerCompat.areNotificationsEnabled`. |
+| `takeReminderPayload` | none | `String?` | none | Payload of the notification that started the app, once. |
 
 Unknown methods return `notImplemented`, which Dart raises as `MissingPluginException`.
 
 The manifest declares a `<queries>` entry for `android.settings.REQUEST_MANAGE_MEDIA`: since Android 11, `resolveActivity` cannot see system activities without it, and the check would always fail.
 
+### Notifications at set times
+
+[Reminders.kt](../android/app/src/main/kotlin/com/bichoumac/clean_gallery/Reminders.kt), behind `ReminderService` ([interface](../lib/platform/reminder_service.dart), [Android implementation](../lib/platform/android/android_reminder_service.dart)); [ADR 0027](decisions/0027-notifications-without-background-work.md).
+
+- `scheduleReminders` stores the list in the app's preferences (`reminders`, JSON) and sets **one inexact alarm** (`AlarmManager.setAndAllowWhileIdle`, `RTC_WAKEUP`) for the earliest. No `SCHEDULE_EXACT_ALARM`: Android may deliver it a few minutes late.
+- `ReminderReceiver` (not exported) receives the alarm, `BOOT_COMPLETED` and `MY_PACKAGE_REPLACED`: it shows the notifications due (dropping those more than 6 hours late, e.g. after the phone was off), removes them from the list and sets the alarm for the next one. It reads that list only, never MediaStore or the database; a test checks it.
+- Channel `slideshows` ("Memories and slideshows"), default importance, icon [ic_stat_slideshow.xml](../android/app/src/main/res/drawable/ic_stat_slideshow.xml).
+- A tap opens `MainActivity` with the payload as an extra: read by `takeReminderPayload` at launch, or sent to Dart over the **`clean_gallery/reminders`** channel (`reminderTapped`, the payload as argument) when the app runs (`onNewIntent`).
+
 ### Why not `photo_manager` thumbnails
 
 Measured on the first device test as slow, especially after scrolling far. For each thumbnail, `photo_manager` runs a MediaStore query to find the item, decodes the original with Glide, re-encodes it as JPEG, and its 8-thread queue is first in, first out, so thumbnails scrolled past are served before those on screen. The `thumbnail` method reads MediaStore's existing thumbnail cache, skips the JPEG round trip and serves the newest requests first.
 
-### Manifest additions (M2)
+### Manifest additions
 
-- A `FileProvider` (`${applicationId}.share`) exposing only `cache/share/`, for the copies shared without GPS ([share_paths.xml](../android/app/src/main/res/xml/share_paths.xml)).
+- M9: the `ReminderReceiver` above, and the notification channel name in `res/values*/strings.xml` (English, French).
+- M2: a `FileProvider` (`${applicationId}.share`) exposing only `cache/share/`, for the copies shared without GPS ([share_paths.xml](../android/app/src/main/res/xml/share_paths.xml)).
 
 ### Android dependencies
 
 | Library | Version | Use |
 | --- | --- | --- |
 | `androidx.exifinterface:exifinterface` | 1.4.2 | Clearing GPS tags of shared copies |
-| `androidx.core:core-ktx` | 1.19.1 | `FileProvider` |
+| `androidx.core:core-ktx` | 1.19.1 | `FileProvider`, `NotificationCompat` |
 
 ## Build configuration
 

@@ -96,14 +96,15 @@ void main() {
     await pumpTestApp(tester, media: source());
     await tester.tap(find.byTooltip('Albums'));
     await tester.pumpAndSettle();
-    // Folders come after All media, Favorites and Trash, and the floating
-    // navigation bar covers the bottom of the screen: scroll them up.
+    // Folders come after All media, Favorites, Trash, My albums and
+    // Slideshows, and the floating navigation bar covers the bottom of the
+    // screen: scroll them up.
     await tester.drag(
       find.descendant(
         of: find.byType(AlbumsScreen),
         matching: find.byType(Scrollable),
       ),
-      const Offset(0, -400),
+      const Offset(0, -600),
     );
     await tester.pumpAndSettle();
     await tester.tap(find.text('Camera'));
