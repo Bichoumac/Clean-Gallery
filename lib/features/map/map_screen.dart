@@ -300,7 +300,6 @@ class _ClusterMarker extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final colors = Theme.of(context).colorScheme;
-    final source = ref.watch(mediaSourceProvider);
     return Semantics(
       // Its own node: TalkBack reads each cluster as a button.
       container: true,

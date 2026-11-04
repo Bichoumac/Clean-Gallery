@@ -88,8 +88,9 @@ void main() {
     await pumpTestApp(tester, media: media);
     await tester.tap(find.byTooltip('Albums'));
     await tester.pumpAndSettle();
-    media.markerLoads = 0;
-    media.failing = true;
+    media
+      ..markerLoads = 0
+      ..failing = true;
     PaintingBinding.instance.imageCache.clear();
     await openMap(tester);
     final first = media.markerLoads;
