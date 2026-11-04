@@ -34,7 +34,7 @@ The brief: "OpenStreetMap map with geotagged photos, markers grouped into cluste
 ## Marker thumbnails
 
 - The duplicate scan is paused while the map is open, as in the viewer: MediaStore renders thumbnails almost one at a time, and covers of old photos are often not cached yet.
-- A marker is grey until its photo arrives. A thumbnail that fails is asked for again up to three times (after 1, 2 and 3 s), then shows a broken image icon.
+- A marker is grey until its photo arrives. Failures are handled by `RetryingImage`, as in the grids ([library.md](library.md)).
 
 ## Tiles and privacy
 

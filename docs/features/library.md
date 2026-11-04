@@ -124,6 +124,13 @@ flowchart TD
     H -->|No| J[Timeline grid] -.->|background| K[Rest of the list from the index]
 ```
 
+## Thumbnails that fail
+
+The native loader serves the newest requests first and drops the oldest beyond 200 waiting, which a fast scroll through a large library reaches: whole runs of thumbnails get a `dropped` error.
+
+- `NativeThumbnailProvider` removes any failed load from Flutter's image cache, which otherwise keeps the error and replays it to whoever asks again. Before this fix (2026-11-05), a dropped thumbnail stayed blank until the app restarted, in runs of consecutive cells.
+- `RetryingImage` ([retrying_image.dart](../../lib/core/media/retrying_image.dart)) asks again for what is still on screen: every 400 ms for a dropped request, without limit, since only mounted cells do it; up to three times (after 1, 2 and 3 s) for another failure, then a broken image icon.
+
 ## Look
 
 Grids sit on a neutral background (`surfaceContainerLowest`) with Bricolage titles and section headers. The Albums tab starts with a mosaic: *All media* across the width, then Favorites (citron), Map, Slideshows and Trash; *My albums* and *Folders* follow. The *Slideshows* tile opens a page with *Slideshow*, *Memories* and the saved slideshows. Mockups: [grid](../design-assets/mockups/screens/02-grid-dark.png), [Albums](../design-assets/mockups/screens/03-albums.png).

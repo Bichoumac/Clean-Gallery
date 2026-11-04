@@ -1,9 +1,9 @@
 import 'package:clean_gallery/core/media/media_formatting.dart';
+import 'package:clean_gallery/core/media/retrying_image.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Hero tag linking a grid thumbnail to the viewer page of the same item.
@@ -70,21 +70,14 @@ class MediaThumbnail extends ConsumerWidget {
               enabled: hero,
               child: Hero(
                 tag: mediaHeroTag(item),
-                child: Image(
+                child: RetryingImage(
                   image: source.thumbnail(item, size: pixelSize),
-                  fit: BoxFit.cover,
-                  gaplessPlayback: true,
-                  // A request dropped by the native loader (scrolled past) is
-                  // not a broken file: show the plain background.
-                  errorBuilder: (context, error, stackTrace) =>
-                      error is PlatformException && error.code == 'dropped'
-                      ? const SizedBox.shrink()
-                      : Icon(
-                          item.isVideo
-                              ? Icons.movie_outlined
-                              : Icons.broken_image_outlined,
-                          color: colors.onSurfaceVariant,
-                        ),
+                  failure: Icon(
+                    item.isVideo
+                        ? Icons.movie_outlined
+                        : Icons.broken_image_outlined,
+                    color: colors.onSurfaceVariant,
+                  ),
                 ),
               ),
             ),

@@ -31,7 +31,9 @@ The product owner chose a warm identity and a logo on 2026-11-04 ([ADR 0028](dec
 
 - **Done**: all seven steps of the brief, on branch `visual-refresh`. `flutter analyze` and the tests are clean; screens were rendered in widget tests and compared with the mockups.
 - **On the phone, 2026-11-04**: the product owner's overall impression is good ("tout me paraît bien"); the checks of [testing.md](testing.md#visual-refresh--to-verify-on-a-device) were not reported one by one.
-- **Open issue, map**: slow to load, some marker thumbnails missing. The cause is not confirmed: no measurement was taken and the code loading the map did not change in the refresh. Changes made: the duplicate scan pauses on the map, a failed marker thumbnail is retried. To check on the phone.
+- **Accent**: changed to golden citron at the product owner's request; "beaucoup mieux" (2026-11-05).
+- **Map**: slow loading and missing marker thumbnails reported, then "carte ok" after the duplicate scan was paused on the map and failures retried (2026-11-05).
+- **Thumbnails missing in runs** (reported 2026-11-05, several runs of consecutive cells): failed loads stayed in Flutter's image cache, reproduced by a test and fixed ([library.md](features/library.md#thumbnails-that-fail)). That this was the cause of what the product owner saw is to be confirmed on the phone.
 
 ## New features — decisions (2026-11-01)
 

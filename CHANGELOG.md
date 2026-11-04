@@ -29,6 +29,7 @@ Next: device checks of the visual refresh, then M10 People, M11 monetization and
 ### Fixed
 
 - Filled buttons used the system font instead of Manrope.
+- **Thumbnails missing in runs**, after a fast scroll: a request dropped by the native loader stayed in Flutter's image cache as a failure until the app restarted. Failures are no longer kept, and cells on screen ask again.
 - Map: the duplicate scan no longer competes with the markers' thumbnails, and a thumbnail that fails is asked for again.
 
 ## [M9] — 2026-11-04 — Slideshows and memories
