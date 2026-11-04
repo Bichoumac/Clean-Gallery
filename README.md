@@ -8,7 +8,7 @@ The app is free with two small, unobtrusive ad placements, and a single "Remove 
 
 ## Status
 
-Milestones **M0** to **M9** are merged (the map came with M6). People, with on-device face recognition (M10), is specified. A [visual refresh](docs/visual-refresh.md) with a new identity and logo is built, to test on a device. See [docs/progress.md](docs/progress.md) for details and the device checklist.
+Milestones **M0** to **M9** are merged (the map came with M6). People, with on-device face recognition (M10), is specified. A [visual refresh](docs/visual-refresh.md) with a new identity and logo is built, on branch `visual-refresh`. See [docs/progress.md](docs/progress.md) for details and the device checklist.
 
 ## Features
 
@@ -25,7 +25,7 @@ Milestones **M0** to **M9** are merged (the map came with M6). People, with on-d
 | Exploration | Map with clusters and mini map, search with combinable criteria (name, type, favorites, folder, area on the map, dates) | Map M6 ✓, search M7 ✓ |
 | User albums | Create albums, add photos to a new or existing album; no file is moved | M8 ✓ |
 | Slideshows and memories | Slideshows from an album, a selection or a period, with music; saved slideshows; automatic memories ("1 year ago"); rituals with a notification, no background work | M9 |
-| Visual refresh | Warm Éclat Soleil identity, logo and app icon, mosaics, motion | Built, to test on a device |
+| Visual refresh | Warm Éclat Soleil identity, logo and app icon, mosaics, motion | Built, on branch `visual-refresh` |
 | People | On-device face recognition, merge two persons | Planned |
 | Monetization | Banner (Albums), native card (Stats), consent, "Remove ads" purchase | Planned |
 

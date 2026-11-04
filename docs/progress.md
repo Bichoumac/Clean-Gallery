@@ -21,7 +21,7 @@ Last updated: 2026-11-04 — Visual refresh
 | M10 | People (on-device face recognition, merging) | Specified and approved 2026-11-01 |
 | M11 | Monetization (was M8) | Not started |
 | M12 | Polish and release preparation (was M9) | Not started |
-| — | Visual refresh: Éclat Soleil identity, logo and icon | Built on branch `visual-refresh` 2026-11-04; device checks to do |
+| — | Visual refresh: Éclat Soleil identity, logo and icon | Built on branch `visual-refresh`, tried on the phone 2026-11-05; pull request to open |
 
 M8 to M10 were added at the product owner's request on 2026-11-01; monetization and polish moved from M8 and M9.
 
@@ -33,7 +33,7 @@ The product owner chose a warm identity and a logo on 2026-11-04 ([ADR 0028](dec
 - **On the phone, 2026-11-04**: the product owner's overall impression is good ("tout me paraît bien"); the checks of [testing.md](testing.md#visual-refresh--to-verify-on-a-device) were not reported one by one.
 - **Accent**: changed to golden citron at the product owner's request; "beaucoup mieux" (2026-11-05).
 - **Map**: slow loading and missing marker thumbnails reported, then "carte ok" after the duplicate scan was paused on the map and failures retried (2026-11-05).
-- **Thumbnails missing in runs** (reported 2026-11-05, several runs of consecutive cells): failed loads stayed in Flutter's image cache, reproduced by a test and fixed ([library.md](features/library.md#thumbnails-that-fail)). That this was the cause of what the product owner saw is to be confirmed on the phone.
+- **Thumbnails missing in runs** (reported 2026-11-05, several runs of consecutive cells): failed loads stayed in Flutter's image cache, reproduced by a test and fixed ([library.md](features/library.md#thumbnails-that-fail)). Confirmed on the phone by the product owner ("ça marche", 2026-11-05).
 
 ## New features — decisions (2026-11-01)
 

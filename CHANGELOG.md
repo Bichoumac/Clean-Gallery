@@ -6,7 +6,7 @@ Last updated: 2026-11-04 — Visual refresh
 
 ## [Unreleased]
 
-Next: device checks of the visual refresh, then M10 People, M11 monetization and M12 polish.
+Next: M10 People, M11 monetization and M12 polish.
 
 ### Added
 

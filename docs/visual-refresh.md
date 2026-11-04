@@ -6,7 +6,7 @@ Last updated: 2026-11-04 — Visual refresh
 
 ## Status and scope
 
-Specified and approved by the product owner on 2026-11-04, **built on branch `visual-refresh`** the same day, before M10. The device checks are still to do ([testing.md](testing.md#visual-refresh--to-verify-on-a-device)).
+Specified and approved by the product owner on 2026-11-04, **built on branch `visual-refresh`** the same day, before M10. Tried on the phone by the product owner, who approved it as a whole; the device checks were not reported one by one ([testing.md](testing.md#visual-refresh--to-verify-on-a-device)).
 
 - **In scope**: theme, fonts, layouts of the listed screens, empty states, motion, launcher and notification icons, launch screen.
 - **Out of scope**: what features do, their rules and their data. A screen keeps every action and every piece of information it has today, even when a mockup leaves one out to stay readable. No new permission, no network, no new package is needed.
