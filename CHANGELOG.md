@@ -2,11 +2,19 @@
 
 All notable changes to this project are documented here, one section per milestone. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-11-04 — Milestone M9
+Last updated: 2026-11-04 — Visual refresh spec
 
 ## [Unreleased]
 
-Next: M10 People, M11 monetization and M12 polish.
+Next: M10 People, M11 monetization and M12 polish; the visual refresh is to be scheduled.
+
+### Added
+
+- Specification of the **visual refresh**, the warm Éclat Soleil identity chosen by the product owner: design system, logo, 18 mockups, Android icon resources and implementation brief ([docs/visual-refresh.md](docs/visual-refresh.md), [ADR 0028](docs/decisions/0028-warm-eclat-identity.md)). The app does not change yet.
+
+### Changed
+
+- Feature documents say "accent" instead of naming a color.
 
 ## [M9] — 2026-11-04 — Slideshows and memories
 

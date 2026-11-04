@@ -2,7 +2,7 @@
 
 The Stats tab: the storage dashboard. How much space the photos and videos take, how much cleaning could free, and that space by category.
 
-Last updated: 2026-11-01 — Milestone M5
+Last updated: 2026-11-04 — Visual refresh spec
 
 ## Purpose
 
@@ -11,7 +11,7 @@ Show at a glance whether cleaning is worth it, and lead to the tool that does it
 ## User flows
 
 1. **Stats tab** (fourth icon of the bar).
-2. The lime card shows **Space you could free** in large type, *Out of 52 GB used by your photos and videos*, a bar of that share, and the split *Photos 12 GB · Videos 40 GB*. While the analysis runs, *Your library is being analyzed. The value grows as it goes.*
+2. The accent card shows **Space you could free** in large type, *Out of 52 GB used by your photos and videos*, a bar of that share, and the split *Photos 12 GB · Videos 40 GB*. While the analysis runs, *Your library is being analyzed. The value grows as it goes.*
 3. The first card lists what can be freed now, each with its item count and size:
    - **Identical copies**: extra copies of the same file → opens the duplicates screen for the whole library, on the *Identical copies* chip.
    - **Bursts**: burst shots other than the best → the same screen, on *Bursts*.
@@ -46,6 +46,10 @@ flowchart TD
 Each item counts once. The bar shows that sum against the used space plus the trash, since trashed items are no longer part of the used space but still take room.
 
 The counts follow the default picks, not changes made on the duplicates screen: the screen's picks are not saved.
+
+## Planned look
+
+The bar of the hero card becomes a gauge in the shape of the logo, and the category rows become a mosaic of tiles. Every category stays ([gauge rules](../visual-refresh.md#the-stats-gauge)). Not built yet: [visual refresh](../visual-refresh.md), [mockup](../design-assets/mockups/screens/04-stats-dark.png).
 
 ## Screens and widgets
 

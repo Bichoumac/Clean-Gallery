@@ -2,7 +2,7 @@
 
 Entry point for AI assistants working on Clean Gallery. Read this first, then follow the links to `docs/` for depth.
 
-Last updated: 2026-11-03 — Milestone M9
+Last updated: 2026-11-04 — Visual refresh spec
 
 ## Project summary
 
@@ -57,7 +57,7 @@ Full details and diagrams: [docs/architecture.md](docs/architecture.md).
 - **Errors**: platform calls can throw `PlatformException`; catch them in the controller and expose a user-facing state, never crash the UI.
 - **Tests**: app-level widget tests use `pumpTestApp` inside `testApp` (not `testWidgets`), so Drift streams are closed; run with `flutter test --timeout 60s`. Work sent to an isolate goes through `analysisRunnerProvider`, which `pumpTestApp` runs inline.
 - **Localization**: no hard-coded user-visible strings. Add each string to both `app_en.arb` and `app_fr.arb`.
-- **Design**: colors from `Theme.of(context).colorScheme` only, one lime accent, no shadows, tab pages built on `TabPage`. See [docs/design.md](docs/design.md).
+- **Design**: colors from `Theme.of(context).colorScheme` only, one accent, no shadows, neutral background behind photo grids, tab pages built on `TabPage`. See [docs/design.md](docs/design.md); the approved identity is not built yet ([docs/visual-refresh.md](docs/visual-refresh.md)).
 - **Docs**: public Dart APIs get `///` comments; Kotlin channel methods get KDoc.
 
 ## Non-negotiable rules
@@ -81,7 +81,8 @@ Full details and diagrams: [docs/architecture.md](docs/architecture.md).
 - [docs/README.md](docs/README.md): documentation index.
 - [docs/progress.md](docs/progress.md): what is done and what is next.
 - [docs/architecture.md](docs/architecture.md): layers and dependency rules.
-- [docs/design.md](docs/design.md): palette, typography, navigation bar.
+- [docs/design.md](docs/design.md): palette, typography, logo, motion.
+- [docs/visual-refresh.md](docs/visual-refresh.md): brief, mockups and code to change for the approved identity.
 - [docs/database.md](docs/database.md): schema and migrations.
 - [docs/platform-android.md](docs/platform-android.md): permissions and native channel API.
 - [docs/testing.md](docs/testing.md): test strategy.

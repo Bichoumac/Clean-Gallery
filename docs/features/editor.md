@@ -2,7 +2,7 @@
 
 Editing a photo and saving the result as a new photo: crop, straighten, rotate, flip; filters; enhance, color adjustments, vignette; pencil, blur, pixelate; texts.
 
-Last updated: 2026-10-30 — Milestone M6 (filters)
+Last updated: 2026-11-04 — Visual refresh spec
 
 ## Purpose
 
@@ -11,17 +11,17 @@ The brief's "Editing and filters". Built in M6 part 2 (2026-10-28), then extende
 ## User flows
 
 1. **Viewer → Edit** (sliders icon in the bottom bar, photos only): the editor opens full screen, dark, without ads. Top bar: ✕, **Before/After** (hold to see the original), **Reset**, **Save**. Bottom: the tool's controls, then five tool icons.
-2. **Crop** (first icon): the whole photo with the crop frame (outside dimmed, thirds lines, lime corners).
+2. **Crop** (first icon): the whole photo with the crop frame (outside dimmed, thirds lines, accent corners).
    - Drag inside to move the crop, a corner to resize it (never below 10 % of a side, never outside).
    - Shapes: Free, Original, 1:1, 4:3, 3:4, 16:9, 9:16; picking one makes the largest crop of that shape around the center; corners then keep the shape.
    - **Straighten** slider, -45° to 45°: the photo turns and is enlarged just enough to leave no empty corner. Tap the value to go back to 0°.
    - **Rotate** (a quarter clockwise; 4:3 becomes 3:4) and **Flip** (left to right; the straightening is mirrored too).
-3. **Filters** (second icon): a row of thumbnails of the cropped photo, each with a look: None, B&W, Sepia, Vintage, Warm, Cool, Vivid, Fade, Dramatic, Noir, Soft; the one picked is framed in lime. Once a filter is picked, a **Strength** slider (0 to 100) blends it with the photo; picking another filter starts at 100. The filter is applied before the adjustments, so the sliders refine it (a warm tone on B&W, for instance).
+3. **Filters** (second icon): a row of thumbnails of the cropped photo, each with a look: None, B&W, Sepia, Vintage, Warm, Cool, Vivid, Fade, Dramatic, Noir, Soft; the one picked is framed in the accent color. Once a filter is picked, a **Strength** slider (0 to 100) blends it with the photo; picking another filter starts at 100. The filter is applied before the adjustments, so the sliders refine it (a warm tone on B&W, for instance).
 4. **Adjust** (third icon): the cropped result. **Enhance** chip, then chips for Brightness, Contrast, Saturation, Exposure, Warmth, **Vignette** (a dot marks those in use) and one slider (-100 to 100) for the chip picked.
    - **Enhance** = automatic levels from the luminance histogram of the photo, no machine learning: the darkest 0.5 % of pixels become black and the lightest 0.5 % white (contrast capped at × 2, the slider's maximum), plus +10 saturation. The result is written into the Brightness, Contrast and Saturation sliders, so it can be refined.
    - **Vignette**: positive darkens the edges around the crop, negative lightens them.
 5. **Draw** (fourth icon): brush **Pen** (six colors), **Blur** or **Pixels** (to hide a face or a plate); three widths each (areas are wider); **Undo** removes the last line. Lines turn, mirror and crop with the photo; color adjustments do not change pen lines, but blurred and pixelated areas keep them.
-6. **Text** (fifth icon): **Add text** asks for the words (several lines allowed) and places them at the center. Tap a text to select it (lime frame), drag it to move it, double-tap it to change its words. For the selected text: **Edit text**, four fonts (Modern = Manrope, Classic = serif, Typewriter = monospace, Handwritten = cursive), **Bold**, **Delete**, a size slider, a text color row and a background row (None or a color: a rounded box behind the text).
+6. **Text** (fifth icon): **Add text** asks for the words (several lines allowed) and places them at the center. Tap a text to select it (accent frame), drag it to move it, double-tap it to change its words. For the selected text: **Edit text**, four fonts (Modern = Manrope, Classic = serif, Typewriter = monospace, Handwritten = cursive), **Bold**, **Delete**, a size slider, a text color row and a background row (None or a color: a rounded box behind the text).
 7. **Save** asks how: **Save as a copy** (a new photo next to the original) or **Replace the original** (the new photo, and the original moved to the app trash, from where it can be restored). The editor closes, says so, and the viewer shows the new photo. On failure: *The photo couldn't be saved.*, the editor stays open.
 8. **✕** or Back with changes asks *Discard your changes?*; without changes it closes at once.
 
@@ -58,6 +58,10 @@ The brief's "Editing and filters". Built in M6 part 2 (2026-10-28), then extende
 - [edit_painter_test.dart](../../test/features/editor/edit_painter_test.dart): the line's area (overlaps, round ends), and a checkerboard rendered with blur and pixelate changed only under the line.
 - [editor_test.dart](../../test/features/editor/editor_test.dart): no Edit on videos, rotate and reset, sliders, closing with and without changes, 1:1, corner drag, pencil and undo, straighten, Enhance and Vignette, Before/After, blur brush, filters (pick, strength, None), texts (add, font, bold, move, delete), Save as a copy, Replace the original.
 - Rendering and the native save are checked on the device ([testing.md](../testing.md#m6--viewer-and-editing-to-verify-on-a-device)).
+
+## Planned look
+
+The accent marks only the active tool, the active slider, the crop corners and *Save*. Not built yet: [visual refresh](../visual-refresh.md), [mockup](../design-assets/mockups/screens/14-editor.png).
 
 ## Known limitations / future work
 

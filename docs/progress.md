@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-11-04 — Milestone M9
+Last updated: 2026-11-04 — Visual refresh spec
 
 ## Milestones
 
@@ -17,12 +17,27 @@ Last updated: 2026-11-04 — Milestone M9
 | M6 | Advanced viewer and editing | Merged into `main` (PR #7, 2026-10-30); filters merged after (PR #8, 2026-10-30) |
 | M7 | Exploration: map, search | Merged into `main` (PR #9, 2026-10-30); map built in M6 |
 | M8 | User albums | Merged into `main` (PR #10, 2026-11-01) |
-| M9 | Slideshows, saved slideshows, memories, rituals | Branch `m9-slideshows-memories`, working on the phone and pushed 2026-11-04 (pull request to open and merge) |
+| M9 | Slideshows, saved slideshows, memories, rituals | Merged into `main` (PR #11, 2026-11-04) |
 | M10 | People (on-device face recognition, merging) | Specified and approved 2026-11-01 |
 | M11 | Monetization (was M8) | Not started |
 | M12 | Polish and release preparation (was M9) | Not started |
+| — | Visual refresh: Éclat Soleil identity, logo and icon | Specified and approved 2026-11-04, not started; place among the milestones to decide |
 
 M8 to M10 were added at the product owner's request on 2026-11-01; monetization and polish moved from M8 and M9.
+
+## Visual refresh
+
+The product owner chose a warm identity and a logo on 2026-11-04 ([ADR 0028](decisions/0028-warm-eclat-identity.md)). The target is in [design.md](design.md), the brief, mockups and checklist in [visual-refresh.md](visual-refresh.md). No code has changed: the app still runs the lime theme.
+
+### Done
+
+- Palette with measured contrast, type scale, shapes, motion, logo geometry.
+- 18 mockups, logo files, Android icon resources (not yet tried on a device).
+- Feature documents say "accent" instead of a color name, and each has a *Planned look* section where its screen changes.
+
+### Next
+
+Decide when to build it: it touches most screens, so doing it before M10 People avoids drawing People twice.
 
 ## New features — decisions (2026-11-01)
 
@@ -384,8 +399,8 @@ Merged into `main`. Summary:
 
 ## Known issues (all milestones)
 
-- The splash screen and launcher icon are Flutter's defaults (planned for M12).
-- Onboarding illustrations are Material icons (custom artwork in M12).
+- The splash screen and launcher icon are Flutter's defaults (now part of the [visual refresh](visual-refresh.md), no longer M12).
+- Onboarding illustrations are Material icons (now part of the [visual refresh](visual-refresh.md), no longer M12).
 - Release builds are signed with the debug key (planned for M12).
 - The debug APK is about 200 MB (every CPU architecture and debug symbols); Google Play delivers split release bundles.
 

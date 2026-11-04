@@ -2,7 +2,7 @@
 
 Every documentation file in the repository, with a one-line description. Start with [progress.md](progress.md) to see where the project stands.
 
-Last updated: 2026-11-03 — Milestone M9
+Last updated: 2026-11-04 — Visual refresh spec
 
 ## Project
 
@@ -19,7 +19,9 @@ Last updated: 2026-11-03 — Milestone M9
 | File | Description |
 | --- | --- |
 | [architecture.md](architecture.md) | Layers, module map, tabs, data flow and dependency rules. |
-| [design.md](design.md) | Design system: palette, typography, shapes, navigation bar. |
+| [design.md](design.md) | Design system, target Éclat Soleil identity: palette, typography, shapes, logo, motion. |
+| [visual-refresh.md](visual-refresh.md) | Brief for building that identity: mockups, screens, code to change, copy, order of work. |
+| [design-assets/](design-assets/) | Logo files, Android icon resources, mockups and their HTML sources. |
 | [database.md](database.md) | Drift schema, indexes and migration history. |
 | [platform-android.md](platform-android.md) | Permissions and the native Kotlin channel API. |
 | [analysis-engine.md](analysis-engine.md) | Analysis algorithms (capture dates, exact duplicates, bursts, similar photos, best pick), thresholds, rationale and performance. |
@@ -83,3 +85,4 @@ One file per feature is added as each feature is built.
 | [0025](decisions/0025-user-albums-in-the-database.md) | User albums in the database, never as folders |
 | [0026](decisions/0026-saved-slideshows-without-video.md) | Slideshows played live, saved as lists |
 | [0027](decisions/0027-notifications-without-background-work.md) | Memory and ritual notifications without background work |
+| [0028](decisions/0028-warm-eclat-identity.md) | Warm Éclat Soleil visual identity |

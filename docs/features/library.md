@@ -2,7 +2,7 @@
 
 Browsing the device's photos and videos: the Camera and Videos timelines, the Albums tab and album pages.
 
-Last updated: 2026-11-01 — Milestone M8
+Last updated: 2026-11-04 — Visual refresh spec
 
 ## Purpose
 
@@ -21,9 +21,9 @@ Show every photo and video on the device, newest first, grouped by day or month,
 
 ## Stacks
 
-In date order, consecutive items of one duplicate group (identical copies, a burst or similar photos) taken the same day fold into one thumbnail, a **stack**: the group's best pick on top, a lime badge with the number of items in the top right corner.
+In date order, consecutive items of one duplicate group (identical copies, a burst or similar photos) taken the same day fold into one thumbnail, a **stack**: the group's best pick on top, an accent badge with the number of items in the top right corner.
 
-- **Tap** a stack: it unfolds in place, its items in their usual order, a lime line under each. A photo of an unfolded stack opens the viewer; the round button on the best pick's thumbnail folds the stack again.
+- **Tap** a stack: it unfolds in place, its items in their usual order, an accent line under each. A photo of an unfolded stack opens the viewer; the round button on the best pick's thumbnail folds the stack again.
 - **Select**: a long press or a tap in selection mode selects every item of a folded stack; a drag over it too. Unfolded, each item is selected on its own.
 - Only items next to each other stack: a group member taken between two unrelated photos stays alone, and a stack never crosses midnight, so it stays in its date section.
 - An item in a certain group (copies, burst) and a similar group stacks with its certain group.
@@ -103,7 +103,7 @@ Every timeline (Photos, Videos, each album) can be sorted and limited to a date 
 
 - Changes apply immediately; *Reset* returns to newest first, all dates.
 - Active choices show as chips under the title; tapping a chip reopens the sheet, its cross removes it.
-- The filter button shows a lime dot when the view is customized.
+- The filter button shows an accent dot when the view is customized.
 - Date headers only appear in date order; other orders show a plain grid.
 - **Duplicates** order: items by the number of items in their duplicate group (largest groups first), the items of one group next to each other, newest first within a group; items without duplicates at the end, newest first. Sorted in memory after loading the whole selection (`MediaIndexRepository._loadByDuplicates`): `duplicate_members` has no index by asset, so SQL would scan it once per item. The list reloads when the groups change. No fast-scroll bubble in this order. Asked by the product owner on 2026-10-28.
 - **Albums → Folders** has its own sort button: by size (the default) or by duplicates, the folders holding the most items in a duplicate group first, each tile then reading "120 items · 8 duplicates". Kept until the app is closed.
@@ -123,6 +123,10 @@ flowchart TD
     H -->|Yes| I[Empty state]
     H -->|No| J[Timeline grid] -.->|background| K[Rest of the list from the index]
 ```
+
+## Planned look
+
+Grids get a neutral background and Bricolage titles. The Albums tab becomes a mosaic ([mockup](../design-assets/mockups/screens/03-albums.png)). Not built yet: [visual refresh](../visual-refresh.md), [mockup](../design-assets/mockups/screens/02-grid-dark.png).
 
 ## Screens and widgets
 
