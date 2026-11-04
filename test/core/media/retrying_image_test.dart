@@ -22,9 +22,10 @@ class _Flaky extends ImageProvider<String> {
   @override
   ImageStreamCompleter loadImage(String key, ImageDecoderCallback decode) {
     loads++;
-    if (loads > failures)
-      return MemoryImage(kTransparentPng)
-          .loadImage(MemoryImage(kTransparentPng), decode);
+    if (loads > failures) {
+      final image = MemoryImage(kTransparentPng);
+      return image.loadImage(image, decode);
+    }
     return OneFrameImageStreamCompleter(Future<ImageInfo>.error(error));
   }
 }
