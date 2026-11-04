@@ -2,7 +2,7 @@
 
 The product owner replaced the lime identity with a warmer, more modern one and chose a logo. This ADR records the choice and the alternatives; values are in [design.md](../design.md), the work in [visual-refresh.md](../visual-refresh.md).
 
-Last updated: 2026-11-04 — Visual refresh
+Last updated: 2026-11-04 — Visual refresh, citron accent
 
 - **Status**: Accepted, built
 - **Date**: 2026-11-04
@@ -21,7 +21,7 @@ Four directions and six logos were drawn. The product owner picked **Éclat**, t
 
 | Topic | Before | Now |
 | --- | --- | --- |
-| Accent | Lime `#CFF25B` | Sun yellow `#FFCB47` |
+| Accent | Lime `#CFF25B` | Golden citron `#E8E24C` (see the amendment) |
 | Dark surfaces | Blue-tinted ink `#0F1012` | Warm ink `#14110C` |
 | Light surfaces | Paper `#F7F6F3` | Cream `#FBF8F1` |
 | Photo grids | Same surfaces as other pages | **Neutral**: `#0A0A0A` / `#FFFFFF` |
@@ -39,7 +39,7 @@ The logo stands for the app's distinctive feature: seven similar photos and the 
 | Option | Why not |
 | --- | --- |
 | Abricot `#FF9E5E` as the accent | The warmest, but too close to the trash red: *Keep* and *Trash* would look alike in the sort mode. |
-| Citron doré `#E8E24C` | Barely warmer than lime: it does not answer the request. |
+| Sun yellow `#FFCB47` | Chosen first and built, then replaced: the product owner did not like it on the phone. |
 | Warm neutrals in the grids too | Would tint how photos look, against the product owner's rule. |
 | Red or coral accent | Red already means deleting. |
 | Multicolored translucent petals on white | The look of another well-known photo app; it would pass for a copy. |
@@ -53,3 +53,9 @@ The logo stands for the app's distinctive feature: seven similar photos and the 
 - Feature documents say "accent" instead of naming a color, so they hold before and after the refresh.
 - Widgets already read the color scheme; the few hard-coded values are listed in [visual-refresh.md](../visual-refresh.md#code-to-change).
 - Pulling a photo down to return to the grid is a new gesture, not only a new look.
+
+## Amendment (2026-11-04): golden citron
+
+After seeing the sun yellow on the phone, the product owner chose **Citron doré `#E8E24C`** as the accent. It had first been set aside as barely warmer than the lime; it is the product owner's call, and the warm surfaces stay. The name Éclat Soleil is kept.
+
+Derived values: `#6B6600` olive for accent text in light mode (5.62:1 on cream), `#CFC933` and `#BDB72A` for the tone on tone petals. The mockups still show the yellow; the logo files and Android resources follow the new accent.

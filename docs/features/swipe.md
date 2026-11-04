@@ -54,7 +54,7 @@ flowchart TD
 
 ## Look
 
-Always dark. The card fills the screen, with a floating glass bar for the buttons; stamps in sentence case, *Keep* in sun and *Trash* in `error`. The end is a full sun screen revealed from the side the last card left by, with the complete mark. Mockups: [session](../design-assets/mockups/screens/05-sort.png), [end](../design-assets/mockups/screens/08-sort-summary.png).
+Always dark. The card fills the screen, with a floating glass bar for the buttons; stamps in sentence case, *Keep* in citron and *Trash* in `error`. The end is a full citron screen revealed from the side the last card left by, with the complete mark. Mockups: [session](../design-assets/mockups/screens/05-sort.png), [end](../design-assets/mockups/screens/08-sort-summary.png).
 
 ## Screens and widgets
 

@@ -140,27 +140,27 @@ The [visual refresh](visual-refresh.md) is built. First pass on the phone on 202
 
 | # | Do | Expected |
 | --- | --- | --- |
-| 1 | Home screen | A yellow icon with a rosace, seven petals tone on tone and one dark, clear in the launcher's shape. |
+| 1 | Home screen | A citron icon with a rosace, seven petals tone on tone and one dark, clear in the launcher's shape. |
 | 2 | Turn on themed icons | The icon follows the system color, with the dark petal still standing out. |
-| 3 | Launch in light, then dark | The launch screen matches the theme; no flash of yellow over the whole screen. |
-| 4 | Camera tab in dark | Black neutral background behind the grid; yellow selected tab; content visible through the bar. |
+| 3 | Launch in light, then dark | The launch screen matches the theme; no flash of citron over the whole screen. |
+| 4 | Camera tab in dark | Black neutral background behind the grid; citron selected tab; content visible through the bar. |
 | 5 | Camera tab in light | White behind the grid, no cream. |
-| 6 | Stats tab | Yellow card with the number and a gauge whose lit petals match the share; every category is there. |
+| 6 | Stats tab | Citron card with the number and a gauge whose lit petals match the share; every category is there. |
 | 7 | Clean until nothing is left | The gauge goes down petal by petal, to none. |
 | 8 | Albums tab | Mosaic with *All media*, Favorites, Map, Slideshows, Trash; then *My albums* and *Folders*. |
-| 9 | Sort mode, drag a card right, then left | *Garder* in yellow, *Corbeille* in red, easy to tell apart. |
-| 10 | Sort to the end | Yellow screen, complete rosace, the counts and the three actions. |
-| 11 | Open a video | White translucent play button, white slider, no yellow. |
+| 9 | Sort mode, drag a card right, then left | *Garder* in citron, *Corbeille* in red, easy to tell apart. |
+| 10 | Sort to the end | Citron screen, complete rosace, the counts and the three actions. |
+| 11 | Open a video | White translucent play button, white slider, no citron. |
 | 12 | Photo at 1× zoom, pull down, release early | It springs back. |
 | 13 | Pull down further | It returns to its thumbnail in the grid. |
 | 14 | Zoomed photo, pull down | It pans; the viewer does not close. |
 | 15 | Info panel, pull down | The panel closes, not the viewer. |
-| 16 | Empty trash | The rosace with one yellow petal, *Rien à jeter*, the retention set in Settings. |
+| 16 | Empty trash | The rosace with one citron petal, *Rien à jeter*, the retention set in Settings. |
 | 17 | Memory notification | The rosace in the status bar. |
 | 18 | System animations off | No animation, nothing blocked. |
 | 19 | Largest system text size | Stats number and titles fit, nothing clipped. |
 | 20 | TalkBack on the Stats card | The share is read as a sentence. |
-| 21 | Editor, text | The selected text's frame and the color row show the new yellow. |
+| 21 | Editor, text | The selected text's frame and the color row show the new citron. |
 
 ### M9 — slideshows and memories, to verify on a device
 

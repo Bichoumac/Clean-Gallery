@@ -106,8 +106,8 @@ class StatsScreen extends ConsumerWidget {
   }
 }
 
-/// The sun card: space that cleaning could free, out of the space the library
-/// takes, as a number and a gauge in the shape of the logo.
+/// The citron card: space that cleaning could free, out of the space the
+/// library takes, as a number and a gauge in the shape of the logo.
 class _HeroCard extends StatelessWidget {
   const _HeroCard({required this.summary, required this.scanning});
 

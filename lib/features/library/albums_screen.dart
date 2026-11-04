@@ -230,7 +230,7 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
 const _coverRadius = 22.0;
 
 /// The top of the Albums tab: *All media* across the width, then Favorites as
-/// the one sun tile, the map, the slideshows and the trash.
+/// the one citron tile, the map, the slideshows and the trash.
 class _TopMosaic extends ConsumerWidget {
   const _TopMosaic({
     required this.located,

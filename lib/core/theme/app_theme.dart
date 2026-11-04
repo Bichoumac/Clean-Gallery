@@ -3,31 +3,31 @@ import 'package:flutter/material.dart';
 /// Brand colors of Clean Gallery, the Éclat Soleil identity. See
 /// `docs/design.md`.
 ///
-/// One accent (sun yellow) on warm "ink" and "cream" surfaces. Use the
+/// One accent (golden citron) on warm "ink" and "cream" surfaces. Use the
 /// [ColorScheme] from the theme in widgets; reference these constants only
 /// when building the theme, and for the logo tones that have no place in a
 /// scheme.
 abstract final class AppColors {
   /// Signature accent: active tab, primary buttons, highlights.
-  static const sun = Color(0xFFFFCB47);
+  static const citron = Color(0xFFE8E24C);
 
-  /// Warm near-black used for dark surfaces and text on [sun].
+  /// Warm near-black used for dark surfaces and text on [citron].
   static const ink = Color(0xFF14110C);
 
   /// Warm off-white used for light surfaces.
   static const cream = Color(0xFFFBF8F1);
 
-  /// Accent for text and icons in light mode, where [sun] lacks contrast.
-  static const amber = Color(0xFF8A5A00);
+  /// Accent for text and icons in light mode, where [citron] lacks contrast.
+  static const olive = Color(0xFF6B6600);
 
-  /// Unlit petals of the large mark on [sun] (hero card, onboarding).
-  static const petalOnSun = Color(0xFFE8AC33);
+  /// Unlit petals of the large mark on [citron] (hero card, onboarding).
+  static const petalOnCitron = Color(0xFFCFC933);
 
   /// Unlit petals of the logo on [ink], outside the app icon.
   static const petalOnInk = Color(0xFF857C6E);
 }
 
-/// Theme of Clean Gallery: warm surfaces, neutral photo grids, a single sun
+/// Theme of Clean Gallery: warm surfaces, neutral photo grids, a single citron
 /// accent, Bricolage Grotesque titles over Manrope text, large rounded shapes
 /// and no shadows.
 abstract final class AppTheme {
@@ -47,9 +47,9 @@ abstract final class AppTheme {
   static ThemeData light() => _build(
     const ColorScheme(
       brightness: Brightness.light,
-      primary: AppColors.amber,
+      primary: AppColors.olive,
       onPrimary: Colors.white,
-      primaryContainer: AppColors.sun,
+      primaryContainer: AppColors.citron,
       onPrimaryContainer: AppColors.ink,
       secondary: Color(0xFF5F574A),
       onSecondary: Colors.white,
@@ -74,9 +74,9 @@ abstract final class AppTheme {
   static ThemeData dark() => _build(
     const ColorScheme(
       brightness: Brightness.dark,
-      primary: AppColors.sun,
+      primary: AppColors.citron,
       onPrimary: AppColors.ink,
-      primaryContainer: AppColors.sun,
+      primaryContainer: AppColors.citron,
       onPrimaryContainer: AppColors.ink,
       secondary: Color(0xFFB3AB9D),
       onSecondary: AppColors.ink,

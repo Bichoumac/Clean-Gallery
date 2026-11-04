@@ -54,7 +54,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     final state = ref.watch(onboardingControllerProvider);
     final controller = ref.read(onboardingControllerProvider.notifier);
     final isLast = state.page == _pageCount - 1;
-    // The first page is a poster: ink on sun, whatever the theme.
+    // The first page is a poster: ink on citron, whatever the theme.
     final poster = state.page == 0;
     final foreground = poster ? AppColors.ink : colors.onSurface;
 
@@ -66,7 +66,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         body: AnimatedContainer(
           duration: AppMotion.of(context, AppMotion.standard),
           curve: AppMotion.curve,
-          color: poster ? AppColors.sun : colors.surface,
+          color: poster ? AppColors.citron : colors.surface,
           child: Column(
             children: [
               Expanded(
@@ -132,7 +132,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       style: poster
                           ? FilledButton.styleFrom(
                               backgroundColor: AppColors.ink,
-                              foregroundColor: AppColors.sun,
+                              foregroundColor: AppColors.citron,
                             )
                           : null,
                       onPressed: isLast ? _finish : () => _goTo(state.page + 1),
@@ -164,7 +164,7 @@ class _IntroPage extends StatelessWidget {
   final String headline;
   final String body;
 
-  /// Whether this is the first page: ink on sun, its mark appearing petal by
+  /// Whether this is the first page: ink on citron, its mark appearing petal by
   /// petal.
   final bool poster;
   final Widget? action;
@@ -193,7 +193,7 @@ class _IntroPage extends StatelessWidget {
                           petalCount,
                           (i) => i == litPetal
                               ? AppColors.ink
-                              : AppColors.petalOnSun,
+                              : AppColors.petalOnCitron,
                         ),
                       )
                     : EmptyMark(size: markSize),

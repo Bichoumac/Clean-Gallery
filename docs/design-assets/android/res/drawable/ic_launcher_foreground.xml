@@ -14,7 +14,7 @@
             android:pivotY="50"
             android:rotation="0">
             <path
-                android:fillColor="#FFD9982A"
+                android:fillColor="#FFBDB72A"
                 android:pathData="M50,45C46,38 40,28 40,19A10,10 0,0 1,60,19C60,28 54,38 50,45Z" />
         </group>
         <group
@@ -30,7 +30,7 @@
             android:pivotY="50"
             android:rotation="90">
             <path
-                android:fillColor="#FFD9982A"
+                android:fillColor="#FFBDB72A"
                 android:pathData="M50,45C46,38 40,28 40,19A10,10 0,0 1,60,19C60,28 54,38 50,45Z" />
         </group>
         <group
@@ -38,7 +38,7 @@
             android:pivotY="50"
             android:rotation="135">
             <path
-                android:fillColor="#FFD9982A"
+                android:fillColor="#FFBDB72A"
                 android:pathData="M50,45C46,38 40,28 40,19A10,10 0,0 1,60,19C60,28 54,38 50,45Z" />
         </group>
         <group
@@ -46,7 +46,7 @@
             android:pivotY="50"
             android:rotation="180">
             <path
-                android:fillColor="#FFD9982A"
+                android:fillColor="#FFBDB72A"
                 android:pathData="M50,45C46,38 40,28 40,19A10,10 0,0 1,60,19C60,28 54,38 50,45Z" />
         </group>
         <group
@@ -54,7 +54,7 @@
             android:pivotY="50"
             android:rotation="225">
             <path
-                android:fillColor="#FFD9982A"
+                android:fillColor="#FFBDB72A"
                 android:pathData="M50,45C46,38 40,28 40,19A10,10 0,0 1,60,19C60,28 54,38 50,45Z" />
         </group>
         <group
@@ -62,7 +62,7 @@
             android:pivotY="50"
             android:rotation="270">
             <path
-                android:fillColor="#FFD9982A"
+                android:fillColor="#FFBDB72A"
                 android:pathData="M50,45C46,38 40,28 40,19A10,10 0,0 1,60,19C60,28 54,38 50,45Z" />
         </group>
         <group
@@ -70,7 +70,7 @@
             android:pivotY="50"
             android:rotation="315">
             <path
-                android:fillColor="#FFD9982A"
+                android:fillColor="#FFBDB72A"
                 android:pathData="M50,45C46,38 40,28 40,19A10,10 0,0 1,60,19C60,28 54,38 50,45Z" />
         </group>
     </group>

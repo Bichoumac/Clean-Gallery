@@ -45,7 +45,7 @@ The brief: "OpenStreetMap map with geotagged photos, markers grouped into cluste
 
 ## Look
 
-Markers with a 3 dp white ring and a sun count. The map tiles do not change. [Mockup](../design-assets/mockups/screens/16-map.png).
+Markers with a 3 dp white ring and a citron count. The map tiles do not change. [Mockup](../design-assets/mockups/screens/16-map.png).
 
 ## Screens and widgets
 

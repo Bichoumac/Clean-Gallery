@@ -668,7 +668,7 @@ class _Buttons extends StatelessWidget {
   }
 }
 
-/// End of a session, the reward: the screen turns sun from the side the last
+/// End of a session, the reward: the screen turns citron from the side the last
 /// card left by, then the rosace completes, last petal lit. Shows what was
 /// kept, trashed and favorited.
 class _Summary extends StatefulWidget {
@@ -731,7 +731,7 @@ class _SummaryState extends State<_Summary>
           child: child,
         ),
         child: ColoredBox(
-          color: AppColors.sun,
+          color: AppColors.citron,
           child: SafeArea(
             child: _SummaryContent(
               state: widget.state,
@@ -855,7 +855,7 @@ class _SummaryContent extends ConsumerWidget {
                           child: FilledButton(
                             style: FilledButton.styleFrom(
                               backgroundColor: AppColors.ink,
-                              foregroundColor: AppColors.sun,
+                              foregroundColor: AppColors.citron,
                             ),
                             onPressed: () => context.pop(),
                             child: Text(l10n.swipeDone),

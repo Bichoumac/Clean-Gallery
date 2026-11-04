@@ -204,7 +204,7 @@ void paintEdit(
       canvas.drawRRect(
         RRect.fromRectAndRadius(box.inflate(4), radius),
         Paint()
-          ..color = const Color(0xFFFFCB47)
+          ..color = const Color(0xFFE8E24C)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 2,
       );

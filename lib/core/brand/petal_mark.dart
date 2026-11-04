@@ -241,7 +241,7 @@ class _BloomingMarkState extends State<BloomingMark>
 }
 
 /// The Stats gauge: [lit] petals in ink from the top, clockwise, the others
-/// in the tone on sun. Petals fill one by one when the value changes.
+/// in the tone on citron. Petals fill one by one when the value changes.
 class PetalGauge extends StatelessWidget {
   /// Creates the gauge. [lit] goes from 0 to [petalCount].
   const PetalGauge({required this.lit, this.size = 124, super.key});
@@ -268,7 +268,7 @@ class PetalGauge extends StatelessWidget {
             colors: [
               for (var i = 0; i < petalCount; i++)
                 Color.lerp(
-                  AppColors.petalOnSun,
+                  AppColors.petalOnCitron,
                   AppColors.ink,
                   (value - i).clamp(0.0, 1.0),
                 )!,

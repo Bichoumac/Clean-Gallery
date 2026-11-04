@@ -10,7 +10,7 @@ Next: device checks of the visual refresh, then M10 People, M11 monetization and
 
 ### Added
 
-- **Éclat Soleil identity** ([docs/design.md](docs/design.md), [ADR 0028](docs/decisions/0028-warm-eclat-identity.md)): sun yellow accent on warm surfaces, neutral photo grids, Bricolage Grotesque titles over Manrope (bundled, nothing downloaded).
+- **Éclat Soleil identity** ([docs/design.md](docs/design.md), [ADR 0028](docs/decisions/0028-warm-eclat-identity.md)): golden citron accent `#E8E24C` on warm surfaces, neutral photo grids, Bricolage Grotesque titles over Manrope (bundled, nothing downloaded).
 - **Logo and icons**: adaptive launcher icon with a themed layer, rosace in the status bar, launch screen in the surface of the system theme.
 - **Rosace everywhere there are no photos**: onboarding poster appearing petal by petal, empty states, a gauge on the Stats card (screen readers hear a sentence), a petal on the *Best* pill, the reward at the end of a sort.
 - **Mosaics** on the Stats and Albums tabs. Every category and action stays.

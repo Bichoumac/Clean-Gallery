@@ -12,7 +12,7 @@ Asked by the product owner on 2026-10-29, from an existing photo (not the camera
 
 1. **Viewer → Scan a document** (page icon in the top bar, photos only).
 2. **Corners**: the photo with the page outlined in the accent color and four round handles; the outside dimmed. *Page found: drag a corner to adjust it.*, or, when no page stands out, the corners 8 % in and *Drag the four corners onto the page's corners.* Drag a handle to move it (it grabs within 48 px).
-3. **Next**: the page flattened (the perspective undone), sized by its longer opposite sides. Modes: **Color** (light stretched), **Gray**, **Black & white** (median paper white, darkest 2 % black: shadows and yellowed paper go). Back returns to the corners.
+3. **Next**: the page flattened (the perspective undone), sized by its longer opposite sides. Modes: **Color** (light stretched), **Gray**, **Black & white** (median paper white, darkest 2 % black: shadows and citroned paper go). Back returns to the corners.
 4. **Save**: a new photo next to the original (same folder, capture date and EXIF as the editor's copies), *Scan saved*, and the viewer shows it. The original stays.
 
 ## How it works

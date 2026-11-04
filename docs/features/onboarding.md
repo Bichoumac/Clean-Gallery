@@ -36,7 +36,7 @@ flowchart TD
 
 ## Look
 
-The first page is a poster: sun background, large mark appearing petal by petal, big headline, ink button. Pages 2 and 3 share its layout on `surface`, with the mark in the empty state colors. Above 150 % text size the mark is left out so the text stays readable. [Mockup](../design-assets/mockups/screens/01-onboarding.png).
+The first page is a poster: citron background, large mark appearing petal by petal, big headline, ink button. Pages 2 and 3 share its layout on `surface`, with the mark in the empty state colors. Above 150 % text size the mark is left out so the text stays readable. [Mockup](../design-assets/mockups/screens/01-onboarding.png).
 
 ## Screens and widgets
 
