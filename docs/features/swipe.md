@@ -2,7 +2,7 @@
 
 Sort photos one at a time: swipe left to move a photo to the trash, right to keep it. Opened from the Stats tab.
 
-Last updated: 2026-11-01 — Milestone M5
+Last updated: 2026-11-04 — Visual refresh spec
 
 ## Purpose
 
@@ -51,6 +51,10 @@ flowchart TD
 - **Undo** removes the last row of the session and reverses its effect. Writes to `swipe_history` run one after the other, so an undo right after a swipe removes that swipe.
 - **Start over** forgets the session's decisions; trashed items stay in the trash and do not come back.
 - Videos show their thumbnail with a play icon; they are not played.
+
+## Planned look
+
+The card fills the screen, with a floating bar for the buttons. The end is a full sun screen with the complete mark ([mockup](../design-assets/mockups/screens/08-sort-summary.png)). Not built yet: [visual refresh](../visual-refresh.md), [mockup](../design-assets/mockups/screens/05-sort.png).
 
 ## Screens and widgets
 

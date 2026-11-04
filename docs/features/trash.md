@@ -2,7 +2,7 @@
 
 The app's own trash: every delete in Clean Gallery lands here first, and items are deleted from the device only after the retention period, with the user's confirmation.
 
-Last updated: 2026-10-26 — Milestone M3
+Last updated: 2026-11-04 — Visual refresh spec
 
 ## Purpose
 
@@ -30,6 +30,10 @@ flowchart TD
     H -->|Yes| I[Deleted, forgotten in the trash]
     H -->|No| Z
 ```
+
+## Planned look
+
+The empty state shows the mark and a warmer message ([copy](../visual-refresh.md#copy)). Not built yet: [visual refresh](../visual-refresh.md), [mockup](../design-assets/mockups/screens/09-empty-trash-light.png).
 
 ## Screens and widgets
 

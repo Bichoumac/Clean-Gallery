@@ -2,7 +2,7 @@
 
 The navigation and the look of the app deviate from the brief at the product owner's request. This ADR records what changed and where the affected features now live.
 
-Last updated: 2026-10-25 — Milestone M0
+Last updated: 2026-11-04 — Visual refresh spec
 
 - **Status**: Accepted
 - **Date**: 2026-10-25
@@ -47,3 +47,7 @@ The "Duplicates" virtual tile stays at the top of every album grid, as in the br
 ## Amendment (M2): Camera instead of Photos
 
 At the product owner's request, the first tab shows **only the photos of the device camera** (MediaStore `RELATIVE_PATH` starting with `DCIM/Camera/`) instead of every photo. Screenshots, received and downloaded images stay out of it; every item remains reachable through **Albums → All media**. The tab is named "Camera" ("Appareil photo") with a camera icon so its name matches its content. The Videos tab still lists every video.
+
+## Amendment (2026-11-04): colors and typeface
+
+[ADR 0028](0028-warm-eclat-identity.md) replaces the palette and the title typeface of this decision. Its navigation stands. The refresh is not built yet.

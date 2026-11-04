@@ -2,7 +2,7 @@
 
 How Clean Gallery is tested: test layers, commands, fakes and fixtures. Every milestone adds tests for what it builds; a milestone is not done until the suite passes.
 
-Last updated: 2026-11-04 — Milestone M9
+Last updated: 2026-11-04 — Visual refresh spec
 
 ## Commands
 
@@ -119,7 +119,7 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | # | Check | Android | Expected |
 | --- | --- | --- | --- |
 | 1 | First launch shows the onboarding privacy page | any | "Your photos never leave your device." in the system language (EN or FR). |
-| 2 | Brand palette and Manrope | any | Ink/paper surfaces, lime accent, Manrope typeface at the right weights ([design.md](design.md)). |
+| 2 | Brand palette and Manrope | any | The palette, accent and typefaces of the theme at the right weights ([design.md](design.md)). |
 | 3 | Dark mode | any | Switching the system theme switches the app theme. |
 | 4 | *Allow access*, choose "Allow all" | 13+ | Photos and videos prompts, then the GPS metadata prompt. Page shows no warning. |
 | 5 | *Allow access* on Android 11–12 | 11, 12 | One storage prompt, then the GPS metadata prompt. |
@@ -133,6 +133,34 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 12 | Kill the app mid-onboarding, relaunch | any | Onboarding restarts from the first page. |
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
+
+### Visual refresh — to verify on a device
+
+For when the [visual refresh](visual-refresh.md) is built. Nothing below can be checked yet.
+
+| # | Do | Expected |
+| --- | --- | --- |
+| 1 | Home screen | A yellow icon with a rosace, seven petals tone on tone and one dark, clear in the launcher's shape. |
+| 2 | Turn on themed icons | The icon follows the system color, with the dark petal still standing out. |
+| 3 | Launch in light, then dark | The launch screen matches the theme; no flash of yellow over the whole screen. |
+| 4 | Camera tab in dark | Black neutral background behind the grid; yellow selected tab; content visible through the bar. |
+| 5 | Camera tab in light | White behind the grid, no cream. |
+| 6 | Stats tab | Yellow card with the number and a gauge whose lit petals match the share; every category is there. |
+| 7 | Clean until nothing is left | The gauge goes down petal by petal, to none. |
+| 8 | Albums tab | Mosaic with *All media*, Favorites, Map, Slideshows, Trash; then *My albums* and *Folders*. |
+| 9 | Sort mode, drag a card right, then left | *Garder* in yellow, *Corbeille* in red, easy to tell apart. |
+| 10 | Sort to the end | Yellow screen, complete rosace, the counts and the three actions. |
+| 11 | Open a video | White translucent play button, white slider, no yellow. |
+| 12 | Photo at 1× zoom, pull down, release early | It springs back. |
+| 13 | Pull down further | It returns to its thumbnail in the grid. |
+| 14 | Zoomed photo, pull down | It pans; the viewer does not close. |
+| 15 | Info panel, pull down | The panel closes, not the viewer. |
+| 16 | Empty trash | The rosace with one yellow petal, *Rien à jeter*, the retention set in Settings. |
+| 17 | Memory notification | The rosace in the status bar. |
+| 18 | System animations off | No animation, nothing blocked. |
+| 19 | Largest system text size | Stats number and titles fit, nothing clipped. |
+| 20 | TalkBack on the Stats card | The share is read as a sentence. |
+| 21 | Editor, text | The selected text's frame and the color row show the new yellow. |
 
 ### M9 — slideshows and memories, to verify on a device
 
@@ -242,8 +270,8 @@ Stacks in the timelines (product owner's request, built before the editor). Inst
 
 | # | Check | Expected |
 | --- | --- | --- |
-| 11 | Photos tab, a day with a burst or several shots of the same scene | One thumbnail with a lime badge (e.g. ⧉ 4) instead of the series; the cover is the photo marked *Best* in Duplicates. |
-| 12 | Tap the stack | It unfolds in place; a lime line under each photo; a round button on the cover. |
+| 11 | Photos tab, a day with a burst or several shots of the same scene | One thumbnail with an accent badge (e.g. ⧉ 4) instead of the series; the cover is the photo marked *Best* in Duplicates. |
+| 12 | Tap the stack | It unfolds in place; an accent line under each photo; a round button on the cover. |
 | 13 | Tap a photo of the unfolded stack, then swipe in the viewer | It opens on that photo; swiping goes through every photo, stacked ones included. |
 | 14 | Back, tap the round button | The stack folds again. |
 | 15 | Long-press a folded stack | *4 selected* (all its photos); a tap on it deselects them. |
@@ -255,11 +283,11 @@ Map (from M7). The first launch migrates the database (schema version 5) and rea
 | # | Check | Expected |
 | --- | --- | --- |
 | 18 | Albums tab | A **Map** tile with a count and the newest located photo. |
-| 19 | Tap it | The map, fitted to all the places; thumbnails with lime counts; *© OpenStreetMap contributors* in the corner. |
+| 19 | Tap it | The map, fitted to all the places; thumbnails with accent counts; *© OpenStreetMap contributors* in the corner. |
 | 20 | Pinch to zoom in on a city, then a street | Clusters split into smaller ones, then single photos. |
 | 21 | Tap a cluster | *In this area*: only photos taken there; opening one and swiping stays in that area. |
 | 22 | Back, tap a single photo | The viewer on that photo. |
-| 23 | A photo with a location, ⓘ | A small map with a lime dot under the coordinates; tapping it opens the map there. |
+| 23 | A photo with a location, ⓘ | A small map with an accent dot under the coordinates; tapping it opens the map there. |
 | 24 | Dark mode, then airplane mode | Dark tiles; offline, tiles already seen still show, markers too. |
 | 25 | Settings → Android → Clean Gallery → Permissions: remove photo location, back to the map | A card asks to allow it; *Allow* brings the markers back. |
 
@@ -267,11 +295,11 @@ Group strip in the viewer.
 
 | # | Check | Expected |
 | --- | --- | --- |
-| 26 | Open a photo of a burst or of identical copies | At the bottom: *N doublons · toucher pour comparer*, the thumbnails, the first with a lime *Meilleure* pill, the photo shown framed in lime; *Corbeille* and *Garder* buttons. |
+| 26 | Open a photo of a burst or of identical copies | At the bottom: *N doublons · toucher pour comparer*, the thumbnails, the first with an accent *Meilleure* pill, the photo shown framed in the accent color; *Corbeille* and *Garder* buttons. |
 | 27 | Swipe the thumbnails sideways, tap one | The row scrolls; the viewer shows the tapped photo. |
 | 28 | **Corbeille** | The photo goes to the trash, the next one of the group shows; its thumbnail stays dimmed with a bin; an Undo button appears. |
 | 29 | Undo, then tap a dimmed thumbnail after another Corbeille | Each brings the photo back and shows it. |
-| 30 | **Garder** | A lime check on the thumbnail; the next photo to sort shows. |
+| 30 | **Garder** | An accent check on the thumbnail; the next photo to sort shows. |
 | 31 | A photo outside any group; a video; tap the photo | No strip on the first two; the strip hides and shows with the top bar. |
 
 Info panel and sorts by duplicates (after the results below).
@@ -291,7 +319,7 @@ Part 2, the editor (no saving yet).
 | # | Check | Expected |
 | --- | --- | --- |
 | 37 | Open a photo; a video | A sliders icon (*Modifier*) in the photo's top bar; none on the video. |
-| 38 | Tap it | The editor, dark: the photo with a crop frame, lime corners, thirds lines; *Recadrer* and *Réglages* at the bottom. |
+| 38 | Tap it | The editor, dark: the photo with a crop frame, accent corners, thirds lines; *Recadrer* and *Réglages* at the bottom. |
 | 39 | Drag a corner, then inside the frame | The frame resizes, then moves; it never leaves the photo nor gets tiny. |
 | 40 | *1:1*, then *16:9*; drag a corner | A square, then a wide frame, centered; the corner keeps the shape. |
 | 41 | *Pivoter* four times; *Retourner* | The photo turns a quarter each time and comes back; it is mirrored. |
@@ -321,10 +349,10 @@ Items 45 to 52 were installed on 2026-10-29 but not reported: the product owner 
 | 55 | Adjust → **Vignettage** at 50, then -50 | Darker edges, then lighter edges, around the crop. |
 | 56 | Hold the **Avant/Après** icon (top bar) | The original while held, the edit when released. |
 | 57 | Draw → **Flou**, paint over a face; **Pixels** over a plate | Blurred, then large squares, only under the finger. **First test (2026-10-29): the whole photo was blurred/pixelated**; fixed the same day (clip instead of a blend mask), to test again. |
-| 58 | **Texte** → Ajouter un texte, type two lines, OK | Centered on the photo, framed in lime. |
+| 58 | **Texte** → Ajouter un texte, type two lines, OK | Centered on the photo, framed in the accent color. |
 | 59 | Change font, Gras, size, color, background color; drag the text; double-tap it | Each applies at once; it follows the finger; double-tap opens its words. |
 | 60 | Save a copy with straighten, Enhance, vignette, blur and a text | The saved photo matches the preview exactly, sharp, upright; text crisp. |
-| 61 | Viewer, top bar: **Scanner un document** on a photo of a sheet on a table | Lime outline on the page's corners (*Page trouvée*); else the corners 8 % in. |
+| 61 | Viewer, top bar: **Scanner un document** on a photo of a sheet on a table | Accent outline on the page's corners (*Page trouvée*); else the corners 8 % in. |
 | 62 | Drag a corner; **Suivant** | The handle follows; the page flattened, straight. |
 | 63 | **Gris**, **Noir et blanc**, back to **Couleur**; Back | Gray page; white paper and black text, no shadow; Back returns to the corners. |
 | 64 | **Enregistrer** | *Scan enregistré*, the viewer shows the page; the original is still there. |
@@ -333,8 +361,8 @@ Filters (follow-up to M6, branch `m6-filters`), from a release build:
 
 | # | Check | Expected |
 | --- | --- | --- |
-| 65 | Editor → **Filtres** (second icon) | A row of thumbnails of the cropped photo: Aucun, N&B, Sépia, Vintage, Chaud, Froid, Éclatant, Délavé, Dramatique, Noir, Doux; *Aucun* framed in lime; no slider. |
-| 66 | Tap each thumbnail | The photo takes that look at once; its thumbnail framed in lime; an **Intensité** slider at 100 appears. |
+| 65 | Editor → **Filtres** (second icon) | A row of thumbnails of the cropped photo: Aucun, N&B, Sépia, Vintage, Chaud, Froid, Éclatant, Délavé, Dramatique, Noir, Doux; *Aucun* framed in the accent color; no slider. |
+| 66 | Tap each thumbnail | The photo takes that look at once; its thumbnail framed in the accent color; an **Intensité** slider at 100 appears. |
 | 67 | Move **Intensité** to 0, then 50 | At 0 the photo is unchanged; at 50 halfway; the slider follows the finger smoothly. |
 | 68 | A filter, then **Réglages** → Luminosité or Chaleur | The slider refines the filtered photo (e.g. a warm tone on N&B). |
 | 69 | Hold **Avant/Après**; then **Réinitialiser** | The original while held; Reset removes the filter too. |
@@ -354,7 +382,7 @@ Part 1, cleanup lists. Install over the M4 version (`adb install -r`, do not uni
 
 | # | Check | Expected |
 | --- | --- | --- |
-| 1 | Stats tab, scroll to the second card | **Old screenshots** and **Large videos** with a count and a size; **Blurry photos** still *Coming soon*. The lime card's total grew by about those sizes. |
+| 1 | Stats tab, scroll to the second card | **Old screenshots** and **Large videos** with a count and a size; **Blurry photos** still *Coming soon*. The accent card's total grew by about those sizes. |
 | 2 | Tap **Old screenshots** | Title, *Taken more than 30 days ago*, *N items · size*; only screenshots, none from the last 30 days. Report any photo that is not a screenshot. |
 | 3 | Long-press one, then **Select all** (first icon of the bar) | Every item selected; the icon disappears. |
 | 4 | **Move to trash**, then *Undo* | The list empties, then everything comes back. |

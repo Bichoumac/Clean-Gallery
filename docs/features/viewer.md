@@ -2,7 +2,7 @@
 
 Full-screen photo and video viewer, opened from any grid.
 
-Last updated: 2026-11-01 — Milestone M8
+Last updated: 2026-11-04 — Visual refresh spec
 
 ## Purpose
 
@@ -23,13 +23,17 @@ Show one item at a time, full screen, with swiping between the items of the grid
 
 Asked by the product owner on 2026-10-28: sort a group of duplicates without leaving the photo.
 
-- When the photo shown is in a duplicate group, above the action bar, the bottom of the screen shows *N duplicates · tap to compare* and the group's thumbnails in a row that scrolls sideways, the suggested one first with a lime **Best** pill (the duplicates screen's best pick, see [duplicates.md](duplicates.md)), the photo shown in a lime frame.
+- When the photo shown is in a duplicate group, above the action bar, the bottom of the screen shows *N duplicates · tap to compare* and the group's thumbnails in a row that scrolls sideways, the suggested one first with an accent **Best** pill (the duplicates screen's best pick, see [duplicates.md](duplicates.md)), the photo shown in an accent frame.
 - **Tap a thumbnail**: the viewer shows that photo. A copy outside the grid's list (e.g. a WhatsApp copy while browsing Camera) opens in a viewer of its own, in place of this one.
-- **Trash** (outlined) moves the photo shown to the app trash and shows the next one of the group still to sort; **Keep** (lime) puts a check on it and shows the next one. Going round the group, then staying put once everything is sorted.
+- **Trash** (outlined) moves the photo shown to the app trash and shows the next one of the group still to sort; **Keep** (accent) puts a check on it and shows the next one. Going round the group, then staying put once everything is sorted.
 - Trashed photos stay in the strip, dimmed with a trash icon; tapping one restores it. **Undo** (left of the buttons) restores the last one. No snack bar: it would cover the buttons.
 - The strip keeps the group as it was when the viewer reached it, so it stays while its photos go to the trash (a group of one is no longer a group). Swiping to a photo outside the group looks its group up again; kept checks are forgotten then (they are not saved).
 - It hides with the other controls (tap the photo), and is not shown on videos, whose playback controls are at the bottom.
 - An item in a certain group and a similar group shows its certain group (`groupsByItem`, as the stacks of the timelines).
+
+## Planned look
+
+No accent over the media: a translucent white play button and a white slider. Pulling a photo down at 1× zoom returns to the grid (new gesture). Not built yet: [visual refresh](../visual-refresh.md), [mockup](../design-assets/mockups/screens/13-viewer-video.png).
 
 ## Screens and widgets
 
@@ -65,7 +69,7 @@ The brief: "a bottom sheet that slides up with a translucent blurred background 
   - **Location**, as latitude and longitude with five decimals: tapping it opens the user's map app on that point (a `geo:` intent, `PlatformBridge.openMap`; when no app handles it, the panel closes and a snack bar says so), and a copy button puts the coordinates on the clipboard. Videos only have a location.
 - Missing values are left out. A photo with no camera data at all says *No camera information in this file.*; without the media location permission, the location row says to allow it in Settings (Android hides GPS tags from apps without it).
 - **Quality** (photos): the last row shows the analysis engine's measures on the photo's 256-pixel grayscale thumbnail, read when the panel opens (`photoQualityProvider`): `S 42 · N 180 · B 35 · C 22` for sharpness, relative sharpness, brightness and contrast ([analysis-engine.md](../analysis-engine.md#blurry-and-dark-photos)), and under it whether the photo is offered as blurry or too dark. Asked by the product owner after the blur calibration, to check the thresholds on real photos.
-- **Mini map** (M6, with the map brought forward): below the coordinates, a still OpenStreetMap map of the point with a lime dot; tapping it opens the app's map there ([map.md](map.md)). Its tiles need the network; without it the dot shows on a grey background.
+- **Mini map** (M6, with the map brought forward): below the coordinates, a still OpenStreetMap map of the point with an accent dot; tapping it opens the app's map there ([map.md](map.md)). Its tiles need the network; without it the dot shows on a grey background.
 
 ## Edge cases and error handling
 

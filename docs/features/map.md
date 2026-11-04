@@ -2,7 +2,7 @@
 
 The photos and videos of the library on a map, grouped by place, and the mini map of the viewer's info panel.
 
-Last updated: 2026-11-01 — Milestone M7
+Last updated: 2026-11-04 — Visual refresh spec
 
 ## Purpose
 
@@ -11,9 +11,9 @@ The brief: "OpenStreetMap map with geotagged photos, markers grouped into cluste
 ## User flows
 
 1. **Albums → Map**: a tile next to *All media*, *Favorites* and *Trash*, with the number of located items and the newest one as cover. The map opens fitted to every located item (at most zoom 14, so a single place does not open at street level).
-2. **Clusters**: nearby items show as one marker, a rounded thumbnail of the newest item with its count in a lime badge (999, then 1.2k, 12k). Zooming in splits them; at street level each place has its own marker.
+2. **Clusters**: nearby items show as one marker, a rounded thumbnail of the newest item with its count in an accent badge (999, then 1.2k, 12k). Zooming in splits them; at street level each place has its own marker.
 3. **Tap a cluster**: the grid of its items, titled *In this area*, a timeline like an album (sort, date filter, selection, stacks). A marker of a single item opens the viewer directly.
-4. **Info panel**: below the coordinates, a still mini map with a lime dot; tapping it opens the map there, at zoom 15 ([viewer.md](viewer.md#info-panel)).
+4. **Info panel**: below the coordinates, a still mini map with an accent dot; tapping it opens the map there, at zoom 15 ([viewer.md](viewer.md#info-panel)).
 5. **Without the location permission**: a card at the bottom of the map says that Android hides where photos were taken and offers *Allow*; once granted, locations are read at once.
 6. **No located item** (location off when shooting, or still being read): a card says so.
 7. **Picking an area** (search, M7): the map opens titled *Choose an area*, on the area already picked if any; a **Search this area** button returns the area shown to the search; a cluster zooms in instead of opening ([search.md](search.md)).
@@ -37,6 +37,10 @@ The brief: "OpenStreetMap map with geotagged photos, markers grouped into cluste
 - Only tile coordinates are requested: OpenStreetMap can tell which area of the world the map shows, never which photos are there. No photo, location or metadata of the library leaves the phone.
 - The release app now declares `INTERNET` (until then only debug builds had it); ads will need it too in M11.
 - In dark mode the tiles are shown inverted (flutter_map's `darkModeTileBuilder`).
+
+## Planned look
+
+Markers with a white ring and a sun count. The map tiles do not change. Not built yet: [visual refresh](../visual-refresh.md), [mockup](../design-assets/mockups/screens/16-map.png).
 
 ## Screens and widgets
 
