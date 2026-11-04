@@ -1,11 +1,13 @@
 import 'dart:async';
 
 import 'package:clean_gallery/analysis/geo_clusters.dart';
+import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/location_scan.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/geo.dart';
+import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/features/map/map_attribution.dart';
 import 'package:clean_gallery/features/map/map_tiles.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
@@ -120,6 +122,9 @@ class _ClusterMap extends ConsumerStatefulWidget {
 class _ClusterMapState extends ConsumerState<_ClusterMap> {
   final _controller = MapController();
 
+  /// Read in [initState]: `ref` cannot be used in [dispose].
+  late final DuplicateScan _scan;
+
   /// Zoom level the clusters are made for: the camera's, rounded.
   late int _zoom;
 
@@ -130,10 +135,14 @@ class _ClusterMapState extends ConsumerState<_ClusterMap> {
   void initState() {
     super.initState();
     _zoom = widget.center == null ? 2 : 15;
+    // The analysis would compete with the markers for MediaStore's thumbnail
+    // rendering, as in the viewer.
+    _scan = ref.read(duplicateScanProvider.notifier)..pause();
   }
 
   @override
   void dispose() {
+    _scan.resume();
     _controller.dispose();
     super.dispose();
   }
@@ -312,13 +321,7 @@ class _ClusterMarker extends ConsumerWidget {
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(13),
-                  child: Image(
-                    image: source.thumbnail(cluster.cover.item, size: 192),
-                    fit: BoxFit.cover,
-                    gaplessPlayback: true,
-                    errorBuilder: (context, error, stackTrace) =>
-                        ColoredBox(color: colors.surfaceContainerHigh),
-                  ),
+                  child: _MarkerCover(item: cluster.cover.item),
                 ),
               ),
             ),
@@ -349,6 +352,77 @@ class _ClusterMarker extends ConsumerWidget {
               ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// The photo of a marker, grey until it is there.
+///
+/// A thumbnail can fail while MediaStore is busy, and nothing asks for it
+/// again while the marker stays on screen: it is asked for again a few times,
+/// then an icon says it could not be read.
+class _MarkerCover extends ConsumerStatefulWidget {
+  const _MarkerCover({required this.item});
+
+  final MediaItem item;
+
+  @override
+  ConsumerState<_MarkerCover> createState() => _MarkerCoverState();
+}
+
+class _MarkerCoverState extends ConsumerState<_MarkerCover> {
+  static const _retries = 3;
+
+  int _attempt = 0;
+  Timer? _retry;
+
+  @override
+  void dispose() {
+    _retry?.cancel();
+    super.dispose();
+  }
+
+  void _scheduleRetry(ImageProvider image) {
+    if (_retry != null || _attempt >= _retries) return;
+    _retry = Timer(Duration(seconds: _attempt + 1), () {
+      unawaited(image.evict());
+      if (mounted) {
+        setState(() {
+          _retry = null;
+          _attempt++;
+        });
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+    final image = ref
+        .watch(mediaSourceProvider)
+        .thumbnail(widget.item, size: 192);
+    return ColoredBox(
+      color: colors.surfaceContainerHigh,
+      child: Image(
+        // A new state: an image that failed is not loaded again otherwise.
+        key: ValueKey(_attempt),
+        image: image,
+        width: double.infinity,
+        height: double.infinity,
+        fit: BoxFit.cover,
+        gaplessPlayback: true,
+        errorBuilder: (context, error, stackTrace) {
+          _scheduleRetry(image);
+          return _attempt < _retries
+              ? const SizedBox.shrink()
+              : Center(
+                  child: Icon(
+                    Icons.broken_image_outlined,
+                    color: colors.onSurfaceVariant,
+                  ),
+                );
+        },
       ),
     );
   }

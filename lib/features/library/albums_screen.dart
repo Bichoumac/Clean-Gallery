@@ -102,7 +102,6 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
             sliver: SliverToBoxAdapter(
               child: _TopMosaic(
                 located: located?.length,
-                locatedCover: located?.firstOrNull?.item,
                 slideshows: saved.length + memories.length,
                 trash: trash.length,
               ),
@@ -235,13 +234,11 @@ const _coverRadius = 22.0;
 class _TopMosaic extends ConsumerWidget {
   const _TopMosaic({
     required this.located,
-    required this.locatedCover,
     required this.slideshows,
     required this.trash,
   });
 
   final int? located;
-  final MediaItem? locatedCover;
   final int slideshows;
   final int trash;
 

@@ -136,7 +136,7 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 
 ### Visual refresh — to verify on a device
 
-The [visual refresh](visual-refresh.md) is built. None of these has been checked on a phone yet.
+The [visual refresh](visual-refresh.md) is built. First pass on the phone on 2026-11-04: the product owner reported "tout me paraît bien" as a whole, apart from the map (slow to load, some thumbnails missing), without going through the list item by item. So no item below is individually confirmed.
 
 | # | Do | Expected |
 | --- | --- | --- |

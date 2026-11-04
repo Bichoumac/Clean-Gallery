@@ -30,7 +30,8 @@ M8 to M10 were added at the product owner's request on 2026-11-01; monetization 
 The product owner chose a warm identity and a logo on 2026-11-04 ([ADR 0028](decisions/0028-warm-eclat-identity.md)) and asked to build it before M10. The target is in [design.md](design.md), the brief, mockups and the choices made while building in [visual-refresh.md](visual-refresh.md).
 
 - **Done**: all seven steps of the brief, on branch `visual-refresh`. `flutter analyze` and the tests are clean; screens were rendered in widget tests and compared with the mockups.
-- **Not verified**: nothing has run on a phone yet, so the checks of [testing.md](testing.md#visual-refresh--to-verify-on-a-device) are all open, notably icons, launch screen, blur of the bars on Impeller, the pull down gesture and the Hero flight from a pulled photo.
+- **On the phone, 2026-11-04**: the product owner's overall impression is good ("tout me paraît bien"); the checks of [testing.md](testing.md#visual-refresh--to-verify-on-a-device) were not reported one by one.
+- **Open issue, map**: slow to load, some marker thumbnails missing. The cause is not confirmed: no measurement was taken and the code loading the map did not change in the refresh. Changes made: the duplicate scan pauses on the map, a failed marker thumbnail is retried. To check on the phone.
 
 ## New features — decisions (2026-11-01)
 

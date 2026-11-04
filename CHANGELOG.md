@@ -29,6 +29,7 @@ Next: device checks of the visual refresh, then M10 People, M11 monetization and
 ### Fixed
 
 - Filled buttons used the system font instead of Manrope.
+- Map: the duplicate scan no longer competes with the markers' thumbnails, and a thumbnail that fails is asked for again.
 
 ## [M9] — 2026-11-04 — Slideshows and memories
 

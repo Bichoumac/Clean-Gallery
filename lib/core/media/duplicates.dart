@@ -98,6 +98,9 @@ class DuplicateScan extends _$DuplicateScan {
     _resumed ??= Completer<void>();
   }
 
+  /// Whether the scan is held by [pause].
+  bool get paused => _pauses > 0;
+
   /// Undoes one [pause].
   void resume() {
     if (_pauses == 0) return;

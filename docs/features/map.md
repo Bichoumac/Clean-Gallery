@@ -31,6 +31,11 @@ The brief: "OpenStreetMap map with geotagged photos, markers grouped into cluste
 
 `clusterItems` ([geo_clusters.dart](../../lib/analysis/geo_clusters.dart), pure Dart) puts each item in a cell of a grid of about 80 screen pixels at the map's zoom level (Web Mercator, as the tiles), in one pass: 20,000 items cluster in a few milliseconds, recomputed only when the zoom level changes. The marker stands at the mean position of its items. Each cluster's cell is a latitude and longitude rectangle (`GeoArea`); the grid of a cluster is the timeline of `MediaSelection(area: …)`, so it lists exactly the cluster's items. See [ADR 0022](../decisions/0022-map-tiles-and-grid-clusters.md).
 
+## Marker thumbnails
+
+- The duplicate scan is paused while the map is open, as in the viewer: MediaStore renders thumbnails almost one at a time, and covers of old photos are often not cached yet.
+- A marker is grey until its photo arrives. A thumbnail that fails is asked for again up to three times (after 1, 2 and 3 s), then shows a broken image icon.
+
 ## Tiles and privacy
 
 - Tiles come from `tile.openstreetmap.org`, with the user agent `flutter_map (com.bichoumac.clean_gallery)` and the attribution *© OpenStreetMap contributors* always shown, as its [tile usage policy](https://operations.osmfoundation.org/policies/tiles/) asks. flutter_map keeps fetched tiles in its disk cache.
@@ -68,7 +73,7 @@ Markers with a 3 dp white ring and a sun count. The map tiles do not change. [Mo
 
 ## Known limitations / future work
 
-- Not seen on the device yet.
+- Slow loading and missing thumbnails were reported on the phone on 2026-11-04 (see [progress.md](../progress.md#visual-refresh)). Marker thumbnails were changed for this; whether it is enough is not confirmed. Tiles depend on OpenStreetMap and the network, and their loading time has not been measured.
 - The first reading of 20,000 locations has not been timed on the phone (file headers only, expected to be a few minutes).
 - No search by area yet (the brief's search, M7, will pick an area on this map).
 - Clusters follow a fixed grid, not the items' own layout: a group of photos on a cell edge splits until zoomed out.
