@@ -1,54 +1,72 @@
 import 'package:flutter/material.dart';
 
-/// Brand colors of Clean Gallery. See `docs/design.md`.
+/// Brand colors of Clean Gallery, the Éclat Soleil identity. See
+/// `docs/design.md`.
 ///
-/// One accent (lime) on neutral "ink" and "paper" surfaces. Use the
+/// One accent (sun yellow) on warm "ink" and "cream" surfaces. Use the
 /// [ColorScheme] from the theme in widgets; reference these constants only
-/// when building the theme.
+/// when building the theme, and for the logo tones that have no place in a
+/// scheme.
 abstract final class AppColors {
   /// Signature accent: active tab, primary buttons, highlights.
-  static const lime = Color(0xFFCFF25B);
+  static const sun = Color(0xFFFFCB47);
 
-  /// Near-black used for dark surfaces and text on [lime].
-  static const ink = Color(0xFF121316);
+  /// Warm near-black used for dark surfaces and text on [sun].
+  static const ink = Color(0xFF14110C);
 
   /// Warm off-white used for light surfaces.
-  static const paper = Color(0xFFF7F6F3);
+  static const cream = Color(0xFFFBF8F1);
 
-  /// Accent for text and icons in light mode, where [lime] lacks contrast.
-  static const olive = Color(0xFF3F5A00);
+  /// Accent for text and icons in light mode, where [sun] lacks contrast.
+  static const amber = Color(0xFF8A5A00);
+
+  /// Unlit petals of the large mark on [sun] (hero card, onboarding).
+  static const petalOnSun = Color(0xFFE8AC33);
+
+  /// Unlit petals of the logo on [ink], outside the app icon.
+  static const petalOnInk = Color(0xFF857C6E);
 }
 
-/// Theme of Clean Gallery: neutral surfaces, a single lime accent, the
-/// Manrope typeface, large rounded shapes and no shadows.
+/// Theme of Clean Gallery: warm surfaces, neutral photo grids, a single sun
+/// accent, Bricolage Grotesque titles over Manrope text, large rounded shapes
+/// and no shadows.
 abstract final class AppTheme {
-  /// Corner radius shared by cards, sheets and dialogs.
-  static const cornerRadius = 24.0;
+  /// Corner radius shared by cards, tiles and dialogs.
+  static const cornerRadius = 26.0;
+
+  /// Corner radius of bottom sheets.
+  static const sheetRadius = 24.0;
+
+  /// Typeface of titles and key numbers.
+  static const displayFont = 'Bricolage Grotesque';
+
+  /// Typeface of everything else.
+  static const textFont = 'Manrope';
 
   /// Light theme.
   static ThemeData light() => _build(
     const ColorScheme(
       brightness: Brightness.light,
-      primary: AppColors.olive,
+      primary: AppColors.amber,
       onPrimary: Colors.white,
-      primaryContainer: AppColors.lime,
+      primaryContainer: AppColors.sun,
       onPrimaryContainer: AppColors.ink,
-      secondary: Color(0xFF5E616A),
+      secondary: Color(0xFF5F574A),
       onSecondary: Colors.white,
-      error: Color(0xFFC4314B),
+      error: Color(0xFFC4361F),
       onError: Colors.white,
-      surface: AppColors.paper,
+      surface: AppColors.cream,
       onSurface: AppColors.ink,
-      onSurfaceVariant: Color(0xFF5E616A),
+      onSurfaceVariant: Color(0xFF5F574A),
       surfaceContainerLowest: Colors.white,
-      surfaceContainerLow: Color(0xFFF2F1ED),
-      surfaceContainer: Color(0xFFEDEBE6),
-      surfaceContainerHigh: Color(0xFFE7E5DF),
-      surfaceContainerHighest: Color(0xFFE1DED8),
-      outline: Color(0xFFC9C6BE),
-      outlineVariant: Color(0xFFDEDBD3),
+      surfaceContainerLow: Color(0xFFF6F2E8),
+      surfaceContainer: Color(0xFFF0EBDF),
+      surfaceContainerHigh: Color(0xFFE9E3D5),
+      surfaceContainerHighest: Color(0xFFE2DBCB),
+      outline: Color(0xFF8F8675),
+      outlineVariant: Color(0xFFE0D9CA),
       inverseSurface: AppColors.ink,
-      onInverseSurface: AppColors.paper,
+      onInverseSurface: AppColors.cream,
     ),
   );
 
@@ -56,25 +74,25 @@ abstract final class AppTheme {
   static ThemeData dark() => _build(
     const ColorScheme(
       brightness: Brightness.dark,
-      primary: AppColors.lime,
+      primary: AppColors.sun,
       onPrimary: AppColors.ink,
-      primaryContainer: AppColors.lime,
+      primaryContainer: AppColors.sun,
       onPrimaryContainer: AppColors.ink,
-      secondary: Color(0xFFA3A6AE),
+      secondary: Color(0xFFB3AB9D),
       onSecondary: AppColors.ink,
-      error: Color(0xFFFF6B81),
+      error: Color(0xFFFF6B5E),
       onError: AppColors.ink,
-      surface: Color(0xFF0F1012),
-      onSurface: Color(0xFFF2F1EE),
-      onSurfaceVariant: Color(0xFFA3A6AE),
-      surfaceContainerLowest: Color(0xFF0A0B0D),
-      surfaceContainerLow: Color(0xFF15161A),
-      surfaceContainer: Color(0xFF1A1C20),
-      surfaceContainerHigh: Color(0xFF212328),
-      surfaceContainerHighest: Color(0xFF292B31),
-      outline: Color(0xFF3A3D45),
-      outlineVariant: Color(0xFF2A2C33),
-      inverseSurface: AppColors.paper,
+      surface: AppColors.ink,
+      onSurface: Color(0xFFF6F1E7),
+      onSurfaceVariant: Color(0xFFB3AB9D),
+      surfaceContainerLowest: Color(0xFF0A0A0A),
+      surfaceContainerLow: Color(0xFF1E1A14),
+      surfaceContainer: Color(0xFF26211A),
+      surfaceContainerHigh: Color(0xFF2E2820),
+      surfaceContainerHighest: Color(0xFF38312A),
+      outline: Color(0xFF6E6556),
+      outlineVariant: Color(0xFF332D24),
+      inverseSurface: AppColors.cream,
       onInverseSurface: AppColors.ink,
     ),
   );
@@ -87,7 +105,7 @@ abstract final class AppTheme {
       colorScheme: scheme,
       useMaterial3: true,
       scaffoldBackgroundColor: scheme.surface,
-      fontFamily: 'Manrope',
+      fontFamily: textFont,
       textTheme: _textTheme(scheme),
       appBarTheme: AppBarTheme(
         backgroundColor: scheme.surface,
@@ -110,7 +128,7 @@ abstract final class AppTheme {
         backgroundColor: scheme.surfaceContainer,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
-            top: Radius.circular(cornerRadius),
+            top: Radius.circular(sheetRadius),
           ),
         ),
       ),
@@ -120,7 +138,7 @@ abstract final class AppTheme {
           foregroundColor: scheme.onPrimaryContainer,
           minimumSize: const Size(48, 56),
           shape: const StadiumBorder(),
-          textStyle: _weighted(const TextStyle(fontSize: 16), 700),
+          textStyle: _weighted(const TextStyle(fontSize: 16), 800),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -129,13 +147,50 @@ abstract final class AppTheme {
           minimumSize: const Size(48, 48),
           shape: const StadiumBorder(),
           side: BorderSide(color: scheme.outline),
+          textStyle: _weighted(const TextStyle(fontSize: 14), 800),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: scheme.onSurfaceVariant,
           minimumSize: const Size(48, 48),
+          textStyle: _weighted(const TextStyle(fontSize: 14), 800),
         ),
+      ),
+      chipTheme: ChipThemeData(
+        shape: const StadiumBorder(),
+        side: BorderSide(color: scheme.outline),
+        selectedColor: scheme.primaryContainer,
+        secondarySelectedColor: scheme.primaryContainer,
+        checkmarkColor: scheme.onPrimaryContainer,
+      ),
+      segmentedButtonTheme: SegmentedButtonThemeData(
+        style: ButtonStyle(
+          backgroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.selected)
+                ? scheme.primaryContainer
+                : Colors.transparent,
+          ),
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (states) => states.contains(WidgetState.selected)
+                ? scheme.onPrimaryContainer
+                : scheme.onSurface,
+          ),
+          side: WidgetStatePropertyAll(BorderSide(color: scheme.outline)),
+        ),
+      ),
+      switchTheme: SwitchThemeData(
+        thumbColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? scheme.onPrimaryContainer
+              : scheme.outline,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? scheme.primaryContainer
+              : scheme.surfaceContainerHighest,
+        ),
+        trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
       ),
       snackBarTheme: SnackBarThemeData(
         behavior: SnackBarBehavior.floating,
@@ -147,39 +202,55 @@ abstract final class AppTheme {
     );
   }
 
-  /// Manrope type scale: heavy, tight display and headline styles for page
-  /// titles; regular weights for reading text.
+  /// Type scale of `docs/design.md`: Bricolage Grotesque for display and
+  /// headline styles, Manrope for everything else.
   static TextTheme _textTheme(ColorScheme scheme) {
     final base = Typography.material2021().black.apply(
-      fontFamily: 'Manrope',
+      fontFamily: textFont,
       bodyColor: scheme.onSurface,
       displayColor: scheme.onSurface,
     );
-    TextStyle style(TextStyle? s, int weight, {double? tracking}) =>
-        _weighted(s!.copyWith(letterSpacing: tracking), weight);
+    TextStyle display(TextStyle? s, double size, int weight, double tracking) =>
+        _display(s!.copyWith(fontSize: size, letterSpacing: tracking), weight);
+    TextStyle text(TextStyle? s, double size, int weight, {double? tracking}) =>
+        _weighted(s!.copyWith(fontSize: size, letterSpacing: tracking), weight);
     return base.copyWith(
-      displayLarge: style(base.displayLarge, 800, tracking: -1.5),
-      displayMedium: style(base.displayMedium, 800, tracking: -1),
-      displaySmall: style(base.displaySmall, 800, tracking: -0.8),
-      headlineLarge: style(base.headlineLarge, 800, tracking: -0.8),
-      headlineMedium: style(base.headlineMedium, 800, tracking: -0.6),
-      headlineSmall: style(base.headlineSmall, 700, tracking: -0.4),
-      titleLarge: style(base.titleLarge, 700, tracking: -0.2),
-      titleMedium: style(base.titleMedium, 700),
-      titleSmall: style(base.titleSmall, 600),
-      bodyLarge: style(base.bodyLarge, 400),
-      bodyMedium: style(base.bodyMedium, 400),
-      bodySmall: style(base.bodySmall, 500),
-      labelLarge: style(base.labelLarge, 700),
-      labelMedium: style(base.labelMedium, 600),
-      labelSmall: style(base.labelSmall, 600),
+      displayLarge: display(base.displayLarge, 57, 800, -2),
+      displayMedium: display(base.displayMedium, 45, 800, -1.5),
+      displaySmall: display(base.displaySmall, 36, 800, -1),
+      headlineLarge: display(base.headlineLarge, 32, 800, -0.9),
+      headlineMedium: display(base.headlineMedium, 28, 800, -0.8),
+      headlineSmall: display(base.headlineSmall, 22, 700, -0.4),
+      titleLarge: text(base.titleLarge, 22, 700, tracking: -0.2),
+      titleMedium: text(base.titleMedium, 16, 800, tracking: 0),
+      titleSmall: text(base.titleSmall, 14, 700, tracking: 0),
+      bodyLarge: text(base.bodyLarge, 16, 400, tracking: 0),
+      bodyMedium: text(base.bodyMedium, 14, 400, tracking: 0),
+      bodySmall: text(base.bodySmall, 12, 500, tracking: 0),
+      labelLarge: text(base.labelLarge, 14, 800, tracking: 0),
+      labelMedium: text(base.labelMedium, 12, 700),
+      labelSmall: text(base.labelSmall, 11, 700),
     );
   }
+
+  /// A Bricolage Grotesque style: its optical size follows the font size
+  /// (the axis goes from 12 to 96), which tightens large titles.
+  static TextStyle _display(TextStyle style, int weight) => style.copyWith(
+    fontFamily: displayFont,
+    fontWeight: _fontWeight(weight),
+    fontVariations: [
+      FontVariation('wght', weight.toDouble()),
+      FontVariation('opsz', style.fontSize!.clamp(12, 96).toDouble()),
+    ],
+  );
 
   /// Applies [weight] both as a [FontWeight] and as the variable font's
   /// `wght` axis, so the bundled variable Manrope renders the right weight.
   static TextStyle _weighted(TextStyle style, int weight) => style.copyWith(
-    fontWeight: FontWeight.values[(weight ~/ 100) - 1],
+    fontWeight: _fontWeight(weight),
     fontVariations: [FontVariation('wght', weight.toDouble())],
   );
+
+  static FontWeight _fontWeight(int weight) =>
+      FontWeight.values[(weight ~/ 100) - 1];
 }

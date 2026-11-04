@@ -165,7 +165,7 @@ class GroupStrip extends ConsumerWidget {
   }
 }
 
-/// One thumbnail of the strip: a lime frame when shown, a *Best* pill on
+/// One thumbnail of the strip: an accent frame when shown, a *Best* pill on
 /// the suggested one, a check when kept, dimmed with a trash icon when
 /// trashed.
 class _Thumb extends StatelessWidget {

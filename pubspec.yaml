@@ -44,3 +44,8 @@ flutter:
     - family: Manrope
       fonts:
         - asset: assets/fonts/manrope/Manrope-Variable.ttf
+    # Variable font (opsz 12–96, wdth 75–100, wght 200–800) for titles.
+    # License: assets/fonts/bricolage_grotesque/OFL.txt
+    - family: Bricolage Grotesque
+      fonts:
+        - asset: assets/fonts/bricolage_grotesque/BricolageGrotesque-Variable.ttf

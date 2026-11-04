@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 const editorColors = [
   0xFFFFFFFF,
   0xFF000000,
-  0xFFC6F432, // The app's lime.
+  0xFFFFCB47, // The app's sun.
   0xFFFF453A,
   0xFFFFD60A,
   0xFF0A84FF,

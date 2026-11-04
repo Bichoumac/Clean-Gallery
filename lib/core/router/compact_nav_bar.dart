@@ -25,7 +25,7 @@ class CompactNavDestination {
 /// Small floating navigation bar with icons only.
 ///
 /// A pill floating above the content, with a translucent blurred background.
-/// The selected icon sits on a lime pill. Labels are not shown but every
+/// The selected icon sits on an accent pill. Labels are not shown but every
 /// icon has a tooltip and a screen reader label, and a 48 dp touch target.
 class CompactNavBar extends StatelessWidget {
   /// Creates the bar.

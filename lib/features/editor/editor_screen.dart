@@ -583,7 +583,7 @@ class _EditPainter extends CustomPainter {
       old.selectedText != selectedText;
 }
 
-/// The crop frame: the outside dimmed, thirds lines, lime corners.
+/// The crop frame: the outside dimmed, thirds lines, accent corners.
 void _paintFrame(Canvas canvas, Size size, CropRect crop, Color accent) {
   final rect = Rect.fromLTRB(
     crop.left * size.width,

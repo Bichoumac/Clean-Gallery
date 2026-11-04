@@ -11,7 +11,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:latlong2/latlong.dart';
 
-/// A small, still map of [point] with a lime dot, as in the viewer's info
+/// A small, still map of [point] with an accent dot, as in the viewer's info
 /// panel. Tapping it opens the app's map there.
 class MiniMap extends ConsumerWidget {
   /// Creates the mini map.
