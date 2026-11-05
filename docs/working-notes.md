@@ -2,7 +2,7 @@
 
 How the product owner and the AI assistant work together on Clean Gallery, the constraints of the development machine, and where to pick up. Read it at the start of every session, after [AGENTS.md](../AGENTS.md).
 
-Last updated: 2026-11-04 — Visual refresh
+Last updated: 2026-11-05 — M10 model choice
 
 ## Where to pick up
 
@@ -13,7 +13,8 @@ Quick resume (keep this short; history is in [progress.md](progress.md) and git)
 - **Left from M6**: nothing. Not wanted for now: batch editing; scanner camera capture.
 - **M8 user albums is merged** (PR #10, 2026-11-01).
 - **M9 slideshows and memories is merged** (PR #11, 2026-11-04). Next by the plan: **M10 People** from `main` (spec in [prompt.md](../prompt.md); an ADR on the face model comes first).
-- **Visual refresh**: built on branch `visual-refresh` on 2026-11-04, pushed on 2026-11-05; first impression good on the phone, citron accent approved, map ok, thumbnails missing in runs fixed and confirmed; the 22 checks of the list were not reported one by one. The product owner opens the pull request. First ask whether it was merged; if merged, start **M10 People** from `main` ([visual-refresh.md](visual-refresh.md), checks in [testing.md](testing.md#visual-refresh--to-verify-on-a-device)). Open point: the product owner picks 2 or 3 CC0 tracks for the bundled music ([slideshow.md](features/slideshow.md#music)).
+- **Visual refresh is merged** (PR #13); the 22 checks of [testing.md](testing.md#visual-refresh--to-verify-on-a-device) were not reported one by one.
+- **M10 People**: branch `m10-people`, no feature code yet. [ADR 0029](decisions/0029-face-model.md) is *Proposed*: it waits for the product owner's decision on the licensing risk, then for a speed measure on the phone. Open point: the product owner picks 2 or 3 CC0 tracks for the bundled music ([slideshow.md](features/slideshow.md#music)).
 - **Next milestones**: M10 People, M11 monetization, M12 polish ([progress.md](progress.md)).
 - **Phone over USB**: the laptop's webcam is a Xiaomi USB device too; run `p.sh` only once the phone shows in `lsusb` (Samsung, MTP mode), or it may pick the webcam.
 - **Key design points to keep**: one paint function (`paintEdit`, `paintPage`) for preview and saving; the native side only writes JPEG + EXIF (`PhotoSaver.kt`); every delete through the app trash; pure Dart in `lib/analysis/` and `lib/domain/`; on the phone (Impeller), avoid blend-mode masks in layers, use clips (blur bug of 2026-10-29).
