@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-11-05 — M10 model choice
+Last updated: 2026-11-05 — Milestone M11
 
 ## Milestones
 
@@ -19,7 +19,7 @@ Last updated: 2026-11-05 — M10 model choice
 | M8 | User albums | Merged into `main` (PR #10, 2026-11-01) |
 | M9 | Slideshows, saved slideshows, memories, rituals | Merged into `main` (PR #11, 2026-11-04) |
 | M10 | People (on-device face recognition, merging) | Postponed by the product owner on 2026-11-05, to come after M11; no code, model study in [ADR 0029](decisions/0029-face-model.md) |
-| M11 | Monetization (was M8) | In progress on branch `m11-monetization` |
+| M11 | Monetization (was M8) | Built on branch `m11-monetization` on 2026-11-05, not tried on a phone |
 | M12 | Polish and release preparation (was M9) | Not started |
 | — | Visual refresh: Éclat Soleil identity, logo and icon | Merged into `main` (PR #13), tried on the phone 2026-11-05 |
 
@@ -34,6 +34,33 @@ The product owner chose a warm identity and a logo on 2026-11-04 ([ADR 0028](dec
 - **Accent**: changed to golden citron at the product owner's request; "beaucoup mieux" (2026-11-05).
 - **Map**: slow loading and missing marker thumbnails reported, then "carte ok" after the duplicate scan was paused on the map and failures retried (2026-11-05).
 - **Thumbnails missing in runs** (reported 2026-11-05, several runs of consecutive cells): failed loads stayed in Flutter's image cache, reproduced by a test and fixed ([library.md](features/library.md#thumbnails-that-fail)). Confirmed on the phone by the product owner ("ça marche", 2026-11-05).
+
+## M11 — Monetization
+
+### Done
+
+- **Ads**: AdMob banner in the Albums tab and native card in the Stats tab, UMP consent after onboarding, *Privacy & ad choices* ([monetization.md](monetization.md), [ADR 0030](decisions/0030-ads-and-purchase.md)).
+- **Remove ads**: non-consumable `remove_ads`, acknowledged, checked at each launch, restored, cached so no ad flashes; the SDK never starts for an ad-free user. Offered in Settings, next to the banner, and once after more than 500 MB deleted for good.
+- Four architecture tests guard the placements and the requests. No schema change. 472 tests; a profile APK builds.
+
+### Decisions
+
+- **People moved after M11** (product owner, 2026-11-05), see [ADR 0029](decisions/0029-face-model.md).
+- **The offer** follows a deletion for good from the Trash screen; moving to the trash frees nothing yet.
+- **Native template** rather than a Kotlin factory; to review once seen on the phone.
+
+### Known issues
+
+- **Nothing has run on a device.** The real SDKs are not exercised by the tests: consent, loading and billing are only tested with fakes. Checklist: [testing.md](testing.md#m11--monetization-to-verify-on-a-device).
+- The purchase cannot be tried until the product owner has set up the Play Console; ads need AdMob before release ([outside setup](monetization.md#set-up-outside-the-code)).
+- With Google's test app ID, whether the consent form appears is unknown; if it fails on a first launch, no ad is requested.
+- Release APK size with the SDKs not measured (26.6 MB before them).
+
+### Next steps
+
+1. Device test of items 1 to 9, then the product owner's approval.
+2. The product owner's AdMob and Play Console setup, then items 10 to 15.
+3. Decide the order of M12 and M10.
 
 ## New features — decisions (2026-11-01)
 

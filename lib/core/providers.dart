@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' show PlatformDispatcher;
 
 import 'package:clean_gallery/core/database/app_database.dart';
@@ -15,15 +16,19 @@ import 'package:clean_gallery/domain/memory.dart';
 import 'package:clean_gallery/domain/ritual.dart';
 import 'package:clean_gallery/domain/slideshow.dart';
 import 'package:clean_gallery/domain/trashed_item.dart';
+import 'package:clean_gallery/platform/ads_service.dart';
+import 'package:clean_gallery/platform/android/android_ads_service.dart';
 import 'package:clean_gallery/platform/android/android_media_source.dart';
 import 'package:clean_gallery/platform/android/android_music_player.dart';
 import 'package:clean_gallery/platform/android/android_permission_service.dart';
 import 'package:clean_gallery/platform/android/android_platform_bridge.dart';
+import 'package:clean_gallery/platform/android/android_purchase_service.dart';
 import 'package:clean_gallery/platform/android/android_reminder_service.dart';
 import 'package:clean_gallery/platform/media_source.dart';
 import 'package:clean_gallery/platform/music_player.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
 import 'package:clean_gallery/platform/platform_bridge.dart';
+import 'package:clean_gallery/platform/purchase_service.dart';
 import 'package:clean_gallery/platform/reminder_service.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
@@ -151,6 +156,18 @@ MusicPlayer musicPlayer(Ref ref) => AndroidMusicPlayer();
 /// Notifications at set times. Overridden in tests with a fake.
 @Riverpod(keepAlive: true)
 ReminderService reminderService(Ref ref) => AndroidReminderService();
+
+/// Consent and ads. Overridden in tests with a fake.
+@Riverpod(keepAlive: true)
+AdsService adsService(Ref ref) => AndroidAdsService();
+
+/// The *Remove ads* purchase. Overridden in tests with a fake.
+@Riverpod(keepAlive: true)
+PurchaseService purchaseService(Ref ref) {
+  final service = AndroidPurchaseService();
+  ref.onDispose(() => unawaited(service.dispose()));
+  return service;
+}
 
 /// Runtime permissions. Overridden in tests with a fake.
 @Riverpod(keepAlive: true)

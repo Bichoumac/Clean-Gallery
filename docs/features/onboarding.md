@@ -2,7 +2,7 @@
 
 First-launch flow that states the privacy promise and asks for the permissions the app needs.
 
-Last updated: 2026-11-04 — Visual refresh
+Last updated: 2026-11-05 — Milestone M11
 
 ## Purpose
 
@@ -61,7 +61,7 @@ The first page is a poster: citron background, large mark appearing petal by pet
 - **Denied**: the user can continue; a message says the permission can be changed later in Settings.
 - **"Media management" unavailable** (Android 11, or no settings screen on the device): the button does nothing and the app falls back to MediaStore confirmation prompts.
 - **App killed during onboarding**: the flag is only written at the end, so onboarding restarts from the first page.
-- The ad consent form (M11) is shown after onboarding, never before the permission pages.
+- The ad consent form is shown after onboarding, never before the permission pages ([monetization.md](../monetization.md)).
 
 ## Tests
 

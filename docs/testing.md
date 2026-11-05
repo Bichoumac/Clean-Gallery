@@ -2,7 +2,7 @@
 
 How Clean Gallery is tested: test layers, commands, fakes and fixtures. Every milestone adds tests for what it builds; a milestone is not done until the suite passes.
 
-Last updated: 2026-11-04 — Visual refresh
+Last updated: 2026-11-05 — Milestone M11
 
 ## Commands
 
@@ -133,6 +133,29 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 12 | Kill the app mid-onboarding, relaunch | any | Onboarding restarts from the first page. |
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
+
+### M11 — monetization, to verify on a device
+
+Not tried on a phone yet. Install a profile build, which uses Google's test ads: `flutter build apk --profile --target-platform android-arm64`.
+
+1. First launch after the update, in France: Google's consent form appears over the tabs, never during onboarding. If it does not appear, note whether ads show anyway.
+2. Accept: Albums shows a *Test Ad* banner above the floating bar, not hidden by it, with *Remove ads* just above it.
+3. The banner's height looks small enough, and the last album can be scrolled fully into view.
+4. Stats: a card labeled *Annonce* before the Trash tile, with its own *Ad* badge. Tile shape, no citron, readable in light and dark.
+5. Change the theme with the Stats tab open: the card comes back in the new colors.
+6. Camera, Videos, Settings, viewer, sort session, editor, duplicates, trash, onboarding, map, search, album pages, slideshows, memories: no ad.
+7. Settings → *Annonces*: *Confidentialité et choix publicitaires* reopens the form. Refuse everything: slots stay or go according to Google's answer, with no crash.
+8. Airplane mode, relaunch: empty reserved space or no slot; no crash, no jump.
+9. *Retirer les annonces*, on this build: the store says the product is unavailable, or a clear error shows. No crash.
+
+Only possible once the [outside setup](monetization.md#set-up-outside-the-code) is done, from a testing track with a license tester:
+
+10. The price shown is the store's.
+11. Buy: every ad disappears at once; *Sans annonces ✓* in Settings; still so after a relaunch and with no network.
+12. Cancel a purchase, and try a slow test card: a clear message each time.
+13. Reinstall: the purchase returns by itself; *Restaurer l'achat* also finds it.
+14. Refund from the Play Console: ads return at the next launch.
+15. Delete more than 500 MB for good from the trash: the offer appears with the price; *Non merci*; never again.
 
 ### Visual refresh — to verify on a device
 

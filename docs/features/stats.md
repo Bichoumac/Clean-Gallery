@@ -2,7 +2,7 @@
 
 The Stats tab: the storage dashboard. How much space the photos and videos take, how much cleaning could free, and that space by category.
 
-Last updated: 2026-11-04 — Visual refresh
+Last updated: 2026-11-05 — Milestone M11
 
 ## Purpose
 
@@ -81,5 +81,5 @@ The hero card has a gauge in the shape of the logo instead of a bar, and the cat
 
 ## Known limitations / future work
 
-- The native ad card (M11) will sit below the categories.
+- The native ad card sits before the Trash tile ([monetization.md](../monetization.md)).
 - Opening the trash switches to the Albums tab, where the Trash page lives.

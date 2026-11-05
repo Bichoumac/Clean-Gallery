@@ -8,6 +8,7 @@ import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/router/compact_nav_bar.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
 import 'package:clean_gallery/domain/trashed_item.dart';
+import 'package:clean_gallery/features/monetization/remove_ads_offer.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -92,6 +93,10 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
     ]);
     if (done) {
       _clearSelection();
+      if (mounted) {
+        final freed = items.fold(0, (sum, entry) => sum + entry.item.sizeBytes);
+        await offerRemoveAdsAfterCleanup(context, ref, freed);
+      }
     } else {
       messenger.showSnackBar(SnackBar(content: Text(l10n.trashDeleteDeclined)));
     }

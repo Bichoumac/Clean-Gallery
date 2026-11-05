@@ -15,6 +15,8 @@ import 'package:clean_gallery/domain/memory.dart';
 import 'package:clean_gallery/domain/slideshow.dart';
 import 'package:clean_gallery/domain/trashed_item.dart';
 import 'package:clean_gallery/features/library/media_timeline_view.dart';
+import 'package:clean_gallery/features/monetization/ad_banner_slot.dart';
+import 'package:clean_gallery/features/monetization/monetization_controller.dart';
 import 'package:clean_gallery/features/slideshow/slideshow_actions.dart';
 import 'package:clean_gallery/features/slideshow/slideshow_builder.dart';
 import 'package:clean_gallery/features/user_albums/user_album_actions.dart';
@@ -70,7 +72,10 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
     final memories =
         ref.watch(storedMemoriesProvider).value ?? const <Memory>[];
 
-    return RefreshIndicator(
+    final showBanner = ref.watch(
+      monetizationProvider.select((s) => s.phase != AdsPhase.off),
+    );
+    final list = RefreshIndicator(
       onRefresh: () => ref.read(mediaIndexProvider.notifier).sync(),
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -218,10 +223,23 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
             ),
           ),
           SliverToBoxAdapter(
-            child: SizedBox(height: CompactNavBar.contentInset(context)),
+            child: SizedBox(
+              height: showBanner ? 8 : CompactNavBar.contentInset(context),
+            ),
           ),
         ],
       ),
+    );
+    if (!showBanner) return list;
+    // The only banner of the app, above the floating navigation bar.
+    return Column(
+      children: [
+        Expanded(child: list),
+        Padding(
+          padding: EdgeInsets.only(bottom: CompactNavBar.contentInset(context)),
+          child: const AdBannerSlot(),
+        ),
+      ],
     );
   }
 }

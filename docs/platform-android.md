@@ -2,7 +2,7 @@
 
 Android-specific configuration: SDK levels, permissions and the native Kotlin MethodChannel. Everything here is reached from Dart through interfaces in `lib/platform/`, so the rest of the app stays platform-agnostic.
 
-Last updated: 2026-11-03 — Milestone M9
+Last updated: 2026-11-05 — Milestone M11
 
 ## SDK levels
 
@@ -141,4 +141,4 @@ Measured on the first device test as slow, especially after scrolling far. For e
 | Banner ad unit ID | `--dart-define=ADMOB_BANNER_UNIT_ID` | Test ID in debug; empty in release |
 | Native ad unit ID | `--dart-define=ADMOB_NATIVE_UNIT_ID` | Test ID in debug; empty in release |
 
-See [app_config.dart](../lib/core/config/app_config.dart). A release build without an ad unit ID keeps ads disabled.
+See [app_config.dart](../lib/core/config/app_config.dart). A release build without an ad unit ID keeps ads disabled. The permissions the ads and billing SDKs add are listed in [monetization.md](monetization.md#permissions-added-by-the-sdks).

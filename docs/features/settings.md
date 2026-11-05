@@ -2,7 +2,7 @@
 
 The Settings tab: display, trash, cleanup, sharing, slideshows and memories, analysis and permissions. The rest of the brief's settings arrive with the features they control.
 
-Last updated: 2026-11-04 — Visual refresh
+Last updated: 2026-11-05 — Milestone M11
 
 ## Purpose
 
@@ -33,13 +33,14 @@ Let the user choose how the app looks and behaves, and see and change its permis
 | Analysis | Similar photos | Low / Medium / High | Medium | How eager the similar photo search is; changing it regroups at once from the stored hashes ([analysis-engine.md](../analysis-engine.md#sensitivity)) |
 | Analysis | Advanced mode | On / Off, then three sliders | Off | On: no preset selected; *Any date: difference up to* (strict, 0–10 of 64), *Taken close in time: difference up to* (loose, 0–20 of 64), *Close in time means within* (0–60 seconds). Starts from the preset in use; off returns to Medium. Saved when the finger is lifted |
 | Analysis | Analyze the library again | Button | — | Forgets dates, burst ids, content and perceptual hashes and duplicate groups, then syncs and scans again; a spinner and "Analyzing: N of M items" show while it runs. Media, trash, settings and pairs marked "Not duplicates" are kept |
+| Ads | Remove ads, Restore purchase, Privacy & ad choices | Actions | — | See [monetization.md](../monetization.md). The section is hidden in a build without ads; *Privacy & ad choices* shows only when consent rules require it |
 | Permissions | Photos and videos | Allowed / Some items only / Not allowed | — | Read-only status + *Change* |
 | Permissions | Location in photos | Allowed / Not allowed | — | Read-only status + *Change* |
 | Permissions | Media management | Allowed / Not allowed | — | Read-only status + *Change* |
 
 The sort order of each tab and album is also saved (see [library.md](library.md#sorting-and-date-filter)); the date filter is not, since presets such as "Last 7 days" would become stale.
 
-Still to come, from the brief: clear cache (merged into *Analyze the library again*: the app's only cache is the media index; thumbnails come from Android's own cache), "Remove ads" / "Restore purchase" and privacy & ad choices (M11), privacy policy and about (M12).
+Still to come, from the brief: clear cache (merged into *Analyze the library again*: the app's only cache is the media index; thumbnails come from Android's own cache).
 
 ## Look
 
