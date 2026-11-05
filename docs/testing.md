@@ -143,7 +143,8 @@ Not tried on a phone yet. Install a profile build, which uses Google's test ads:
 3. The banner's height looks small enough, and the last album can be scrolled fully into view.
 4. Stats: a card labeled *Annonce* before the Trash tile, with its own *Ad* badge. Tile shape, no citron, readable in light and dark.
 5. Change the theme with the Stats tab open: the card comes back in the new colors.
-6. Camera, Videos, Settings, viewer, sort session, editor, duplicates, trash, onboarding, map, search, album pages, slideshows, memories: no ad.
+6. Camera, Videos, Settings, viewer, sort session, editor, duplicates, trash, onboarding, map, search, album pages, during slideshows, memories: no ad.
+   - Slideshow button of an album, *Start*: a test ad, full screen; closing it starts the slideshow. Again within 5 minutes: no ad. A memory, a ritual or a saved slideshow: no ad.
 7. Settings → *Annonces*: *Confidentialité et choix publicitaires* reopens the form. Refuse everything: slots stay or go according to Google's answer, with no crash.
 8. Airplane mode, relaunch: empty reserved space or no slot; no crash, no jump.
 9. *Retirer les annonces*, on this build: the store says the product is unavailable, or a clear error shows. No crash.

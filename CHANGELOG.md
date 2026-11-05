@@ -10,7 +10,7 @@ M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)).
 
 ### Added
 
-- **Monetization** ([docs/monetization.md](docs/monetization.md), [ADR 0030](docs/decisions/0030-ads-and-purchase.md)), not yet tried on a phone: banner in the Albums tab, native card in the Stats tab, Google consent form after onboarding, *Remove ads* purchase with restore, *Ads* section in Settings, one offer ever after more than 500 MB deleted for good.
+- **Monetization** ([docs/monetization.md](docs/monetization.md), [ADR 0030](docs/decisions/0030-ads-and-purchase.md)), not yet tried on a phone: banner in the Albums tab, native card in the Stats tab, one ad before a manual slideshow at most every 5 minutes, Google consent form after onboarding, *Remove ads* purchase with restore, *Ads* section in Settings, one offer ever after more than 500 MB deleted for good.
 - **Éclat Soleil identity** ([docs/design.md](docs/design.md), [ADR 0028](docs/decisions/0028-warm-eclat-identity.md)): golden citron accent `#E8E24C` on warm surfaces, neutral photo grids, Bricolage Grotesque titles over Manrope (bundled, nothing downloaded).
 - **Logo and icons**: adaptive launcher icon with a themed layer, rosace in the status bar, launch screen in the surface of the system theme.
 - **Rosace everywhere there are no photos**: onboarding poster appearing petal by petal, empty states, a gauge on the Stats card (screen readers hear a sentence), a petal on the *Best* pill, the reward at the end of a sort.

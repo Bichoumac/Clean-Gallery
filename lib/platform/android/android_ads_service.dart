@@ -10,6 +10,8 @@ final class AndroidAdsService implements AdsService {
   /// Empty on purpose: no keyword and no content URL, ever.
   static const _request = AdRequest();
 
+  InterstitialAd? _interstitial;
+
   @override
   bool get configured =>
       AppConfig.bannerAdUnitId.isNotEmpty &&
@@ -104,6 +106,39 @@ final class AndroidAdsService implements AdsService {
     );
     await native.load();
     return await result.future;
+  }
+
+  @override
+  Future<void> preloadInterstitial() async {
+    final unit = AppConfig.interstitialAdUnitId;
+    if (unit.isEmpty || _interstitial != null) return;
+    await InterstitialAd.load(
+      adUnitId: unit,
+      request: _request,
+      adLoadCallback: InterstitialAdLoadCallback(
+        onAdLoaded: (ad) => _interstitial = ad,
+        onAdFailedToLoad: (_) {},
+      ),
+    );
+  }
+
+  @override
+  Future<void> showInterstitial() async {
+    final ad = _interstitial;
+    if (ad == null) return;
+    _interstitial = null;
+    final closed = Completer<void>();
+    void finish(InterstitialAd ad) {
+      unawaited(ad.dispose());
+      if (!closed.isCompleted) closed.complete();
+    }
+
+    ad.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: finish,
+      onAdFailedToShowFullScreenContent: (ad, _) => finish(ad),
+    );
+    await ad.show();
+    await closed.future;
   }
 }
 

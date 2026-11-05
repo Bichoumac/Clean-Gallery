@@ -6,7 +6,7 @@ Last updated: 2026-11-05 — Milestone M11
 
 ## Rules
 
-- **Two placements only**: an adaptive banner at the bottom of the Albums tab, one native card in the Stats tab. No interstitial, rewarded, video or app-open ad. A test enforces it.
+- **Three placements only**: an adaptive banner at the bottom of the Albums tab, one native card in the Stats tab, one interstitial before a manual slideshow. No other interstitial, no rewarded or app-open ad. A test enforces it.
 - **Nothing about the user's media reaches an SDK**: requests are an empty `AdRequest()`, with no keywords and no content URL. A test enforces it.
 - All features stay free. The purchase only removes ads.
 
@@ -34,6 +34,15 @@ If consent cannot be resolved and there is no answer from a previous session, no
 | Banner | [ad_banner_slot.dart](../lib/features/monetization/ad_banner_slot.dart) | Above the floating bar, with a discreet *Remove ads* link. Its space stays when no ad comes, so nothing moves. One more try after 60 s. |
 | Native card | [native_ad_card.dart](../lib/features/monetization/native_ad_card.dart) | Tile shape and border before the Trash tile, labeled *Ad*, neutral colors, small native template. Space reserved while loading, given back if no ad comes or the width is under 320 dp. |
 
+## Ad before a manual slideshow
+
+Asked by the product owner on 2026-11-05, which amends the brief's ban on interstitials.
+
+- **When**: after *Start* in the options sheet of a manual slideshow (album page, selection, period). Never before a memory, a ritual or a saved slideshow, never during a slideshow.
+- **How often**: at most every 5 minutes. The count restarts with the app.
+- **No waiting**: the ad is loaded in advance. If none is ready, or it fails, the slideshow starts at once.
+- **Length**: not set by the app. Google decides when the ad can be closed, and test ads may not reflect real ones. To avoid videos, choose a display-only type on the ad unit if AdMob offers it.
+
 ## Purchase
 
 - **Product**: `remove_ads`, non-consumable, €4.99 set in the Play Console. The app shows only the store's localized price.
@@ -60,7 +69,7 @@ Google's UMP asks at launch when the law requires it. Settings → *Privacy & ad
 
 Needed before ads or the purchase can work for real; all are the product owner's accounts.
 
-1. **AdMob**: create the app and two ad units, banner and native; publish a GDPR message under *Privacy & messaging*.
+1. **AdMob**: create the app and three ad units, banner, native and interstitial; publish a GDPR message under *Privacy & messaging*.
 2. **Play Console**: create the product `remove_ads` at €4.99, add license testers, upload a build to a testing track. Billing does not work on a build that Play does not know.
 3. **Build** with the real IDs, which are never committed:
 
@@ -68,6 +77,7 @@ Needed before ads or the purchase can work for real; all are the product owner's
 flutter build appbundle --release \
   --dart-define=ADMOB_BANNER_UNIT_ID=ca-app-pub-xxx/yyy \
   --dart-define=ADMOB_NATIVE_UNIT_ID=ca-app-pub-xxx/zzz \
+  --dart-define=ADMOB_INTERSTITIAL_UNIT_ID=ca-app-pub-xxx/vvv \
   -PadmobAppId=ca-app-pub-xxx~www
 ```
 

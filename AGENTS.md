@@ -65,7 +65,7 @@ Full details and diagrams: [docs/architecture.md](docs/architecture.md).
 
 1. Never use `MANAGE_EXTERNAL_STORAGE`. A test enforces it.
 2. Every delete in the app goes through the app trash first (`MediaActions.trash`); only the trash deletes for good (`MediaActions.deleteForever`).
-3. Ads appear only in the two allowed placements: a banner at the bottom of the Albums tab and one native card in the Stats tab ([ADR 0008](docs/decisions/0008-navigation-and-visual-identity.md)). No interstitial, rewarded, video or app-open ads.
+3. Ads appear only in the three allowed placements: a banner at the bottom of the Albums tab, one native card in the Stats tab ([ADR 0008](docs/decisions/0008-navigation-and-visual-identity.md)), and one interstitial before a manual slideshow, at most every 5 minutes (product owner, 2026-11-05, [ADR 0030](docs/decisions/0030-ads-and-purchase.md)). No other interstitial, and no rewarded or app-open ads (a test enforces it).
 4. No media data or metadata is ever sent to any SDK, ads included.
 5. Platform code lives only behind interfaces in `lib/platform/`. Features never import `platform/android/` (a test enforces it).
 6. `lib/analysis/` and `lib/domain/` never import Flutter (a test enforces it).

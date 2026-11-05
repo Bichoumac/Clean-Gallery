@@ -66,7 +66,11 @@ class Monetization extends _$Monetization {
   /// How long the launch waits for the store before using the cached answer.
   static const storeTimeout = Duration(seconds: 5);
 
+  /// Shortest time between two ads before a manual slideshow.
+  static const slideshowAdInterval = Duration(minutes: 5);
+
   bool _started = false;
+  DateTime? _lastSlideshowAd;
 
   @override
   MonetizationState build() {
@@ -123,7 +127,10 @@ class Monetization extends _$Monetization {
     state = state.copyWith(phase: AdsPhase.starting);
     try {
       final allowed = await ads.gatherConsent();
-      if (allowed && !state.adFree) await ads.initialize();
+      if (allowed && !state.adFree) {
+        await ads.initialize();
+        unawaited(_preloadSlideshowAd());
+      }
       final required = await ads.privacyOptionsRequired();
       state = state.copyWith(
         phase: allowed && !state.adFree ? AdsPhase.ready : AdsPhase.off,
@@ -133,6 +140,32 @@ class Monetization extends _$Monetization {
       // Without an answer about consent, no ad is ever requested.
       state = state.copyWith(phase: AdsPhase.off);
     }
+  }
+
+  Future<void> _preloadSlideshowAd() async {
+    try {
+      await ref.read(adsServiceProvider).preloadInterstitial();
+    } on PlatformException {
+      // No ad ready: the next slideshow simply starts without one.
+    }
+  }
+
+  /// Before a manual slideshow, the only caller allowed (rule 3 of
+  /// `AGENTS.md`, a test enforces it): shows a ready ad, at most once every
+  /// [slideshowAdInterval]. Otherwise returns at once.
+  Future<void> showSlideshowAd({DateTime? now}) async {
+    if (state.phase != AdsPhase.ready) return;
+    final time = now ?? DateTime.now();
+    final last = _lastSlideshowAd;
+    if (last != null && time.difference(last) < slideshowAdInterval) return;
+    final ads = ref.read(adsServiceProvider);
+    try {
+      _lastSlideshowAd = time;
+      await ads.showInterstitial();
+    } on PlatformException {
+      // A failed ad never stops the slideshow.
+    }
+    unawaited(_preloadSlideshowAd());
   }
 
   Future<void> _saveAdFree({required bool value}) async {

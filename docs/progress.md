@@ -40,8 +40,9 @@ The product owner chose a warm identity and a logo on 2026-11-04 ([ADR 0028](dec
 ### Done
 
 - **Ads**: AdMob banner in the Albums tab and native card in the Stats tab, UMP consent after onboarding, *Privacy & ad choices* ([monetization.md](monetization.md), [ADR 0030](decisions/0030-ads-and-purchase.md)).
+- **Ad before a manual slideshow** (product owner, 2026-11-05, reversing the brief's ban on interstitials for this case): at most every 5 minutes, never before a memory, ritual or saved slideshow; the slideshow never waits for it.
 - **Remove ads**: non-consumable `remove_ads`, acknowledged, checked at each launch, restored, cached so no ad flashes; the SDK never starts for an ad-free user. Offered in Settings, next to the banner, and once after more than 500 MB deleted for good.
-- Four architecture tests guard the placements and the requests. No schema change. 472 tests; a profile APK builds.
+- Five architecture tests guard the placements and the requests. No schema change. 472 tests; a profile APK builds.
 
 ### Decisions
 

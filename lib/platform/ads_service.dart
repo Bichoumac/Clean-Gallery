@@ -37,7 +37,7 @@ class NativeAdColors {
   final Color buttonText;
 }
 
-/// Consent, SDK start and the two allowed ad formats.
+/// Consent, SDK start and the three allowed ad formats.
 ///
 /// Requests never carry anything about the user's media: no keywords, no
 /// content URL (rule 4 of `AGENTS.md`). See `docs/monetization.md`.
@@ -67,4 +67,11 @@ abstract interface class AdsService {
 
   /// Loads a native ad; `null` when none could be loaded.
   Future<LoadedAd?> loadNative(NativeAdColors colors);
+
+  /// Loads the ad shown before a manual slideshow, in the background.
+  Future<void> preloadInterstitial();
+
+  /// Shows the loaded ad and completes when it closes; completes at once
+  /// when none is ready, so a slideshow never waits for the network.
+  Future<void> showInterstitial();
 }

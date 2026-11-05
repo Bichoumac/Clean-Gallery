@@ -63,13 +63,27 @@ void main() {
       ]);
     });
 
-    test('no interstitial, rewarded or app-open ad', () {
+    test('no rewarded or app-open ad', () {
       expect(
-        using(
-          RegExp('InterstitialAd|RewardedAd|RewardedInterstitial|AppOpenAd'),
-        ),
+        using(RegExp('RewardedAd|RewardedInterstitial|AppOpenAd')),
         isEmpty,
       );
+    });
+
+    test('a full-screen ad only before a manual slideshow', () {
+      expect(using(RegExp(r'\bInterstitialAd\b')), [
+        'lib/platform/android/android_ads_service.dart',
+      ]);
+      expect(using(RegExp(r'\.showInterstitial\(')), [
+        'lib/features/monetization/monetization_controller.dart',
+      ]);
+      expect(using(RegExp(r'\.showSlideshowAd\(')), [
+        'lib/features/slideshow/slideshow_actions.dart',
+      ]);
+      final source = File('lib/features/slideshow/slideshow_actions.dart')
+          .readAsStringSync();
+      // Only the two manual launches, not memories, rituals or saved ones.
+      expect(RegExp(r'\.showSlideshowAd\(').allMatches(source), hasLength(2));
     });
 
     test('requests carry nothing about the user or their media', () {

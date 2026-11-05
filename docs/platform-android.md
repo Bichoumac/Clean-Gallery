@@ -140,5 +140,6 @@ Measured on the first device test as slow, especially after scrolling far. For e
 | AdMob application ID | Gradle property `admobAppId` → manifest placeholder | Google's public test ID |
 | Banner ad unit ID | `--dart-define=ADMOB_BANNER_UNIT_ID` | Test ID in debug; empty in release |
 | Native ad unit ID | `--dart-define=ADMOB_NATIVE_UNIT_ID` | Test ID in debug; empty in release |
+| Interstitial ad unit ID | `--dart-define=ADMOB_INTERSTITIAL_UNIT_ID` | Test ID in debug; empty in release: no ad before a slideshow |
 
 See [app_config.dart](../lib/core/config/app_config.dart). A release build without an ad unit ID keeps ads disabled. The permissions the ads and billing SDKs add are listed in [monetization.md](monetization.md#permissions-added-by-the-sdks).

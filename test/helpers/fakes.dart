@@ -215,6 +215,12 @@ class FakeAdsService implements AdsService {
     calls.add('native');
     return fill ? FakeLoadedAd() : null;
   }
+
+  @override
+  Future<void> preloadInterstitial() async => calls.add('preload');
+
+  @override
+  Future<void> showInterstitial() async => calls.add('interstitial');
 }
 
 class FakePurchaseService implements PurchaseService {

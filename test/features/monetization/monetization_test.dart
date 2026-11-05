@@ -53,7 +53,7 @@ void main() {
 
       await controller(c).start();
 
-      expect(ads.calls, ['consent', 'initialize']);
+      expect(ads.calls, ['consent', 'initialize', 'preload']);
       expect(c.read(monetizationProvider).phase, AdsPhase.ready);
       expect(c.read(monetizationProvider).price, '4,99 €');
     });
@@ -99,7 +99,7 @@ void main() {
       purchases.owned = false;
       final c = container(settings: const AppSettings(adFree: true));
       await controller(c).start();
-      expect(ads.calls, ['consent', 'initialize']);
+      expect(ads.calls, ['consent', 'initialize', 'preload']);
       expect(c.read(monetizationProvider).adFree, isFalse);
       expect(c.read(monetizationProvider).phase, AdsPhase.ready);
     });
@@ -193,6 +193,51 @@ void main() {
       await controller(c).restore();
       expect(c.read(monetizationProvider).message, PurchaseMessage.restored);
       expect(c.read(monetizationProvider).adFree, isTrue);
+    });
+
+    group('ad before a manual slideshow', () {
+      final start = DateTime(2026, 11, 5, 12);
+
+      int shown() => ads.calls.where((c) => c == 'interstitial').length;
+
+      test('shown, then at most once every 5 minutes', () async {
+        final c = container();
+        await controller(c).start();
+
+        await controller(c).showSlideshowAd(now: start);
+        expect(shown(), 1);
+        await controller(c).showSlideshowAd(
+          now: start.add(const Duration(minutes: 4, seconds: 59)),
+        );
+        expect(shown(), 1);
+        await controller(c)
+            .showSlideshowAd(now: start.add(const Duration(minutes: 5)));
+        expect(shown(), 2);
+      });
+
+      test('the next one is loaded after it closes', () async {
+        final c = container();
+        await controller(c).start();
+        await controller(c).showSlideshowAd(now: start);
+        await pumpEventQueue();
+        expect(ads.calls.where((c) => c == 'preload'), hasLength(2));
+      });
+
+      test('never for an ad-free user', () async {
+        purchases.owned = true;
+        final c = container();
+        await controller(c).start();
+        await controller(c).showSlideshowAd(now: start);
+        expect(ads.calls, isEmpty);
+      });
+
+      test('never without consent', () async {
+        ads.consent = false;
+        final c = container();
+        await controller(c).start();
+        await controller(c).showSlideshowAd(now: start);
+        expect(shown(), 0);
+      });
     });
 
     test('withdrawing consent stops the ads', () async {

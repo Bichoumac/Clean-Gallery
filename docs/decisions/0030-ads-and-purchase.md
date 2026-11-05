@@ -20,6 +20,10 @@ The brief asks for AdMob with UMP consent and a non-consumable purchase, restric
 - **The offer** comes after a deletion for good from the Trash screen, the moment space is really freed.
 - **Ownership** is read with `queryPastPurchases`, which also reveals a refund, unlike a stream of restored purchases.
 
+## Amendment: an interstitial before a manual slideshow
+
+On 2026-11-05 the product owner asked for a quick ad before a slideshow started by hand. It reverses the brief's ban on interstitials and on ads around slideshows for this one case. It is kept narrow: manual launches only, at most every 5 minutes, loaded in advance so a slideshow never waits, and shown before the player so it never interrupts the photos or the music. The architecture test keeps every other full-screen ad out.
+
 ## Alternatives considered
 
 - **A Kotlin native factory**: matches the app's font, but adds a layout and a channel for one card. Kept in reserve if the template looks wrong.
