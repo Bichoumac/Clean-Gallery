@@ -261,7 +261,8 @@ void main() {
       tester,
     ) async {
       final ads = FakeAdsService(configured: true);
-      await pumpTestApp(tester, ads: ads);
+      final purchases = FakePurchaseService();
+      await pumpTestApp(tester, ads: ads, purchases: purchases);
 
       expect(find.byType(AdBannerSlot), findsNothing);
       await openTab(tester, 'Albums');
@@ -272,8 +273,23 @@ void main() {
         AdBannerSlot.bannerSize.height,
       );
       expect(find.byKey(adKey), findsOneWidget);
-      expect(find.text('Remove ads'), findsOneWidget);
       expect(ads.calls, contains('banner'));
+
+      // The link is at the end of the list, and it opens the purchase.
+      await tester.scrollUntilVisible(
+        find.text('Remove ads'),
+        300,
+        scrollable: find
+            .descendant(
+              of: find.byType(AlbumsScreen),
+              matching: find.byType(Scrollable),
+            )
+            .first,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Remove ads'));
+      await tester.pumpAndSettle();
+      expect(purchases.buys, 1);
 
       await openTab(tester, 'Stats');
       await tester.scrollUntilVisible(
