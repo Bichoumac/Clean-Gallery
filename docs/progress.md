@@ -48,7 +48,7 @@ The product owner chose a warm identity and a logo on 2026-11-04 ([ADR 0028](dec
 
 - **People moved after M11** (product owner, 2026-11-05), see [ADR 0029](decisions/0029-face-model.md).
 - **Android backup stays on** (product owner, 2026-11-05), so the app's data can follow the user to a new phone; the privacy policy says so ([platform-android.md](platform-android.md#android-backup)).
-- **Privacy policy**: published by the product owner at <https://sites.google.com/view/clean-gallery-privacy> (2026-11-05); to link from the app in M12.
+- **Privacy policy**: published by the product owner at <https://sites.google.com/view/clean-gallery-privacy> (2026-11-05); to link from the app in M12; publisher and contact checked on the public page.
 - **Application ID**: `com.bichoumac.clean_gallery` confirmed by the product owner as final (2026-11-05).
 - **Play Console account**: personal, so the closed test of 12 testers for 14 days applies, and the product owner cannot gather 12 testers (2026-11-05). The way to publish is open.
 - **Banner**: standard 320 × 50 dp, the link moved to the end of the list, after the product owner found the large adaptive banner, then the strip, too big (2026-11-05).
@@ -65,10 +65,7 @@ The product owner chose a warm identity and a logo on 2026-11-04 ([ADR 0028](dec
 
 ### Next steps
 
-1. The product owner checks the smaller banner strip.
-2. Decide how to publish without 12 testers.
-3. The product owner's AdMob and Play Console setup, then items 10 to 15.
-4. M12, then M10 when it resumes.
+The full list is in [working-notes.md](working-notes.md#to-do-next-written-2026-11-05-resume-here).
 
 ## New features — decisions (2026-11-01)
 
