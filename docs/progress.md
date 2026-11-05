@@ -47,6 +47,8 @@ The product owner chose a warm identity and a logo on 2026-11-04 ([ADR 0028](dec
 ### Decisions
 
 - **People moved after M11** (product owner, 2026-11-05), see [ADR 0029](decisions/0029-face-model.md).
+- **Android backup stays on** (product owner, 2026-11-05), so the app's data can follow the user to a new phone; the privacy policy says so ([platform-android.md](platform-android.md#android-backup)).
+- **Privacy policy**: to host on a Google Site, `sites.google.com/view/clean-gallery-privacy` proposed; the draft is not in the repository yet.
 - **The offer** follows a deletion for good from the Trash screen; moving to the trash frees nothing yet.
 - **Native template** rather than a Kotlin factory; to review once seen on the phone.
 

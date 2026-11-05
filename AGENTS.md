@@ -7,7 +7,7 @@ Last updated: 2026-11-05 — Milestone M11
 ## Project summary
 
 - Android photo and video gallery written in Flutter, with cleanup tools (duplicates, swipe sorting, trash).
-- Everything runs on device: no media or metadata ever leaves the phone.
+- Everything runs on device: the app sends no media or metadata anywhere. Android's own backup may copy the app's database to the user's Google account (product owner's choice, 2026-11-05, see [docs/platform-android.md](docs/platform-android.md#android-backup)).
 - Free with two light ad placements; one non-consumable "Remove ads" purchase.
 - Android only for now; all platform code sits behind interfaces so iOS can be added later.
 - Built milestone by milestone (M0 to M12); the current state is in [docs/progress.md](docs/progress.md).

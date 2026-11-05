@@ -133,6 +133,10 @@ Measured on the first device test as slow, especially after scrolling far. For e
 | `androidx.exifinterface:exifinterface` | 1.4.2 | Clearing GPS tags of shared copies |
 | `androidx.core:core-ktx` | 1.19.1 | `FileProvider`, `NotificationCompat` |
 
+## Android backup
+
+Android's Auto Backup stays on (`android:allowBackup` is not set), by the product owner's choice on 2026-11-05. If the user has Google backup on, Android may copy the app's internal data to their Google account or a new device, including its settings and database with file names, dates and locations. Photos and videos are not part of it. Albums, saved slideshows and settings can then follow the user to a new phone. The privacy policy says so; any change here must change the policy too.
+
 ## Build configuration
 
 | Value | Source | Default |
