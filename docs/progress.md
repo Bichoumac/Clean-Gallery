@@ -18,8 +18,8 @@ Last updated: 2026-11-05 — M10 model choice
 | M7 | Exploration: map, search | Merged into `main` (PR #9, 2026-10-30); map built in M6 |
 | M8 | User albums | Merged into `main` (PR #10, 2026-11-01) |
 | M9 | Slideshows, saved slideshows, memories, rituals | Merged into `main` (PR #11, 2026-11-04) |
-| M10 | People (on-device face recognition, merging) | Specified and approved 2026-11-01; model choice proposed in [ADR 0029](decisions/0029-face-model.md), no code yet (branch `m10-people`) |
-| M11 | Monetization (was M8) | Not started |
+| M10 | People (on-device face recognition, merging) | Postponed by the product owner on 2026-11-05, to come after M11; no code, model study in [ADR 0029](decisions/0029-face-model.md) |
+| M11 | Monetization (was M8) | In progress on branch `m11-monetization` |
 | M12 | Polish and release preparation (was M9) | Not started |
 | — | Visual refresh: Éclat Soleil identity, logo and icon | Merged into `main` (PR #13), tried on the phone 2026-11-05 |
 

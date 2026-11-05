@@ -86,4 +86,4 @@ One file per feature is added as each feature is built.
 | [0026](decisions/0026-saved-slideshows-without-video.md) | Slideshows played live, saved as lists |
 | [0027](decisions/0027-notifications-without-background-work.md) | Memory and ritual notifications without background work |
 | [0028](decisions/0028-warm-eclat-identity.md) | Warm Éclat Soleil visual identity |
-| [0029](decisions/0029-face-model.md) | Face detection and recognition models (proposed) |
+| [0029](decisions/0029-face-model.md) | Face detection and recognition models (postponed) |

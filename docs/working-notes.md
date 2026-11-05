@@ -12,10 +12,10 @@ Quick resume (keep this short; history is in [progress.md](progress.md) and git)
 - **Everything built in M6 is confirmed on the Galaxy A54** (items 1 to 64 of [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device)): info panel with mini map, stacks of duplicates in the timelines, map (brought forward from M7), viewer group strip (Keep / Trash), sorts by number of duplicates, viewer actions at the bottom, editor ([editor.md](features/editor.md)), document scanner ([scan.md](features/scan.md)).
 - **Left from M6**: nothing. Not wanted for now: batch editing; scanner camera capture.
 - **M8 user albums is merged** (PR #10, 2026-11-01).
-- **M9 slideshows and memories is merged** (PR #11, 2026-11-04). Next by the plan: **M10 People** from `main` (spec in [prompt.md](../prompt.md); an ADR on the face model comes first).
+- **M9 slideshows and memories is merged** (PR #11, 2026-11-04). 
 - **Visual refresh is merged** (PR #13); the 22 checks of [testing.md](testing.md#visual-refresh--to-verify-on-a-device) were not reported one by one.
-- **M10 People**: branch `m10-people`, no feature code yet. [ADR 0029](decisions/0029-face-model.md) is *Proposed*: it waits for the product owner's decision on the licensing risk, then for a speed measure on the phone. Open point: the product owner picks 2 or 3 CC0 tracks for the bundled music ([slideshow.md](features/slideshow.md#music)).
-- **Next milestones**: M10 People, M11 monetization, M12 polish ([progress.md](progress.md)).
+- **M10 People is postponed** (product owner, 2026-11-05): licensing risk on every face model found, see [ADR 0029](decisions/0029-face-model.md). **M11 monetization** is in progress on branch `m11-monetization`.
+- **Next milestones**: M11 monetization, then M12 polish and M10 People, order to confirm ([progress.md](progress.md)).
 - **Phone over USB**: the laptop's webcam is a Xiaomi USB device too; run `p.sh` only once the phone shows in `lsusb` (Samsung, MTP mode), or it may pick the webcam.
 - **Key design points to keep**: one paint function (`paintEdit`, `paintPage`) for preview and saving; the native side only writes JPEG + EXIF (`PhotoSaver.kt`); every delete through the app trash; pure Dart in `lib/analysis/` and `lib/domain/`; on the phone (Impeller), avoid blend-mode masks in layers, use clips (blur bug of 2026-10-29).
 - **Checking a look without the phone**: a temporary widget test can load the real fonts with `FontLoader` and write PNG files with `matchesGoldenFile` and `--update-goldens`; delete it afterwards. Without the fonts, text renders as blocks, which also shows a style that forgot its font family.

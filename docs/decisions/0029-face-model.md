@@ -4,7 +4,7 @@ Which models People would bundle, what is known about their licenses and what mu
 
 Last updated: 2026-11-05 — Milestone M10
 
-- **Status**: Proposed, waiting for the product owner's decision on the licensing risk and for a speed measure on the Galaxy A54
+- **Status**: Postponed by the product owner on 2026-11-05: People comes later, after M11. Nothing was accepted; the licensing risk and the measures below stay open
 - **Date**: 2026-11-05
 
 ## Context
@@ -47,7 +47,8 @@ No model found is free of this question. This is not a legal opinion: only a law
 - **ML Kit, or any cloud API**: excluded by the specification. ML Kit also has no recognition.
 - **InsightFace models**: not reviewed further; recalled as non-commercial, to verify if they are ever reconsidered.
 - **EdgeFace, GhostFaceNets**: published papers under CC BY-NC-ND, trained on WebFace or MS1M variants; no clearer than SFace.
-- **Training our own model**: would need a face dataset with commercial rights and training hardware; not explored.
+- **Training our own model** (asked by the product owner, 2026-11-05): not advised. It needs a face dataset with commercial rights; the reference synthetic set, [DigiFace-1M](https://github.com/microsoft/DigiFace1M), is for non-commercial research only and its terms also exclude results used in a product. Its authors report 96.17 % on LFW from synthetic data alone.
+- **A commercially licensed on-device model**: not researched yet; the next thing to look at when People resumes.
 - **Postponing People**, to build M11 and M12 first: removes the risk from the first release and leaves the feature for later.
 
 ## Consequences

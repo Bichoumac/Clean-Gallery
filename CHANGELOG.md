@@ -6,7 +6,7 @@ Last updated: 2026-11-04 — Visual refresh
 
 ## [Unreleased]
 
-Next: M10 People, M11 monetization and M12 polish.
+Next: M11 monetization. M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)).
 
 ### Added
 
