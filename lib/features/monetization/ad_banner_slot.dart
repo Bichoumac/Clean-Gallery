@@ -7,7 +7,7 @@ import 'package:clean_gallery/platform/ads_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-/// The adaptive banner of the Albums tab, with a discreet *Remove ads* link.
+/// The small banner of the Albums tab, with a discreet *Remove ads* link.
 ///
 /// Allowed only at the bottom of the Albums tab (rule 3 of `AGENTS.md`, a
 /// test enforces it). Its space is reserved before the ad loads and stays
@@ -16,8 +16,8 @@ class AdBannerSlot extends ConsumerStatefulWidget {
   /// Creates the slot. The caller shows it only while ads are not off.
   const AdBannerSlot({super.key});
 
-  /// Height kept until the real size of the banner is known.
-  static const fallbackHeight = 60.0;
+  /// Size of the standard banner, the smallest AdMob offers.
+  static const bannerSize = Size(320, 50);
 
   @override
   ConsumerState<AdBannerSlot> createState() => _AdBannerSlotState();
@@ -27,36 +27,15 @@ class _AdBannerSlotState extends ConsumerState<AdBannerSlot> {
   /// A second try after a failed load; never more, to avoid hammering.
   static const _retryDelay = Duration(seconds: 60);
 
-  double _height = AdBannerSlot.fallbackHeight;
   LoadedAd? _ad;
   bool _loading = false;
   bool _retried = false;
-  bool _measured = false;
   Timer? _retry;
-
-  int get _width => MediaQuery.sizeOf(context).width.truncate();
-
-  @override
-  void didChangeDependencies() {
-    super.didChangeDependencies();
-    if (_measured) return;
-    _measured = true;
-    unawaited(_measure());
-  }
-
-  Future<void> _measure() async {
-    final height = await _safely(
-      () => ref.read(adsServiceProvider).bannerHeight(_width),
-    );
-    if (height != null && mounted) setState(() => _height = height);
-  }
 
   Future<void> _load() async {
     if (_loading || _ad != null) return;
     _loading = true;
-    final ad = await _safely(
-      () => ref.read(adsServiceProvider).loadBanner(_width),
-    );
+    final ad = await _safely(() => ref.read(adsServiceProvider).loadBanner());
     _loading = false;
     if (!mounted) {
       ad?.dispose();
@@ -103,6 +82,8 @@ class _AdBannerSlotState extends ConsumerState<AdBannerSlot> {
           child: TextButton(
             style: TextButton.styleFrom(
               visualDensity: VisualDensity.compact,
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              minimumSize: const Size(0, 28),
               textStyle: Theme.of(context).textTheme.labelSmall,
             ),
             onPressed: () =>
@@ -110,7 +91,7 @@ class _AdBannerSlotState extends ConsumerState<AdBannerSlot> {
             child: Text(l10n.removeAdsLink),
           ),
         ),
-        SizedBox(height: _height, child: _ad?.view),
+        SizedBox.fromSize(size: AdBannerSlot.bannerSize, child: _ad?.view),
       ],
     );
   }

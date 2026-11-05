@@ -15,6 +15,7 @@ The brief asks for AdMob with UMP consent and a non-consumable purchase, restric
 
 - `google_mobile_ads` for ads and consent, `in_app_purchase` and `in_app_purchase_android` for billing, each used in one file of `lib/platform/android/`, behind `AdsService` and `PurchaseService`.
 - `Monetization`, a Riverpod controller, owns the launch order: store, then consent, then SDK. See [monetization.md](../monetization.md).
+- **Banner**: the standard 320 × 50 dp, not adaptive. The SDK's current adaptive size can reach 15 % of the screen's height, and the product owner found it too big on the phone (2026-11-05). Adaptive banners may earn more.
 - **Fail closed**: without an answer about consent, no ad is requested.
 - **Native card**: Google's small native template, not a Kotlin native factory, so no layout is maintained on the native side.
 - **The offer** comes after a deletion for good from the Trash screen, the moment space is really freed.

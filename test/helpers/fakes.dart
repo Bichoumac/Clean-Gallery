@@ -202,10 +202,7 @@ class FakeAdsService implements AdsService {
   }
 
   @override
-  Future<double?> bannerHeight(int width) async => 50;
-
-  @override
-  Future<LoadedAd?> loadBanner(int width) async {
+  Future<LoadedAd?> loadBanner() async {
     calls.add('banner');
     return fill ? FakeLoadedAd() : null;
   }

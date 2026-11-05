@@ -58,12 +58,8 @@ abstract interface class AdsService {
   /// Reopens the consent form. Returns whether ads may still be requested.
   Future<bool> showPrivacyOptions();
 
-  /// Height of an adaptive banner [width] dp wide, to reserve its space
-  /// before it loads; `null` when it cannot be worked out.
-  Future<double?> bannerHeight(int width);
-
-  /// Loads an adaptive banner; `null` when none could be loaded.
-  Future<LoadedAd?> loadBanner(int width);
+  /// Loads a standard 320 × 50 dp banner; `null` when none could be loaded.
+  Future<LoadedAd?> loadBanner();
 
   /// Loads a native ad; `null` when none could be loaded.
   Future<LoadedAd?> loadNative(NativeAdColors colors);

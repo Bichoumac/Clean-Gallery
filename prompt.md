@@ -239,7 +239,7 @@ Thresholds are exposed in Settings as sensitivity presets (Low / Medium / High) 
 **Principle: ads must be as unobtrusive as possible.** The app must remain pleasant to use in its free version.
 
 **Allowed ad placements (only these):**
-- A small **adaptive banner** at the bottom of the **Folders** tab.
+- A small **banner** at the bottom of the **Folders** tab: standard 320 × 50 dp (product owner, 2026-11-05: the adaptive one was too big).
 - One **native ad card** in the **Clean** tab, visually integrated between the cleanup cards, styled to match Material 3, and clearly labeled "Ad".
 
 - Added by the product owner on 2026-11-05: one **interstitial before a manual slideshow** (a *Slideshow* button of an album page, a selection, or a period), at most every 5 minutes. Never before a memory, a ritual or a saved slideshow, and never during a slideshow.

@@ -54,19 +54,11 @@ final class AndroidAdsService implements AdsService {
   }
 
   @override
-  Future<double?> bannerHeight(int width) async {
-    final size = await AdSize.getLargeAnchoredAdaptiveBannerAdSize(width);
-    return size?.height.toDouble();
-  }
-
-  @override
-  Future<LoadedAd?> loadBanner(int width) async {
-    final size = await AdSize.getLargeAnchoredAdaptiveBannerAdSize(width);
-    if (size == null) return null;
+  Future<LoadedAd?> loadBanner() async {
     final result = Completer<LoadedAd?>();
     final banner = BannerAd(
       adUnitId: AppConfig.bannerAdUnitId,
-      size: size,
+      size: AdSize.banner,
       request: _request,
       listener: BannerAdListener(
         onAdLoaded: (ad) => result.complete(_LoadedAd(ad as AdWithView)),

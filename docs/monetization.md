@@ -6,7 +6,7 @@ Last updated: 2026-11-05 — Milestone M11
 
 ## Rules
 
-- **Three placements only**: an adaptive banner at the bottom of the Albums tab, one native card in the Stats tab, one interstitial before a manual slideshow. No other interstitial, no rewarded or app-open ad. A test enforces it.
+- **Three placements only**: a small banner at the bottom of the Albums tab, one native card in the Stats tab, one interstitial before a manual slideshow. No other interstitial, no rewarded or app-open ad. A test enforces it.
 - **Nothing about the user's media reaches an SDK**: requests are an empty `AdRequest()`, with no keywords and no content URL. A test enforces it.
 - All features stay free. The purchase only removes ads.
 
@@ -31,7 +31,7 @@ If consent cannot be resolved and there is no answer from a previous session, no
 
 | Slot | File | Behavior |
 | --- | --- | --- |
-| Banner | [ad_banner_slot.dart](../lib/features/monetization/ad_banner_slot.dart) | Above the floating bar, with a discreet *Remove ads* link. Its space stays when no ad comes, so nothing moves. One more try after 60 s. |
+| Banner | [ad_banner_slot.dart](../lib/features/monetization/ad_banner_slot.dart) | Standard 320 × 50 dp, chosen by the product owner on 2026-11-05 because the large adaptive banner was too big. Above the floating bar, with a discreet *Remove ads* link. Its space stays when no ad comes, so nothing moves. One more try after 60 s. |
 | Native card | [native_ad_card.dart](../lib/features/monetization/native_ad_card.dart) | Tile shape and border before the Trash tile, labeled *Ad*, neutral colors, small native template. Space reserved while loading, given back if no ad comes or the width is under 320 dp. |
 
 ## Ad before a manual slideshow
