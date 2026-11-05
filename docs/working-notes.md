@@ -24,7 +24,7 @@ Quick resume (keep this short; history is in [progress.md](progress.md) and git)
 
 ## To do next (written 2026-11-05, resume here)
 
-State: branch `m11-monetization`, committed locally, **not pushed**; last commit `fb8b34e`. 480 tests pass, analyzer clean. The profile APK in `build/` matches the code but is **not installed**.
+State: branch `m11-monetization`, pushed on 2026-11-05, pull request not opened. 480 tests pass, analyzer clean. The profile APK in `build/` matches the code but is **not installed**.
 
 **First, on the phone**
 
@@ -44,7 +44,7 @@ State: branch `m11-monetization`, committed locally, **not pushed**; last commit
 8. *About* screen, with the app's promise, credits and licenses, and the link to <https://sites.google.com/view/clean-gallery-privacy> in About and Settings.
 9. `docs/release.md`: every Play Console form with the answers to prepare, including the *Data safety* answers for ads, advertising ID, map and Android backup.
 10. Clean up: `pubspec.yaml` still says "A new Flutter project." and version `0.1.0+1`; agree on the first version. Measure the release APK with the SDKs (26.6 MB before them). Accessibility and performance pass of the brief.
-11. Push `m11-monetization` when asked, and give the pull request link and text as usual.
+11. Push later commits of `m11-monetization` when asked; the product owner opens the pull request after trying the banner.
 
 **Outside setup, by the product owner**
 
