@@ -86,6 +86,17 @@ void main() {
       expect(RegExp(r'\.showSlideshowAd\(').allMatches(source), hasLength(2));
     });
 
+    test('the ads Topics permission stays removed', () {
+      final manifest = File('android/app/src/main/AndroidManifest.xml')
+          .readAsStringSync();
+      expect(
+        RegExp(
+          r'android\.permission\.ACCESS_ADSERVICES_TOPICS"\s+tools:node="remove"',
+        ).hasMatch(manifest),
+        isTrue,
+      );
+    });
+
     test('requests carry nothing about the user or their media', () {
       final source = File('lib/platform/android/android_ads_service.dart')
           .readAsStringSync();

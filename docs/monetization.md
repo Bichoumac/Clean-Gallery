@@ -31,7 +31,7 @@ If consent cannot be resolved and there is no answer from a previous session, no
 
 | Slot | File | Behavior |
 | --- | --- | --- |
-| Banner | [ad_banner_slot.dart](../lib/features/monetization/ad_banner_slot.dart) | Standard 320 × 50 dp, chosen by the product owner on 2026-11-05 because the large adaptive banner was too big. Above the floating bar, with a discreet *Remove ads* link. Its space stays when no ad comes, so nothing moves. One more try after 60 s. |
+| Banner | [ad_banner_slot.dart](../lib/features/monetization/ad_banner_slot.dart) | Standard 320 × 50 dp, chosen by the product owner on 2026-11-05 because the large adaptive banner was too big. Above the floating bar, with nothing else in its strip; the discreet *Remove ads* link sits at the end of the list (product owner, 2026-11-05, the banner still looked too big). Its space stays when no ad comes, so nothing moves. One more try after 60 s. |
 | Native card | [native_ad_card.dart](../lib/features/monetization/native_ad_card.dart) | Tile shape and border before the Trash tile, labeled *Ad*, neutral colors, small native template. Space reserved while loading, given back if no ad comes or the width is under 320 dp. |
 
 ## Ad before a manual slideshow
@@ -56,7 +56,7 @@ There is no server, so purchases are not verified by a backend. Editing the loca
 ## Where it is offered
 
 - Settings → *Ads*: *Remove ads — {price}*, or *Ad-free ✓* once bought.
-- The link next to the banner.
+- The link at the end of the Albums tab.
 - At most once ever: a sheet after more than 500 MB was **deleted for good from the Trash screen**, only with a store price. It is recorded as shown when it opens.
 
 Moving items to the trash does not trigger it, since no space is freed yet; neither does the expired trash offered at launch.
@@ -91,7 +91,8 @@ Merged into the manifest without being declared by the app. None gives access to
 | --- | --- |
 | `com.android.vending.BILLING` | Billing |
 | `com.google.android.gms.permission.AD_ID` | Ads: advertising ID |
-| `ACCESS_ADSERVICES_AD_ID`, `ACCESS_ADSERVICES_ATTRIBUTION`, `ACCESS_ADSERVICES_TOPICS` | Ads: Android's Privacy Sandbox |
+| `ACCESS_ADSERVICES_AD_ID`, `ACCESS_ADSERVICES_ATTRIBUTION` | Ads: Android's Privacy Sandbox |
+| `ACCESS_ADSERVICES_TOPICS` | Removed from the manifest at the product owner's request (2026-11-05): no interest-based Topics signal |
 | `ACCESS_NETWORK_STATE`, `WAKE_LOCK`, `FOREGROUND_SERVICE` | Ads and Google libraries |
 
 They must be reflected in the *Data safety* form and the *Contains ads* declaration (`docs/release.md`, M12).

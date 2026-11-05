@@ -14,7 +14,8 @@ Quick resume (keep this short; history is in [progress.md](progress.md) and git)
 - **M8 user albums is merged** (PR #10, 2026-11-01).
 - **M9 slideshows and memories is merged** (PR #11, 2026-11-04). 
 - **Visual refresh is merged** (PR #13); the 22 checks of [testing.md](testing.md#visual-refresh--to-verify-on-a-device) were not reported one by one.
-- **M10 People is postponed** (product owner, 2026-11-05): licensing risk on every face model found, see [ADR 0029](decisions/0029-face-model.md). **M11 monetization** is built on branch `m11-monetization`, committed locally, not tried on a phone: [monetization.md](monetization.md), checks in [testing.md](testing.md#m11--monetization-to-verify-on-a-device).
+- **M10 People is postponed** (product owner, 2026-11-05): licensing risk on every face model found, see [ADR 0029](decisions/0029-face-model.md). **M11 monetization** is built on branch `m11-monetization`, committed locally, items 1 to 9 OK on the phone, purchase not tried: [monetization.md](monetization.md), checks in [testing.md](testing.md#m11--monetization-to-verify-on-a-device).
+- **Publishing is blocked**: personal Play account, closed test of 12 testers for 14 days needed, and the product owner cannot gather 12; way forward not chosen yet.
 - **Next milestones**: M11 monetization, then M12 polish and M10 People, order to confirm ([progress.md](progress.md)).
 - **Phone over USB**: the laptop's webcam is a Xiaomi USB device too; run `p.sh` only once the phone shows in `lsusb` (Samsung, MTP mode), or it may pick the webcam.
 - **Key design points to keep**: one paint function (`paintEdit`, `paintPage`) for preview and saving; the native side only writes JPEG + EXIF (`PhotoSaver.kt`); every delete through the app trash; pure Dart in `lib/analysis/` and `lib/domain/`; on the phone (Impeller), avoid blend-mode masks in layers, use clips (blur bug of 2026-10-29).

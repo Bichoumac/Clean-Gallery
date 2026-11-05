@@ -223,9 +223,9 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
             ),
           ),
           SliverToBoxAdapter(
-            child: SizedBox(
-              height: showBanner ? 8 : CompactNavBar.contentInset(context),
-            ),
+            child: showBanner
+                ? const RemoveAdsLink()
+                : SizedBox(height: CompactNavBar.contentInset(context)),
           ),
         ],
       ),

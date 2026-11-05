@@ -136,10 +136,10 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 
 ### M11 — monetization, to verify on a device
 
-Not tried on a phone yet. Install a profile build, which uses Google's test ads: `flutter build apk --profile --target-platform android-arm64`.
+Items 1 to 9 reported OK as a whole by the product owner on 2026-11-05, on the Galaxy A54; items 10 to 15 not run. Install a profile build, which uses Google's test ads: `flutter build apk --profile --target-platform android-arm64`.
 
 1. First launch after the update, in France: Google's consent form appears over the tabs, never during onboarding. If it does not appear, note whether ads show anyway.
-2. Accept: Albums shows a *Test Ad* banner above the floating bar, not hidden by it, with *Remove ads* just above it.
+2. Accept: Albums shows a *Test Ad* banner above the floating bar, not hidden by it, with *Remove ads* at the end of the list.
 3. The banner's height looks small enough, and the last album can be scrolled fully into view.
 4. Stats: a card labeled *Annonce* before the Trash tile, with its own *Ad* badge. Tile shape, no citron, readable in light and dark.
 5. Change the theme with the Stats tab open: the card comes back in the new colors.

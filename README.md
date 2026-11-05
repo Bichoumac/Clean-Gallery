@@ -27,7 +27,7 @@ Milestones **M0** to **M9** are merged (the map came with M6). People, with on-d
 | Slideshows and memories | Slideshows from an album, a selection or a period, with music; saved slideshows; automatic memories ("1 year ago"); rituals with a notification, no background work | M9 |
 | Visual refresh | Warm Éclat Soleil identity, logo and app icon, mosaics, motion | Built, on branch `visual-refresh` |
 | People | On-device face recognition, merge two persons | Planned |
-| Monetization | Banner (Albums), native card (Stats), consent, "Remove ads" purchase | Built, to verify on a phone |
+| Monetization | Banner (Albums), native card (Stats), consent, "Remove ads" purchase | Built, purchase to verify |
 
 ## Requirements
 

@@ -267,8 +267,12 @@ void main() {
       await openTab(tester, 'Albums');
       expect(find.byType(AlbumsScreen), findsOneWidget);
       expect(find.byType(AdBannerSlot), findsOneWidget);
-      expect(find.text('Remove ads'), findsOneWidget);
+      expect(
+        tester.getSize(find.byType(AdBannerSlot)).height,
+        AdBannerSlot.bannerSize.height,
+      );
       expect(find.byKey(adKey), findsOneWidget);
+      expect(find.text('Remove ads'), findsOneWidget);
       expect(ads.calls, contains('banner'));
 
       await openTab(tester, 'Stats');
@@ -305,7 +309,7 @@ void main() {
       await openTab(tester, 'Albums');
       expect(find.byKey(adKey), findsNothing);
       expect(find.byType(AdBannerSlot), findsOneWidget);
-      expect(tester.getSize(find.byType(AdBannerSlot)).height, greaterThan(50));
+      expect(tester.getSize(find.byType(AdBannerSlot)).height, 50);
       // Let the single retry run and fail.
       await tester.pump(const Duration(seconds: 61));
       await tester.pumpAndSettle();
