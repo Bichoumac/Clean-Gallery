@@ -2,7 +2,7 @@
 
 The "Duplicates" virtual folder at the top of grids and the duplicates screen, where the user reviews groups of identical items, burst shots and similar photos, and moves the extra ones to the trash.
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 ## Purpose
 
@@ -33,9 +33,9 @@ flowchart TD
     E --> K[Tap a photo] --> L[Viewer on the group]
 ```
 
-## Planned look
+## Look
 
-The *Best* pill carries a small petal, the mark of the app. Not built yet: [visual refresh](../visual-refresh.md), [mockup](../design-assets/mockups/screens/07-duplicates.png).
+The *Best* pill carries a small petal, the mark of the app; thumbnails have an 18 dp radius in this review screen. [Mockup](../design-assets/mockups/screens/07-duplicates.png).
 
 ## Screens and widgets
 

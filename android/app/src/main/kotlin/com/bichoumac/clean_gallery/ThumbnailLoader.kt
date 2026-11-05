@@ -29,8 +29,9 @@ import kotlin.math.roundToInt
  * Requests are served **last in, first out**: when the user scrolls far,
  * the thumbnails now on screen are loaded before the ones scrolled past.
  * Beyond [MAX_PENDING] waiting requests, the oldest are dropped and answered
- * with a `dropped` error; Flutter requests them again if they come back on
- * screen.
+ * with a `dropped` error; the Flutter side asks again for those still on
+ * screen (`RetryingImage`) and forgets the others, so they load when they
+ * come back.
  */
 class ThumbnailLoader(
     private val context: Context,

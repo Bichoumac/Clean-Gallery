@@ -2,7 +2,7 @@
 
 Editing a photo and saving the result as a new photo: crop, straighten, rotate, flip; filters; enhance, color adjustments, vignette; pencil, blur, pixelate; texts.
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 ## Purpose
 
@@ -59,9 +59,9 @@ The brief's "Editing and filters". Built in M6 part 2 (2026-10-28), then extende
 - [editor_test.dart](../../test/features/editor/editor_test.dart): no Edit on videos, rotate and reset, sliders, closing with and without changes, 1:1, corner drag, pencil and undo, straighten, Enhance and Vignette, Before/After, blur brush, filters (pick, strength, None), texts (add, font, bold, move, delete), Save as a copy, Replace the original.
 - Rendering and the native save are checked on the device ([testing.md](../testing.md#m6--viewer-and-editing-to-verify-on-a-device)).
 
-## Planned look
+## Look
 
-The accent marks only the active tool, the active slider, the crop corners and *Save*. Not built yet: [visual refresh](../visual-refresh.md), [mockup](../design-assets/mockups/screens/14-editor.png).
+Always dark. The accent marks only the active tool, the slider that changes the photo, the crop corners and *Save*; the other sliders are white. [Mockup](../design-assets/mockups/screens/14-editor.png).
 
 ## Known limitations / future work
 

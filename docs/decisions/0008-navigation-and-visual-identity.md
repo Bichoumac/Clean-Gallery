@@ -2,7 +2,7 @@
 
 The navigation and the look of the app deviate from the brief at the product owner's request. This ADR records what changed and where the affected features now live.
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 - **Status**: Accepted
 - **Date**: 2026-10-25
@@ -50,4 +50,4 @@ At the product owner's request, the first tab shows **only the photos of the dev
 
 ## Amendment (2026-11-04): colors and typeface
 
-[ADR 0028](0028-warm-eclat-identity.md) replaces the palette and the title typeface of this decision. Its navigation stands. The refresh is not built yet.
+[ADR 0028](0028-warm-eclat-identity.md) replaces the palette and the title typeface of this decision. Its navigation stands.

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:ui' as ui;
 
 import 'package:clean_gallery/platform/android/android_platform_bridge.dart';
@@ -63,26 +64,34 @@ final class NativeThumbnailProvider
   }
 
   Future<ImageInfo> _load(NativeThumbnailProvider key) async {
-    final data = await key.bridge.thumbnail(
-      key.id,
-      isVideo: key.isVideo,
-      width: key.width,
-      height: key.height,
-      fromFile: key.fromFile,
-    );
-    final buffer = await ui.ImmutableBuffer.fromUint8List(data.pixels);
-    final descriptor = ui.ImageDescriptor.raw(
-      buffer,
-      width: data.width,
-      height: data.height,
-      rowBytes: data.rowBytes,
-      pixelFormat: ui.PixelFormat.rgba8888,
-    );
-    final codec = await descriptor.instantiateCodec();
-    final frame = await codec.getNextFrame();
-    descriptor.dispose();
-    buffer.dispose();
-    return ImageInfo(image: frame.image);
+    try {
+      final data = await key.bridge.thumbnail(
+        key.id,
+        isVideo: key.isVideo,
+        width: key.width,
+        height: key.height,
+        fromFile: key.fromFile,
+      );
+      final buffer = await ui.ImmutableBuffer.fromUint8List(data.pixels);
+      final descriptor = ui.ImageDescriptor.raw(
+        buffer,
+        width: data.width,
+        height: data.height,
+        rowBytes: data.rowBytes,
+        pixelFormat: ui.PixelFormat.rgba8888,
+      );
+      final codec = await descriptor.instantiateCodec();
+      final frame = await codec.getNextFrame();
+      descriptor.dispose();
+      buffer.dispose();
+      return ImageInfo(image: frame.image);
+    } on Object {
+      // Flutter's image cache keeps a failed load and replays its error to
+      // whoever asks again: without this, a thumbnail dropped once by the
+      // native loader stays blank until the app restarts.
+      scheduleMicrotask(() => PaintingBinding.instance.imageCache.evict(key));
+      rethrow;
+    }
   }
 
   @override

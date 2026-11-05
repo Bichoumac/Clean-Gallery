@@ -2,7 +2,7 @@
 
 The photos and videos of the library on a map, grouped by place, and the mini map of the viewer's info panel.
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 ## Purpose
 
@@ -10,7 +10,7 @@ The brief: "OpenStreetMap map with geotagged photos, markers grouped into cluste
 
 ## User flows
 
-1. **Albums → Map**: a tile next to *All media*, *Favorites* and *Trash*, with the number of located items and the newest one as cover. The map opens fitted to every located item (at most zoom 14, so a single place does not open at street level).
+1. **Albums → Map**: a tile of the mosaic, with the number of located items. The map opens fitted to every located item (at most zoom 14, so a single place does not open at street level).
 2. **Clusters**: nearby items show as one marker, a rounded thumbnail of the newest item with its count in an accent badge (999, then 1.2k, 12k). Zooming in splits them; at street level each place has its own marker.
 3. **Tap a cluster**: the grid of its items, titled *In this area*, a timeline like an album (sort, date filter, selection, stacks). A marker of a single item opens the viewer directly.
 4. **Info panel**: below the coordinates, a still mini map with an accent dot; tapping it opens the map there, at zoom 15 ([viewer.md](viewer.md#info-panel)).
@@ -31,6 +31,11 @@ The brief: "OpenStreetMap map with geotagged photos, markers grouped into cluste
 
 `clusterItems` ([geo_clusters.dart](../../lib/analysis/geo_clusters.dart), pure Dart) puts each item in a cell of a grid of about 80 screen pixels at the map's zoom level (Web Mercator, as the tiles), in one pass: 20,000 items cluster in a few milliseconds, recomputed only when the zoom level changes. The marker stands at the mean position of its items. Each cluster's cell is a latitude and longitude rectangle (`GeoArea`); the grid of a cluster is the timeline of `MediaSelection(area: …)`, so it lists exactly the cluster's items. See [ADR 0022](../decisions/0022-map-tiles-and-grid-clusters.md).
 
+## Marker thumbnails
+
+- The duplicate scan is paused while the map is open, as in the viewer: MediaStore renders thumbnails almost one at a time, and covers of old photos are often not cached yet.
+- A marker is grey until its photo arrives. Failures are handled by `RetryingImage`, as in the grids ([library.md](library.md)).
+
 ## Tiles and privacy
 
 - Tiles come from `tile.openstreetmap.org`, with the user agent `flutter_map (com.bichoumac.clean_gallery)` and the attribution *© OpenStreetMap contributors* always shown, as its [tile usage policy](https://operations.osmfoundation.org/policies/tiles/) asks. flutter_map keeps fetched tiles in its disk cache.
@@ -38,9 +43,9 @@ The brief: "OpenStreetMap map with geotagged photos, markers grouped into cluste
 - The release app now declares `INTERNET` (until then only debug builds had it); ads will need it too in M11.
 - In dark mode the tiles are shown inverted (flutter_map's `darkModeTileBuilder`).
 
-## Planned look
+## Look
 
-Markers with a white ring and a sun count. The map tiles do not change. Not built yet: [visual refresh](../visual-refresh.md), [mockup](../design-assets/mockups/screens/16-map.png).
+Markers with a 3 dp white ring and a citron count. The map tiles do not change. [Mockup](../design-assets/mockups/screens/16-map.png).
 
 ## Screens and widgets
 
@@ -68,7 +73,7 @@ Markers with a white ring and a sun count. The map tiles do not change. Not buil
 
 ## Known limitations / future work
 
-- Not seen on the device yet.
+- Slow loading and missing thumbnails were reported on the phone on 2026-11-04 (see [progress.md](../progress.md#visual-refresh)). Marker thumbnails were changed for this; whether it is enough is not confirmed. Tiles depend on OpenStreetMap and the network, and their loading time has not been measured.
 - The first reading of 20,000 locations has not been timed on the phone (file headers only, expected to be a few minutes).
 - No search by area yet (the brief's search, M7, will pick an area on this map).
 - Clusters follow a fixed grid, not the items' own layout: a group of photos on a cell edge splits until zoomed out.

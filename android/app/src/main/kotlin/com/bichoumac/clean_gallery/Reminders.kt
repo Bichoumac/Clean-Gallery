@@ -137,7 +137,7 @@ object Reminders {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_stat_slideshow)
+            .setSmallIcon(R.drawable.ic_stat_clean_gallery)
             .setContentTitle(reminder.title)
             .setContentText(reminder.body)
             .setContentIntent(tap)

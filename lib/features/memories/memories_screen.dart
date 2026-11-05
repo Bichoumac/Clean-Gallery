@@ -1,3 +1,4 @@
+import 'package:clean_gallery/core/brand/petal_mark.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/router/compact_nav_bar.dart';
 import 'package:clean_gallery/domain/memory.dart';
@@ -22,7 +23,7 @@ class MemoriesScreen extends ConsumerWidget {
         SliverSafeArea(
           bottom: false,
           sliver: SliverPadding(
-            padding: const EdgeInsets.fromLTRB(8, 24, 20, 16),
+            padding: const EdgeInsets.fromLTRB(4, 24, 14, 16),
             sliver: SliverToBoxAdapter(
               child: Row(
                 children: [
@@ -30,7 +31,7 @@ class MemoriesScreen extends ConsumerWidget {
                   Expanded(
                     child: Text(
                       l10n.memoriesTitle,
-                      style: theme.textTheme.headlineMedium,
+                      style: theme.textTheme.headlineLarge,
                     ),
                   ),
                 ],
@@ -48,11 +49,7 @@ class MemoriesScreen extends ConsumerWidget {
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Icon(
-                      Icons.auto_awesome_outlined,
-                      size: 48,
-                      color: theme.colorScheme.primary,
-                    ),
+                    const EmptyMark(),
                     const SizedBox(height: 16),
                     Text(
                       l10n.memoriesEmpty,
@@ -67,7 +64,7 @@ class MemoriesScreen extends ConsumerWidget {
             ),
           ),
           final List<Memory> list => SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
             sliver: SliverList.separated(
               itemCount: list.length,
               separatorBuilder: (_, _) => const SizedBox(height: 12),

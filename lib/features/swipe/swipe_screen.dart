@@ -1,8 +1,14 @@
 import 'dart:async';
+import 'dart:math' as math;
 
+import 'package:clean_gallery/core/brand/empty_state.dart';
+import 'package:clean_gallery/core/brand/glass.dart';
+import 'package:clean_gallery/core/brand/petal_mark.dart';
 import 'package:clean_gallery/core/media/media_formatting.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/router/app_router.dart';
+import 'package:clean_gallery/core/theme/app_motion.dart';
+import 'package:clean_gallery/core/theme/app_theme.dart';
 import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/features/swipe/swipe_session.dart';
@@ -23,6 +29,9 @@ const _sortSpeed = 800.0;
 
 /// Duration of a card flying away, springing back or coming back.
 const _motion = Duration(milliseconds: 260);
+
+/// How a card released early comes back.
+final _bounce = SpringCurve(AppMotion.springBouncy);
 
 /// Swipe mode: the items of [source], one full-screen card at a time,
 /// oldest first. Swipe left to move to the trash, right to keep; the
@@ -64,75 +73,120 @@ class _SwipeScreenState extends ConsumerState<SwipeScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final theme = Theme.of(context);
     final session = ref.watch(swipeSessionProvider(widget.source));
     final value = session.value;
     final canUndo = value != null && value.decisions.isNotEmpty;
 
-    return Scaffold(
-      body: SafeArea(
-        child: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(4, 8, 8, 0),
-              child: Row(
+    final colors = AppTheme.dark().colorScheme;
+    // Always dark, like every screen around a photo.
+    return Theme(
+      data: AppTheme.dark(),
+      child: AnnotatedRegion<SystemUiOverlayStyle>(
+        value: SystemUiOverlayStyle.light,
+        child: Scaffold(
+          backgroundColor: colors.surfaceContainerLowest,
+          body: switch (session) {
+            AsyncData(value: final state)
+                when state.total > 0 && state.finished =>
+              _Summary(
+                state: state,
+                title: widget.title,
+                onRestart: _session.restart,
+                onUndo: canUndo ? _session.undo : null,
+              ),
+            _ => SafeArea(
+              child: Column(
                 children: [
-                  IconButton(
-                    tooltip: l10n.swipeClose,
-                    onPressed: () => context.pop(),
-                    icon: const Icon(Icons.close_rounded),
+                  _Header(
+                    title: widget.title,
+                    onUndo: canUndo ? _session.undo : null,
                   ),
+                  if (value != null && value.total > 0)
+                    _Progress(done: value.done, total: value.total),
                   Expanded(
-                    child: Text(
-                      widget.title,
-                      style: theme.textTheme.titleLarge,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  // Always visible, so the last decision is one tap away.
-                  TextButton.icon(
-                    onPressed: canUndo ? _session.undo : null,
-                    icon: const Icon(Icons.undo_rounded),
-                    label: Text(l10n.actionUndo),
+                    child: switch (session) {
+                      AsyncData(value: final state) when state.total == 0 =>
+                        Center(
+                          child: EmptyState(
+                            title: l10n.swipeEmpty,
+                            padding: const EdgeInsets.all(32),
+                          ),
+                        ),
+                      AsyncData(value: final state) => Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(8, 12, 8, 12),
+                            child: _SwipeDeck(
+                              key: _deck,
+                              state: state,
+                              onDecide: _decide,
+                            ),
+                          ),
+                          Align(
+                            alignment: Alignment.bottomCenter,
+                            child: _Buttons(
+                              current: state.current,
+                              onPressed: (action) =>
+                                  _deck.currentState?.fly(action),
+                            ),
+                          ),
+                        ],
+                      ),
+                      AsyncError() => _ErrorMessage(title: l10n.swipeError),
+                      _ => const Center(child: CircularProgressIndicator()),
+                    },
                   ),
                 ],
               ),
             ),
-            if (value != null && value.total > 0)
-              _Progress(done: value.done, total: value.total),
-            Expanded(
-              child: switch (session) {
-                AsyncData(value: final state) when state.total == 0 => _Message(
-                  icon: Icons.check_circle_outline_rounded,
-                  title: l10n.swipeEmpty,
-                ),
-                AsyncData(value: final state) when state.finished => _Summary(
-                  state: state,
-                  onRestart: _session.restart,
-                ),
-                AsyncData(value: final state) => Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-                  child: _SwipeDeck(
-                    key: _deck,
-                    state: state,
-                    onDecide: _decide,
-                  ),
-                ),
-                AsyncError() => _Message(
-                  icon: Icons.error_outline_rounded,
-                  title: l10n.swipeError,
-                ),
-                _ => const Center(child: CircularProgressIndicator()),
-              },
-            ),
-            if (value != null && !value.finished)
-              _Buttons(
-                current: value.current,
-                onPressed: (action) => _deck.currentState?.fly(action),
-              ),
-          ],
+          },
         ),
+      ),
+    );
+  }
+}
+
+/// Close, the name of the source, and Undo.
+class _Header extends StatelessWidget {
+  const _Header({required this.title, required this.onUndo, this.foreground});
+
+  final String title;
+  final VoidCallback? onUndo;
+
+  /// Color of the text and icons; the theme's by default.
+  final Color? foreground;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(4, 8, 8, 0),
+      child: Row(
+        children: [
+          IconButton(
+            tooltip: l10n.swipeClose,
+            color: foreground,
+            onPressed: () => context.pop(),
+            icon: const Icon(Icons.close_rounded),
+          ),
+          Expanded(
+            child: Text(
+              title,
+              style: theme.textTheme.titleMedium?.copyWith(color: foreground),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          // Always visible, so the last decision is one tap away.
+          TextButton.icon(
+            style: TextButton.styleFrom(foregroundColor: foreground),
+            onPressed: onUndo,
+            icon: const Icon(Icons.undo_rounded),
+            label: Text(l10n.actionUndo),
+          ),
+        ],
       ),
     );
   }
@@ -158,7 +212,7 @@ class _Progress extends StatelessWidget {
               borderRadius: BorderRadius.circular(3),
               child: LinearProgressIndicator(
                 value: total == 0 ? 0 : done / total,
-                minHeight: 6,
+                minHeight: 4,
               ),
             ),
           ),
@@ -207,7 +261,15 @@ class _SwipeDeckState extends ConsumerState<_SwipeDeck>
   @override
   void initState() {
     super.initState();
-    _comeBackIfReturned(null);
+    // A card returned from the summary starts where it left, then comes back
+    // after this frame: the motion settings are not readable yet.
+    final returned = widget.state.returned;
+    if (returned != null && returned.item.id == widget.state.current?.id) {
+      _offset = _away(returned.action, 400, 600);
+    }
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _comeBackIfReturned(null);
+    });
     WidgetsBinding.instance.addPostFrameCallback((_) => _precacheNext());
   }
 
@@ -255,11 +317,17 @@ class _SwipeDeckState extends ConsumerState<_SwipeDeck>
     _animate(_offset, _away(action, _size.width, _size.height) + _offset);
   }
 
-  void _animate(Offset from, Offset to) {
-    _path = Tween(
-      begin: from,
-      end: to,
-    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic));
+  void _animate(Offset from, Offset to, {bool bounce = false}) {
+    _path = Tween(begin: from, end: to).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: bounce ? _bounce : AppMotion.curve,
+      ),
+    );
+    _controller.duration = AppMotion.of(
+      context,
+      bounce ? _bounce.duration : _motion,
+    );
     setState(() => _offset = from);
     _controller.forward(from: 0);
   }
@@ -294,7 +362,7 @@ class _SwipeDeckState extends ConsumerState<_SwipeDeck>
       final right = far ? _offset.dx > 0 : speed > 0;
       fly(right ? SwipeAction.keep : SwipeAction.trash);
     } else {
-      _animate(_offset, Offset.zero);
+      _animate(_offset, Offset.zero, bounce: true);
     }
   }
 
@@ -413,9 +481,6 @@ class _Card extends ConsumerWidget {
         decoration: BoxDecoration(
           color: colors.surfaceContainerHighest,
           borderRadius: BorderRadius.circular(28),
-          boxShadow: const [
-            BoxShadow(blurRadius: 16, color: Color(0x33000000)),
-          ],
         ),
         child: ClipRRect(
           borderRadius: BorderRadius.circular(28),
@@ -444,7 +509,8 @@ class _Card extends ConsumerWidget {
                     ),
                   ),
                   child: Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 16),
+                    // Above the floating buttons.
+                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 104),
                     child: Text(
                       '${formatMediaDate(context, item.takenAt)}  ·  '
                       '${formatBytes(context, item.sizeBytes)}',
@@ -459,13 +525,15 @@ class _Card extends ConsumerWidget {
                 _Stamp(
                   label: l10n.swipeStampTrash,
                   color: colors.error,
+                  foreground: colors.onError,
                   opacity: trash,
                   alignment: Alignment.topRight,
                 ),
               if (keep > 0)
                 _Stamp(
                   label: l10n.swipeStampKeep,
-                  color: colors.primary,
+                  color: colors.primaryContainer,
+                  foreground: colors.onPrimaryContainer,
                   opacity: keep,
                   alignment: Alignment.topLeft,
                 ),
@@ -477,17 +545,20 @@ class _Card extends ConsumerWidget {
   }
 }
 
-/// "Trash" or "Keep" written over the card while it is dragged.
+/// "Trash" or "Keep" stamped over the card while it is dragged, tilted away
+/// from the middle.
 class _Stamp extends StatelessWidget {
   const _Stamp({
     required this.label,
     required this.color,
+    required this.foreground,
     required this.opacity,
     required this.alignment,
   });
 
   final String label;
   final Color color;
+  final Color foreground;
   final double opacity;
   final Alignment alignment;
 
@@ -499,18 +570,23 @@ class _Stamp extends StatelessWidget {
         padding: const EdgeInsets.all(24),
         child: Opacity(
           opacity: opacity,
-          child: DecoratedBox(
-            decoration: BoxDecoration(
-              color: Colors.black54,
-              border: Border.all(color: color, width: 3),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-              child: Text(
-                label,
-                style: Theme.of(context).textTheme.titleLarge
-                    ?.copyWith(color: color, fontWeight: FontWeight.w800),
+          child: Transform.rotate(
+            angle: alignment.x < 0 ? -0.08 : 0.08,
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 4,
+                ),
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.headlineMedium
+                      ?.copyWith(color: foreground),
+                ),
               ),
             ),
           ),
@@ -520,7 +596,9 @@ class _Stamp extends StatelessWidget {
   }
 }
 
-/// Trash, favorite and keep buttons, for users who do not swipe.
+/// Trash, favorite and keep buttons in a floating glass bar, for users who do
+/// not swipe. Trash is a bin on the left, Keep a check on the right: they
+/// differ by icon and position as well as by color.
 class _Buttons extends StatelessWidget {
   const _Buttons({required this.current, required this.onPressed});
 
@@ -533,48 +611,178 @@ class _Buttons extends StatelessWidget {
     final colors = Theme.of(context).colorScheme;
     final enabled = current != null;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 8, 24, 20),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-        children: [
-          IconButton.outlined(
-            tooltip: l10n.swipeTrash,
-            iconSize: 32,
-            padding: const EdgeInsets.all(16),
-            color: colors.error,
-            onPressed: enabled ? () => onPressed(SwipeAction.trash) : null,
-            icon: const Icon(Icons.delete_outline_rounded),
+      padding: const EdgeInsets.only(bottom: 20),
+      child: GlassPill(
+        height: 80,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton.filled(
+                tooltip: l10n.swipeTrash,
+                iconSize: 28,
+                style: IconButton.styleFrom(
+                  backgroundColor: colors.error,
+                  foregroundColor: colors.onError,
+                  fixedSize: const Size.square(64),
+                ),
+                onPressed: enabled ? () => onPressed(SwipeAction.trash) : null,
+                icon: const Icon(Icons.delete_outline_rounded),
+              ),
+              const SizedBox(width: 12),
+              IconButton.filled(
+                tooltip: l10n.swipeFavorite,
+                iconSize: 22,
+                style: IconButton.styleFrom(
+                  backgroundColor: colors.surfaceContainerHighest,
+                  foregroundColor: colors.onSurface,
+                  fixedSize: const Size.square(48),
+                ),
+                onPressed: enabled
+                    ? () => onPressed(SwipeAction.favorite)
+                    : null,
+                icon: Icon(
+                  current?.isFavorite ?? false
+                      ? Icons.favorite_rounded
+                      : Icons.favorite_border_rounded,
+                ),
+              ),
+              const SizedBox(width: 12),
+              IconButton.filled(
+                tooltip: l10n.swipeKeep,
+                iconSize: 28,
+                style: IconButton.styleFrom(
+                  backgroundColor: colors.primaryContainer,
+                  foregroundColor: colors.onPrimaryContainer,
+                  fixedSize: const Size.square(64),
+                ),
+                onPressed: enabled ? () => onPressed(SwipeAction.keep) : null,
+                icon: const Icon(Icons.check_rounded),
+              ),
+            ],
           ),
-          IconButton.filledTonal(
-            tooltip: l10n.swipeFavorite,
-            iconSize: 26,
-            padding: const EdgeInsets.all(12),
-            onPressed: enabled ? () => onPressed(SwipeAction.favorite) : null,
-            icon: Icon(
-              current?.isFavorite ?? false
-                  ? Icons.favorite_rounded
-                  : Icons.favorite_border_rounded,
-            ),
-          ),
-          IconButton.filled(
-            tooltip: l10n.swipeKeep,
-            iconSize: 32,
-            padding: const EdgeInsets.all(16),
-            onPressed: enabled ? () => onPressed(SwipeAction.keep) : null,
-            icon: const Icon(Icons.check_rounded),
-          ),
-        ],
+        ),
       ),
     );
   }
 }
 
-/// End of a session: what was kept, trashed and favorited.
-class _Summary extends ConsumerWidget {
-  const _Summary({required this.state, required this.onRestart});
+/// End of a session, the reward: the screen turns citron from the side the last
+/// card left by, then the rosace completes, last petal lit. Shows what was
+/// kept, trashed and favorited.
+class _Summary extends StatefulWidget {
+  const _Summary({
+    required this.state,
+    required this.title,
+    required this.onRestart,
+    required this.onUndo,
+  });
 
   final SwipeSessionState state;
+  final String title;
   final VoidCallback onRestart;
+  final VoidCallback? onUndo;
+
+  @override
+  State<_Summary> createState() => _SummaryState();
+}
+
+class _SummaryState extends State<_Summary>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _reveal = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 380),
+  )..addStatusListener((_) => setState(() {}));
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_reveal.isAnimating || _reveal.isCompleted) return;
+    if (AppMotion.reduced(context)) {
+      _reveal.value = 1;
+    } else {
+      _reveal.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _reveal.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final origin = switch (widget.state.decisions.lastOrNull?.action) {
+      SwipeAction.keep => Alignment.centerRight,
+      SwipeAction.trash => Alignment.centerLeft,
+      _ => Alignment.topCenter,
+    };
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark,
+      child: AnimatedBuilder(
+        animation: _reveal,
+        builder: (context, child) => ClipPath(
+          clipper: _GrowingCircle(
+            origin: origin,
+            progress: AppMotion.curve.transform(_reveal.value),
+          ),
+          child: child,
+        ),
+        child: ColoredBox(
+          color: AppColors.citron,
+          child: SafeArea(
+            child: _SummaryContent(
+              state: widget.state,
+              title: widget.title,
+              onRestart: widget.onRestart,
+              onUndo: widget.onUndo,
+              showMark: _reveal.isCompleted,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+/// A circle growing from [origin] until it covers the whole box.
+class _GrowingCircle extends CustomClipper<Path> {
+  const _GrowingCircle({required this.origin, required this.progress});
+
+  final Alignment origin;
+  final double progress;
+
+  @override
+  Path getClip(Size size) {
+    if (progress >= 1) return Path()..addRect(Offset.zero & size);
+    return Path()..addOval(
+      Rect.fromCircle(
+        center: origin.alongSize(size),
+        radius: size.longestSide * 1.2 * progress,
+      ),
+    );
+  }
+
+  @override
+  bool shouldReclip(_GrowingCircle old) => old.progress != progress;
+}
+
+class _SummaryContent extends ConsumerWidget {
+  const _SummaryContent({
+    required this.state,
+    required this.title,
+    required this.onRestart,
+    required this.onUndo,
+    required this.showMark,
+  });
+
+  final SwipeSessionState state;
+  final String title;
+  final VoidCallback onRestart;
+  final VoidCallback? onUndo;
+  final bool showMark;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -584,73 +792,121 @@ class _Summary extends ConsumerWidget {
     final freed = trashed.fold(0, (sum, item) => sum + item.sizeBytes);
     final kept = state.decided(SwipeAction.keep).length;
     final favorites = state.decided(SwipeAction.favorite).length;
+    final counts = theme.textTheme.titleSmall?.copyWith(color: AppColors.ink);
+    Widget line(List<String> parts) => Wrap(
+      children: [
+        for (final (i, part) in parts.indexed) ...[
+          if (i > 0) Text('  ·  ', style: counts),
+          Text(part, style: counts),
+        ],
+      ],
+    );
 
-    return Center(
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.celebration_rounded,
-              size: 56,
-              color: theme.colorScheme.primary,
-            ),
-            const SizedBox(height: 16),
-            Text(
-              l10n.swipeDoneTitle,
-              style: theme.textTheme.headlineSmall,
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 24),
-            Card(
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.delete_outline_rounded),
-                    title: Text(l10n.swipeSummaryTrashed(trashed.length)),
-                    trailing: trashed.isEmpty
-                        ? null
-                        : Text(
-                            formatBytes(context, freed),
-                            style: theme.textTheme.titleMedium,
+    return Column(
+      children: [
+        _Header(title: title, onUndo: onUndo, foreground: AppColors.ink),
+        Expanded(
+          child: LayoutBuilder(
+            builder: (context, constraints) => SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(24, 8, 24, 16),
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: constraints.maxHeight - 24,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Center(
+                      child: SizedBox.square(
+                        dimension: _markSize(constraints),
+                        child: showMark
+                            ? BloomingMark(
+                                size: _markSize(constraints),
+                                colors: List.filled(petalCount, AppColors.ink),
+                              )
+                            : null,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          l10n.swipeDoneTitle,
+                          style: theme.textTheme.displayMedium?.copyWith(
+                            color: AppColors.ink,
+                            height: 1.05,
                           ),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.check_rounded),
-                    title: Text(l10n.swipeSummaryKept(kept)),
-                  ),
-                  ListTile(
-                    leading: const Icon(Icons.favorite_border_rounded),
-                    title: Text(l10n.swipeSummaryFavorites(favorites)),
-                  ),
-                ],
+                        ),
+                        const SizedBox(height: 16),
+                        line([
+                          l10n.swipeSummaryTrashed(trashed.length),
+                          if (trashed.isNotEmpty) formatBytes(context, freed),
+                        ]),
+                        const SizedBox(height: 4),
+                        line([
+                          l10n.swipeSummaryKept(kept),
+                          l10n.swipeSummaryFavorites(favorites),
+                        ]),
+                        const SizedBox(height: 20),
+                        SizedBox(
+                          width: double.infinity,
+                          child: FilledButton(
+                            style: FilledButton.styleFrom(
+                              backgroundColor: AppColors.ink,
+                              foregroundColor: AppColors.citron,
+                            ),
+                            onPressed: () => context.pop(),
+                            child: Text(l10n.swipeDone),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Center(
+                          child: Wrap(
+                            alignment: WrapAlignment.center,
+                            children: [
+                              if (trashed.isNotEmpty)
+                                TextButton(
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: AppColors.ink,
+                                  ),
+                                  onPressed: () =>
+                                      context.go(AlbumRoutes.trash),
+                                  child: Text(l10n.swipeOpenTrash),
+                                ),
+                              TextButton(
+                                style: TextButton.styleFrom(
+                                  foregroundColor: AppColors.ink,
+                                ),
+                                onPressed: onRestart,
+                                child: Text(l10n.swipeRestart),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
-            const SizedBox(height: 24),
-            FilledButton(
-              onPressed: () => context.pop(),
-              child: Text(l10n.swipeDone),
-            ),
-            const SizedBox(height: 8),
-            if (trashed.isNotEmpty)
-              TextButton(
-                onPressed: () => context.go(AlbumRoutes.trash),
-                child: Text(l10n.swipeOpenTrash),
-              ),
-            TextButton(onPressed: onRestart, child: Text(l10n.swipeRestart)),
-          ],
+          ),
         ),
-      ),
+      ],
     );
   }
+
+  /// As wide as the screen allows, leaving room for the rest on small ones.
+  static double _markSize(BoxConstraints constraints) =>
+      math.min(constraints.maxWidth - 48, constraints.maxHeight * 0.44);
 }
 
-/// An icon and a line of text, centered.
-class _Message extends StatelessWidget {
-  const _Message({required this.icon, required this.title});
+/// An error instead of the cards. An error is not a brand moment: an icon in
+/// the error color, without the mark.
+class _ErrorMessage extends StatelessWidget {
+  const _ErrorMessage({required this.title});
 
-  final IconData icon;
   final String title;
 
   @override
@@ -662,7 +918,11 @@ class _Message extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(icon, size: 48, color: theme.colorScheme.onSurfaceVariant),
+            Icon(
+              Icons.error_outline_rounded,
+              size: 48,
+              color: theme.colorScheme.error,
+            ),
             const SizedBox(height: 12),
             Text(
               title,

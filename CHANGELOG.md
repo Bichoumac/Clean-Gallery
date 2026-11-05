@@ -2,19 +2,35 @@
 
 All notable changes to this project are documented here, one section per milestone. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 ## [Unreleased]
 
-Next: M10 People, M11 monetization and M12 polish; the visual refresh is to be scheduled.
+Next: M10 People, M11 monetization and M12 polish.
 
 ### Added
 
-- Specification of the **visual refresh**, the warm Éclat Soleil identity chosen by the product owner: design system, logo, 18 mockups, Android icon resources and implementation brief ([docs/visual-refresh.md](docs/visual-refresh.md), [ADR 0028](docs/decisions/0028-warm-eclat-identity.md)). The app does not change yet.
+- **Éclat Soleil identity** ([docs/design.md](docs/design.md), [ADR 0028](docs/decisions/0028-warm-eclat-identity.md)): golden citron accent `#E8E24C` on warm surfaces, neutral photo grids, Bricolage Grotesque titles over Manrope (bundled, nothing downloaded).
+- **Logo and icons**: adaptive launcher icon with a themed layer, rosace in the status bar, launch screen in the surface of the system theme.
+- **Rosace everywhere there are no photos**: onboarding poster appearing petal by petal, empty states, a gauge on the Stats card (screen readers hear a sentence), a petal on the *Best* pill, the reward at the end of a sort.
+- **Mosaics** on the Stats and Albums tabs. Every category and action stays.
+- **Pull a photo down** at 1× zoom to return to the grid.
+- Motion tokens; every animation becomes instant when the system asks for reduced motion.
 
 ### Changed
 
+- Translucent floating bars with a thin line; white play button and slider over videos; round glass buttons in the slideshow player.
+- Sort session: the card fills the screen, floating buttons, stamps *Keep* and *Trash* in sentence case; always dark.
+- The slideshow end screen shows the first photo fading into the surface.
+- **Albums → Slideshows** is now a page opened by a tile of the mosaic, no longer a section of the tab.
+- Empty trash: *Nothing to throw away*, with the retention set in Settings.
 - Feature documents say "accent" instead of naming a color.
+
+### Fixed
+
+- Filled buttons used the system font instead of Manrope.
+- **Thumbnails missing in runs**, after a fast scroll: a request dropped by the native loader stayed in Flutter's image cache as a failure until the app restarted. Failures are no longer kept, and cells on screen ask again.
+- Map: the duplicate scan no longer competes with the markers' thumbnails, and a thumbnail that fails is asked for again.
 
 ## [M9] — 2026-11-04 — Slideshows and memories
 

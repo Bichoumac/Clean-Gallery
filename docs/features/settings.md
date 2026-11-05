@@ -2,7 +2,7 @@
 
 The Settings tab: display, trash, cleanup, sharing, slideshows and memories, analysis and permissions. The rest of the brief's settings arrive with the features they control.
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 ## Purpose
 
@@ -41,9 +41,9 @@ The sort order of each tab and album is also saved (see [library.md](library.md#
 
 Still to come, from the brief: clear cache (merged into *Analyze the library again*: the app's only cache is the media index; thumbnails come from Android's own cache), "Remove ads" / "Restore purchase" and privacy & ad choices (M11), privacy policy and about (M12).
 
-## Planned look
+## Look
 
-Follows the new tokens, with a Bricolage title. Not built yet: [visual refresh](../visual-refresh.md), [mockup](../design-assets/mockups/screens/15-settings.png).
+Cards with 18 dp padding, a Bricolage title, the retention value in the accent. [Mockup](../design-assets/mockups/screens/15-settings.png).
 
 ## Screens and widgets
 

@@ -16,6 +16,7 @@ class MapAreaScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
+      backgroundColor: Theme.of(context).colorScheme.surfaceContainerLowest,
       body: MediaTimelineView(
         selection: MediaSelection(area: area),
         title: l10n.mapAreaTitle,

@@ -158,6 +158,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     );
 
     return Scaffold(
+      backgroundColor: colors.surfaceContainerLowest,
       body: Column(
         children: [
           SafeArea(

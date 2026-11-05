@@ -2,16 +2,16 @@
 
 Visual identity of Clean Gallery, **Éclat Soleil**: palette, typography, shapes, components, motion and logo. The interface disappears around the photos and shows its character only where there are none.
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
-> **Status: approved, not built yet.** This file describes the target. Until the [visual refresh](visual-refresh.md) is done, the app still uses the previous lime palette and Manrope alone: [app_theme.dart](../lib/core/theme/app_theme.dart) is what runs today. New widgets read colors and text styles from the theme, so they follow both. Why this direction: [ADR 0028](decisions/0028-warm-eclat-identity.md).
+Why this direction: [ADR 0028](decisions/0028-warm-eclat-identity.md). The mockups show an earlier yellow accent; the values here are the current ones. Built as described in the [visual refresh](visual-refresh.md).
 
-Source: [app_theme.dart](../lib/core/theme/app_theme.dart), [compact_nav_bar.dart](../lib/core/router/compact_nav_bar.dart). Mockups: [design-assets/mockups/](design-assets/mockups/).
+Source: [app_theme.dart](../lib/core/theme/app_theme.dart), [app_motion.dart](../lib/core/theme/app_motion.dart), [lib/core/brand/](../lib/core/brand/) (mark, gauge, glass bars, mosaic tiles, empty state), [compact_nav_bar.dart](../lib/core/router/compact_nav_bar.dart). Mockups: [design-assets/mockups/](design-assets/mockups/).
 
 ## Principles
 
 1. **The photos come first.** Grids, the viewer and the editor have no character of their own: neutral background, no decoration, thin monochrome icons. Warm surfaces never touch a photo grid, so they cannot change how its colors look.
-2. **One accent.** Sun yellow is the only color that draws attention: the selected tab, the main button, the key number on a screen. A screen has at most one large accent area, the selected tab apart.
+2. **One accent.** Golden citron is the only color that draws attention: the selected tab, the main button, the key number on a screen. A screen has at most one large accent area, the selected tab apart.
 3. **Character where there are no photos.** Onboarding, empty states, the Stats tab, the end of a sort, memories and the app icon carry the identity.
 4. **Big type, little chrome.** Large bold titles replace app bars. Bars float, translucent, and can disappear. No shadows; separation comes from surface tones and thin outlines.
 5. **Soft geometry.** Large radii and pills, tiles of different sizes rather than long lists. A thumbnail in a grid stays square, without corners.
@@ -23,9 +23,9 @@ The palette is fixed and does not follow the wallpaper (no Material You dynamic 
 
 | Token | Light | Dark | Use |
 | --- | --- | --- | --- |
-| `primaryContainer` | `#FFCB47` sun | `#FFCB47` sun | Selected tab, filled buttons, hero card |
-| `onPrimaryContainer` | `#14110C` ink | `#14110C` ink | Text and icons on sun |
-| `primary` | `#8A5A00` amber | `#FFCB47` sun | Accent text and icons (amber in light mode for contrast) |
+| `primaryContainer` | `#E8E24C` citron | `#E8E24C` citron | Selected tab, filled buttons, hero card |
+| `onPrimaryContainer` | `#14110C` ink | `#14110C` ink | Text and icons on citron |
+| `primary` | `#6B6600` olive | `#E8E24C` citron | Accent text and icons (olive in light mode for contrast) |
 | `onPrimary` | `#FFFFFF` | `#14110C` | Text on `primary` |
 | `secondary` | `#5F574A` | `#B3AB9D` | Secondary accents |
 | `onSecondary` | `#FFFFFF` | `#14110C` | Text on `secondary` |
@@ -48,8 +48,8 @@ Widgets read colors from `Theme.of(context).colorScheme`, never from the constan
 
 | Decorative tone | Value | Use |
 | --- | --- | --- |
-| Petal on sun, icon | `#D9982A` | The seven unlit petals of the app icon |
-| Petal on sun, large | `#E8AC33` | Unlit petals on the hero card and the onboarding page |
+| Petal on citron, icon | `#BDB72A` | The seven unlit petals of the app icon |
+| Petal on citron, large | `#CFC933` | Unlit petals on the hero card and the onboarding page |
 | Petal on ink | `#857C6E` | The seven unlit petals of the logo on dark |
 
 ### Contrast
@@ -58,15 +58,15 @@ Measured values (WCAG). Normal text needs 4.5:1, large text and control borders 
 
 | Pair | Ratio |
 | --- | --- |
-| Ink on sun | 12.45:1 |
-| Amber on cream / on white | 5.59:1 / 5.93:1 |
+| Ink on citron | 13.82:1 |
+| Olive on cream / on white | 5.62:1 / 5.96:1 |
 | `onSurface` on `surface`, dark / light | 16.73:1 / 17.75:1 |
 | `onSurfaceVariant` on `surface`, dark / light | 8.28:1 / 6.71:1 |
 | `onSurfaceVariant` on cards, dark / light | 7.61:1 / 6.37:1 |
 | `onError` on `error`, dark / light | 6.74:1 / 5.39:1 |
 | `outline` on `surface`, dark / light | 3.28:1 / 3.39:1 |
 
-Sun and `error` stay apart by hue, by icon and by position, never by color alone: *Keep* is a check on the right, *Trash* a bin on the left.
+Citron and `error` stay apart by hue, by icon and by position, never by color alone: *Keep* is a check on the right, *Trash* a bin on the left.
 
 ## Typography
 
@@ -98,7 +98,7 @@ Key numbers scale down to fit their card at large text sizes instead of wrapping
 | Element | Shape |
 | --- | --- |
 | Cards, tiles, dialogs | 26 dp radius, 1 dp `outlineVariant` border, no elevation |
-| Hero card (Stats) | 30 dp radius, sun, no border |
+| Hero card (Stats) | 30 dp radius, citron, no border |
 | Large album tile | 28 dp radius |
 | Album covers | 22 dp radius |
 | Memory card | 24 dp radius |
@@ -108,13 +108,13 @@ Key numbers scale down to fit their card at large text sizes instead of wrapping
 
 ## Logo
 
-**Plein soleil**: a rosace of eight petals on sun yellow, seven tone on tone and one in ink, at 45° (top right). Files: [design-assets/logo/](design-assets/logo/).
+**Plein soleil**: a rosace of eight petals on golden citron, seven tone on tone and one in ink, at 45° (top right). Files: [design-assets/logo/](design-assets/logo/).
 
 | File | Use |
 | --- | --- |
 | [app-icon.svg](design-assets/logo/app-icon.svg) | Master of the icon, square, without corners |
 | [app-icon-512.png](design-assets/logo/app-icon-512.png) | Google Play listing |
-| [mark-on-sun.svg](design-assets/logo/mark-on-sun.svg) | Onboarding, on sun |
+| [mark-on-sun.svg](design-assets/logo/mark-on-sun.svg) | Onboarding, on citron |
 | [mark-on-dark.svg](design-assets/logo/mark-on-dark.svg) | On ink, outside the app icon |
 | [mark-empty-dark.svg](design-assets/logo/mark-empty-dark.svg), [mark-empty-light.svg](design-assets/logo/mark-empty-light.svg) | Empty states |
 | [mark-complete.svg](design-assets/logo/mark-complete.svg) | End of a sort: all petals in ink |
@@ -149,7 +149,7 @@ A floating pill, 56 dp high, 12 dp above the system navigation area, centered, w
 | Settings | `tune_outlined` / `tune_rounded` |
 
 - Background: `surfaceContainer` at 72 % opacity with a 20 px blur, and a 1 dp inner line (white at 12 % in dark, black at 8 % in light), so content scrolls visibly underneath.
-- Selected tab: sun pill (48 × 38 dp) behind the filled icon, animated in 220 ms.
+- Selected tab: citron pill (48 × 38 dp) behind the filled icon, animated in 220 ms.
 - Accessibility: every icon has a tooltip and a screen reader label, and a 56 × 48 dp touch target (checked by a test).
 - Pages add `CompactNavBar.contentInset(context)` as bottom padding so the last item is never hidden.
 
@@ -199,7 +199,7 @@ Albums and Stats use tiles instead of lists: two columns, 10 dp apart, with some
 
 ## Album tiles
 
-Two columns, 10 dp apart. Cover with 22 dp radius, then the name (`titleSmall`) and the count (`bodySmall`, secondary color). In the top mosaic, Favorites is the one sun tile; Map, Slideshows and Trash are `surfaceContainerLow` tiles.
+Two columns, 10 dp apart. Cover with 22 dp radius, then the name (`titleSmall`) and the count (`bodySmall`, secondary color). In the top mosaic, Favorites is the one citron tile; Map, Slideshows and Trash are `surfaceContainerLow` tiles.
 
 ## Settings
 
@@ -207,7 +207,7 @@ Cards per section (Display, Trash, Sharing, Permissions), 18 dp padding, `titleM
 
 ## Empty states
 
-The mark replaces the 88 dp rounded-square icon: 120 to 164 dp, the seven unlit petals in `surfaceContainerHigh` (light) or `surfaceContainerHighest` (dark), the 45° petal in sun. Below it, a `headlineMedium` title, secondary text and an optional button, all centered. Error states keep an icon, in `error`, without the mark: an error is not a brand moment.
+The mark replaces the 88 dp rounded-square icon: 120 to 164 dp, the seven unlit petals in `surfaceContainerHigh` (light) or `surfaceContainerHighest` (dark), the 45° petal in citron. Below it, a `headlineMedium` title, secondary text and an optional button, all centered. Error states keep an icon, in `error`, without the mark: an error is not a brand moment.
 
 ## Trash
 
@@ -240,7 +240,7 @@ Speed is where quality shows: animations are quick, follow the finger and can be
 | Sort card | Follows the finger, tilts, shows the stamp; springs back with `springBouncy` if released early. |
 | First launch | Petals appear one after the other, 45 ms apart, clockwise, the lit one last (400 ms each, `spring`). |
 | Stats gauge | Petals fill one by one when the value changes. |
-| End of a sort | The screen turns sun from the last card's position, then the rosace completes, last petal lit. |
+| End of a sort | The screen turns citron from the last card's position, then the rosace completes, last petal lit. |
 
 ## Android icon and launch
 
@@ -248,6 +248,6 @@ Ready-to-copy resources: [design-assets/android/res/](design-assets/android/res/
 
 | Item | Spec |
 | --- | --- |
-| Launcher icon | Adaptive: background `#FFCB47`, foreground the rosace 52 units wide in the 72 visible units, monochrome layer for themed icons. No PNG needed (`minSdk` is 30). |
+| Launcher icon | Adaptive: background `#E8E24C`, foreground the rosace 52 units wide in the 72 visible units, monochrome layer for themed icons. No PNG needed (`minSdk` is 30). |
 | Status bar icon | One color, all eight petals, 24 dp ([ic_stat_clean_gallery.xml](design-assets/android/res/drawable/ic_stat_clean_gallery.xml)), for memories and rituals. |
-| Launch screen | `surface` of the system theme (`#FBF8F1` or `#14110C`), never a full yellow flash; icon on its yellow circle on Android 12 and later. |
+| Launch screen | `surface` of the system theme (`#FBF8F1` or `#14110C`), never a full citron flash; icon on its citron circle on Android 12 and later. |

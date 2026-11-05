@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 ## Milestones
 
@@ -21,23 +21,19 @@ Last updated: 2026-11-04 — Visual refresh spec
 | M10 | People (on-device face recognition, merging) | Specified and approved 2026-11-01 |
 | M11 | Monetization (was M8) | Not started |
 | M12 | Polish and release preparation (was M9) | Not started |
-| — | Visual refresh: Éclat Soleil identity, logo and icon | Specified and approved 2026-11-04, not started; place among the milestones to decide |
+| — | Visual refresh: Éclat Soleil identity, logo and icon | Built on branch `visual-refresh`, tried on the phone 2026-11-05; pull request to open |
 
 M8 to M10 were added at the product owner's request on 2026-11-01; monetization and polish moved from M8 and M9.
 
 ## Visual refresh
 
-The product owner chose a warm identity and a logo on 2026-11-04 ([ADR 0028](decisions/0028-warm-eclat-identity.md)). The target is in [design.md](design.md), the brief, mockups and checklist in [visual-refresh.md](visual-refresh.md). No code has changed: the app still runs the lime theme.
+The product owner chose a warm identity and a logo on 2026-11-04 ([ADR 0028](decisions/0028-warm-eclat-identity.md)) and asked to build it before M10. The target is in [design.md](design.md), the brief, mockups and the choices made while building in [visual-refresh.md](visual-refresh.md).
 
-### Done
-
-- Palette with measured contrast, type scale, shapes, motion, logo geometry.
-- 18 mockups, logo files, Android icon resources (not yet tried on a device).
-- Feature documents say "accent" instead of a color name, and each has a *Planned look* section where its screen changes.
-
-### Next
-
-Decide when to build it: it touches most screens, so doing it before M10 People avoids drawing People twice.
+- **Done**: all seven steps of the brief, on branch `visual-refresh`. `flutter analyze` and the tests are clean; screens were rendered in widget tests and compared with the mockups.
+- **On the phone, 2026-11-04**: the product owner's overall impression is good ("tout me paraît bien"); the checks of [testing.md](testing.md#visual-refresh--to-verify-on-a-device) were not reported one by one.
+- **Accent**: changed to golden citron at the product owner's request; "beaucoup mieux" (2026-11-05).
+- **Map**: slow loading and missing marker thumbnails reported, then "carte ok" after the duplicate scan was paused on the map and failures retried (2026-11-05).
+- **Thumbnails missing in runs** (reported 2026-11-05, several runs of consecutive cells): failed loads stayed in Flutter's image cache, reproduced by a test and fixed ([library.md](features/library.md#thumbnails-that-fail)). Confirmed on the phone by the product owner ("ça marche", 2026-11-05).
 
 ## New features — decisions (2026-11-01)
 
@@ -399,8 +395,8 @@ Merged into `main`. Summary:
 
 ## Known issues (all milestones)
 
-- The splash screen and launcher icon are Flutter's defaults (now part of the [visual refresh](visual-refresh.md), no longer M12).
-- Onboarding illustrations are Material icons (now part of the [visual refresh](visual-refresh.md), no longer M12).
+- The splash screen and launcher icon were Flutter's defaults (done in the [visual refresh](visual-refresh.md)).
+- Onboarding illustrations were Material icons (done in the [visual refresh](visual-refresh.md)).
 - Release builds are signed with the debug key (planned for M12).
 - The debug APK is about 200 MB (every CPU architecture and debug symbols); Google Play delivers split release bundles.
 

@@ -441,7 +441,7 @@ class _Section extends StatelessWidget {
       padding: const EdgeInsets.only(bottom: 16),
       child: Card(
         child: Padding(
-          padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+          padding: const EdgeInsets.fromLTRB(18, 16, 18, 8),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -515,7 +515,12 @@ class _RetentionSliderState extends State<_RetentionSlider> {
                 style: theme.textTheme.bodyMedium,
               ),
             ),
-            Text(l10n.retentionDays(days), style: theme.textTheme.titleSmall),
+            Text(
+              l10n.retentionDays(days),
+              style: theme.textTheme.titleSmall?.copyWith(
+                color: theme.colorScheme.primary,
+              ),
+            ),
           ],
         ),
         SizedBox(

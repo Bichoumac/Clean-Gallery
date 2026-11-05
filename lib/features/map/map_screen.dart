@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:clean_gallery/analysis/geo_clusters.dart';
+import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/location_scan.dart';
+import 'package:clean_gallery/core/media/retrying_image.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/domain/album.dart';
@@ -120,6 +122,9 @@ class _ClusterMap extends ConsumerStatefulWidget {
 class _ClusterMapState extends ConsumerState<_ClusterMap> {
   final _controller = MapController();
 
+  /// Read in [initState]: `ref` cannot be used in [dispose].
+  late final DuplicateScan _scan;
+
   /// Zoom level the clusters are made for: the camera's, rounded.
   late int _zoom;
 
@@ -130,10 +135,14 @@ class _ClusterMapState extends ConsumerState<_ClusterMap> {
   void initState() {
     super.initState();
     _zoom = widget.center == null ? 2 : 15;
+    // The analysis would compete with the markers for MediaStore's thumbnail
+    // rendering, as in the viewer.
+    _scan = ref.read(duplicateScanProvider.notifier)..pause();
   }
 
   @override
   void dispose() {
+    _scan.resume();
     _controller.dispose();
     super.dispose();
   }
@@ -291,7 +300,6 @@ class _ClusterMarker extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final colors = Theme.of(context).colorScheme;
-    final source = ref.watch(mediaSourceProvider);
     return Semantics(
       // Its own node: TalkBack reads each cluster as a button.
       container: true,
@@ -306,18 +314,27 @@ class _ClusterMarker extends ConsumerWidget {
             Positioned.fill(
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: colors.surface,
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: colors.surface, width: 3),
+                  border: Border.all(color: Colors.white, width: 3),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(13),
-                  child: Image(
-                    image: source.thumbnail(cluster.cover.item, size: 192),
-                    fit: BoxFit.cover,
-                    gaplessPlayback: true,
-                    errorBuilder: (context, error, stackTrace) =>
-                        ColoredBox(color: colors.surfaceContainerHigh),
+                  child: ColoredBox(
+                    // Grey until the photo is there.
+                    color: colors.surfaceContainerHigh,
+                    child: RetryingImage(
+                      image: ref
+                          .watch(mediaSourceProvider)
+                          .thumbnail(cluster.cover.item, size: 192),
+                      expand: true,
+                      failure: Center(
+                        child: Icon(
+                          Icons.broken_image_outlined,
+                          color: colors.onSurfaceVariant,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
               ),

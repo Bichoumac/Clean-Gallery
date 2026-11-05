@@ -2,7 +2,7 @@
 
 Full-screen photo and video viewer, opened from any grid.
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 ## Purpose
 
@@ -31,9 +31,9 @@ Asked by the product owner on 2026-10-28: sort a group of duplicates without lea
 - It hides with the other controls (tap the photo), and is not shown on videos, whose playback controls are at the bottom.
 - An item in a certain group and a similar group shows its certain group (`groupsByItem`, as the stacks of the timelines).
 
-## Planned look
+## Look
 
-No accent over the media: a translucent white play button and a white slider. Pulling a photo down at 1× zoom returns to the grid (new gesture). Not built yet: [visual refresh](../visual-refresh.md), [mockup](../design-assets/mockups/screens/13-viewer-video.png).
+No accent over the media: a translucent white play button and a white slider. **Pulling a photo down at 1× zoom returns to the grid**: it shrinks and the black background fades; released past 25 % of the height or with a flick it flies back to its thumbnail, otherwise it springs back. A zoomed photo pans instead, and the info panel keeps its own pull. Videos do not have this gesture. [Mockup](../design-assets/mockups/screens/13-viewer-video.png).
 
 ## Screens and widgets
 

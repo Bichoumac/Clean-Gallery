@@ -114,7 +114,7 @@ The manifest declares a `<queries>` entry for `android.settings.REQUEST_MANAGE_M
 
 - `scheduleReminders` stores the list in the app's preferences (`reminders`, JSON) and sets **one inexact alarm** (`AlarmManager.setAndAllowWhileIdle`, `RTC_WAKEUP`) for the earliest. No `SCHEDULE_EXACT_ALARM`: Android may deliver it a few minutes late.
 - `ReminderReceiver` (not exported) receives the alarm, `BOOT_COMPLETED` and `MY_PACKAGE_REPLACED`: it shows the notifications due (dropping those more than 6 hours late, e.g. after the phone was off), removes them from the list and sets the alarm for the next one. It reads that list only, never MediaStore or the database; a test checks it.
-- Channel `slideshows` ("Memories and slideshows"), default importance, icon [ic_stat_slideshow.xml](../android/app/src/main/res/drawable/ic_stat_slideshow.xml).
+- Channel `slideshows` ("Memories and slideshows"), default importance, icon [ic_stat_clean_gallery.xml](../android/app/src/main/res/drawable/ic_stat_clean_gallery.xml).
 - A tap opens `MainActivity` with the payload as an extra: read by `takeReminderPayload` at launch, or sent to Dart over the **`clean_gallery/reminders`** channel (`reminderTapped`, the payload as argument) when the app runs (`onNewIntent`).
 
 ### Why not `photo_manager` thumbnails

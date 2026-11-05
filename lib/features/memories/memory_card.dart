@@ -23,31 +23,17 @@ class MemoryCards extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final memories = ref.watch(memoryCardsProvider);
     if (memories.isEmpty) return const SizedBox.shrink();
-    if (memories.length == 1) {
-      return Padding(
-        padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-        child: SizedBox(
-          height: 168,
-          child: MemoryCard(memory: memories.single),
-        ),
-      );
-    }
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 14),
       child: SizedBox(
-        height: 168,
-        child: LayoutBuilder(
-          builder: (context, constraints) => ListView.separated(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: memories.length,
-            separatorBuilder: (_, _) => const SizedBox(width: 12),
-            itemBuilder: (context, index) => SizedBox(
-              // The next card peeks in, telling there are more.
-              width: constraints.maxWidth * 0.82,
-              child: MemoryCard(memory: memories[index]),
-            ),
-          ),
+        height: 150,
+        child: ListView.separated(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 14),
+          itemCount: memories.length,
+          separatorBuilder: (_, _) => const SizedBox(width: 10),
+          itemBuilder: (context, index) =>
+              SizedBox(width: 216, child: MemoryCard(memory: memories[index])),
         ),
       ),
     );
@@ -103,7 +89,7 @@ class MemoryCard extends ConsumerWidget {
                 ),
                 Positioned(
                   left: 16,
-                  right: 56,
+                  right: 16,
                   bottom: 14,
                   child: ExcludeSemantics(
                     child: Column(
@@ -112,16 +98,16 @@ class MemoryCard extends ConsumerWidget {
                       children: [
                         Text(
                           title,
-                          style: theme.textTheme.titleMedium?.copyWith(
+                          style: theme.textTheme.headlineSmall?.copyWith(
                             color: Colors.white,
                           ),
-                          maxLines: 1,
+                          maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
                         Text(
                           subtitle,
                           style: theme.textTheme.bodySmall?.copyWith(
-                            color: Colors.white70,
+                            color: Colors.white,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -131,26 +117,24 @@ class MemoryCard extends ConsumerWidget {
                   ),
                 ),
                 Positioned(
-                  right: 8,
-                  bottom: 8,
-                  child: CircleAvatar(
-                    radius: 20,
-                    backgroundColor: theme.colorScheme.primary,
-                    child: Icon(
-                      Icons.play_arrow_rounded,
-                      color: theme.colorScheme.onPrimary,
-                    ),
-                  ),
-                ),
-                Positioned(
                   top: 4,
                   right: 4,
                   child: IconButton(
                     tooltip: l10n.memoryDismiss,
                     color: Colors.white,
+                    iconSize: 18,
                     onPressed: () =>
                         unawaited(dismissMemory(context, ref, memory)),
-                    icon: const Icon(Icons.close_rounded),
+                    icon: const DecoratedBox(
+                      decoration: BoxDecoration(
+                        color: Color(0x8C000000),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Padding(
+                        padding: EdgeInsets.all(6),
+                        child: Icon(Icons.close_rounded, size: 18),
+                      ),
+                    ),
                   ),
                 ),
               ],

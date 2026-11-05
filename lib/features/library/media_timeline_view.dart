@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clean_gallery/core/brand/empty_state.dart';
 import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/duplicates_tile.dart';
 import 'package:clean_gallery/core/media/media_actions.dart';
@@ -140,10 +141,14 @@ class MediaTimelineView extends ConsumerWidget {
       actions: headerActions,
       slideshowTitle: slideshowTitle,
     );
+    final neutral = Theme.of(context).colorScheme.surfaceContainerLowest;
     if (access == MediaAccess.denied) {
-      return _Scaffolding(
-        header: header,
-        body: [_AccessPrompt(onGranted: () => _refresh(ref))],
+      return ColoredBox(
+        color: neutral,
+        child: _Scaffolding(
+          header: header,
+          body: [_AccessPrompt(onGranted: () => _refresh(ref))],
+        ),
       );
     }
 
@@ -154,41 +159,45 @@ class MediaTimelineView extends ConsumerWidget {
         ? const _LimitedAccessBanner()
         : null;
 
-    return PinchToChangeColumns(
-      onZoomIn: ref.read(gridColumnsProvider.notifier).zoomIn,
-      onZoomOut: ref.read(gridColumnsProvider.notifier).zoomOut,
-      child: RefreshIndicator(
-        onRefresh: () => _refresh(ref),
-        edgeOffset: MediaQuery.paddingOf(context).top,
-        child: switch (items) {
-          AsyncData(:final value) when value.isEmpty => _Scaffolding(
-            header: header,
-            body: [
-              ?banner,
-              if (shown.dates != null)
-                _FilteredEmptyState(base: selection)
-              else
-                _EmptyState(title: emptyTitle, body: emptyBody),
-            ],
-          ),
-          AsyncData(:final value) => _Timeline(
-            header: header,
-            banner: banner,
-            selection: shown,
-            items: value,
-            columns: columns,
-            stackDuplicates: stackDuplicates,
-            showDuplicates: showDuplicates,
-            selectionActions: selectionActions,
-            topContent: topContent,
-            title: title,
-          ),
-          AsyncError() => _Scaffolding(
-            header: header,
-            body: [_ErrorState(onRetry: () => _refresh(ref))],
-          ),
-          _ => _Skeleton(header: header, columns: columns),
-        },
+    // Photo grids stay neutral: warm surfaces would tint how photos look.
+    return ColoredBox(
+      color: neutral,
+      child: PinchToChangeColumns(
+        onZoomIn: ref.read(gridColumnsProvider.notifier).zoomIn,
+        onZoomOut: ref.read(gridColumnsProvider.notifier).zoomOut,
+        child: RefreshIndicator(
+          onRefresh: () => _refresh(ref),
+          edgeOffset: MediaQuery.paddingOf(context).top,
+          child: switch (items) {
+            AsyncData(:final value) when value.isEmpty => _Scaffolding(
+              header: header,
+              body: [
+                ?banner,
+                if (shown.dates != null)
+                  _FilteredEmptyState(base: selection)
+                else
+                  _EmptyState(title: emptyTitle, body: emptyBody),
+              ],
+            ),
+            AsyncData(:final value) => _Timeline(
+              header: header,
+              banner: banner,
+              selection: shown,
+              items: value,
+              columns: columns,
+              stackDuplicates: stackDuplicates,
+              showDuplicates: showDuplicates,
+              selectionActions: selectionActions,
+              topContent: topContent,
+              title: title,
+            ),
+            AsyncError() => _Scaffolding(
+              header: header,
+              body: [_ErrorState(onRetry: () => _refresh(ref))],
+            ),
+            _ => _Skeleton(header: header, columns: columns),
+          },
+        ),
       ),
     );
   }
@@ -766,7 +775,7 @@ class _TimelineState extends ConsumerState<_Timeline> {
   }
 }
 
-/// Selection look of a grid cell: shrunk with rounded corners and a lime
+/// Selection look of a grid cell: shrunk with rounded corners and an accent
 /// check when [selected], an empty ring when selectable, nothing when the
 /// grid is not selecting ([selected] is `null`).
 class _Selectable extends StatelessWidget {
@@ -825,7 +834,7 @@ class _Selectable extends StatelessWidget {
   }
 }
 
-/// A thumbnail of an unfolded stack: a lime line along its bottom ties the
+/// A thumbnail of an unfolded stack: an accent line along its bottom ties the
 /// stack's items together, and the cover carries a button that folds the
 /// stack again ([onFold]).
 class _UnfoldedStackMember extends StatelessWidget {
@@ -883,7 +892,7 @@ class _UnfoldedStackMember extends StatelessWidget {
 
 /// Height of a date section header, growing with the user's text size.
 double sectionHeaderExtent(BuildContext context) =>
-    30 + MediaQuery.textScalerOf(context).scale(26);
+    30 + MediaQuery.textScalerOf(context).scale(30);
 
 /// Page title with an optional back button and the sort and filter button,
 /// followed by removable chips for the active sort and date filter.
@@ -923,9 +932,9 @@ class _TimelineHeader extends ConsumerWidget {
       bottom: false,
       child: Padding(
         padding: EdgeInsets.fromLTRB(
-          showBackButton ? 8 : 20,
+          showBackButton ? 4 : 14,
           compact ? 8 : 24,
-          12,
+          6,
           compact ? 8 : 16,
         ),
         child: Column(
@@ -940,7 +949,7 @@ class _TimelineHeader extends ConsumerWidget {
                     style: compact
                         ? theme.textTheme.titleLarge
                         : showBackButton
-                        ? theme.textTheme.headlineMedium
+                        ? theme.textTheme.headlineLarge
                         : theme.textTheme.displaySmall,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -1027,14 +1036,14 @@ class _SectionHeader extends StatelessWidget {
     return Align(
       alignment: Alignment.bottomLeft,
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(20, 0, 20, 10),
+        padding: const EdgeInsets.fromLTRB(14, 0, 14, 10),
         child: Semantics(
           header: true,
           child: Text(
             label,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: Theme.of(context).textTheme.titleMedium,
+            style: Theme.of(context).textTheme.headlineSmall,
           ),
         ),
       ),
@@ -1059,7 +1068,7 @@ class _Scaffolding extends StatelessWidget {
   }
 }
 
-/// Grey placeholders while the first chunk loads.
+/// Neutral placeholders while the first chunk loads.
 class _Skeleton extends StatelessWidget {
   const _Skeleton({required this.header, required this.columns});
 
@@ -1068,7 +1077,8 @@ class _Skeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final color = Theme.of(context).colorScheme.surfaceContainerHigh;
+    final color = Theme.of(context).colorScheme.onSurface
+        .withValues(alpha: 0.08);
     return _Scaffolding(
       header: header,
       body: [
@@ -1085,18 +1095,21 @@ class _Skeleton extends StatelessWidget {
   }
 }
 
-/// Centered icon, title and help text inside a page.
+/// Centered icon, title and help text inside a page, for what is not an
+/// empty state: an error or the access prompt.
 class _Message extends StatelessWidget {
   const _Message({
     required this.icon,
     required this.title,
     required this.body,
+    this.iconColor,
     this.action,
   });
 
   final IconData icon;
   final String title;
   final String body;
+  final Color? iconColor;
   final Widget? action;
 
   @override
@@ -1106,20 +1119,16 @@ class _Message extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(32, 64, 32, 0),
       child: Column(
         children: [
-          Container(
-            width: 88,
-            height: 88,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHigh,
-              borderRadius: BorderRadius.circular(28),
-            ),
-            child: Icon(icon, size: 40, color: theme.colorScheme.onSurface),
+          Icon(
+            icon,
+            size: 56,
+            color: iconColor ?? theme.colorScheme.onSurfaceVariant,
           ),
           const SizedBox(height: 24),
           Text(
             title,
             textAlign: TextAlign.center,
-            style: theme.textTheme.titleLarge,
+            style: theme.textTheme.headlineMedium,
           ),
           const SizedBox(height: 8),
           Text(
@@ -1143,8 +1152,7 @@ class _EmptyState extends StatelessWidget {
   final String? body;
 
   @override
-  Widget build(BuildContext context) => _Message(
-    icon: Icons.photo_library_outlined,
+  Widget build(BuildContext context) => EmptyState(
     title: title,
     body: body ?? AppLocalizations.of(context).libraryEmptyBody,
   );
@@ -1159,8 +1167,7 @@ class _FilteredEmptyState extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    return _Message(
-      icon: Icons.event_busy_rounded,
+    return EmptyState(
       title: l10n.filterEmptyTitle,
       body: l10n.filterEmptyBody,
       action: OutlinedButton(
@@ -1182,6 +1189,7 @@ class _ErrorState extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return _Message(
       icon: Icons.error_outline_rounded,
+      iconColor: Theme.of(context).colorScheme.error,
       title: l10n.libraryLoadError,
       body: '',
       action: OutlinedButton(

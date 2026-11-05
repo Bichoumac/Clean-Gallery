@@ -2,7 +2,7 @@
 
 Every documentation file in the repository, with a one-line description. Start with [progress.md](progress.md) to see where the project stands.
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 ## Project
 
@@ -19,8 +19,8 @@ Last updated: 2026-11-04 — Visual refresh spec
 | File | Description |
 | --- | --- |
 | [architecture.md](architecture.md) | Layers, module map, tabs, data flow and dependency rules. |
-| [design.md](design.md) | Design system, target Éclat Soleil identity: palette, typography, shapes, logo, motion. |
-| [visual-refresh.md](visual-refresh.md) | Brief for building that identity: mockups, screens, code to change, copy, order of work. |
+| [design.md](design.md) | Design system, the Éclat Soleil identity: palette, typography, shapes, logo, motion. |
+| [visual-refresh.md](visual-refresh.md) | Brief of that identity: mockups, screens, code, copy, and the choices made while building it. |
 | [design-assets/](design-assets/) | Logo files, Android icon resources, mockups and their HTML sources. |
 | [database.md](database.md) | Drift schema, indexes and migration history. |
 | [platform-android.md](platform-android.md) | Permissions and the native Kotlin channel API. |

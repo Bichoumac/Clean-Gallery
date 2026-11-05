@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:clean_gallery/core/brand/empty_state.dart';
 import 'package:clean_gallery/core/media/media_actions.dart';
 import 'package:clean_gallery/core/media/media_thumbnail.dart';
 import 'package:clean_gallery/core/media/selection_bar.dart';
@@ -117,6 +118,14 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
       },
       child: Stack(
         children: [
+          // A grid of photos is neutral; the empty page keeps the warm surface.
+          Positioned.fill(
+            child: ColoredBox(
+              color: items.isEmpty
+                  ? theme.colorScheme.surface
+                  : theme.colorScheme.surfaceContainerLowest,
+            ),
+          ),
           CustomScrollView(
             slivers: [
               SliverSafeArea(
@@ -130,7 +139,7 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
                         Expanded(
                           child: Text(
                             l10n.trashTitle,
-                            style: theme.textTheme.headlineMedium,
+                            style: theme.textTheme.headlineLarge,
                           ),
                         ),
                         if (items.isNotEmpty)
@@ -155,7 +164,9 @@ class _TrashScreenState extends ConsumerState<TrashScreen> {
                 ),
               ),
               if (items.isEmpty)
-                SliverToBoxAdapter(child: _EmptyTrash(l10n: l10n))
+                SliverToBoxAdapter(
+                  child: _EmptyTrash(l10n: l10n, days: retention),
+                )
               else
                 SliverGrid.builder(
                   gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -290,42 +301,14 @@ class _TrashTile extends StatelessWidget {
 }
 
 class _EmptyTrash extends StatelessWidget {
-  const _EmptyTrash({required this.l10n});
+  const _EmptyTrash({required this.l10n, required this.days});
 
   final AppLocalizations l10n;
 
+  /// How long items stay in the trash, from the settings.
+  final int days;
+
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(32, 48, 32, 0),
-      child: Column(
-        children: [
-          Container(
-            width: 88,
-            height: 88,
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceContainerHigh,
-              borderRadius: BorderRadius.circular(28),
-            ),
-            child: Icon(
-              Icons.delete_outline_rounded,
-              size: 40,
-              color: theme.colorScheme.onSurface,
-            ),
-          ),
-          const SizedBox(height: 24),
-          Text(l10n.trashEmptyTitle, style: theme.textTheme.titleLarge),
-          const SizedBox(height: 8),
-          Text(
-            l10n.trashEmptyBody,
-            textAlign: TextAlign.center,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: theme.colorScheme.onSurfaceVariant,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
+  Widget build(BuildContext context) =>
+      EmptyState(title: l10n.trashEmptyTitle, body: l10n.trashEmptyBody(days));
 }

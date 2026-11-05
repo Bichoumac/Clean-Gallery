@@ -1,10 +1,14 @@
 import 'dart:async';
 
+import 'package:clean_gallery/core/brand/glass.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
+import 'package:clean_gallery/core/theme/app_motion.dart';
+import 'package:clean_gallery/core/theme/app_theme.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/domain/slideshow.dart';
 import 'package:clean_gallery/features/memories/memory_providers.dart';
+import 'package:clean_gallery/features/memories/reminder_planner.dart';
 import 'package:clean_gallery/features/slideshow/slideshow_actions.dart';
 import 'package:clean_gallery/features/slideshow/slideshow_builder.dart';
 import 'package:clean_gallery/features/viewer/zoomable_image.dart';
@@ -250,68 +254,81 @@ class _SlideshowScreenState extends ConsumerState<SlideshowScreen>
     super.dispose();
   }
 
+  /// The title on screen: a memory has none of its own until it is saved.
+  String? _shownTitle(AppLocalizations l10n, BuiltSlideshow show) =>
+      switch (widget.source) {
+        MemorySlideshow(:final memory) => memoryTitle(l10n, memory),
+        _ => show.title,
+      };
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final show = _show;
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle.light,
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        body: switch (show) {
-          null => const Center(
-            child: CircularProgressIndicator(color: Colors.white70),
-          ),
-          BuiltSlideshow(:final items) when items.isEmpty => _Message(
-            text: l10n.slideshowEmpty,
-            onClose: () => Navigator.of(context).pop(),
-          ),
-          _ => GestureDetector(
-            behavior: HitTestBehavior.opaque,
-            onTap: _toggleControls,
-            child: Stack(
-              fit: StackFit.expand,
-              children: [
-                AnimatedSwitcher(
-                  duration: slideshowFade,
-                  child: _Slide(
-                    key: ValueKey(_index),
-                    item: _items[_index],
-                    options: show.options,
-                    // Each photo zooms for its time and the fades around it.
-                    zoomFor:
-                        Duration(seconds: show.options.photoSeconds) +
-                        slideshowFade * 2,
-                    zoomOut: _index.isOdd,
-                    paused: _paused || _ended,
-                    onVideoDone: _next,
-                  ),
-                ),
-                if (_ended)
-                  _EndOverlay(
-                    canSave: _savedId == null,
-                    onReplay: () => unawaited(_replay()),
-                    onSave: () => unawaited(_save()),
-                    onClose: () => Navigator.of(context).pop(),
-                  )
-                else
-                  _Controls(
-                    visible: _controlsVisible,
-                    title: show.title,
-                    position: _index,
-                    count: _items.length,
-                    paused: _paused,
-                    canSave: _savedId == null,
-                    onClose: () => Navigator.of(context).pop(),
-                    onPrevious: _previous,
-                    onTogglePause: _togglePause,
-                    onNext: _next,
-                    onSave: () => unawaited(_save()),
-                  ),
-              ],
+      child: Theme(
+        data: AppTheme.dark(),
+        child: Scaffold(
+          backgroundColor: Colors.black,
+          body: switch (show) {
+            null => const Center(
+              child: CircularProgressIndicator(color: Colors.white70),
             ),
-          ),
-        },
+            BuiltSlideshow(:final items) when items.isEmpty => _Message(
+              text: l10n.slideshowEmpty,
+              onClose: () => Navigator.of(context).pop(),
+            ),
+            _ => GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onTap: _toggleControls,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  AnimatedSwitcher(
+                    duration: slideshowFade,
+                    child: _Slide(
+                      key: ValueKey(_index),
+                      item: _items[_index],
+                      options: show.options,
+                      // Each photo zooms for its time and the fades around it.
+                      zoomFor:
+                          Duration(seconds: show.options.photoSeconds) +
+                          slideshowFade * 2,
+                      zoomOut: _index.isOdd,
+                      paused: _paused || _ended,
+                      onVideoDone: _next,
+                    ),
+                  ),
+                  if (_ended)
+                    _EndOverlay(
+                      first: _items.first,
+                      title: _shownTitle(l10n, show),
+                      count: _items.length,
+                      canSave: _savedId == null,
+                      onReplay: () => unawaited(_replay()),
+                      onSave: () => unawaited(_save()),
+                      onClose: () => Navigator.of(context).pop(),
+                    )
+                  else
+                    _Controls(
+                      visible: _controlsVisible,
+                      title: _shownTitle(l10n, show),
+                      position: _index,
+                      count: _items.length,
+                      paused: _paused,
+                      canSave: _savedId == null,
+                      onClose: () => Navigator.of(context).pop(),
+                      onPrevious: _previous,
+                      onTogglePause: _togglePause,
+                      onNext: _next,
+                      onSave: () => unawaited(_save()),
+                    ),
+                ],
+              ),
+            ),
+          },
+        ),
       ),
     );
   }
@@ -522,92 +539,110 @@ class _Controls extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    const white = Colors.white;
+    final title = this.title ?? '';
     return IgnorePointer(
       ignoring: !visible,
       child: AnimatedOpacity(
         opacity: visible ? 1 : 0,
-        duration: const Duration(milliseconds: 200),
+        duration: AppMotion.of(context, AppMotion.standard),
         child: DecoratedBox(
           decoration: const BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [Color(0x99000000), Color(0x00000000), Color(0x99000000)],
-              stops: [0, 0.5, 1],
+              colors: [Color(0x00000000), Color(0xCC000000)],
+              stops: [0.5, 1],
             ),
           ),
           child: SafeArea(
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    IconButton(
-                      tooltip: l10n.actionClose,
-                      color: white,
-                      onPressed: onClose,
-                      icon: const Icon(Icons.close_rounded),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(2),
+                    child: LinearProgressIndicator(
+                      value: count == 0 ? 0 : (position + 1) / count,
+                      minHeight: 3,
+                      color: Colors.white,
+                      backgroundColor: Colors.white30,
                     ),
-                    Expanded(
-                      child: Text(
-                        title ?? '',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          color: white,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    if (canSave)
-                      TextButton.icon(
-                        style: TextButton.styleFrom(foregroundColor: white),
-                        onPressed: onSave,
-                        icon: const Icon(Icons.bookmark_add_outlined),
-                        label: Text(l10n.actionSave),
-                      ),
-                  ],
-                ),
-                const Spacer(),
-                Text(
-                  l10n.slideshowPosition(position + 1, count),
-                  style: theme.textTheme.bodySmall?.copyWith(
-                    color: Colors.white70,
                   ),
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    IconButton(
-                      tooltip: l10n.slideshowPrevious,
-                      color: white,
-                      iconSize: 32,
-                      onPressed: onPrevious,
-                      icon: const Icon(Icons.skip_previous_rounded),
+                  const SizedBox(height: 12),
+                  GlassIconButton(
+                    tooltip: l10n.actionClose,
+                    icon: Icons.close_rounded,
+                    size: 48,
+                    iconSize: 22,
+                    onPressed: onClose,
+                  ),
+                  const Spacer(),
+                  Text(
+                    l10n.slideshowPosition(position + 1, count),
+                    style: theme.textTheme.titleSmall?.copyWith(
+                      color: Colors.white,
                     ),
-                    const SizedBox(width: 24),
-                    IconButton.filled(
-                      tooltip: paused
-                          ? l10n.slideshowPlay
-                          : l10n.slideshowPause,
-                      iconSize: 40,
-                      onPressed: onTogglePause,
-                      icon: Icon(
-                        paused ? Icons.play_arrow_rounded : Icons.pause_rounded,
-                      ),
-                    ),
-                    const SizedBox(width: 24),
-                    IconButton(
-                      tooltip: l10n.slideshowNext,
-                      color: white,
-                      iconSize: 32,
-                      onPressed: onNext,
-                      icon: const Icon(Icons.skip_next_rounded),
+                  ),
+                  if (title.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      title,
+                      // A long title of a saved slideshow stays on two lines.
+                      style:
+                          (title.length <= 22
+                                  ? theme.textTheme.displayLarge
+                                  : theme.textTheme.headlineLarge)
+                              ?.copyWith(color: Colors.white, height: 1.05),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ],
-                ),
-                const SizedBox(height: 24),
-              ],
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      GlassIconButton(
+                        tooltip: l10n.slideshowPrevious,
+                        icon: Icons.skip_previous_rounded,
+                        onPressed: onPrevious,
+                      ),
+                      const SizedBox(width: 10),
+                      GlassIconButton(
+                        tooltip: paused
+                            ? l10n.slideshowPlay
+                            : l10n.slideshowPause,
+                        icon: paused
+                            ? Icons.play_arrow_rounded
+                            : Icons.pause_rounded,
+                        onPressed: onTogglePause,
+                      ),
+                      const SizedBox(width: 10),
+                      GlassIconButton(
+                        tooltip: l10n.slideshowNext,
+                        icon: Icons.skip_next_rounded,
+                        onPressed: onNext,
+                      ),
+                      if (canSave) ...[
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: FilledButton(
+                            style: FilledButton.styleFrom(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                              ),
+                            ),
+                            onPressed: onSave,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              child: Text(l10n.actionSave),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ),
@@ -616,49 +651,118 @@ class _Controls extends StatelessWidget {
   }
 }
 
-/// What the end of a slideshow offers: replay, save, close.
-class _EndOverlay extends StatelessWidget {
+/// The end of a slideshow: the first photo fading into the surface, its name,
+/// and what it offers: replay, save, close.
+class _EndOverlay extends ConsumerWidget {
   const _EndOverlay({
+    required this.first,
+    required this.title,
+    required this.count,
     required this.canSave,
     required this.onReplay,
     required this.onSave,
     required this.onClose,
   });
 
+  final MediaItem first;
+  final String? title;
+  final int count;
   final bool canSave;
   final VoidCallback onReplay;
   final VoidCallback onSave;
   final VoidCallback onClose;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
+    final theme = Theme.of(context);
+    final source = ref.watch(mediaSourceProvider);
+    final surface = theme.colorScheme.surface;
     return ColoredBox(
-      color: const Color(0xB3000000),
-      child: Center(
-        child: Wrap(
-          spacing: 12,
-          runSpacing: 12,
-          alignment: WrapAlignment.center,
-          children: [
-            FilledButton.icon(
-              onPressed: onReplay,
-              icon: const Icon(Icons.replay_rounded),
-              label: Text(l10n.slideshowReplay),
+      color: surface,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                Image(
+                  image: first.isVideo
+                      ? source.thumbnail(first, size: 512)
+                      : source.preview(
+                          first,
+                          longestSide: viewerPreviewSide(context, first),
+                        ),
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                ),
+                DecoratedBox(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topCenter,
+                      end: Alignment.bottomCenter,
+                      colors: [surface.withValues(alpha: 0), surface],
+                      stops: const [0.45, 1],
+                    ),
+                  ),
+                ),
+              ],
             ),
-            if (canSave)
-              FilledButton.tonalIcon(
-                onPressed: onSave,
-                icon: const Icon(Icons.bookmark_add_outlined),
-                label: Text(l10n.actionSave),
+          ),
+          SafeArea(
+            top: false,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title ?? l10n.slideshowTitle,
+                    style: theme.textTheme.displaySmall,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    l10n.photoCount(count),
+                    style: theme.textTheme.bodyLarge?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: FilledButton(
+                      onPressed: onReplay,
+                      child: Text(l10n.slideshowReplay),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Row(
+                    children: [
+                      if (canSave) ...[
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: onSave,
+                            child: Text(l10n.actionSave),
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                      ],
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: onClose,
+                          child: Text(l10n.actionClose),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
-            OutlinedButton(
-              style: OutlinedButton.styleFrom(foregroundColor: Colors.white),
-              onPressed: onClose,
-              child: Text(l10n.actionClose),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

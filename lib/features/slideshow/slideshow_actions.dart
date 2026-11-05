@@ -143,7 +143,13 @@ Future<int?> saveSlideshow(
   ]);
   messenger
     ..hideCurrentSnackBar()
-    ..showSnackBar(SnackBar(content: Text(l10n.slideshowSavedSnack)));
+    ..showSnackBar(
+      SnackBar(
+        content: Text(l10n.slideshowSavedSnack),
+        // Above the player's buttons, which it would otherwise cover.
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 180),
+      ),
+    );
   return id;
 }
 

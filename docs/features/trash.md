@@ -2,7 +2,7 @@
 
 The app's own trash: every delete in Clean Gallery lands here first, and items are deleted from the device only after the retention period, with the user's confirmation.
 
-Last updated: 2026-11-04 — Visual refresh spec
+Last updated: 2026-11-04 — Visual refresh
 
 ## Purpose
 
@@ -31,9 +31,9 @@ flowchart TD
     H -->|No| Z
 ```
 
-## Planned look
+## Look
 
-The empty state shows the mark and a warmer message ([copy](../visual-refresh.md#copy)). Not built yet: [visual refresh](../visual-refresh.md), [mockup](../design-assets/mockups/screens/09-empty-trash-light.png).
+A neutral page around the grid. When empty: the warm surface, the mark and a warmer message with the retention set in Settings ([copy](../visual-refresh.md#copy)). [Mockup](../design-assets/mockups/screens/09-empty-trash-light.png).
 
 ## Screens and widgets
 

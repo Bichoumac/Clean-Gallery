@@ -1,5 +1,4 @@
-import 'dart:ui' show ImageFilter;
-
+import 'package:clean_gallery/core/brand/glass.dart';
 import 'package:clean_gallery/core/router/compact_nav_bar.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -76,7 +75,6 @@ class SelectionBar extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final theme = Theme.of(context);
-    final colors = theme.colorScheme;
     const height = CompactNavBar.height;
     final overflow = actions.length > maxButtons;
     final buttons = overflow ? actions.sublist(0, maxButtons - 1) : actions;
@@ -92,64 +90,51 @@ class SelectionBar extends StatelessWidget {
           12,
           CompactNavBar.bottomMargin,
         ),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(height / 2),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: colors.surfaceContainer.withValues(alpha: 0.92),
-                borderRadius: BorderRadius.circular(height / 2),
-                border: Border.all(color: colors.outlineVariant),
+        child: GlassPill(
+          height: height,
+          child: Row(
+            children: [
+              IconButton(
+                tooltip: l10n.selectionClose,
+                onPressed: onClose,
+                icon: const Icon(Icons.close_rounded),
               ),
-              child: SizedBox(
-                height: height,
-                child: Row(
-                  children: [
-                    IconButton(
-                      tooltip: l10n.selectionClose,
-                      onPressed: onClose,
-                      icon: const Icon(Icons.close_rounded),
-                    ),
-                    Expanded(
-                      child: Text(
-                        l10n.selectionCount(count),
-                        style: theme.textTheme.titleSmall,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                    for (final action in buttons)
-                      IconButton(
-                        tooltip: action.label,
-                        onPressed: count == 0 ? null : action.onPressed,
-                        icon: Icon(action.icon),
-                      ),
-                    if (menu.isNotEmpty)
-                      PopupMenuButton<SelectionAction>(
-                        tooltip: l10n.selectionMore,
-                        enabled: count > 0,
-                        icon: const Icon(Icons.more_vert_rounded),
-                        onSelected: (action) => action.onPressed(),
-                        itemBuilder: (context) => [
-                          for (final action in menu)
-                            PopupMenuItem(
-                              value: action,
-                              child: Row(
-                                children: [
-                                  Icon(action.icon),
-                                  const SizedBox(width: 12),
-                                  Expanded(child: Text(action.label)),
-                                ],
-                              ),
-                            ),
-                        ],
-                      ),
-                    const SizedBox(width: 4),
-                  ],
+              Expanded(
+                child: Text(
+                  l10n.selectionCount(count),
+                  style: theme.textTheme.titleSmall,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
-            ),
+              for (final action in buttons)
+                IconButton(
+                  tooltip: action.label,
+                  onPressed: count == 0 ? null : action.onPressed,
+                  icon: Icon(action.icon),
+                ),
+              if (menu.isNotEmpty)
+                PopupMenuButton<SelectionAction>(
+                  tooltip: l10n.selectionMore,
+                  enabled: count > 0,
+                  icon: const Icon(Icons.more_vert_rounded),
+                  onSelected: (action) => action.onPressed(),
+                  itemBuilder: (context) => [
+                    for (final action in menu)
+                      PopupMenuItem(
+                        value: action,
+                        child: Row(
+                          children: [
+                            Icon(action.icon),
+                            const SizedBox(width: 12),
+                            Expanded(child: Text(action.label)),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+              const SizedBox(width: 4),
+            ],
           ),
         ),
       ),
