@@ -40,9 +40,6 @@ M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)).
 - **Video slider under the viewer's buttons**: with a system navigation bar, the progress bar slid under the action bar (share, details…) and was hard to drag. It now sits 16 dp above it.
 - **Pages opened without any transition**: go_router did not recognize the app as a Material app and gave every route a page without transition. Routes now ask for a Material page themselves.
 - CI no longer uploads the debug APK and release bundle as artifacts: they filled the GitHub artifact storage quota. Both are still built.
-
-### Fixed
-
 - Filled buttons used the system font instead of Manrope.
 - **Thumbnails missing in runs**, after a fast scroll: a request dropped by the native loader stayed in Flutter's image cache as a failure until the app restarted. Failures are no longer kept, and cells on screen ask again.
 - Map: the duplicate scan no longer competes with the markers' thumbnails, and a thumbnail that fails is asked for again.
