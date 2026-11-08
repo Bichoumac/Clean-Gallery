@@ -52,7 +52,13 @@ keyPassword=<the password>
 ~/sdk/android/build-tools/<version>/apksigner verify --print-certs build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
 ```
 
-The `SHA-256` printed must be the same for every release. Write it once in the GitHub release notes, so users can check the APK they download.
+The `SHA-256` printed must be the same for every release. Write it in the GitHub release notes, so users can check the APK they download. The upload key's certificate (created on 2026-11-09, `CN=Thierry C, OU=Bichoumac, O=Bichoumac`):
+
+```text
+2a:cb:ef:00:53:2b:1b:3f:48:98:0d:76:55:e7:9a:2f:2f:d5:db:89:4b:c8:f8:fd:49:72:a6:ae:5e:24:f4:cf
+```
+
+An APK whose certificate differs was not built with this key.
 
 ## Release checklist
 

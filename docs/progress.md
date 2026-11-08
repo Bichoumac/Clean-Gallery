@@ -53,7 +53,7 @@ Started on 2026-11-08 on branch `m12-release`.
 
 ### Waiting for the product owner
 
-- Upload key: created by the product owner on 2026-11-09; `android/key.properties` to write ([release.md](release.md#upload-key)).
+- Upload key: created by the product owner on 2026-11-09 and in use; signed release APKs checked (arm64 26.4 MB, armeabi-v7a 24.3 MB, x86_64 28.0 MB), certificate in [release.md](release.md#checking-a-builds-signature).
 - Choose the channels: GitHub releases, IzzyOnDroid, F-Droid, Play later.
 - Make the repository public (the privacy link and F-Droid need it).
 - Screenshots for the store listing, taken on their phone with photos they are fine to show.
