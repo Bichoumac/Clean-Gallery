@@ -153,7 +153,7 @@ Shared with F-Droid and the GitHub page; the texts are in [fastlane/metadata/and
 | Full description | 4,000 characters | `full_description.txt` |
 | App icon | 512 × 512 PNG | [design-assets/](design-assets/) |
 | Feature graphic | 1024 × 500 | To make, from the rosace and the palette ([design.md](design.md)) |
-| Phone screenshots | 2 to 8, 16:9 or 9:16 | **By the product owner**, on a phone with photos they are fine to show (the assistant never takes screenshots of the phone). Suggested: a timeline, the viewer, duplicates, swipe sorting, Stats, the map. Put them in `fastlane/metadata/android/en-US/images/phoneScreenshots/` as `1.png`, `2.png`… |
+| Phone screenshots | 2 to 8, 16:9 or 9:16 | Five in `fastlane/metadata/android/en-US/images/phoneScreenshots/` (2026-11-09, taken by the product owner, dark theme, English): duplicates, swipe sorting, Stats, viewer, editor. Only the product owner's own photos, no recognizable person, no stock image. A French set may be added in `fr-FR/` |
 | Category | | Photography |
 | Contact e-mail | | <bichoumac.dev@gmail.com> |
 
