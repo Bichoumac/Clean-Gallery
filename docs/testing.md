@@ -161,29 +161,16 @@ First run on 2026-11-08 on the Galaxy A54: 1 and 7 OK; pages had no transition (
 9. Light and dark themes: the darkening of the page below looks right in both.
 10. Settings → *Thème*: tap *Sombre*, then *Clair*: the new theme spreads in a circle from the finger, smoothly.
 
-### M11 — monetization, to verify on a device
+### Open source without ads — to verify on a device
 
-Items 1 to 9 reported OK as a whole by the product owner on 2026-11-05, on the Galaxy A54; items 10 to 15 not run. Install a profile build, which uses Google's test ads: `flutter build apk --profile --target-platform android-arm64`.
+Ads and the purchase were removed on 2026-11-08 ([ADR 0032](decisions/0032-open-source-without-ads.md)).
 
-1. First launch after the update, in France: Google's consent form appears over the tabs, never during onboarding. If it does not appear, note whether ads show anyway.
-2. Accept: Albums shows a *Test Ad* banner above the floating bar, not hidden by it, with *Remove ads* at the end of the list.
-3. The banner's height looks small enough, and the last album can be scrolled fully into view.
-4. Stats: a card labeled *Annonce* before the Trash tile, with its own *Ad* badge. Tile shape, no citron, readable in light and dark.
-5. Change the theme with the Stats tab open: the card comes back in the new colors.
-6. Camera, Videos, Settings, viewer, sort session, editor, duplicates, trash, onboarding, map, search, album pages, during slideshows, memories: no ad.
-   - Slideshow button of an album, *Start*: a test ad, full screen; closing it starts the slideshow. Again within 5 minutes: no ad. A memory, a ritual or a saved slideshow: no ad.
-7. Settings → *Annonces*: *Confidentialité et choix publicitaires* reopens the form. Refuse everything: slots stay or go according to Google's answer, with no crash.
-8. Airplane mode, relaunch: empty reserved space or no slot; no crash, no jump.
-9. *Retirer les annonces*, on this build: the store says the product is unavailable, or a clear error shows. No crash.
-
-Only possible once the [outside setup](monetization.md#set-up-outside-the-code) is done, from a testing track with a license tester:
-
-10. The price shown is the store's.
-11. Buy: every ad disappears at once; *Sans annonces ✓* in Settings; still so after a relaunch and with no network.
-12. Cancel a purchase, and try a slow test card: a clear message each time.
-13. Reinstall: the purchase returns by itself; *Restaurer l'achat* also finds it.
-14. Refund from the Play Console: ads return at the next launch.
-15. Delete more than 500 MB for good from the trash: the offer appears with the price; *Non merci*; never again.
+1. Install over the previous build (no uninstall): the app opens on the tabs, albums, settings and slideshows as before.
+2. Albums: no banner and no *Remove ads* link; the last album scrolls fully into view above the bar.
+3. Stats: no ad card; the Trash tile follows the other tiles.
+4. A slideshow from an album starts right after *Start*, with no ad.
+5. Settings: no *Annonces* section.
+6. Delete more than 500 MB for good from the trash: no offer appears.
 
 ### Visual refresh — to verify on a device
 

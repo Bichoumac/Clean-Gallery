@@ -27,8 +27,6 @@ Last updated: 2026-11-05 — Milestone M11
 | [analysis-engine.md](analysis-engine.md) | Analysis algorithms (capture dates, exact duplicates, bursts, similar photos, best pick), thresholds, rationale and performance. |
 | [testing.md](testing.md) | Test strategy, commands and fixtures. |
 
-[monetization.md](monetization.md): ads, consent, the *Remove ads* purchase and what to set up outside the code.
-
 Planned files: `features/people.md` (M10), `release.md` (M12).
 
 ## Features
@@ -89,4 +87,6 @@ One file per feature is added as each feature is built.
 | [0027](decisions/0027-notifications-without-background-work.md) | Memory and ritual notifications without background work |
 | [0028](decisions/0028-warm-eclat-identity.md) | Warm Éclat Soleil visual identity |
 | [0029](decisions/0029-face-model.md) | Face detection and recognition models (postponed) |
-| [0030](decisions/0030-ads-and-purchase.md) | Ads and purchase behind two interfaces |
+| [0030](decisions/0030-ads-and-purchase.md) | Ads and purchase behind two interfaces (superseded by 0032) |
+| [0031](decisions/0031-page-transitions.md) | Page transitions of our own |
+| [0032](decisions/0032-open-source-without-ads.md) | Open source, without ads |

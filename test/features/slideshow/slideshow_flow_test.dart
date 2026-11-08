@@ -125,24 +125,6 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testApp('a manual slideshow shows the ad first, once it is closed plays', (
-    tester,
-  ) async {
-    final ads = FakeAdsService(configured: true);
-    await pumpTestApp(tester, media: source(), ads: ads);
-    await slideshowOfSelection(tester, [0, 2]);
-    expect(ads.calls, isNot(contains('interstitial')));
-
-    await tester.ensureVisible(find.text('Start'));
-    await tester.pumpAndSettle();
-    await tester.tap(find.text('Start'));
-    await tester.pump();
-    await tester.pump(const Duration(milliseconds: 500));
-
-    expect(ads.calls, contains('interstitial'));
-    expect(find.byType(SlideshowScreen), findsOneWidget);
-  });
-
   testApp('a custom slideshow plays the album and period picked', (
     tester,
   ) async {
@@ -189,20 +171,14 @@ void main() {
     await tester.pumpAndSettle();
   });
 
-  testApp('a memory plays without an ad', (tester) async {
-    final ads = FakeAdsService(configured: true);
-    await pumpTestApp(
-      tester,
-      media: source(yearsAgo: [1]),
-      ads: ads,
-    );
+  testApp('a memory plays at once', (tester) async {
+    await pumpTestApp(tester, media: source(yearsAgo: [1]));
     await tester.pumpAndSettle();
     await tester.tap(find.text('On this day, 1 year ago'));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.byType(SlideshowScreen), findsOneWidget);
-    expect(ads.calls, isNot(contains('interstitial')));
   });
 
   testApp('a memory card plays, and ✕ dismisses it with Undo', (tester) async {

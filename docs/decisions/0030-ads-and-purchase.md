@@ -4,7 +4,7 @@ Which packages carry ads and billing, how they stay away from the rest of the ap
 
 Last updated: 2026-11-05 — Milestone M11
 
-- **Status**: Accepted
+- **Status**: Superseded by [ADR 0032](0032-open-source-without-ads.md) on 2026-11-08: the ads and the purchase were removed. This record and [monetization.md in the history](https://github.com/Bichoumac/Clean-Gallery/blob/80c471608c4cb98e67a21c59f4404ab6df0cb102/docs/monetization.md) describe what M11 built.
 - **Date**: 2026-11-05
 
 ## Context

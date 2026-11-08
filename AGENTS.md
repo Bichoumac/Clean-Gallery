@@ -2,13 +2,13 @@
 
 Entry point for AI assistants working on Clean Gallery. Read this first, then follow the links to `docs/` for depth.
 
-Last updated: 2026-11-05 — Milestone M11
+Last updated: 2026-11-08 — Open source
 
 ## Project summary
 
 - Android photo and video gallery written in Flutter, with cleanup tools (duplicates, swipe sorting, trash).
 - Everything runs on device: the app sends no media or metadata anywhere. Android's own backup may copy the app's database to the user's Google account (product owner's choice, 2026-11-05, see [docs/platform-android.md](docs/platform-android.md#android-backup)).
-- Free with two light ad placements; one non-consumable "Remove ads" purchase.
+- Free and open source: no ads, no purchase, no tracking ([ADR 0032](docs/decisions/0032-open-source-without-ads.md)).
 - Android only for now; all platform code sits behind interfaces so iOS can be added later.
 - Built milestone by milestone (M0 to M12); the current state is in [docs/progress.md](docs/progress.md).
 
@@ -40,7 +40,7 @@ Generated files are not committed. After editing a class annotated with `@DriftD
 | `lib/core/brand/` | The mark and gauge, glass bars, mosaic tiles, empty state, *Best* pill | adding something that carries the identity. |
 | `lib/core/media/` | `MediaIndex` (syncs the `assets` table with the device), `DuplicateScan` (certain duplicates, perceptual hashes, similar groups), media list providers reading it, the duplicates tile, thumbnail widget, formatting, `MediaActions`, selection bar | adding media code shared by several features. |
 | `lib/core/settings/` | `AppSettings` and its controller | adding a user setting (also add a key in `SettingKeys`). |
-| `lib/platform/` | Interfaces (`MediaSource`, `PlatformBridge`, `PermissionService`, `MusicPlayer`, `ReminderService`, `AdsService`, `PurchaseService`, …) | adding a platform capability: interface here, implementation in `platform/android/`. |
+| `lib/platform/` | Interfaces (`MediaSource`, `PlatformBridge`, `PermissionService`, `MusicPlayer`, `ReminderService`, …) | adding a platform capability: interface here, implementation in `platform/android/`. |
 | `lib/platform/android/` | Android implementations | implementing an interface for Android. |
 | `lib/features/<feature>/` | Screens, controllers, feature logic | building a user-facing feature. |
 | `lib/l10n/` | ARB files (`app_en.arb`, `app_fr.arb`) | adding any user-visible string. |
@@ -65,11 +65,11 @@ Full details and diagrams: [docs/architecture.md](docs/architecture.md).
 
 1. Never use `MANAGE_EXTERNAL_STORAGE`. A test enforces it.
 2. Every delete in the app goes through the app trash first (`MediaActions.trash`); only the trash deletes for good (`MediaActions.deleteForever`).
-3. Ads appear only in the three allowed placements: a banner at the bottom of the Albums tab, one native card in the Stats tab ([ADR 0008](docs/decisions/0008-navigation-and-visual-identity.md)), and one interstitial before a manual slideshow, at most every 5 minutes (product owner, 2026-11-05, [ADR 0030](docs/decisions/0030-ads-and-purchase.md)). No other interstitial, and no rewarded or app-open ads (a test enforces it).
-4. No media data or metadata is ever sent to any SDK, ads included.
+3. No ads, purchase, analytics or tracking SDK (product owner, 2026-11-08, [ADR 0032](docs/decisions/0032-open-source-without-ads.md); a test enforces it).
+4. No media data or metadata is ever sent anywhere.
 5. Platform code lives only behind interfaces in `lib/platform/`. Features never import `platform/android/` (a test enforces it).
 6. `lib/analysis/` and `lib/domain/` never import Flutter (a test enforces it).
-7. No production IDs or secrets in the source. Use `--dart-define` and Gradle properties.
+7. No secrets in the source, which is public: signing keys and credentials come from Gradle properties or CI secrets.
 8. Update the documentation in the same commit as the code change. A milestone is not done until `docs/progress.md`, `CHANGELOG.md` and the affected feature docs are updated.
 9. Significant technical choices get an ADR in `docs/decisions/`.
 10. Face recognition (People) runs on the phone only: models bundled in the app, never downloaded, no cloud API or ML Kit, no network call from the face code (a test enforces it).
@@ -84,7 +84,6 @@ Full details and diagrams: [docs/architecture.md](docs/architecture.md).
 - [docs/architecture.md](docs/architecture.md): layers and dependency rules.
 - [docs/design.md](docs/design.md): palette, typography, logo, motion.
 - [docs/visual-refresh.md](docs/visual-refresh.md): brief and mockups of the identity, and the choices made while building it.
-- [docs/monetization.md](docs/monetization.md): ads, consent, purchase and outside setup.
 - [docs/database.md](docs/database.md): schema and migrations.
 - [docs/platform-android.md](docs/platform-android.md): permissions and native channel API.
 - [docs/testing.md](docs/testing.md): test strategy.

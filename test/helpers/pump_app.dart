@@ -24,8 +24,6 @@ Future<void> pumpTestApp(
   FakePlatformBridge? bridge,
   FakeMusicPlayer? music,
   FakeReminderService? reminders,
-  FakeAdsService? ads,
-  FakePurchaseService? purchases,
   AppSettings settings = const AppSettings(),
   AppDatabase? database,
 }) async {
@@ -52,10 +50,6 @@ Future<void> pumpTestApp(
         musicPlayerProvider.overrideWithValue(music ?? FakeMusicPlayer()),
         reminderServiceProvider.overrideWithValue(
           reminders ?? FakeReminderService(),
-        ),
-        adsServiceProvider.overrideWithValue(ads ?? FakeAdsService()),
-        purchaseServiceProvider.overrideWithValue(
-          purchases ?? FakePurchaseService(),
         ),
         initialOnboardingCompletedProvider.overrideWithValue(
           onboardingCompleted,

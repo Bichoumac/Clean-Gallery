@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-11-05 — Milestone M11
+Last updated: 2026-11-08 — Open source
 
 ## Milestones
 
@@ -19,7 +19,8 @@ Last updated: 2026-11-05 — Milestone M11
 | M8 | User albums | Merged into `main` (PR #10, 2026-11-01) |
 | M9 | Slideshows, saved slideshows, memories, rituals | Merged into `main` (PR #11, 2026-11-04) |
 | M10 | People (on-device face recognition, merging) | Postponed by the product owner on 2026-11-05, to come after M11; no code, model study in [ADR 0029](decisions/0029-face-model.md) |
-| M11 | Monetization (was M8) | Merged into `main` (PR #14, 2026-11-08); items 1 to 9 OK on the phone, purchase not tried |
+| M11 | Monetization (was M8) | Merged into `main` (PR #14, 2026-11-08), then removed: open source without ads ([ADR 0032](decisions/0032-open-source-without-ads.md)) |
+| — | Open source: ads and purchase removed | Built on branch `remove-ads` on 2026-11-08, on top of `page-transitions`; license to choose |
 | — | Page transitions: tabs, pages, tiles, back gesture, viewer | Built on branch `page-transitions` on 2026-11-08, before M12; not tried on a phone ([checks](testing.md#page-transitions--to-verify-on-a-device)) |
 | M12 | Polish and release preparation (was M9) | Not started |
 | — | Visual refresh: Éclat Soleil identity, logo and icon | Merged into `main` (PR #13), tried on the phone 2026-11-05 |
@@ -36,11 +37,21 @@ The product owner chose a warm identity and a logo on 2026-11-04 ([ADR 0028](dec
 - **Map**: slow loading and missing marker thumbnails reported, then "carte ok" after the duplicate scan was paused on the map and failures retried (2026-11-05).
 - **Thumbnails missing in runs** (reported 2026-11-05, several runs of consecutive cells): failed loads stayed in Flutter's image cache, reproduced by a test and fixed ([library.md](features/library.md#thumbnails-that-fail)). Confirmed on the phone by the product owner ("ça marche", 2026-11-05).
 
-## M11 — Monetization
+## Open source without ads
+
+The product owner asked on 2026-11-08 to remove the ads and release the app as open source ([ADR 0032](decisions/0032-open-source-without-ads.md)).
+
+- **Removed**: the banner, the native card, the slideshow ad, consent, the *Remove ads* purchase and its offer, the *Ads* section of Settings, the two platform interfaces, the three packages, the AdMob ID in the manifest, the cached settings and their strings.
+- An architecture test now fails if an ads, purchase or tracking package comes back. 466 tests pass (the ads tests are gone).
+- **Left to the product owner**: the license, then making the repository public; updating the privacy policy's ads section.
+
+## M11 — Monetization (removed on 2026-11-08)
+
+Kept as history; none of this is in the app any more. The removed `monetization.md` is in the [repository history](https://github.com/Bichoumac/Clean-Gallery/blob/23af5d6fe6c7827bdd435735a948552b61cfdbe4/docs/monetization.md).
 
 ### Done
 
-- **Ads**: AdMob banner in the Albums tab and native card in the Stats tab, UMP consent after onboarding, *Privacy & ad choices* ([monetization.md](monetization.md), [ADR 0030](decisions/0030-ads-and-purchase.md)).
+- **Ads**: AdMob banner in the Albums tab and native card in the Stats tab, UMP consent after onboarding, *Privacy & ad choices* ([ADR 0030](decisions/0030-ads-and-purchase.md)).
 - **Ad before a manual slideshow** (product owner, 2026-11-05, reversing the brief's ban on interstitials for this case): at most every 5 minutes, never before a memory, ritual or saved slideshow; the slideshow never waits for it.
 - **Remove ads**: non-consumable `remove_ads`, acknowledged, checked at each launch, restored, cached so no ad flashes; the SDK never starts for an ad-free user. Offered in Settings, next to the banner, and once after more than 500 MB deleted for good.
 - Five architecture tests guard the placements and the requests. No schema change. 472 tests; a profile APK builds.
@@ -59,8 +70,8 @@ The product owner chose a warm identity and a logo on 2026-11-04 ([ADR 0028](dec
 
 ### Known issues
 
-- **On the phone, 2026-11-05**: items 1 to 9 reported as OK as a whole ("tests sur téléphone ok"), not one by one, on the build before the last banner change. The purchase itself (items 10 to 15) has not run. Checklist: [testing.md](testing.md#m11--monetization-to-verify-on-a-device).
-- The purchase cannot be tried until the product owner has set up the Play Console; ads need AdMob before release ([outside setup](monetization.md#set-up-outside-the-code)).
+- **On the phone, 2026-11-05**: items 1 to 9 reported as OK as a whole ("tests sur téléphone ok"), not one by one, on the build before the last banner change. The purchase itself (items 10 to 15) has not run. 
+- The purchase cannot be tried until the product owner has set up the Play Console; ads need AdMob before release.
 - With Google's test app ID, whether the consent form appears is unknown; if it fails on a first launch, no ad is requested.
 - Release APK size with the SDKs not measured (26.6 MB before them).
 

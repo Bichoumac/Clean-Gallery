@@ -4,9 +4,6 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
-/** Google's public AdMob test application ID. Safe to commit. */
-val TEST_ADMOB_APP_ID = "ca-app-pub-3940256099942544~3347511713"
-
 android {
     namespace = "com.bichoumac.clean_gallery"
     // permission_handler_android 14+ compiles against API 37 and requires the app to match.
@@ -27,10 +24,6 @@ android {
         minSdk = 30
         // Must match the latest API level required by Google Play, see docs/release.md.
         targetSdk = 36
-        // AdMob application ID. Set with -PadmobAppId=... for release builds.
-        // The default is Google's public test ID, so debug builds never serve real ads.
-        manifestPlaceholders["admobAppId"] =
-            (project.findProperty("admobAppId") as String?) ?: TEST_ADMOB_APP_ID
         // Uses the version code from pubspec.yaml. When using split APKs, 1000 * ABI_VERSION
         // is added automatically by Flutter. (https://developer.android.com/studio/build/configure-apk-splits#configure-APK-versions)
         // You can force using the value of versionCode by specifying the `-P force-version-code-ignoring-abi=true`
