@@ -33,6 +33,7 @@ M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)).
 
 ### Fixed
 
+- **Viewer controls stuttering as they hid**: hiding them also hides the system bars, which Android removes in steps; the controls, laid out above the bars, moved down with them, stopping and starting. The viewer keeps the bars' room while they are hidden.
 - **Video speed slide did nothing on the phone**: the page swipe, which uses the device's smaller slop, always took the slide first. The speed band now uses half that slop. A single tap on a video also toggles the controls at once instead of waiting 300 ms for a possible double tap.
 - **Photo landing high from the search**: with the search's keyboard open, the viewer was laid out above it, so the photo flew to the top then jumped down. The viewer ignores the keyboard, and opening a photo closes it.
 - **Hitch as a photo opened**: the previews of the neighboring photos, the library's duplicate groups and the viewer's theme were all loaded during the photo's flight. The neighbors now wait for the end of the flight, and the groups and theme are kept.

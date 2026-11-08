@@ -13,7 +13,7 @@ Show one item at a time, full screen, with swiping between the items of the grid
 1. Tap a thumbnail: the image flies from the grid to full screen (Hero transition).
 2. Swipe left or right to move between items, in the grid's order, including its sort and date filter.
 3. Pinch, or double-tap, to zoom a photo; double-tap again to fit. Swiping is disabled while zoomed.
-4. Tap once to hide or show the controls and the system bars.
+4. Tap once to hide or show the controls and the system bars. The controls fade in place: they keep the room of the system bars while those are hidden, so they do not move as the bars leave.
 5. Videos start playing when they become the current page and pause when swiped away. Controls: play/pause/replay, progress bar with seeking, mute, rotate. The progress bar follows the finger and the video seeks when it is lifted. It sits 16 dp above the action bar, itself above the system navigation bar.
 6. **Video gestures** (product owner, 2026-11-08, [video_gestures.dart](../../lib/features/viewer/video_gestures.dart)), each showing its value in a pill while it lasts:
    - sliding up or down on the left half sets the brightness of the app's window only; it goes back to the system's when the video is left;

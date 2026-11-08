@@ -47,6 +47,29 @@ void main() {
     expect(find.text('IMG_2.jpg'), findsOneWidget);
   });
 
+  testApp('the actions stay put while the system bars hide with them', (
+    tester,
+  ) async {
+    tester.view
+      ..padding = const FakeViewPadding(top: 72, bottom: 144)
+      ..viewPadding = const FakeViewPadding(top: 72, bottom: 144);
+    addTearDown(tester.view.reset);
+    await openViewerAt(tester, 0);
+    final share = find.byIcon(Icons.share_rounded);
+    final before = tester.getRect(share);
+
+    await tester.tapAt(tester.getCenter(find.byType(PageView)));
+    await tester.pump(const Duration(milliseconds: 400));
+    // Immersive mode: the navigation and status bars leave.
+    tester.view
+      ..padding = FakeViewPadding.zero
+      ..viewPadding = FakeViewPadding.zero;
+    await tester.pump();
+    expect(tester.getRect(share), before);
+    await tester.pumpAndSettle();
+    expect(tester.getRect(share), before);
+  });
+
   testApp('zoomed in: one finger pans instead of changing page', (
     tester,
   ) async {
