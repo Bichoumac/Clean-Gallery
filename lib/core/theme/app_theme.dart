@@ -1,3 +1,4 @@
+import 'package:clean_gallery/core/theme/app_transitions.dart';
 import 'package:flutter/material.dart';
 
 /// Brand colors of Clean Gallery, the Éclat Soleil identity. See
@@ -108,6 +109,12 @@ abstract final class AppTheme {
       scaffoldBackgroundColor: scheme.surface,
       fontFamily: textFont,
       textTheme: textTheme,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          TargetPlatform.android: AppPageTransitionsBuilder(),
+          TargetPlatform.iOS: AppPageTransitionsBuilder(),
+        },
+      ),
       appBarTheme: AppBarTheme(
         backgroundColor: scheme.surface,
         surfaceTintColor: Colors.transparent,

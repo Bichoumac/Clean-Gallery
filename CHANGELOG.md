@@ -10,6 +10,7 @@ M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)).
 
 ### Added
 
+- **Page transitions** ([docs/design.md](docs/design.md#motion), [ADR 0031](docs/decisions/0031-page-transitions.md)): tabs slide like a carousel; pages slide in over the previous one, which recedes and darkens; a page opened from a tile grows out of it and shrinks back into it; Android's back gesture moves the page with the finger. All instant under reduced motion.
 - **Monetization** ([docs/monetization.md](docs/monetization.md), [ADR 0030](docs/decisions/0030-ads-and-purchase.md)): banner in the Albums tab, native card in the Stats tab, one ad before a manual slideshow at most every 5 minutes, Google consent form after onboarding, *Remove ads* purchase with restore, *Ads* section in Settings, one offer ever after more than 500 MB deleted for good.
 - **Éclat Soleil identity** ([docs/design.md](docs/design.md), [ADR 0028](docs/decisions/0028-warm-eclat-identity.md)): golden citron accent `#E8E24C` on warm surfaces, neutral photo grids, Bricolage Grotesque titles over Manrope (bundled, nothing downloaded).
 - **Logo and icons**: adaptive launcher icon with a themed layer, rosace in the status bar, launch screen in the surface of the system theme.
@@ -26,6 +27,7 @@ M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)).
 - **Albums → Slideshows** is now a page opened by a tile of the mosaic, no longer a section of the tab.
 - Empty trash: *Nothing to throw away*, with the retention set in Settings.
 - Feature documents say "accent" instead of naming a color.
+- Grid to viewer: the photo now flies to its own frame with a spring, instead of a full-screen box, so the thumbnail's square crop no longer jumps when it opens.
 - CI no longer uploads the debug APK and release bundle as artifacts: they filled the GitHub artifact storage quota. Both are still built.
 
 ### Fixed

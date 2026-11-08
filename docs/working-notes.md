@@ -16,7 +16,7 @@ Quick resume (keep this short; history is in [progress.md](progress.md) and git)
 - **Visual refresh is merged** (PR #13); the 22 checks of [testing.md](testing.md#visual-refresh--to-verify-on-a-device) were not reported one by one.
 - **M10 People is postponed** (product owner, 2026-11-05): licensing risk on every face model found, see [ADR 0029](decisions/0029-face-model.md). **M11 monetization** is built on branch `m11-monetization`, committed locally, items 1 to 9 OK on the phone, purchase not tried: [monetization.md](monetization.md), checks in [testing.md](testing.md#m11--monetization-to-verify-on-a-device).
 - **Publishing is blocked**: personal Play account, closed test of 12 testers for 14 days needed, and the product owner cannot gather 12; way forward not chosen yet.
-- **Next milestones**: M11 monetization; then **page transitions** (product owner, 2026-11-08: before M12, on a new branch once M11 is merged); then M12 polish; M10 People postponed ([progress.md](progress.md)).
+- **M11 monetization is merged** (PR #14, 2026-11-08). **Page transitions** are built on branch `page-transitions` (product owner, 2026-11-08: before M12). Then M12 polish; M10 People postponed ([progress.md](progress.md)).
 - **Phone over USB**: the laptop's webcam is a Xiaomi USB device too; run `p.sh` only once the phone shows in `lsusb` (Samsung, MTP mode), or it may pick the webcam.
 - **Key design points to keep**: one paint function (`paintEdit`, `paintPage`) for preview and saving; the native side only writes JPEG + EXIF (`PhotoSaver.kt`); every delete through the app trash; pure Dart in `lib/analysis/` and `lib/domain/`; on the phone (Impeller), avoid blend-mode masks in layers, use clips (blur bug of 2026-10-29).
 - **Checking a look without the phone**: a temporary widget test can load the real fonts with `FontLoader` and write PNG files with `matchesGoldenFile` and `--update-goldens`; delete it afterwards. Without the fonts, text renders as blocks, which also shows a style that forgot its font family.
@@ -37,14 +37,10 @@ State: branch `m11-monetization`, pushed; pull request opened by the product own
 4. **How to publish**, the main blocker. Personal Play account, so 12 testers for 14 days are required, and the product owner cannot gather 12. Options: developer exchange communities (recommended), organization account (legal entity and D-U-N-S number), Samsung Galaxy Store as a fallback (the purchase would have to be rebuilt without Google Play billing). Paid testers are advised against; fake accounts are out.
 5. **Start M12?** Yes, after the page transitions (product owner, 2026-11-08). Needed by every option above.
 
-**Page transitions, once M11 is merged (approved 2026-11-08)**
+**Page transitions (branch `page-transitions`, 2026-11-08)**
 
-- Tabs slide horizontally in the direction of the chosen tab, with a light fade (no swipe between tabs by default: it fights the grid pinch and drag selection).
-- Pushed pages (album, Settings, trash, slideshows…) come in from the right while the previous one recedes and darkens; predictive back follows the finger.
-- Album covers and mosaic tiles grow into their page; sheets and menus rise with a spring.
-- Check the grid-to-viewer zoom (`Hero`, already built): the product owner did not seem to notice it. Rule out Samsung's *Remove animations* first.
-- Everything instant under reduced motion; update the Motion section of [design.md](design.md); give a device checklist at the end.
-6. **Ad revenue**: the product owner should find out how to declare it, and whether a micro-entreprise fits.
+- Built: tabs slide like a carousel, pages slide over a receding page, tiles grow into their page, predictive back follows the finger, the viewer's photo flies to its own frame ([ADR 0031](decisions/0031-page-transitions.md)). Not tried on the phone: checks in [testing.md](testing.md#page-transitions--to-verify-on-a-device).
+- Not done: sheets and menus rising with a spring (Material's default kept).
 
 **M12, for the assistant, once approved**
 

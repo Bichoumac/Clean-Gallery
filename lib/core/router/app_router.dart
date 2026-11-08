@@ -1,4 +1,6 @@
 import 'package:clean_gallery/core/router/home_shell.dart';
+import 'package:clean_gallery/core/router/tab_switcher.dart';
+import 'package:clean_gallery/core/theme/app_motion.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/domain/geo.dart';
@@ -241,6 +243,9 @@ GoRouter appRouter(Ref ref) {
       GoRoute(
         path: AppRoutes.viewer,
         pageBuilder: (context, state) => CustomTransitionPage(
+          // As long as the photo's flight from its thumbnail.
+          transitionDuration: AppMotion.viewer,
+          reverseTransitionDuration: AppMotion.viewer,
           child: ViewerScreen(args: state.extra! as ViewerArgs),
           transitionsBuilder: (context, animation, _, child) =>
               FadeTransition(opacity: animation, child: child),
@@ -449,28 +454,9 @@ StatefulShellBranch _branch(
   );
 }
 
-/// The tabs' navigators in an [IndexedStack], as
-/// `StatefulShellRoute.indexedStack` does, with the heroes of hidden tabs
-/// turned off: the Camera tab and an album page can show the same item, and
-/// two heroes with one tag in the shell break the flight to the viewer or
-/// the duplicates screen.
+/// The tabs' navigators, sliding from one to the other ([TabSwitcher]).
 Widget _branchContainer(
   BuildContext context,
   StatefulNavigationShell navigationShell,
   List<Widget> children,
-) {
-  final current = navigationShell.currentIndex;
-  return IndexedStack(
-    index: current,
-    children: [
-      for (final (index, child) in children.indexed)
-        Offstage(
-          offstage: index != current,
-          child: TickerMode(
-            enabled: index == current,
-            child: HeroMode(enabled: index == current, child: child),
-          ),
-        ),
-    ],
-  );
-}
+) => TabSwitcher(index: navigationShell.currentIndex, children: children);

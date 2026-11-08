@@ -234,6 +234,8 @@ class _ZoomableImageState extends ConsumerState<ZoomableImage>
               child: SizedBox.expand(
                 child: Hero(
                   tag: mediaHeroTag(item),
+                  createRectTween: mediaHeroRectTween(item),
+                  curve: mediaHeroCurve,
                   child: _showFullResolution
                       ? Image(
                           image: source.fullImage(item),

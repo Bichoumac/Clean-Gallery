@@ -19,8 +19,8 @@ Last updated: 2026-11-05 — Milestone M11
 | M8 | User albums | Merged into `main` (PR #10, 2026-11-01) |
 | M9 | Slideshows, saved slideshows, memories, rituals | Merged into `main` (PR #11, 2026-11-04) |
 | M10 | People (on-device face recognition, merging) | Postponed by the product owner on 2026-11-05, to come after M11; no code, model study in [ADR 0029](decisions/0029-face-model.md) |
-| M11 | Monetization (was M8) | Built on branch `m11-monetization` on 2026-11-05, not tried on a phone |
-| — | Page transitions: tabs, pushed pages, tiles, sheets | Approved by the product owner on 2026-11-08, before M12; starts once M11 is merged |
+| M11 | Monetization (was M8) | Merged into `main` (PR #14, 2026-11-08); items 1 to 9 OK on the phone, purchase not tried |
+| — | Page transitions: tabs, pages, tiles, back gesture, viewer | Built on branch `page-transitions` on 2026-11-08, before M12; not tried on a phone ([checks](testing.md#page-transitions--to-verify-on-a-device)) |
 | M12 | Polish and release preparation (was M9) | Not started |
 | — | Visual refresh: Éclat Soleil identity, logo and icon | Merged into `main` (PR #13), tried on the phone 2026-11-05 |
 

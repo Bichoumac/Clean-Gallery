@@ -134,6 +134,20 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
 
+### Page transitions — to verify on a device
+
+Not run yet. Install a profile or release build: debug builds are too slow to judge motion. First check that *Paramètres → Accessibilité → Améliorations de la visibilité → Supprimer les animations* is off, or every transition is instant on purpose.
+
+1. Tap each tab of the bar in turn, then back: the new tab slides in from the side of its button, the old one leaves on the other side, smoothly; each tab keeps its scroll position.
+2. Albums: tap *Favoris*, *Carte*, *Diaporamas*, *Corbeille*, *Tous les médias* and an album cover: each page grows out of the tile, its corners rounding into the screen's; back shrinks it into the same tile.
+3. Stats: tap *Anciennes captures d'écran*, *Photos similaires* and *Mode tri*: same growth from the tile.
+4. Settings → *Rituels*, a search, the editor: the page slides in from the right; the page below shrinks a little and darkens; back plays it in reverse.
+5. Back gesture from the screen's edge on an album page, slowly: the page follows the finger. Let go early: it comes back. Swipe further: it leaves.
+6. Tap a portrait photo, then a landscape one, in a grid: the thumbnail opens into the whole photo with a slight spring, without the picture jumping at the start or the end. Pull it down: it lands back in its square.
+7. During a transition, tap fast on the bar or the back button: no freeze, no blank page, no double page.
+8. Turn *Supprimer les animations* on: tabs and pages change at once.
+9. Light and dark themes: the darkening of the page below looks right in both.
+
 ### M11 — monetization, to verify on a device
 
 Items 1 to 9 reported OK as a whole by the product owner on 2026-11-05, on the Galaxy A54; items 10 to 15 not run. Install a profile build, which uses Google's test ads: `flutter build apk --profile --target-platform android-arm64`.

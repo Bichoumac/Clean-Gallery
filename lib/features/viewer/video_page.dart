@@ -105,6 +105,8 @@ class _VideoPageState extends ConsumerState<VideoPage> {
           Center(
             child: Hero(
               tag: mediaHeroTag(widget.item),
+              createRectTween: mediaHeroRectTween(widget.item),
+              curve: mediaHeroCurve,
               child: controller != null
                   ? AspectRatio(
                       aspectRatio: controller.value.aspectRatio,
