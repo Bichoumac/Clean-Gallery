@@ -136,7 +136,7 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 
 ### Page transitions — to verify on a device
 
-Not run yet. Install a profile or release build: debug builds are too slow to judge motion. First check that *Paramètres → Accessibilité → Améliorations de la visibilité → Supprimer les animations* is off, or every transition is instant on purpose.
+First run on 2026-11-08 on the Galaxy A54: 1 and 7 OK; pages had no transition (2, 3, 4), the photo landed off-center (6), the theme change stuttered (8); all three fixed after, to check again. Install a profile or release build: debug builds are too slow to judge motion. First check that *Paramètres → Accessibilité → Améliorations de la visibilité → Supprimer les animations* is off, or every transition is instant on purpose.
 
 1. Tap each tab of the bar in turn, then back: the new tab slides in from the side of its button, the old one leaves on the other side, smoothly; each tab keeps its scroll position.
 2. Albums: tap *Favoris*, *Carte*, *Diaporamas*, *Corbeille*, *Tous les médias* and an album cover: each page grows out of the tile, its corners rounding into the screen's; back shrinks it into the same tile.
@@ -147,6 +147,7 @@ Not run yet. Install a profile or release build: debug builds are too slow to ju
 7. During a transition, tap fast on the bar or the back button: no freeze, no blank page, no double page.
 8. Turn *Supprimer les animations* on: tabs and pages change at once.
 9. Light and dark themes: the darkening of the page below looks right in both.
+10. Settings → *Thème*: tap *Sombre*, then *Clair*: the new theme spreads in a circle from the finger, smoothly.
 
 ### M11 — monetization, to verify on a device
 

@@ -33,7 +33,7 @@ import 'package:clean_gallery/features/trash/trash_screen.dart';
 import 'package:clean_gallery/features/user_albums/user_album_screen.dart';
 import 'package:clean_gallery/features/viewer/viewer_screen.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
-import 'package:flutter/widgets.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
@@ -236,7 +236,7 @@ GoRouter appRouter(Ref ref) {
       return null;
     },
     routes: [
-      GoRoute(
+      _route(
         path: AppRoutes.onboarding,
         builder: (context, state) => const OnboardingScreen(),
       ),
@@ -262,7 +262,7 @@ GoRouter appRouter(Ref ref) {
           );
         },
       ),
-      GoRoute(
+      _route(
         path: AppRoutes.duplicates,
         builder: (context, state) => DuplicatesScreen(
           scope: state.extra! as MediaSelection,
@@ -270,28 +270,28 @@ GoRouter appRouter(Ref ref) {
               .asNameMap()[state.uri.queryParameters['kind']],
         ),
       ),
-      GoRoute(
+      _route(
         path: AppRoutes.editor,
         builder: (context, state) =>
             EditorScreen(photo: state.extra! as MediaItem),
       ),
-      GoRoute(
+      _route(
         path: AppRoutes.scan,
         builder: (context, state) =>
             ScanScreen(photo: state.extra! as MediaItem),
       ),
-      GoRoute(
+      _route(
         path: AppRoutes.map,
         builder: (context, state) => MapScreen(
           center: state.extra is GeoPoint ? state.extra! as GeoPoint : null,
         ),
         routes: [
-          GoRoute(
+          _route(
             path: 'area',
             builder: (context, state) =>
                 MapAreaScreen(area: state.extra! as GeoArea),
           ),
-          GoRoute(
+          _route(
             path: 'pick',
             builder: (context, state) => MapScreen(
               pickArea: true,
@@ -300,7 +300,7 @@ GoRouter appRouter(Ref ref) {
           ),
         ],
       ),
-      GoRoute(
+      _route(
         path: AppRoutes.search,
         builder: (context, state) => SearchScreen(
           args: state.extra is SearchArgs
@@ -311,7 +311,7 @@ GoRouter appRouter(Ref ref) {
                 ),
         ),
       ),
-      GoRoute(
+      _route(
         path: AppRoutes.swipe,
         builder: (context, state) => SwipeScreen(
           source: SwipeSource.parse(state.uri.queryParameters['source']!)!,
@@ -319,8 +319,10 @@ GoRouter appRouter(Ref ref) {
         ),
       ),
       StatefulShellRoute(
-        builder: (context, state, navigationShell) =>
-            HomeShell(navigationShell: navigationShell),
+        pageBuilder: (context, state, navigationShell) => MaterialPage<void>(
+          key: state.pageKey,
+          child: HomeShell(navigationShell: navigationShell),
+        ),
         navigatorContainerBuilder: _branchContainer,
         // Order must match the destinations of HomeShell.
         branches: [
@@ -345,30 +347,30 @@ GoRouter appRouter(Ref ref) {
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(
+              _route(
                 path: AppRoutes.albums,
                 builder: (context, state) => const AlbumsScreen(),
                 routes: [
                   // Before ':key', which would otherwise match "trash".
-                  GoRoute(
+                  _route(
                     path: 'trash',
                     builder: (context, state) => const TrashScreen(),
                   ),
-                  GoRoute(
+                  _route(
                     path: 'slideshows',
                     builder: (context, state) => const SlideshowsScreen(),
                   ),
-                  GoRoute(
+                  _route(
                     path: 'memories',
                     builder: (context, state) => const MemoriesScreen(),
                   ),
-                  GoRoute(
+                  _route(
                     path: 'mine/:id',
                     builder: (context, state) => UserAlbumScreen(
                       albumId: int.parse(state.pathParameters['id']!),
                     ),
                   ),
-                  GoRoute(
+                  _route(
                     path: ':key',
                     builder: (context, state) {
                       final l10n = AppLocalizations.of(context);
@@ -391,25 +393,25 @@ GoRouter appRouter(Ref ref) {
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(
+              _route(
                 path: AppRoutes.stats,
                 builder: (context, state) => const StatsScreen(),
                 routes: [
-                  GoRoute(
+                  _route(
                     path: 'screenshots',
                     builder: (context, state) =>
                         const CleanupListScreen(list: CleanupList.screenshots),
                   ),
-                  GoRoute(
+                  _route(
                     path: 'large-videos',
                     builder: (context, state) =>
                         const CleanupListScreen(list: CleanupList.largeVideos),
                   ),
-                  GoRoute(
+                  _route(
                     path: 'swipe',
                     builder: (context, state) => const SwipeSourcesScreen(),
                   ),
-                  GoRoute(
+                  _route(
                     path: 'blurry',
                     builder: (context, state) =>
                         const CleanupListScreen(list: CleanupList.poorQuality),
@@ -420,11 +422,11 @@ GoRouter appRouter(Ref ref) {
           ),
           StatefulShellBranch(
             routes: [
-              GoRoute(
+              _route(
                 path: AppRoutes.settings,
                 builder: (context, state) => const SettingsScreen(),
                 routes: [
-                  GoRoute(
+                  _route(
                     path: 'rituals',
                     builder: (context, state) => const RitualsScreen(),
                   ),
@@ -438,6 +440,27 @@ GoRouter appRouter(Ref ref) {
   );
 }
 
+/// A route shown in a [MaterialPage], so it opens and closes with the
+/// app's page transition.
+///
+/// go_router picks the kind of page from the app around it, and gave pages
+/// without any transition here (2026-11-08): routes say it themselves.
+GoRoute _route({
+  required String path,
+  required GoRouterWidgetBuilder builder,
+  List<RouteBase> routes = const [],
+}) => GoRoute(
+  path: path,
+  routes: routes,
+  pageBuilder: (context, state) => MaterialPage<void>(
+    key: state.pageKey,
+    name: state.name ?? state.path,
+    arguments: state.extra,
+    restorationId: state.pageKey.value,
+    child: builder(context, state),
+  ),
+);
+
 /// A tab branch with a single page built by [page].
 StatefulShellBranch _branch(
   String path,
@@ -445,7 +468,7 @@ StatefulShellBranch _branch(
 ) {
   return StatefulShellBranch(
     routes: [
-      GoRoute(
+      _route(
         path: path,
         builder: (context, state) =>
             page(context, AppLocalizations.of(context)),

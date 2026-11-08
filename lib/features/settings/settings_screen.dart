@@ -9,6 +9,7 @@ import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/router/home_shell.dart';
 import 'package:clean_gallery/core/settings/app_settings.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
+import 'package:clean_gallery/core/theme/theme_reveal.dart';
 import 'package:clean_gallery/features/memories/memories_settings.dart';
 import 'package:clean_gallery/features/monetization/monetization_controller.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
@@ -102,8 +103,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                   ),
                 ],
                 selected: {settings.theme},
-                onSelectionChanged: (value) =>
-                    controller.setTheme(value.single),
+                onSelectionChanged: (value) => ThemeReveal.change(
+                  context,
+                  () => unawaited(controller.setTheme(value.single)),
+                ),
               ),
             ),
             _Labeled(

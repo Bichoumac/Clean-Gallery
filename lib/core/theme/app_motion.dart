@@ -31,6 +31,9 @@ abstract final class AppMotion {
   /// Grid to viewer: the photo flying from its thumbnail.
   static const viewer = Duration(milliseconds: 380);
 
+  /// Curve of [viewer].
+  static const Curve viewerCurve = Curves.fastEaseInToSlowEaseOut;
+
   /// Grid to viewer, tiles, sheets.
   static const spring = SpringDescription(mass: 1, stiffness: 380, damping: 30);
 

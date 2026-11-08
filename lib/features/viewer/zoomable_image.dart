@@ -235,6 +235,7 @@ class _ZoomableImageState extends ConsumerState<ZoomableImage>
                 child: Hero(
                   tag: mediaHeroTag(item),
                   createRectTween: mediaHeroRectTween(item),
+                  flightShuttleBuilder: mediaHeroShuttle,
                   curve: mediaHeroCurve,
                   child: _showFullResolution
                       ? Image(

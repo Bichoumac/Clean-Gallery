@@ -2,6 +2,7 @@ import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/core/settings/app_settings.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
 import 'package:clean_gallery/core/theme/app_theme.dart';
+import 'package:clean_gallery/core/theme/theme_reveal.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -35,6 +36,10 @@ class CleanGalleryApp extends ConsumerWidget {
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       routerConfig: router,
+      // Blending two themes rebuilds the app on every frame and stutters:
+      // the theme changes at once, under ThemeReveal's circle.
+      themeAnimationStyle: AnimationStyle.noAnimation,
+      builder: (context, child) => ThemeReveal(child: child!),
     );
   }
 }

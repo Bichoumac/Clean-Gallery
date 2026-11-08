@@ -77,6 +77,7 @@ State: branch `m11-monetization`, pushed; pull request opened by the product own
 - **Milestones**: stop at the end of each milestone with a summary, test instructions, known issues and the documentation updated, and wait for approval.
 - **Commits**: commit locally as work progresses; push only when asked.
 - **Pull requests**: no GitHub CLI or token on the machine. After pushing, give the link `https://github.com/Bichoumac/Clean-Gallery/pull/new/<branch>` and write the title and description to a text file the product owner can display with `! cat <path>`.
+- **Notifications** (product owner, 2026-11-08): send a push notification (`PushNotification`) every time an action of the product owner is needed (plug the phone in, test, decide, push). The tool skips it while the terminal is active, and reaches the phone only through Remote Control.
 - **Device tests**: the product owner tests on their own phone and reports back. Give a short numbered checklist with the expected result of each item, then record the results in [testing.md](testing.md) and [progress.md](progress.md), separating confirmed items from untested ones.
 - **Design**: the product owner wants a distinctive look, not stock Google apps, without clutter, warm and modern, and a gallery that disappears around the photos ([design.md](design.md), [ADR 0028](decisions/0028-warm-eclat-identity.md)).
 - **Notes**: keep notes like these in this file, not in the assistant's private memory.

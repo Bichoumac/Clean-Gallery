@@ -27,7 +27,12 @@ M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)).
 - **Albums → Slideshows** is now a page opened by a tile of the mosaic, no longer a section of the tab.
 - Empty trash: *Nothing to throw away*, with the retention set in Settings.
 - Feature documents say "accent" instead of naming a color.
-- Grid to viewer: the photo now flies to its own frame with a spring, instead of a full-screen box, so the thumbnail's square crop no longer jumps when it opens.
+- Grid to viewer: the cropped thumbnail now flies to the photo's own frame in the middle of the screen, instead of a full-screen box, so the picture no longer jumps when it opens.
+- **Theme change**: the new theme is revealed by a circle growing from the finger, instead of a blend that stuttered.
+
+### Fixed
+
+- **Pages opened without any transition**: go_router did not recognize the app as a Material app and gave every route a page without transition. Routes now ask for a Material page themselves.
 - CI no longer uploads the debug APK and release bundle as artifacts: they filled the GitHub artifact storage quota. Both are still built.
 
 ### Fixed
