@@ -24,7 +24,7 @@ Quick resume (keep this short; history is in [progress.md](progress.md) and git)
 
 ## To do next (written 2026-11-05, resume here)
 
-State: branch `m11-monetization`, pushed on 2026-11-05, pull request not opened. 480 tests pass, analyzer clean. The profile APK in `build/` matches the code but is **not installed**.
+State: branch `m11-monetization`, pushed; pull request opened by the product owner on 2026-11-08. CI stopped uploading builds as artifacts (storage quota hit, 2026-11-08); old artifacts can be deleted from each run in the Actions tab. 480 tests pass, analyzer clean. The profile APK in `build/` matches the code but is **not installed**.
 
 **First, on the phone**
 
