@@ -103,7 +103,7 @@ flutter build apk --release --target-platform android-arm64
 adb install -r build/app/outputs/flutter-apk/app-release.apk
 ```
 
-Release builds are signed with the debug key for now (M12), so they install over a debug build and keep the app data.
+Release builds are signed with the debug key until the product owner's upload key exists ([release.md](release.md#upload-key)); such builds install over a debug build and keep the app data. Once signed with the upload key, a release build no longer installs over a debug build: uninstall first, which clears the app's data.
 
 Automated tests use fakes and never touch Android. The items below can only be checked on a real phone or a working emulator. Each milestone adds its own items; tick them in the pull request or commit that verifies them, with the device and Android version used.
 

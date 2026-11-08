@@ -2,7 +2,7 @@
 
 First-launch flow that states the privacy promise and asks for the permissions the app needs.
 
-Last updated: 2026-11-05 — Milestone M11
+Last updated: 2026-11-08 — Milestone M12
 
 ## Purpose
 
@@ -36,7 +36,7 @@ flowchart TD
 
 ## Look
 
-The first page is a poster: citron background, large mark appearing petal by petal, big headline, ink button. Pages 2 and 3 share its layout on `surface`, with the mark in the empty state colors. Above 150 % text size the mark is left out so the text stays readable. [Mockup](../design-assets/mockups/screens/01-onboarding.png).
+The first page is a poster (its text since M12: *Your photos never leave your device. Clean Gallery sorts and cleans your photos on your phone…*; it said *works entirely offline* before, wrong since the map loads tiles): citron background, large mark appearing petal by petal, big headline, ink button. Pages 2 and 3 share its layout on `surface`, with the mark in the empty state colors. Above 150 % text size the mark is left out so the text stays readable. [Mockup](../design-assets/mockups/screens/01-onboarding.png).
 
 ## Screens and widgets
 
@@ -69,6 +69,4 @@ The first page is a poster: citron background, large mark appearing petal by pet
 
 ## Known limitations / future work
 
-- Illustrations are Material icons; custom artwork in M12.
-- Permission status and changes from Settings come in M2.
 - Partial access detection needs a check on a real Android 14 device.

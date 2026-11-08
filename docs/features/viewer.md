@@ -98,5 +98,4 @@ The brief: "a bottom sheet that slides up with a translucent blurred background 
 
 ## Known limitations / future work
 
-- Edit comes later in M6.
 - Zoom is limited to 5× and to the 4,096 px decoded image.

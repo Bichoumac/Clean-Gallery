@@ -75,6 +75,5 @@ The selection bar holds four buttons next to the count on a phone; with more act
 
 ## Known limitations / future work
 
-- Albums are not visible to other gallery apps and are lost when the app is uninstalled; an export / import could come with M12.
+- Albums are not visible to other gallery apps and are lost when the app is uninstalled; an export / import is not planned.
 - No manual order inside an album, and albums are listed newest first only.
-- Slideshows start from album pages from M9 ([progress.md](../progress.md)).
