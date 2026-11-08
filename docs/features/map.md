@@ -40,7 +40,7 @@ The brief: "OpenStreetMap map with geotagged photos, markers grouped into cluste
 
 - Tiles come from `tile.openstreetmap.org`, with the user agent `flutter_map (com.bichoumac.clean_gallery)` and the attribution *© OpenStreetMap contributors* always shown, as its [tile usage policy](https://operations.osmfoundation.org/policies/tiles/) asks. flutter_map keeps fetched tiles in its disk cache.
 - Only tile coordinates are requested: OpenStreetMap can tell which area of the world the map shows, never which photos are there. No photo, location or metadata of the library leaves the phone.
-- The release app now declares `INTERNET` (until then only debug builds had it); ads use it too ([monetization.md](../monetization.md)).
+- The release app now declares `INTERNET` (until then only debug builds had it); the map is its only use.
 - In dark mode the tiles are shown inverted (flutter_map's `darkModeTileBuilder`).
 
 ## Look

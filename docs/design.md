@@ -229,12 +229,20 @@ Speed is where quality shows: animations are quick, follow the finger and can be
 | --- | --- | --- |
 | `quick` | 150 ms, `easeOutCubic` | Fades of small elements, selection |
 | `standard` | 220 ms, `easeOutCubic` | Tab pill, bars showing and hiding |
+| `page` / `pageBack` | 420 ms / 340 ms, `easeInOutCubicEmphasized` | A page opening / closing |
+| `tab` | 300 ms, `easeInOutCubicEmphasized` | Moving from one tab to another |
+| `viewer` | 380 ms, `fastEaseInToSlowEaseOut` | The photo flying between the grid and the viewer |
 | `spring` | mass 1, stiffness 380, damping 30 | Grid to viewer, tiles, sheets |
 | `springBouncy` | mass 1, stiffness 300, damping 24 | Sort card coming back, stamp |
 
 | Moment | Behavior |
 | --- | --- |
-| Grid to viewer | The thumbnail grows from its place to full screen (`Hero`, already in place), with `spring`. |
+| Tab change | The tabs slide like a carousel: the new one comes in from the side of its button, the old one leaves on the other side; each keeps its scroll and state ([tab_switcher.dart](../lib/core/router/tab_switcher.dart)). No swipe between tabs: it would fight the grid pinch and drag selection. |
+| Page opening | The page slides in from the right edge over the previous one, which recedes to 94 % and darkens (scrim at 32 %). Closing plays it backwards ([app_transitions.dart](../lib/core/theme/app_transitions.dart)). |
+| Tile to page | A page opened from a tile (Albums and Stats mosaics, album covers, *Duplicates*) grows out of the tile: a card in the tile's shape opens to the full screen and the page fades in inside it; closing shrinks it back into the tile. A tile calls `TransitionOrigin.mark` before navigating. |
+| Back gesture | With Android's predictive back, the page follows the finger, then leaves or springs back when it lifts; a page grown from a tile shrinks toward it. |
+| Grid to viewer | The cropped thumbnail grows from its place to the photo's own frame, centered on the screen (`Hero`, `mediaHeroRectTween` and `mediaHeroShuttle`), with `viewerCurve` (no overshoot: a spring overshot on one side only): the square crop opens into the whole photo without a jump, and lands back in the square when the viewer closes. |
+| Theme change | A picture of the screen in the old theme covers the app, which switches at once underneath; a circle grows from the finger until the new theme covers everything (`ThemeReveal`, 560 ms). Flutter's theme blending rebuilt the whole app on every frame and stuttered. |
 | Viewer to grid | Pulling a photo down at 1× zoom shrinks it and fades the black background; released past 25 % of the height or with a flick, it flies back to its thumbnail, otherwise it springs back. |
 | Pinch in a grid | Columns change with the fingers, 2 to 6. |
 | Sort card | Follows the finger, tilts, shows the stamp; springs back with `springBouncy` if released early. |

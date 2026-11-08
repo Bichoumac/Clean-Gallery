@@ -1,6 +1,7 @@
 import 'package:clean_gallery/core/media/media_formatting.dart';
 import 'package:clean_gallery/core/media/retrying_image.dart';
 import 'package:clean_gallery/core/providers.dart';
+import 'package:clean_gallery/core/theme/app_motion.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,75 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// Hero tag linking a grid thumbnail to the viewer page of the same item.
 String mediaHeroTag(MediaItem item) => 'media-${item.id}';
+
+/// Curve of the photo flying between its thumbnail and the viewer: quick
+/// out of the grid, long soft landing, no overshoot (a spring overshot on
+/// one side only, since the thumbnail is rarely centered).
+const Curve mediaHeroCurve = AppMotion.viewerCurve;
+
+/// Flight path of [item] between its thumbnail and the viewer.
+///
+/// The viewer's hero fills the screen while the photo inside only fills its
+/// own proportions. The flight ends (or starts) on the photo itself, so the
+/// square crop of the thumbnail opens into the whole photo without a jump.
+CreateRectTween mediaHeroRectTween(MediaItem item) =>
+    (begin, end) =>
+        _PhotoRectTween(begin: begin, end: end, aspectRatio: item.aspectRatio);
+
+/// What flies between the grid and the viewer: the thumbnail, cropped to
+/// the shape of the flight, so the photo grows without black bands.
+Widget mediaHeroShuttle(
+  BuildContext flightContext,
+  Animation<double> animation,
+  HeroFlightDirection direction,
+  BuildContext fromHeroContext,
+  BuildContext toHeroContext,
+) {
+  final thumbnail = direction == HeroFlightDirection.push
+      ? fromHeroContext.widget
+      : toHeroContext.widget;
+  return (thumbnail as Hero).child;
+}
+
+/// A [RectTween] between a thumbnail and the viewer's full-screen box that
+/// moves to the photo's own frame inside that box.
+///
+/// Its [begin] and [end] stay the heroes' real boxes: the flight compares
+/// [end] with where the viewer's hero is and would otherwise move it.
+class _PhotoRectTween extends RectTween {
+  _PhotoRectTween({
+    required super.begin,
+    required super.end,
+    required this.aspectRatio,
+  });
+
+  final double aspectRatio;
+
+  @override
+  Rect? lerp(double t) {
+    final begin = this.begin;
+    final end = this.end;
+    if (begin == null || end == null) return super.lerp(t);
+    // The larger box is the viewer's.
+    return begin.width * begin.height >= end.width * end.height
+        ? Rect.lerp(_fitted(begin, aspectRatio), end, t)
+        : Rect.lerp(begin, _fitted(end, aspectRatio), t);
+  }
+
+  // Tween.transform returns begin and end as they are at 0 and 1.
+  @override
+  Rect? transform(double t) => lerp(t);
+}
+
+/// Where a photo of [aspectRatio] shows inside [box], at its full size.
+Rect _fitted(Rect box, double aspectRatio) {
+  final size = applyBoxFit(
+    BoxFit.contain,
+    Size(aspectRatio, 1),
+    box.size,
+  ).destination;
+  return Alignment.center.inscribe(size, box);
+}
 
 /// Square thumbnail of a photo or video, with a duration badge on videos,
 /// a heart on favorites and, on the cover of a folded stack of duplicates,
@@ -70,6 +140,9 @@ class MediaThumbnail extends ConsumerWidget {
               enabled: hero,
               child: Hero(
                 tag: mediaHeroTag(item),
+                createRectTween: mediaHeroRectTween(item),
+                flightShuttleBuilder: mediaHeroShuttle,
+                curve: mediaHeroCurve,
                 child: RetryingImage(
                   image: source.thumbnail(item, size: pixelSize),
                   failure: Icon(

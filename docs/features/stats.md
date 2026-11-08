@@ -81,5 +81,4 @@ The hero card has a gauge in the shape of the logo instead of a bar, and the cat
 
 ## Known limitations / future work
 
-- The native ad card sits before the Trash tile ([monetization.md](../monetization.md)).
 - Opening the trash switches to the Albums tab, where the Trash page lives.

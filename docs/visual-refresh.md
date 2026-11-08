@@ -10,7 +10,7 @@ Specified and approved by the product owner on 2026-11-04, **built on branch `vi
 
 - **In scope**: theme, fonts, layouts of the listed screens, empty states, motion, launcher and notification icons, launch screen.
 - **Out of scope**: what features do, their rules and their data. A screen keeps every action and every piece of information it has today, even when a mockup leaves one out to stay readable. No new permission, no network, no new package is needed.
-- **Not in the mockups**: ads (M11) and People (M10). They use the same tokens; see [Ads](#ads).
+- **Not in the mockups**: People (M10). It uses the same tokens.
 
 ## Mockups
 
@@ -64,10 +64,6 @@ The rosace replaces the bar of the hero card.
 - Lit petals are ink, starting from the top, clockwise; the others are `#CFC933`.
 - 124 dp, in the top right corner of the hero card, entirely visible.
 - Screen readers hear the share as a sentence, not the picture. The percentage comes from the same values.
-
-## Ads
-
-Monetization (M11) keeps [the two allowed placements](../AGENTS.md#non-negotiable-rules). The Stats native card takes the full width of the mosaic with the tile shape and border, never the citron color, and always shows its "Ad" label. The Albums banner stays at the bottom, above the navigation bar.
 
 ## Code to change
 

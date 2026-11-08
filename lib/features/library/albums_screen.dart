@@ -9,14 +9,13 @@ import 'package:clean_gallery/core/media/media_thumbnail.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/core/router/compact_nav_bar.dart';
+import 'package:clean_gallery/core/theme/app_transitions.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/domain/memory.dart';
 import 'package:clean_gallery/domain/slideshow.dart';
 import 'package:clean_gallery/domain/trashed_item.dart';
 import 'package:clean_gallery/features/library/media_timeline_view.dart';
-import 'package:clean_gallery/features/monetization/ad_banner_slot.dart';
-import 'package:clean_gallery/features/monetization/monetization_controller.dart';
 import 'package:clean_gallery/features/slideshow/slideshow_actions.dart';
 import 'package:clean_gallery/features/slideshow/slideshow_builder.dart';
 import 'package:clean_gallery/features/user_albums/user_album_actions.dart';
@@ -72,10 +71,7 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
     final memories =
         ref.watch(storedMemoriesProvider).value ?? const <Memory>[];
 
-    final showBanner = ref.watch(
-      monetizationProvider.select((s) => s.phase != AdsPhase.off),
-    );
-    final list = RefreshIndicator(
+    return RefreshIndicator(
       onRefresh: () => ref.read(mediaIndexProvider.notifier).sync(),
       child: CustomScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -223,23 +219,10 @@ class _AlbumsScreenState extends ConsumerState<AlbumsScreen> {
             ),
           ),
           SliverToBoxAdapter(
-            child: showBanner
-                ? const RemoveAdsLink()
-                : SizedBox(height: CompactNavBar.contentInset(context)),
+            child: SizedBox(height: CompactNavBar.contentInset(context)),
           ),
         ],
       ),
-    );
-    if (!showBanner) return list;
-    // The only banner of the app, above the floating navigation bar.
-    return Column(
-      children: [
-        Expanded(child: list),
-        Padding(
-          padding: EdgeInsets.only(bottom: CompactNavBar.contentInset(context)),
-          child: const AdBannerSlot(),
-        ),
-      ],
     );
   }
 }
@@ -332,8 +315,12 @@ class _AllMediaTile extends ConsumerWidget {
         child: ClipRRect(
           borderRadius: BorderRadius.circular(28),
           child: InkWell(
-            onTap: () =>
+            onTap: () {
+              TransitionOrigin.mark(context);
+              unawaited(
                 context.push(AlbumRoutes.location(AlbumRoutes.allKey, name)),
+              );
+            },
             child: Stack(
               fit: StackFit.expand,
               children: [
@@ -700,6 +687,8 @@ class _AlbumTile extends ConsumerWidget {
             ? null
             : ref.watch(mediaCountProvider(selection)).value);
 
+    // The cover, which the album's page grows out of.
+    BuildContext? coverContext;
     return Semantics(
       button: true,
       label: [
@@ -713,36 +702,57 @@ class _AlbumTile extends ConsumerWidget {
       excludeSemantics: true,
       child: InkWell(
         borderRadius: BorderRadius.circular(_coverRadius),
-        onTap: onTap ?? () => context.push(location),
+        onTap: () {
+          if (coverContext case final cover? when cover.mounted) {
+            TransitionOrigin.mark(cover);
+          }
+          if (onTap case final onTap?) {
+            onTap();
+          } else {
+            unawaited(context.push(location));
+          }
+        },
         onLongPress: onLongPress,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Expanded(
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(_coverRadius),
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    ColoredBox(color: theme.colorScheme.surfaceContainerHigh),
-                    if (cover != null)
-                      MediaThumbnail(item: cover, pixelSize: 512, hero: false),
-                    if (icon != null)
-                      Positioned(
-                        top: 10,
-                        left: 10,
-                        child: CircleAvatar(
-                          radius: 16,
-                          backgroundColor: theme.colorScheme.primaryContainer,
-                          child: Icon(
-                            icon,
-                            size: 18,
-                            color: theme.colorScheme.onPrimaryContainer,
-                          ),
+              child: Builder(
+                builder: (context) {
+                  coverContext = context;
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(_coverRadius),
+                    child: Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        ColoredBox(
+                          color: theme.colorScheme.surfaceContainerHigh,
                         ),
-                      ),
-                  ],
-                ),
+                        if (cover != null)
+                          MediaThumbnail(
+                            item: cover,
+                            pixelSize: 512,
+                            hero: false,
+                          ),
+                        if (icon != null)
+                          Positioned(
+                            top: 10,
+                            left: 10,
+                            child: CircleAvatar(
+                              radius: 16,
+                              backgroundColor:
+                                  theme.colorScheme.primaryContainer,
+                              child: Icon(
+                                icon,
+                                size: 18,
+                                color: theme.colorScheme.onPrimaryContainer,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                  );
+                },
               ),
             ),
             const SizedBox(height: 8),

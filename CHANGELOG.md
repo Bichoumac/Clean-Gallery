@@ -2,15 +2,18 @@
 
 All notable changes to this project are documented here, one section per milestone. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-11-05 — Milestone M11
+Last updated: 2026-11-08 — Open source
 
 ## [Unreleased]
 
-M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)).
+M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)). The app becomes open source, without ads ([ADR 0032](docs/decisions/0032-open-source-without-ads.md)).
 
 ### Added
 
-- **Monetization** ([docs/monetization.md](docs/monetization.md), [ADR 0030](docs/decisions/0030-ads-and-purchase.md)): banner in the Albums tab, native card in the Stats tab, one ad before a manual slideshow at most every 5 minutes, Google consent form after onboarding, *Remove ads* purchase with restore, *Ads* section in Settings, one offer ever after more than 500 MB deleted for good.
+- `LICENSE`: the app is free software under the GNU GPL v3.
+- [PRIVACY.md](PRIVACY.md): the privacy policy in French and English, without ads or purchase.
+- **Video gestures** ([viewer.md](docs/features/viewer.md)): slide on the left for brightness, on the right for volume, in the top band for speed (0.25× to 2×); double tap on the right or left to jump 10 s forward or back. `PlatformBridge` gains window brightness and media volume.
+- **Page transitions** ([docs/design.md](docs/design.md#motion), [ADR 0031](docs/decisions/0031-page-transitions.md)): tabs slide like a carousel; pages slide in over the previous one, which recedes and darkens; a page opened from a tile grows out of it and shrinks back into it; Android's back gesture moves the page with the finger. All instant under reduced motion.
 - **Éclat Soleil identity** ([docs/design.md](docs/design.md), [ADR 0028](docs/decisions/0028-warm-eclat-identity.md)): golden citron accent `#E8E24C` on warm surfaces, neutral photo grids, Bricolage Grotesque titles over Manrope (bundled, nothing downloaded).
 - **Logo and icons**: adaptive launcher icon with a themed layer, rosace in the status bar, launch screen in the surface of the system theme.
 - **Rosace everywhere there are no photos**: onboarding poster appearing petal by petal, empty states, a gauge on the Stats card (screen readers hear a sentence), a petal on the *Best* pill, the reward at the end of a sort.
@@ -26,10 +29,22 @@ M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)).
 - **Albums → Slideshows** is now a page opened by a tile of the mosaic, no longer a section of the tab.
 - Empty trash: *Nothing to throw away*, with the retention set in Settings.
 - Feature documents say "accent" instead of naming a color.
-- CI no longer uploads the debug APK and release bundle as artifacts: they filled the GitHub artifact storage quota. Both are still built.
+- Grid to viewer: the cropped thumbnail now flies to the photo's own frame in the middle of the screen, instead of a full-screen box, so the picture no longer jumps when it opens.
+- **Theme change**: the new theme is revealed by a circle growing from the finger, instead of a blend that stuttered.
+
+### Removed
+
+- **Ads and the *Remove ads* purchase**, built in M11 and never released: the Albums banner, the Stats card, the ad before a manual slideshow, Google's consent form, the purchase, its offer and the *Ads* section of Settings. The `google_mobile_ads` and `in_app_purchase` packages and the AdMob application ID are gone; a test keeps any ads, purchase or tracking package out.
 
 ### Fixed
 
+- **Viewer controls stuttering as they hid**: hiding them also hides the system bars, which Android removes in steps; the controls, laid out above the bars, moved down with them, stopping and starting. The viewer keeps the bars' room while they are hidden.
+- **Video speed slide did nothing on the phone**: the page swipe, which uses the device's smaller slop, always took the slide first. The speed band now uses half that slop. A single tap on a video also toggles the controls at once instead of waiting 300 ms for a possible double tap.
+- **Photo landing high from the search**: with the search's keyboard open, the viewer was laid out above it, so the photo flew to the top then jumped down. The viewer ignores the keyboard, and opening a photo closes it.
+- **Hitch as a photo opened**: the previews of the neighboring photos, the library's duplicate groups and the viewer's theme were all loaded during the photo's flight. The neighbors now wait for the end of the flight, and the groups and theme are kept.
+- **Video slider under the viewer's buttons**: with a system navigation bar, the progress bar slid under the action bar (share, details…) and was hard to drag. It now sits 16 dp above it.
+- **Pages opened without any transition**: go_router did not recognize the app as a Material app and gave every route a page without transition. Routes now ask for a Material page themselves.
+- CI no longer uploads the debug APK and release bundle as artifacts: they filled the GitHub artifact storage quota. Both are still built.
 - Filled buttons used the system font instead of Manrope.
 - **Thumbnails missing in runs**, after a fast scroll: a request dropped by the native loader stayed in Flutter's image cache as a failure until the app restarted. Failures are no longer kept, and cells on screen ask again.
 - Map: the duplicate scan no longer competes with the markers' thumbnails, and a thumbnail that fails is asked for again.

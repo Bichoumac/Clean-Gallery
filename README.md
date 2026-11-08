@@ -2,9 +2,9 @@
 
 A photo and video gallery for Android, built with Flutter, with cleanup tools: a virtual folder of likely duplicates, a swipe-to-sort mode and a trash with a configurable retention period. **Your photos never leave your device.**
 
-Last updated: 2026-11-05 — Milestone M11
+Last updated: 2026-11-08 — Open source
 
-The app is free with two small, unobtrusive ad placements, and a single "Remove ads" in-app purchase. Every feature is available to everyone.
+The app is free software under the [GNU GPL v3](LICENSE): no ads, no in-app purchase, no tracking. Its [privacy policy](PRIVACY.md) fits on one page.
 
 ## Status
 
@@ -27,7 +27,6 @@ Milestones **M0** to **M9** are merged (the map came with M6). People, with on-d
 | Slideshows and memories | Slideshows from an album, a selection or a period, with music; saved slideshows; automatic memories ("1 year ago"); rituals with a notification, no background work | M9 |
 | Visual refresh | Warm Éclat Soleil identity, logo and app icon, mosaics, motion | Built, on branch `visual-refresh` |
 | People | On-device face recognition, merge two persons | Planned |
-| Monetization | Banner (Albums), native card (Stats), consent, "Remove ads" purchase | Built, purchase to verify |
 
 ## Requirements
 
@@ -62,8 +61,6 @@ Connect a phone with USB debugging enabled, or start an emulator, then:
 flutter run
 ```
 
-Debug builds always use Google's test ad units. Release builds take production IDs from build configuration, see [lib/core/config/app_config.dart](lib/core/config/app_config.dart).
-
 ## Test and lint
 
 ```sh
@@ -78,10 +75,7 @@ See [docs/testing.md](docs/testing.md) for the test strategy.
 
 ```sh
 flutter build apk --debug
-flutter build appbundle --release \
-  --dart-define=ADMOB_BANNER_UNIT_ID=<id> \
-  --dart-define=ADMOB_NATIVE_UNIT_ID=<id> \
-  -PadmobAppId=<app id>
+flutter build appbundle --release
 ```
 
 Release signing is not configured yet (planned for M12).
@@ -91,3 +85,7 @@ Release signing is not configured yet (planned for M12).
 - [docs/README.md](docs/README.md): index of all documentation.
 - [AGENTS.md](AGENTS.md): guide for AI assistants working on this repository.
 - [CHANGELOG.md](CHANGELOG.md): changes per milestone.
+
+## License
+
+Clean Gallery is free software: you can redistribute it and modify it under the terms of the [GNU General Public License, version 3](LICENSE), as published by the Free Software Foundation. It comes with no warranty. Fonts in `assets/fonts/` keep their own license (SIL Open Font License, next to each font).

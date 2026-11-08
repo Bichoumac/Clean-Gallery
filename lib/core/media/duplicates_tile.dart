@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/media_formatting.dart';
 import 'package:clean_gallery/core/router/app_router.dart';
+import 'package:clean_gallery/core/theme/app_transitions.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -40,7 +43,10 @@ class DuplicatesTile extends ConsumerWidget {
       child: Card(
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: () => context.push(AppRoutes.duplicates, extra: scope),
+          onTap: () {
+            TransitionOrigin.mark(context);
+            unawaited(context.push(AppRoutes.duplicates, extra: scope));
+          },
           child: Padding(
             padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
             child: Row(

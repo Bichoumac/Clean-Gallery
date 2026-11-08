@@ -2,6 +2,7 @@ package com.bichoumac.clean_gallery
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.media.AudioManager
 import android.net.Uri
 import android.os.Build
 import android.os.Handler
@@ -172,6 +173,34 @@ class MainActivity : FlutterActivity() {
                 }
                 result.success(null)
             }
+            "screenBrightness" -> result.success(screenBrightness())
+            "setScreenBrightness" -> {
+                // Null gives the window back to the system's brightness.
+                val value = call.argument<Double>("value")
+                window.attributes = window.attributes.apply {
+                    screenBrightness = value?.toFloat()?.coerceIn(0.01f, 1f)
+                        ?: WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE
+                }
+                result.success(null)
+            }
+            "mediaVolume" -> {
+                val audio = getSystemService(AUDIO_SERVICE) as AudioManager
+                val max = audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                val current = audio.getStreamVolume(AudioManager.STREAM_MUSIC)
+                result.success(if (max > 0) current.toDouble() / max else 0.0)
+            }
+            "setMediaVolume" -> {
+                val audio = getSystemService(AUDIO_SERVICE) as AudioManager
+                val max = audio.getStreamMaxVolume(AudioManager.STREAM_MUSIC)
+                val value = (call.argument<Double>("value") ?: 0.0).coerceIn(0.0, 1.0)
+                // No flag: the app shows its own indicator, not the system's.
+                audio.setStreamVolume(
+                    AudioManager.STREAM_MUSIC,
+                    Math.round(value * max).toInt(),
+                    0,
+                )
+                result.success(null)
+            }
             "musicPlay" -> music.play(
                 call.argument<String>("uri"),
                 call.argument<String>("asset"),
@@ -304,5 +333,20 @@ class MainActivity : FlutterActivity() {
 
         /** Channel from Kotlin to Dart for tapped notifications. */
         const val REMINDER_CHANNEL = "clean_gallery/reminders"
+    }
+
+    /**
+     * Brightness of this window from 0 to 1: its own override if the video
+     * player set one, otherwise the system's setting (an approximation: the
+     * system maps its setting to the screen through a curve).
+     */
+    private fun screenBrightness(): Double {
+        val own = window.attributes.screenBrightness
+        if (own >= 0) return own.toDouble()
+        return try {
+            Settings.System.getInt(contentResolver, Settings.System.SCREEN_BRIGHTNESS) / 255.0
+        } catch (e: Settings.SettingNotFoundException) {
+            0.5
+        }.coerceIn(0.0, 1.0)
     }
 }

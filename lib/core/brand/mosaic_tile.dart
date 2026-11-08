@@ -1,4 +1,5 @@
 import 'package:clean_gallery/core/theme/app_theme.dart';
+import 'package:clean_gallery/core/theme/app_transitions.dart';
 import 'package:flutter/material.dart';
 
 /// A tile of the mosaics of Albums and Stats: something at the top (an icon or
@@ -58,7 +59,13 @@ class MosaicTile extends StatelessWidget {
         ),
         clipBehavior: Clip.antiAlias,
         child: InkWell(
-          onTap: onTap,
+          onTap: onTap == null
+              ? null
+              : () {
+                  // The page it opens grows out of the tile.
+                  TransitionOrigin.mark(context);
+                  onTap!();
+                },
           onLongPress: onLongPress,
           child: ConstrainedBox(
             constraints: BoxConstraints(minHeight: minHeight),

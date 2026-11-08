@@ -40,7 +40,7 @@ Declared in [AndroidManifest.xml](../android/app/src/main/AndroidManifest.xml).
 | `MANAGE_MEDIA` | 12+ | Optional, from onboarding and settings | "Media management": delete and favorite without a confirmation prompt each time. |
 | `POST_NOTIFICATIONS` | 13+ | When the memories notification or a ritual is turned on, never at onboarding | Memory and ritual notifications ([features/memories.md](features/memories.md)). Refused: the memory card still shows. |
 | `RECEIVE_BOOT_COMPLETED` | all | Never (normal permission) | Sets the next memory or ritual notification again after a reboot; the receiver reads nothing else ([ADR 0027](decisions/0027-notifications-without-background-work.md)). |
-| `INTERNET` | all | Never (normal permission) | Map tiles from OpenStreetMap (M6), ads from M11. Debug builds had it from M0 for Flutter tooling. No media or metadata is sent ([ADR 0022](decisions/0022-map-tiles-and-grid-clusters.md)). |
+| `INTERNET` | all | Never (normal permission) | Map tiles from OpenStreetMap (M6), its only use. Debug builds had it from M0 for Flutter tooling. No media or metadata is sent ([ADR 0022](decisions/0022-map-tiles-and-grid-clusters.md)). |
 
 **Never declared:** `MANAGE_EXTERNAL_STORAGE`. A test fails if it appears in a manifest.
 
@@ -95,6 +95,10 @@ Methods run on a worker thread (`mediaSnapshot`, `mediaDetails`, `mediaMetadata`
 | `deleteMedia` | `items`: `List<{id, video, mimeType}>` | `bool`: deleted (`false` if declined) | `busy`, `request_failed` | `MediaStore.createDeleteRequest` for the whole batch: one system confirmation, none with "Media management". Only the trash calls it. |
 | `share` | `items`: `List<{id, video, mimeType}>`, `removeLocation`: `bool` | `null` once the share sheet is open | `share_failed` | MediaStore URIs, or copies without GPS for photos when `removeLocation` ([sharing.md](features/sharing.md)). |
 | `setKeepScreenOn` | `on`: `bool` | `null` | none | `FLAG_KEEP_SCREEN_ON` on the window, during slideshows. |
+| `screenBrightness` | none | `double` | none | The window's own brightness if set, otherwise the system's setting / 255 (approximate). |
+| `setScreenBrightness` | `value`: `double?` | `null` | none | `screenBrightness` of the window's attributes, 0.01 to 1; `null` gives it back to the system. Video gestures. |
+| `mediaVolume` | none | `double` | none | `STREAM_MUSIC` volume over its maximum. |
+| `setMediaVolume` | `value`: `double` | `null` | none | `AudioManager.setStreamVolume` on `STREAM_MUSIC`, without the system panel (flag 0). No permission needed. Video gestures. |
 | `musicPlay` | `uri`: `String?` (a picked document) or `asset`: `String?` (a bundled track), `volume`: `double` | `bool`: playing | none | A `MediaPlayer` in a loop, replacing any track; `false` when the file cannot be read (moved, deleted, access lost). [SlideshowMusic.kt](../android/app/src/main/kotlin/com/bichoumac/clean_gallery/SlideshowMusic.kt). |
 | `musicPause`, `musicResume`, `musicStop` | none | `null` | none | |
 | `musicVolume` | `volume`: `double` 0–1 | `null` | none | The fade-out at the end. |
@@ -139,11 +143,4 @@ Android's Auto Backup stays on (`android:allowBackup` is not set), by the produc
 
 ## Build configuration
 
-| Value | Source | Default |
-| --- | --- | --- |
-| AdMob application ID | Gradle property `admobAppId` → manifest placeholder | Google's public test ID |
-| Banner ad unit ID | `--dart-define=ADMOB_BANNER_UNIT_ID` | Test ID in debug; empty in release |
-| Native ad unit ID | `--dart-define=ADMOB_NATIVE_UNIT_ID` | Test ID in debug; empty in release |
-| Interstitial ad unit ID | `--dart-define=ADMOB_INTERSTITIAL_UNIT_ID` | Test ID in debug; empty in release: no ad before a slideshow |
-
-See [app_config.dart](../lib/core/config/app_config.dart). A release build without an ad unit ID keeps ads disabled. The permissions the ads and billing SDKs add are listed in [monetization.md](monetization.md#permissions-added-by-the-sdks).
+The app needs no build-time ID or key: the ads and their AdMob IDs were removed on 2026-11-08 ([ADR 0032](decisions/0032-open-source-without-ads.md)). Release signing comes with M12, from Gradle properties kept out of the repository.

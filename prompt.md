@@ -4,9 +4,9 @@
 You will build **Clean Gallery**, a photo and video gallery app for Android, written in **Flutter**.
 It works like a classic gallery (browse folders, view photos, play videos) and adds **cleanup** tools: a virtual folder that groups potential duplicates, a swipe-to-sort mode, and a trash with a configurable retention period.
 
-The app is **free with very light, unobtrusive ads**, and offers a single **"Remove ads" in-app purchase (€4.99)**. All features are available to everyone; the purchase only removes ads.
+The app is **free and open source, with no ads and no in-app purchase** (product owner, 2026-11-08, [ADR 0032](docs/decisions/0032-open-source-without-ads.md); it first had light ads and a "Remove ads" purchase, built in M11 then removed).
 
-The app targets **Android only** for now, but the architecture must allow adding iOS later **without touching the UI or the analysis engine**: all platform-specific code (media access, native features, ads, billing) must be isolated behind interfaces.
+The app targets **Android only** for now, but the architecture must allow adding iOS later **without touching the UI or the analysis engine**: all platform-specific code (media access, native features, notifications) must be isolated behind interfaces.
 
 The project must be **thoroughly documented in Markdown throughout development**, so that both a human and an AI assistant can understand, maintain and extend it without reading the whole codebase.
 
@@ -16,7 +16,7 @@ The project must be **thoroughly documented in Markdown throughout development**
 - **Never use `MANAGE_EXTERNAL_STORAGE`.**
 - Before adding a package, check that it is actively maintained and compatible with the Flutter version in use. If a package suggested below is not suitable, propose an alternative and explain why.
 - Code (identifiers, comments) and documentation are in English. The UI is localized in **English and French** (ARB / `flutter_localizations`), following the system language.
-- No secrets or production IDs hardcoded in the source: AdMob app ID and ad unit IDs come from build configuration (flavors / `--dart-define` / Gradle properties).
+- No secrets hardcoded in the source: signing keys and any service credentials come from build configuration (Gradle properties, CI secrets), never from the repository, which is public.
 
 ## Recommended stack
 - Media access: `photo_manager`
@@ -31,8 +31,7 @@ The project must be **thoroughly documented in Markdown throughout development**
 - Image processing and filters: `image` and/or color matrices
 - Face detection and face embeddings (People, added 2026-11-01): small on-device models with licenses that allow a commercial app, run natively; candidate pair YuNet (detection) + SFace (embeddings) from the OpenCV model zoo. The choice gets an ADR before any code (see [People](#people-face-recognition-added-2026-11-01)).
 - Background work: none (purge at launch, [ADR 0013](docs/decisions/0013-trash-purge-without-background-job.md)); scheduled notifications for memories and rituals only
-- Ads: `google_mobile_ads` (AdMob) + Google **UMP SDK** for consent (bundled with `google_mobile_ads`)
-- In-app purchase: `in_app_purchase` (official plugin)
+- No ads, purchase, analytics or tracking SDK (open source, 2026-11-08)
 - Native code: a **Kotlin** module via MethodChannel for anything packages don't cover (system favorites, "Media management" special permission, stripping GPS from EXIF, MediaStore requests)
 
 ## Architecture
@@ -43,8 +42,6 @@ Layered architecture, organized **by feature**:
 - **Data**: repository implementations and data sources:
   - `MediaSource` (interface) → `AndroidMediaSource` (photo_manager + native module)
   - `PlatformBridge` (interface) → `AndroidPlatformBridge` (Kotlin MethodChannel)
-  - `AdsService` (interface) → `AdMobAdsService`
-  - `PurchaseService` (interface) → `PlayPurchaseService`
   - `LocalDatabase` (Drift)
 - **Analysis engine**: pure Dart package, **independent from Flutter and the UI**, running in an isolate, fully unit-testable
 
@@ -55,7 +52,7 @@ Expected `lib/` structure:
     lib/
       core/          theme, Drift database, router, permissions, utils, l10n, build config
       analysis/      detection engine (pure Dart)
-      platform/      interfaces + Android implementations (media, native bridge, ads, billing)
+      platform/      interfaces + Android implementations (media, native bridge, notifications)
       features/
         onboarding/
         library/       folders, grid, timeline view
@@ -69,7 +66,6 @@ Expected `lib/` structure:
         map/
         search/
         settings/
-        monetization/  ads, consent, "Remove ads" purchase
 
 ## Database schema (Drift)
 - `assets`: MediaStore id, album/folder, relative path, file name, mime type, kind (photo/video), size, width, height, duration (video), modified date, **capture date + date source** (exif / filename / file), content hash (xxHash), dHash, pHash, blur score, burst ID, is_screenshot, latitude, longitude, camera model, `analysis_version`
@@ -78,7 +74,7 @@ Expected `lib/` structure:
 - `ignored_pairs`: asset_a, asset_b (pairs marked "not duplicates" by the user)
 - `trash`: asset_id, `trashed_at`, `expires_at`, original folder
 - `swipe_history`: session, order, asset_id, action (`keep` / `trash` / `favorite`)
-- `settings`: key/value (including the cached ad-free status and whether the one-time upgrade prompt has been shown)
+- `settings`: key/value
 - Added 2026-11-01, final columns decided in each milestone:
   - `user_albums`: id, name, cover asset id (optional), created_at, sort order
   - `user_album_items`: album_id, asset_id, added_at (an item can be in several albums)
@@ -97,8 +93,6 @@ A simple, illustrated onboarding screen on first launch that:
 - Requests `READ_MEDIA_IMAGES` + `READ_MEDIA_VIDEO` (Android 13+), `READ_EXTERNAL_STORAGE` (Android 11–12). Handle Android 14+ **partial access** (`READ_MEDIA_VISUAL_USER_SELECTED`) with a clear message and a button to grant broader access.
 - Requests `ACCESS_MEDIA_LOCATION`, required to read GPS data from EXIF (map, metadata).
 - **Optional but recommended**: requests the **"Media management"** special permission (`MANAGE_MEDIA`, Android 12+), explaining that it avoids a confirmation prompt on every delete or favorite. Provide a button that opens the system setting directly. The app must remain fully functional without it, falling back to MediaStore confirmation requests.
-
-The ad consent form (UMP) is shown after onboarding, not before the permission screens.
 
 Permission status is visible and changeable in Settings.
 
@@ -209,14 +203,14 @@ Thresholds are exposed in Settings as sensitivity presets (Low / Medium / High) 
 - **Viewer info panel**: the persons found in the photo, each opening their page.
 - **Search**: a *Person* chip among the criteria.
 - **Privacy and legal**: face measurements are biometric data under the GDPR, even when they stay on the device. Opt-in, a clear explanation, deletion at any time and no transfer keep the app on the safe side; the release checklist (`docs/release.md`, M12) must cover the Play Console *Data safety* answers for it.
-- **Model**: detection and embedding models must have licenses that allow use in an app with ads; many published face recognition weights are for research only. The choice, its license, its size (a few MB) and its speed on the Galaxy A54 are recorded in an ADR before any code.
+- **Model**: detection and embedding models must have licenses that allow use in a published open-source app; many published face recognition weights are for research only. The choice, its license, its size (a few MB) and its speed on the Galaxy A54 are recorded in an ADR before any code.
 
 ### Slideshows and memories (added 2026-11-01)
 - **Manual slideshow**: a *Slideshow* button on every album page (folders, user albums, Favorites, persons, search results), on a multi-selection, and from a **date range** (Albums → *Slideshow* → pick a period, with the period choices of the sort sheet).
 - **Playback**: full screen, dark, screen kept on; photos one after another with a transition (crossfade, slow zoom "Ken Burns"); tap to show controls (pause, previous, next, close). **Videos** play **muted, 10 s at most**, then the next item. Duplicates (except the best one) and blurry photos are skipped by default.
 - **Options** (sheet before starting, remembered): duration per photo (3 / 5 / 8 s), transition, order (by date / shuffled), include videos, **music**:
   - *None*;
-  - **free tracks bundled with the app**: a few tracks whose license allows redistribution in an app with ads (CC0 preferred), credited in About; each adds a few MB to the app;
+  - **free tracks bundled with the app**: a few tracks whose license allows redistribution in an open-source app (CC0 preferred), credited in About; each adds a few MB to the app;
   - **a track from the phone**, picked with the system file picker (no audio permission needed; the app keeps read access to that one file only).
   - The music loops and fades out at the end; it stops when the slideshow is paused.
 - **Saved slideshows** (product owner, 2026-11-01): a *Save* button, on the user's tap only, stores the slideshow (title, its photos and videos in order, its options and music) in the database. **My slideshows** (Albums tab) lists them; each plays again at any time, can be renamed or deleted. Saved, not exported: no video file is written. Photos trashed or deleted since are skipped.
@@ -231,55 +225,17 @@ Thresholds are exposed in Settings as sensitivity presets (Low / Medium / High) 
   - **Rituals**: the user schedules a recurring slideshow, for instance "every Sunday at 7 pm: memories of the week", "first day of the month: the month's photos", or a saved slideshow / album / person.
   - Delivery: a **small notification** at that time ("Your Sunday slideshow is ready"); tapping it opens the app, which builds and plays the slideshow then. The app only asks Android to show a notification at a set time (inexact alarm, `flutter_local_notifications`-style scheduling); **no code reads photos or the database in the background**. The next notifications are set again at every launch; after a reboot, the system's boot broadcast re-sets them (`RECEIVE_BOOT_COMPLETED`, a few lines that only re-schedule).
   - Needs the notification permission on Android 13+, asked when the first ritual or the memories notification is turned on, never at onboarding. Without it, memories still show as the card in the app.
-- No ads in slideshows, memories or People.
 - **Later, kept in mind** (not built now): sharing a slideshow (as a video file), casting to a TV (Chromecast). Saved slideshows are stored so these can be added without changing them.
 
-### Monetization: light ads + "Remove ads" purchase
+### Open source, no ads (product owner, 2026-11-08)
 
-**Principle: ads must be as unobtrusive as possible.** The app must remain pleasant to use in its free version.
-
-**Allowed ad placements (only these):**
-- A small **banner** at the bottom of the **Folders** tab: standard 320 × 50 dp (product owner, 2026-11-05: the adaptive one was too big).
-- One **native ad card** in the **Clean** tab, visually integrated between the cleanup cards, styled to match Material 3, and clearly labeled "Ad".
-
-- Added by the product owner on 2026-11-05: one **interstitial before a manual slideshow** (a *Slideshow* button of an album page, a selection, or a period), at most every 5 minutes. Never before a memory, a ritual or a saved slideshow, and never during a slideshow.
-
-**Strictly forbidden:**
-- Any other interstitial (full-screen) ad; rewarded ads, video ads, app-open ads.
-- Any other ad in the viewer, swipe mode, editor, duplicates screens, trash, onboarding, map, search, settings, People, user albums, slideshows or memories.
-- Any ad that shifts the layout unexpectedly (reserve the banner's space to avoid layout jumps).
-
-**Consent (GDPR / EEA):**
-- Use the Google **UMP SDK**: request consent information at launch, show the consent form when required, and only initialize and load ads after consent has been resolved.
-- If the user declines personalization, serve non-personalized / limited ads.
-- A "Privacy & ad choices" entry in Settings reopens the consent form.
-
-**"Remove ads" in-app purchase:**
-- A single **non-consumable** in-app product (`remove_ads`), priced at **€4.99** (price configured in the Play Console; always display the localized price returned by the store, never a hardcoded one).
-- Purchasing it removes **all** ads immediately and permanently. All features remain free for everyone.
-- **Acknowledge** purchases (Google Play refunds unacknowledged purchases after 3 days).
-- **Restore purchases**: check existing purchases at every launch and provide a "Restore purchase" button in Settings, so the purchase follows the user's Google account across devices and reinstalls.
-- Cache the ad-free status locally (Drift `settings`) so no ad flashes before the store check completes; re-verify with the store at launch.
-- When the user is ad-free, do not initialize the ads SDK at all.
-- Handle all purchase states (pending, cancelled, error, already owned) with clear messages.
-
-**Where the purchase is offered (no nagging):**
-- A "Remove ads — {localized price}" entry in Settings, showing an "Ad-free ✓" state once purchased.
-- A small, discreet "Remove ads" link next to the banner.
-- At most **once ever**: after a large cleanup (more than 500 MB freed), a gentle bottom sheet: "You just freed 2.3 GB! Enjoying Clean Gallery? Remove ads for {price}." with a "No thanks" option. Never show it again once dismissed.
-- No recurring popups, no countdowns, no dark patterns.
-
-**Privacy:**
-- Ads SDKs must never receive any media data or metadata.
-- Onboarding, About screen and store listing state: "Your photos never leave your device."
-
-**Development and testing:**
-- Use Google's **test ad unit IDs** in debug builds; production IDs come from build configuration.
-- Use Play Console license testers to test the purchase flow.
-
+- The source is public under an open-source license, chosen by the product owner and stated in `LICENSE` and the README.
+- No ads, no in-app purchase, no analytics or tracking SDK, no account. Every feature is free.
+- Privacy is unchanged: "Your photos never leave your device." The only network use is the map's OpenStreetMap tiles.
+- The light ads and the "Remove ads" purchase described here before were built in M11 and removed the same week; [ADR 0032](docs/decisions/0032-open-source-without-ads.md) explains why and what changed.
 
 ### Settings
-Trash retention period, duplicate sensitivity (+ advanced mode), time window, People on/off + face grouping sensitivity + delete face data, memories (off / weekly / monthly, day and time, notification), rituals, slideshow defaults and music, screenshot age, large video threshold, remove GPS on share by default, default column count, theme (system / light / dark), language, permission status, re-run analysis, clear cache, "Remove ads" / "Restore purchase", privacy & ad choices (consent form), privacy policy link, about.
+Trash retention period, duplicate sensitivity (+ advanced mode), time window, People on/off + face grouping sensitivity + delete face data, memories (off / weekly / monthly, day and time, notification), rituals, slideshow defaults and music, screenshot age, large video threshold, remove GPS on share by default, default column count, theme (system / light / dark), language, permission status, re-run analysis, clear cache, privacy policy link, about.
 
 ## User interface
 - **Very simple, modern and intuitive.** Material 3, dynamic colors (Material You), dark mode, rounded corners, subtle and smooth animations.
@@ -305,7 +261,6 @@ Documentation is **part of the work, not an afterthought**. It must be written a
       database.md             schema (tables), indexes, migration history
       analysis-engine.md      algorithms, thresholds and their rationale, performance notes
       platform-android.md     permissions, native Kotlin channel API (methods, arguments, return values, errors)
-      monetization.md         ad placements, consent flow, purchase flow and states
       testing.md              test strategy, how to run tests, test fixtures
       release.md              build and signing, Play Console checklist
       features/
@@ -319,7 +274,7 @@ A concise, AI-oriented guide that must contain:
 - Essential commands (install, code generation, run, test, lint, build).
 - The architecture map: which folder contains what, and where to add new code.
 - Coding conventions (naming, state management patterns, error handling, localization).
-- **Non-negotiable rules** of the project, for example: never use `MANAGE_EXTERNAL_STORAGE`; every delete goes through the trash; no ads outside the two allowed placements; no media data sent to any SDK; platform code only behind interfaces; update the documentation with every change.
+- **Non-negotiable rules** of the project, for example: never use `MANAGE_EXTERNAL_STORAGE`; every delete goes through the trash; no ads, purchase or tracking SDK; no media data sent anywhere; platform code only behind interfaces; update the documentation with every change.
 - Links to the relevant files in `docs/` for deeper context.
 
 ### Feature file template (`docs/features/<feature>.md`)
@@ -354,14 +309,13 @@ Each feature file follows the same structure:
 - Any AI or machine-learning-based detection, **except on-device face recognition for People** (requested by the product owner on 2026-11-01). Duplicates, blur, Enhance and the scanner stay without machine learning.
 - Cloud sync or shared albums
 - For now, kept for later: exporting or sharing a slideshow as a video, casting to a TV
-- Subscriptions or any paid feature other than "Remove ads"
+- Ads, subscriptions, purchases or any paid feature
 
 ## Quality
 - Comprehensive unit tests on the analysis engine, with a test photo set (exact duplicates, recompressed, resized, bursts, close-but-different photos) and regression tests for false positives.
 - Unit tests for the file-name date regexes.
-- Unit tests for the purchase state logic (owned, pending, restored, refunded) and for the rule that hides ads when ad-free.
 - Widget tests on the main screens, integration tests on the delete and trash flows.
-- Performance: 60 fps scrolling with 30,000 media items, no UI freezes during analysis, controlled memory usage (no bulk loading of full-size images). Ads must not degrade scrolling performance.
+- Performance: 60 fps scrolling with 30,000 media items, no UI freezes during analysis, controlled memory usage (no bulk loading of full-size images).
 - GitHub Actions CI: static analysis, tests, APK/AAB build, and a Markdown lint / broken-link check on the documentation.
 
 ## Workflow: milestones
@@ -382,7 +336,7 @@ Milestones M8 to M10 were added on 2026-11-01 for the product owner's new featur
 - **M8 — User albums**: app albums (no file ever moved), *Add to album* from the selection bar and the viewer, album pages, rename, cover, delete, *My albums* in the Albums tab. Create `docs/features/user-albums.md`.
 - **M9 — Slideshows and memories**: slideshow player and options, music (bundled free tracks or a track from the phone), entry points (album pages, selection, date range), saved slideshows, memories, memory card, Memories list, rituals and the weekly notification without background work. Create `docs/features/slideshow.md` and `docs/features/memories.md`.
 - **M10 — People**: model choice (ADR first), opt-in, face scan, grouping, People section and person pages, naming, merging, corrections, Person chip in the search, *Delete face data*. Create `docs/features/people.md` and a *Faces* section in `docs/analysis-engine.md`.
-- **M11 — Monetization**: AdMob integration (banner in Folders, native card in Clean tab), UMP consent flow, "Remove ads" in-app purchase with restore, ad-free state, upgrade entry points. Create `docs/monetization.md`.
-- **M12 — Polish and release preparation**: performance optimization, accessibility, complete EN/FR translations, app icon, "About" screen, privacy policy link in About and Settings. Create `docs/release.md` with a checklist of everything I need to fill in on the Play Console (store listing, "Contains ads" declaration, Data safety form, content rating, in-app product setup, closed testing requirements). Final documentation review: every file accurate, no broken links.
+- **M11 — Monetization**: built and merged, then removed on 2026-11-08 when the product owner chose an open-source release without ads ([ADR 0032](docs/decisions/0032-open-source-without-ads.md)).
+- **M12 — Polish and release preparation**: performance optimization, accessibility, complete EN/FR translations, app icon, "About" screen, privacy policy link in About and Settings. Create `docs/release.md` with a checklist of everything I need to fill in on the Play Console (store listing, "No ads" declaration, Data safety form, content rating, closed testing requirements) and the open-source release (license, F-Droid if wanted). Final documentation review: every file accurate, no broken links.
 
 If a requirement seems technically problematic or ambiguous, flag it and propose a solution **before** implementing it.

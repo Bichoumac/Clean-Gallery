@@ -314,7 +314,10 @@ Map<String, DuplicateGroup> groupsByItem(List<DuplicateGroup> groups) => {
 
 /// The duplicate group of every item of the library, by item id, see
 /// [groupsByItem]. Used by the viewer's group strip.
-@riverpod
+///
+/// Kept between viewers: reading every group again each time a photo opened
+/// fell during the photo's flight from the grid.
+@Riverpod(keepAlive: true)
 Future<Map<String, DuplicateGroup>> libraryGroupsByItem(Ref ref) async =>
     groupsByItem(
       await ref.watch(duplicateGroupsProvider(MediaSelection.all).future),

@@ -10,7 +10,7 @@ The brief's "Editing and filters". Built in M6 part 2 (2026-10-28), then extende
 
 ## User flows
 
-1. **Viewer → Edit** (sliders icon in the bottom bar, photos only): the editor opens full screen, dark, without ads. Top bar: ✕, **Before/After** (hold to see the original), **Reset**, **Save**. Bottom: the tool's controls, then five tool icons.
+1. **Viewer → Edit** (sliders icon in the bottom bar, photos only): the editor opens full screen, dark. Top bar: ✕, **Before/After** (hold to see the original), **Reset**, **Save**. Bottom: the tool's controls, then five tool icons.
 2. **Crop** (first icon): the whole photo with the crop frame (outside dimmed, thirds lines, accent corners).
    - Drag inside to move the crop, a corner to resize it (never below 10 % of a side, never outside).
    - Shapes: Free, Original, 1:1, 4:3, 3:4, 16:9, 9:16; picking one makes the largest crop of that shape around the center; corners then keep the shape.

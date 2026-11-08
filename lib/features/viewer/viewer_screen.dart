@@ -25,6 +25,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+/// The viewer is always dark. Built once: a theme is costly to build, and
+/// the viewer rebuilds during the photo's flight.
+final ThemeData _viewerTheme = AppTheme.dark();
+
 /// Full-screen viewer: swipe between the items of a selection.
 ///
 /// Opened from a grid with [ViewerArgs]; reads the same media list as the
@@ -33,6 +37,7 @@ import 'package:go_router/go_router.dart';
 ///
 /// When the item shown is in a duplicate group, a [GroupStrip] at the
 /// bottom shows the group and sorts it photo by photo (keep or trash).
+
 class ViewerScreen extends ConsumerStatefulWidget {
   /// Creates the viewer.
   const ViewerScreen({required this.args, super.key});
@@ -64,6 +69,12 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen>
   late final _pages = PageController(initialPage: widget.args.initialIndex);
   late int _index = widget.args.initialIndex;
   bool _controlsVisible = true;
+
+  /// Room the system bars take, kept while they hide with the controls:
+  /// the bars then leave in steps, and the controls fading out moved down
+  /// with them, stopping and starting again. Reset when the screen turns.
+  EdgeInsets _barsPadding = EdgeInsets.zero;
+  Orientation? _barsOrientation;
   bool _zoomed = false;
   bool _precachedInitial = false;
   bool _closing = false;
@@ -107,6 +118,26 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen>
     unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
     unawaited(SystemChrome.setPreferredOrientations(const []));
     super.dispose();
+  }
+
+  /// Runs [action] once the viewer has finished opening. The previews of
+  /// the neighbors come through the platform channel: loaded during the
+  /// photo's flight, they made it stutter.
+  void _afterOpening(VoidCallback action) {
+    final animation = ModalRoute.of(context)?.animation;
+    if (animation == null || animation.isCompleted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) action();
+      });
+      return;
+    }
+    late final AnimationStatusListener listener;
+    listener = (status) {
+      if (!status.isCompleted) return;
+      animation.removeStatusListener(listener);
+      if (mounted) action();
+    };
+    animation.addStatusListener(listener);
   }
 
   /// Starts loading the previews of the photos around [index], so swiping
@@ -295,172 +326,204 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen>
         shown != null && (group?.items.any((m) => m.id == shown.id) ?? false);
     if (!_precachedInitial && items.isNotEmpty) {
       _precachedInitial = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) unawaited(_precacheNeighbors(items, index));
-      });
+      _afterOpening(() => unawaited(_precacheNeighbors(items, index)));
     }
 
+    final media = MediaQuery.of(context);
+    if (_barsOrientation != media.orientation) {
+      _barsOrientation = media.orientation;
+      _barsPadding = EdgeInsets.zero;
+    }
+    _barsPadding = _larger(_barsPadding, media.viewPadding);
+
     return Theme(
-      data: AppTheme.dark(),
+      data: _viewerTheme,
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
-        child: Scaffold(
-          // The grid shows behind while a photo is pulled down.
-          backgroundColor: Colors.transparent,
-          body: items.isEmpty
-              ? const ColoredBox(
-                  color: Colors.black,
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              : Stack(
-                  children: [
-                    ValueListenableBuilder<double>(
-                      valueListenable: _pull,
-                      builder: (context, pull, _) => Positioned.fill(
-                        child: ColoredBox(
-                          color: Colors.black.withValues(
-                            alpha: (1 - _pullProgress(context, pull) * 3).clamp(
-                              0.0,
-                              1.0,
+        child: MediaQuery(
+          data: media.copyWith(
+            padding: _larger(media.padding, _barsPadding),
+            viewPadding: _barsPadding,
+          ),
+          child: Scaffold(
+            // The grid shows behind while a photo is pulled down.
+            backgroundColor: Colors.transparent,
+            // The viewer has no text field. A keyboard left open by the search
+            // would lay the photo out above it, and the photo would land high
+            // then jump down as the keyboard closes.
+            resizeToAvoidBottomInset: false,
+            body: items.isEmpty
+                ? const ColoredBox(
+                    color: Colors.black,
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                : Stack(
+                    children: [
+                      ValueListenableBuilder<double>(
+                        valueListenable: _pull,
+                        builder: (context, pull, _) => Positioned.fill(
+                          child: ColoredBox(
+                            color: Colors.black.withValues(
+                              alpha: (1 - _pullProgress(context, pull) * 3)
+                                  .clamp(0.0, 1.0),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    _Pullable(
-                      pull: _pull,
-                      // Photos only, at 1× zoom: a zoomed photo pans.
-                      enabled: !_zoomed && !(shown?.isVideo ?? true),
-                      onStart: _onPullStart,
-                      onUpdate: _onPullUpdate,
-                      onEnd: _onPullEnd,
-                      child: PageView.builder(
-                        controller: _pages,
-                        physics: _zoomed
-                            ? const NeverScrollableScrollPhysics()
-                            : const PageScrollPhysics(),
-                        itemCount: items.length,
-                        onPageChanged: (i) {
-                          setState(() {
-                            _index = i;
-                            _zoomed = false;
-                            // Within the group the strip stays; elsewhere the
-                            // group of the new item is looked up.
-                            final inStrip =
-                                _group?.items.any((m) => m.id == items[i].id) ??
-                                false;
-                            _groupFor = inStrip ? items[i].id : null;
-                          });
-                          unawaited(_precacheNeighbors(items, i));
-                        },
-                        itemBuilder: (context, i) {
-                          final item = items[i];
-                          return item.isVideo
-                              ? VideoPage(
-                                  key: ValueKey(item.id),
-                                  item: item,
-                                  isCurrent: i == index,
-                                  controlsVisible: _controlsVisible,
-                                  onTap: _toggleControls,
-                                  bottomInset: _actionBarHeight,
-                                )
-                              : ZoomableImage(
-                                  key: ValueKey(item.id),
-                                  item: item,
-                                  onTap: _toggleControls,
-                                  onZoomChanged: (zoomed) =>
-                                      setState(() => _zoomed = zoomed),
-                                );
-                        },
-                      ),
-                    ),
-                    // Pinned to the top with its own height: a full-screen
-                    // overlay would swallow page swipes and video controls.
-                    Positioned(
-                      top: 0,
-                      left: 0,
-                      right: 0,
-                      child: _FadesWithPull(
+                      _Pullable(
                         pull: _pull,
-                        child: IgnorePointer(
-                          ignoring: !_controlsVisible,
-                          child: AnimatedOpacity(
-                            opacity: _controlsVisible ? 1 : 0,
-                            duration: AppMotion.of(context, AppMotion.standard),
-                            child: _TopBar(
-                              item: items[index],
-                              onScan: () => _scanDocument(items[index]),
+                        // Photos only, at 1× zoom: a zoomed photo pans.
+                        enabled: !_zoomed && !(shown?.isVideo ?? true),
+                        onStart: _onPullStart,
+                        onUpdate: _onPullUpdate,
+                        onEnd: _onPullEnd,
+                        child: PageView.builder(
+                          controller: _pages,
+                          physics: _zoomed
+                              ? const NeverScrollableScrollPhysics()
+                              : const PageScrollPhysics(),
+                          itemCount: items.length,
+                          onPageChanged: (i) {
+                            setState(() {
+                              _index = i;
+                              _zoomed = false;
+                              // Within the group the strip stays; elsewhere the
+                              // group of the new item is looked up.
+                              final inStrip =
+                                  _group?.items.any(
+                                    (m) => m.id == items[i].id,
+                                  ) ??
+                                  false;
+                              _groupFor = inStrip ? items[i].id : null;
+                            });
+                            unawaited(_precacheNeighbors(items, i));
+                          },
+                          itemBuilder: (context, i) {
+                            final item = items[i];
+                            return item.isVideo
+                                ? VideoPage(
+                                    key: ValueKey(item.id),
+                                    item: item,
+                                    isCurrent: i == index,
+                                    controlsVisible: _controlsVisible,
+                                    onTap: _toggleControls,
+                                    bottomInset: _actionBarHeight,
+                                  )
+                                : ZoomableImage(
+                                    key: ValueKey(item.id),
+                                    item: item,
+                                    onTap: _toggleControls,
+                                    onZoomChanged: (zoomed) =>
+                                        setState(() => _zoomed = zoomed),
+                                  );
+                          },
+                        ),
+                      ),
+                      // Pinned to the top with its own height: a full-screen
+                      // overlay would swallow page swipes and video controls.
+                      Positioned(
+                        top: 0,
+                        left: 0,
+                        right: 0,
+                        child: _FadesWithPull(
+                          pull: _pull,
+                          child: IgnorePointer(
+                            ignoring: !_controlsVisible,
+                            child: AnimatedOpacity(
+                              opacity: _controlsVisible ? 1 : 0,
+                              duration: AppMotion.of(
+                                context,
+                                AppMotion.standard,
+                              ),
+                              child: _TopBar(
+                                item: items[index],
+                                onScan: () => _scanDocument(items[index]),
+                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                    // The group strip, then the actions, pinned to the
-                    // bottom with their own height like the top bar.
-                    Positioned(
-                      left: 0,
-                      right: 0,
-                      bottom: 0,
-                      child: _FadesWithPull(
-                        pull: _pull,
-                        child: IgnorePointer(
-                          ignoring: !_controlsVisible,
-                          child: AnimatedOpacity(
-                            opacity: _controlsVisible ? 1 : 0,
-                            duration: AppMotion.of(context, AppMotion.standard),
-                            child: DecoratedBox(
-                              decoration: const BoxDecoration(
-                                gradient: LinearGradient(
-                                  begin: Alignment.bottomCenter,
-                                  end: Alignment.topCenter,
-                                  colors: [Colors.black54, Colors.transparent],
+                      // The group strip, then the actions, pinned to the
+                      // bottom with their own height like the top bar.
+                      Positioned(
+                        left: 0,
+                        right: 0,
+                        bottom: 0,
+                        child: _FadesWithPull(
+                          pull: _pull,
+                          child: IgnorePointer(
+                            ignoring: !_controlsVisible,
+                            child: AnimatedOpacity(
+                              opacity: _controlsVisible ? 1 : 0,
+                              duration: AppMotion.of(
+                                context,
+                                AppMotion.standard,
+                              ),
+                              child: DecoratedBox(
+                                decoration: const BoxDecoration(
+                                  gradient: LinearGradient(
+                                    begin: Alignment.bottomCenter,
+                                    end: Alignment.topCenter,
+                                    colors: [
+                                      Colors.black54,
+                                      Colors.transparent,
+                                    ],
+                                  ),
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    // Not over a video's playback controls.
+                                    if (group != null &&
+                                        shown != null &&
+                                        !shown.isVideo)
+                                      GroupStrip(
+                                        group: group,
+                                        current: inGroup ? shown.id : '',
+                                        kept: _kept,
+                                        trashed: _trashed,
+                                        onOpen: (item) => _open(item, items),
+                                        onRestore: (item) =>
+                                            unawaited(_restore(item)),
+                                        onKeep: inGroup
+                                            ? () => _keep(shown, items)
+                                            : null,
+                                        onTrash: inGroup
+                                            ? () => unawaited(_trash(shown))
+                                            : null,
+                                        onUndo: _trashLog.isEmpty
+                                            ? null
+                                            : () => unawaited(
+                                                _restore(_trashLog.last),
+                                              ),
+                                      ),
+                                    _ActionBar(
+                                      item: items[index],
+                                      onEdit: () => _edit(items[index]),
+                                    ),
+                                  ],
                                 ),
                               ),
-                              child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  // Not over a video's playback controls.
-                                  if (group != null &&
-                                      shown != null &&
-                                      !shown.isVideo)
-                                    GroupStrip(
-                                      group: group,
-                                      current: inGroup ? shown.id : '',
-                                      kept: _kept,
-                                      trashed: _trashed,
-                                      onOpen: (item) => _open(item, items),
-                                      onRestore: (item) =>
-                                          unawaited(_restore(item)),
-                                      onKeep: inGroup
-                                          ? () => _keep(shown, items)
-                                          : null,
-                                      onTrash: inGroup
-                                          ? () => unawaited(_trash(shown))
-                                          : null,
-                                      onUndo: _trashLog.isEmpty
-                                          ? null
-                                          : () => unawaited(
-                                              _restore(_trashLog.last),
-                                            ),
-                                    ),
-                                  _ActionBar(
-                                    item: items[index],
-                                    onEdit: () => _edit(items[index]),
-                                  ),
-                                ],
-                              ),
                             ),
                           ),
                         ),
                       ),
-                    ),
-                  ],
-                ),
+                    ],
+                  ),
+          ),
         ),
       ),
     );
   }
 }
+
+/// Each side of [a] or [b], whichever is larger.
+EdgeInsets _larger(EdgeInsets a, EdgeInsets b) => EdgeInsets.fromLTRB(
+  a.left > b.left ? a.left : b.left,
+  a.top > b.top ? a.top : b.top,
+  a.right > b.right ? a.right : b.right,
+  a.bottom > b.bottom ? a.bottom : b.bottom,
+);
 
 /// How far [pull] is, from 0 to a whole screen height.
 double _pullProgress(BuildContext context, double pull) =>

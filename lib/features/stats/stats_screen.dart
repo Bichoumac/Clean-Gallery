@@ -9,8 +9,6 @@ import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/features/cleanup/cleanup_lists.dart';
 import 'package:clean_gallery/features/duplicates/duplicates_screen.dart';
-import 'package:clean_gallery/features/monetization/monetization_controller.dart';
-import 'package:clean_gallery/features/monetization/native_ad_card.dart';
 import 'package:clean_gallery/features/stats/storage_summary.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -41,9 +39,6 @@ class StatsScreen extends ConsumerWidget {
       extra: duplicateScope(MediaSelection.all),
     );
 
-    final showAd = ref.watch(
-      monetizationProvider.select((s) => s.phase != AdsPhase.off),
-    );
     const gap = SizedBox(height: MosaicTile.gap);
     return TabPage(
       title: l10n.navStats,
@@ -100,7 +95,6 @@ class StatsScreen extends ConsumerWidget {
           ),
         ),
         gap,
-        if (showAd) const NativeAdCard(),
         _CategoryTile(
           label: l10n.statsTrash,
           value: size(summary?.trash.bytes),

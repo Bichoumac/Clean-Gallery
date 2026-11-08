@@ -75,12 +75,6 @@ abstract final class SettingKeys {
 
   /// [AppSettings.memoriesNotify].
   static const memoriesNotify = 'memories_notify';
-
-  /// [AppSettings.adFree]: the cached answer of the store.
-  static const adFree = 'ad_free';
-
-  /// [AppSettings.removeAdsOfferShown].
-  static const removeAdsOfferShown = 'remove_ads_offer_shown';
 }
 
 /// Reads and writes application settings in the `settings` table.
@@ -236,8 +230,6 @@ final class SettingsRepository {
         24 * 60 - 1,
       ),
       memoriesNotify: values[SettingKeys.memoriesNotify] == 'true',
-      adFree: values[SettingKeys.adFree] == 'true',
-      removeAdsOfferShown: values[SettingKeys.removeAdsOfferShown] == 'true',
     );
   }
 }

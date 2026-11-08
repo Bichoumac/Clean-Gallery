@@ -5,6 +5,7 @@ import 'package:clean_gallery/core/media/media_formatting.dart';
 import 'package:clean_gallery/core/media/media_thumbnail.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/domain/media_item.dart';
+import 'package:clean_gallery/features/viewer/video_gestures.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -96,8 +97,8 @@ class _VideoPageState extends ConsumerState<VideoPage> {
     final controller = _controller;
     final source = ref.watch(mediaSourceProvider);
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    return VideoGestures(
+      controller: controller,
       onTap: widget.onTap,
       child: Stack(
         fit: StackFit.expand,
@@ -105,6 +106,9 @@ class _VideoPageState extends ConsumerState<VideoPage> {
           Center(
             child: Hero(
               tag: mediaHeroTag(widget.item),
+              createRectTween: mediaHeroRectTween(widget.item),
+              flightShuttleBuilder: mediaHeroShuttle,
+              curve: mediaHeroCurve,
               child: controller != null
                   ? AspectRatio(
                       aspectRatio: controller.value.aspectRatio,
@@ -160,6 +164,10 @@ class VideoControls extends StatefulWidget {
   @override
   State<VideoControls> createState() => _VideoControlsState();
 }
+
+/// Space between the slider and the viewer's action bar, so dragging the
+/// slider never touches a button.
+const _gapAboveActions = 16.0;
 
 class _VideoControlsState extends State<VideoControls> {
   /// Slider position while the user drags it, in milliseconds. The video
@@ -231,13 +239,18 @@ class _VideoControlsState extends State<VideoControls> {
                     colors: [Colors.transparent, Colors.black54],
                   ),
                 ),
-                child: SafeArea(
-                  top: false,
-                  minimum: EdgeInsets.fromLTRB(
-                    16,
+                // Above the viewer's action bar, which sits above the system
+                // navigation bar: the three heights add up. (A SafeArea
+                // minimum took the larger of them, and the slider ended up
+                // under the action bar, hard to drag.)
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(
+                    16 + MediaQuery.viewPaddingOf(context).left,
                     0,
-                    8,
-                    12 + widget.bottomInset,
+                    8 + MediaQuery.viewPaddingOf(context).right,
+                    MediaQuery.viewPaddingOf(context).bottom +
+                        widget.bottomInset +
+                        _gapAboveActions,
                   ),
                   // Fixed height: the Slider otherwise takes all the height
                   // it is given, which put the bar in the middle of the

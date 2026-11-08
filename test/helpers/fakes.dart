@@ -8,12 +8,10 @@ import 'package:clean_gallery/domain/gray_image.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/domain/media_metadata.dart';
 import 'package:clean_gallery/domain/slideshow.dart';
-import 'package:clean_gallery/platform/ads_service.dart';
 import 'package:clean_gallery/platform/media_source.dart';
 import 'package:clean_gallery/platform/music_player.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
 import 'package:clean_gallery/platform/platform_bridge.dart';
-import 'package:clean_gallery/platform/purchase_service.dart';
 import 'package:clean_gallery/platform/reminder_service.dart';
 import 'package:drift/native.dart';
 import 'package:flutter/services.dart';
@@ -151,105 +149,27 @@ class FakePlatformBridge implements PlatformBridge {
 
   @override
   Future<void> setKeepScreenOn({required bool on}) async => keepScreenOn = on;
-}
 
-/// [MusicPlayer] that records what it is asked to play.
-class FakeLoadedAd implements LoadedAd {
-  bool disposed = false;
+  /// The window's own brightness, or `null` when it follows the system.
+  double? brightness;
 
-  @override
-  Widget get view => const SizedBox.expand(key: ValueKey('fake-ad'));
+  /// Brightness reported while the window follows the system.
+  double systemBrightness = 0.5;
 
-  @override
-  void dispose() => disposed = true;
-}
-
-/// Ads off by default, as in a build without ad unit IDs.
-class FakeAdsService implements AdsService {
-  FakeAdsService({
-    this.configured = false,
-    this.consent = true,
-    this.privacyRequired = false,
-    this.fill = true,
-  });
+  /// Media volume, from 0 to 1.
+  double volume = 0.5;
 
   @override
-  final bool configured;
-
-  bool consent;
-  bool privacyRequired;
-  bool fill;
-
-  /// Calls in order, to check that nothing loads before consent.
-  final calls = <String>[];
+  Future<double> screenBrightness() async => brightness ?? systemBrightness;
 
   @override
-  Future<bool> gatherConsent() async {
-    calls.add('consent');
-    return consent;
-  }
+  Future<void> setScreenBrightness(double? value) async => brightness = value;
 
   @override
-  Future<void> initialize() async => calls.add('initialize');
+  Future<double> mediaVolume() async => volume;
 
   @override
-  Future<bool> privacyOptionsRequired() async => privacyRequired;
-
-  @override
-  Future<bool> showPrivacyOptions() async {
-    calls.add('privacy');
-    return consent;
-  }
-
-  @override
-  Future<LoadedAd?> loadBanner() async {
-    calls.add('banner');
-    return fill ? FakeLoadedAd() : null;
-  }
-
-  @override
-  Future<LoadedAd?> loadNative(NativeAdColors colors) async {
-    calls.add('native');
-    return fill ? FakeLoadedAd() : null;
-  }
-
-  @override
-  Future<void> preloadInterstitial() async => calls.add('preload');
-
-  @override
-  Future<void> showInterstitial() async => calls.add('interstitial');
-}
-
-class FakePurchaseService implements PurchaseService {
-  FakePurchaseService({this.owned = false, this.price = '4,99 €'});
-
-  /// The store's answer; `null` when it cannot be reached.
-  bool? owned;
-  String? price;
-  bool canOpen = true;
-  int buys = 0;
-
-  final _updates = StreamController<PurchaseUpdate>.broadcast();
-
-  void emit(PurchaseUpdate update) => _updates.add(update);
-
-  @override
-  Stream<PurchaseUpdate> get updates => _updates.stream;
-
-  @override
-  Future<String?> removeAdsPrice() async => price;
-
-  @override
-  Future<bool?> ownsRemoveAds() async => owned;
-
-  @override
-  Future<bool> buyRemoveAds() async {
-    buys++;
-    return canOpen;
-  }
-
-  @override
-  Future<void> dispose() => _updates.close();
+  Future<void> setMediaVolume(double value) async => volume = value;
 }
 
 class FakeMusicPlayer implements MusicPlayer {

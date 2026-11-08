@@ -4,7 +4,7 @@ Which packages carry ads and billing, how they stay away from the rest of the ap
 
 Last updated: 2026-11-05 — Milestone M11
 
-- **Status**: Accepted
+- **Status**: Superseded by [ADR 0032](0032-open-source-without-ads.md) on 2026-11-08: the ads and the purchase were removed. This record and [monetization.md in the history](https://github.com/Bichoumac/Clean-Gallery/blob/80c471608c4cb98e67a21c59f4404ab6df0cb102/docs/monetization.md) describe what M11 built.
 - **Date**: 2026-11-05
 
 ## Context
@@ -14,7 +14,7 @@ The brief asks for AdMob with UMP consent and a non-consumable purchase, restric
 ## Decision
 
 - `google_mobile_ads` for ads and consent, `in_app_purchase` and `in_app_purchase_android` for billing, each used in one file of `lib/platform/android/`, behind `AdsService` and `PurchaseService`.
-- `Monetization`, a Riverpod controller, owns the launch order: store, then consent, then SDK. See [monetization.md](../monetization.md).
+- `Monetization`, a Riverpod controller, owns the launch order: store, then consent, then SDK. See [monetization.md](https://github.com/Bichoumac/Clean-Gallery/blob/80c471608c4cb98e67a21c59f4404ab6df0cb102/docs/monetization.md).
 - **Banner**: the standard 320 × 50 dp, not adaptive. The SDK's current adaptive size can reach 15 % of the screen's height, and the product owner found it too big on the phone (2026-11-05). Adaptive banners may earn more.
 - **Fail closed**: without an answer about consent, no ad is requested.
 - **Native card**: Google's small native template, not a Kotlin native factory, so no layout is maintained on the native side.
@@ -34,5 +34,5 @@ On 2026-11-05 the product owner asked for a quick ad before a slideshow started 
 ## Consequences
 
 - Tests replace both services with fakes; the real SDKs only run on a device.
-- The ads package brings `webview_flutter` and the permissions listed in [monetization.md](../monetization.md#permissions-added-by-the-sdks).
+- The ads package brings `webview_flutter` and the permissions listed in [monetization.md](https://github.com/Bichoumac/Clean-Gallery/blob/80c471608c4cb98e67a21c59f4404ab6df0cb102/docs/monetization.md#permissions-added-by-the-sdks).
 - The app's promise holds for media, but ads do use the network and the advertising ID; the store listing and the *Data safety* form must say so.

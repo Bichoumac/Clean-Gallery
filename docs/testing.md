@@ -134,29 +134,43 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
 
-### M11 — monetization, to verify on a device
+### Video gestures — to verify on a device
 
-Items 1 to 9 reported OK as a whole by the product owner on 2026-11-05, on the Galaxy A54; items 10 to 15 not run. Install a profile build, which uses Google's test ads: `flutter build apk --profile --target-platform android-arm64`.
+All items confirmed by the product owner on 2026-11-08 on the Galaxy A54, after two fixes (speed slide, instant tap). Open a video in the viewer.
 
-1. First launch after the update, in France: Google's consent form appears over the tabs, never during onboarding. If it does not appear, note whether ads show anyway.
-2. Accept: Albums shows a *Test Ad* banner above the floating bar, not hidden by it, with *Remove ads* at the end of the list.
-3. The banner's height looks small enough, and the last album can be scrolled fully into view.
-4. Stats: a card labeled *Annonce* before the Trash tile, with its own *Ad* badge. Tile shape, no citron, readable in light and dark.
-5. Change the theme with the Stats tab open: the card comes back in the new colors.
-6. Camera, Videos, Settings, viewer, sort session, editor, duplicates, trash, onboarding, map, search, album pages, during slideshows, memories: no ad.
-   - Slideshow button of an album, *Start*: a test ad, full screen; closing it starts the slideshow. Again within 5 minutes: no ad. A memory, a ritual or a saved slideshow: no ad.
-7. Settings → *Annonces*: *Confidentialité et choix publicitaires* reopens the form. Refuse everything: slots stay or go according to Google's answer, with no crash.
-8. Airplane mode, relaunch: empty reserved space or no slot; no crash, no jump.
-9. *Retirer les annonces*, on this build: the store says the product is unavailable, or a clear error shows. No crash.
+1. Slide up then down on the left half: a pill shows *Luminosité* and its level; the screen follows. Leave the video: the brightness goes back to the system's.
+2. Slide up then down on the right half: *Volume* follows, the phone's volume changes, no Samsung volume panel.
+3. Double tap on the right: *+10 s*, the video jumps; tap once more quickly: *+20 s*. Same on the left with *−10 s*, never before the start.
+4. In the top quarter of the video, slide right then left: *Vitesse 1,25×*, *1,5×*… up to *2×* and down to *0,25×*; the video plays at that speed.
+5. Lower on the video, slide left or right: moves to the next or previous item as before.
+6. A single tap shows and hides the controls at once, without delay.
+7. The progress bar can be dragged without touching the buttons below it.
 
-Only possible once the [outside setup](monetization.md#set-up-outside-the-code) is done, from a testing track with a license tester:
+### Page transitions — to verify on a device
 
-10. The price shown is the store's.
-11. Buy: every ad disappears at once; *Sans annonces ✓* in Settings; still so after a relaunch and with no network.
-12. Cancel a purchase, and try a slow test card: a clear message each time.
-13. Reinstall: the purchase returns by itself; *Restaurer l'achat* also finds it.
-14. Refund from the Play Console: ads return at the next launch.
-15. Delete more than 500 MB for good from the trash: the offer appears with the price; *Non merci*; never again.
+First run on 2026-11-08 on the Galaxy A54: 1 and 7 OK; pages had no transition (2, 3, 4), the photo landed off-center (6), the theme change stuttered (8); all three fixed after, to check again. Install a profile or release build: debug builds are too slow to judge motion. First check that *Paramètres → Accessibilité → Améliorations de la visibilité → Supprimer les animations* is off, or every transition is instant on purpose. **All items confirmed on the phone by the product owner on 2026-11-08** after the fixes.
+
+1. Tap each tab of the bar in turn, then back: the new tab slides in from the side of its button, the old one leaves on the other side, smoothly; each tab keeps its scroll position.
+2. Albums: tap *Favoris*, *Carte*, *Diaporamas*, *Corbeille*, *Tous les médias* and an album cover: each page grows out of the tile, its corners rounding into the screen's; back shrinks it into the same tile.
+3. Stats: tap *Anciennes captures d'écran*, *Photos similaires* and *Mode tri*: same growth from the tile.
+4. Settings → *Rituels*, a search, the editor: the page slides in from the right; the page below shrinks a little and darkens; back plays it in reverse.
+5. Back gesture from the screen's edge on an album page, slowly: the page follows the finger. Let go early: it comes back. Swipe further: it leaves.
+6. Tap a portrait photo, then a landscape one, in a grid and in search results with the keyboard open: the thumbnail opens into the whole photo with a slight spring, without the picture jumping at the start or the end. Pull it down: it lands back in its square.
+7. During a transition, tap fast on the bar or the back button: no freeze, no blank page, no double page.
+8. Turn *Supprimer les animations* on: tabs and pages change at once.
+9. Light and dark themes: the darkening of the page below looks right in both.
+10. Settings → *Thème*: tap *Sombre*, then *Clair*: the new theme spreads in a circle from the finger, smoothly.
+
+### Open source without ads — to verify on a device
+
+Ads and the purchase were removed on 2026-11-08 ([ADR 0032](decisions/0032-open-source-without-ads.md)). All items confirmed on the phone by the product owner on 2026-11-08.
+
+1. Install over the previous build (no uninstall): the app opens on the tabs, albums, settings and slideshows as before.
+2. Albums: no banner and no *Remove ads* link; the last album scrolls fully into view above the bar.
+3. Stats: no ad card; the Trash tile follows the other tiles.
+4. A slideshow from an album starts right after *Start*, with no ad.
+5. Settings: no *Annonces* section.
+6. Delete more than 500 MB for good from the trash: no offer appears.
 
 ### Visual refresh — to verify on a device
 

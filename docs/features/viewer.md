@@ -13,11 +13,17 @@ Show one item at a time, full screen, with swiping between the items of the grid
 1. Tap a thumbnail: the image flies from the grid to full screen (Hero transition).
 2. Swipe left or right to move between items, in the grid's order, including its sort and date filter.
 3. Pinch, or double-tap, to zoom a photo; double-tap again to fit. Swiping is disabled while zoomed.
-4. Tap once to hide or show the controls and the system bars.
-5. Videos start playing when they become the current page and pause when swiped away. Controls: play/pause/replay, progress bar with seeking, mute, rotate. The progress bar follows the finger and the video seeks when it is lifted.
-6. The top bar shows the back button, date and file name, and for photos **Scan a document** ([scan.md](scan.md)); after saving, the viewer shows the page. The **actions** are at the bottom, within reach of the thumb (product owner, 2026-10-28): **share**, **favorite**, **edit** (photos only, the [editor](editor.md); after saving, the viewer shows the new photo), **add to album** ([user-albums.md](user-albums.md)), **details** (the [info panel](#info-panel)), **move to trash** (with *Undo*); after trashing, the next item is shown, and the viewer closes when nothing is left.
-7. Back returns to the grid.
-8. **A photo in a duplicate group** (identical copies, burst or similar photos): the [group strip](#group-strip) at the bottom.
+4. Tap once to hide or show the controls and the system bars. The controls fade in place: they keep the room of the system bars while those are hidden, so they do not move as the bars leave.
+5. Videos start playing when they become the current page and pause when swiped away. Controls: play/pause/replay, progress bar with seeking, mute, rotate. The progress bar follows the finger and the video seeks when it is lifted. It sits 16 dp above the action bar, itself above the system navigation bar.
+6. **Video gestures** (product owner, 2026-11-08, [video_gestures.dart](../../lib/features/viewer/video_gestures.dart)), each showing its value in a pill while it lasts:
+   - sliding up or down on the left half sets the brightness of the app's window only; it goes back to the system's when the video is left;
+   - sliding up or down on the right half sets the device's media volume, without the system's volume panel;
+   - a double tap on the right half jumps 10 s forward, on the left half 10 s back; each further tap in a row on the same side adds 10 s (+20 s, +30 s…);
+   - sliding left or right in the top quarter of the video sets the speed, from 0.25× to 2× in steps of 0.25 every 40 dp. There a horizontal slide does not move to the next item; lower down it does;
+   - a single tap shows or hides the controls at once (product owner: no delay). A second tap within 300 ms makes a double tap, which jumps and puts the controls back as they were.
+7. The top bar shows the back button, date and file name, and for photos **Scan a document** ([scan.md](scan.md)); after saving, the viewer shows the page. The **actions** are at the bottom, within reach of the thumb (product owner, 2026-10-28): **share**, **favorite**, **edit** (photos only, the [editor](editor.md); after saving, the viewer shows the new photo), **add to album** ([user-albums.md](user-albums.md)), **details** (the [info panel](#info-panel)), **move to trash** (with *Undo*); after trashing, the next item is shown, and the viewer closes when nothing is left.
+8. Back returns to the grid.
+9. **A photo in a duplicate group** (identical copies, burst or similar photos): the [group strip](#group-strip) at the bottom.
 
 ## Group strip
 
@@ -42,6 +48,7 @@ No accent over the media: a translucent white play button and a white slider. **
 | `ViewerScreen` (pages, top bar, system UI) | [viewer_screen.dart](../../lib/features/viewer/viewer_screen.dart) |
 | `ZoomableImage` (photo page) | [zoomable_image.dart](../../lib/features/viewer/zoomable_image.dart) |
 | `VideoPage` and its controls | [video_page.dart](../../lib/features/viewer/video_page.dart) |
+| `VideoGestures`: brightness, volume, seek, speed | [video_gestures.dart](../../lib/features/viewer/video_gestures.dart) |
 | `InfoPanel`, `showInfoPanel` | [info_panel.dart](../../lib/features/viewer/info_panel.dart) |
 | `GroupStrip` (duplicate group, Keep and Trash) | [group_strip.dart](../../lib/features/viewer/group_strip.dart) |
 

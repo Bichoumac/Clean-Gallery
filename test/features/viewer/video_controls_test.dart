@@ -18,7 +18,11 @@ void main() {
       );
   }
 
-  Future<void> pumpControls(WidgetTester tester, Size physicalSize) async {
+  Future<void> pumpControls(
+    WidgetTester tester,
+    Size physicalSize, {
+    double bottomInset = 0,
+  }) async {
     tester.view
       ..physicalSize = physicalSize
       ..devicePixelRatio = 3;
@@ -39,7 +43,10 @@ void main() {
                 child: AnimatedOpacity(
                   opacity: 1,
                   duration: Duration.zero,
-                  child: VideoControls(controller: fakeController()),
+                  child: VideoControls(
+                    controller: fakeController(),
+                    bottomInset: bottomInset,
+                  ),
                 ),
               ),
             ],
@@ -64,4 +71,21 @@ void main() {
       );
     });
   }
+
+  // The slider was under the viewer's action bar with a 3-button
+  // navigation bar (2026-11-08).
+  testWidgets('the progress bar stays above the action bar and system bar', (
+    tester,
+  ) async {
+    // 48 dp of system navigation bar, at 3×.
+    tester.view.viewPadding = const FakeViewPadding(bottom: 144);
+    tester.view.padding = const FakeViewPadding(bottom: 144);
+    addTearDown(tester.view.resetViewPadding);
+    addTearDown(tester.view.resetPadding);
+    await pumpControls(tester, const Size(1080, 2400), bottomInset: 64);
+    final screen = tester.getSize(find.byType(Scaffold));
+    final slider = tester.getRect(find.byType(Slider));
+    // The action bar takes 48 + 64 dp at the bottom; 16 dp of room above.
+    expect(slider.bottom, lessThanOrEqualTo(screen.height - 48 - 64 - 16));
+  });
 }

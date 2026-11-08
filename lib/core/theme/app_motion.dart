@@ -16,6 +16,24 @@ abstract final class AppMotion {
   /// Tab pill, bars showing and hiding.
   static const standard = Duration(milliseconds: 220);
 
+  /// A page opening: sliding in, or growing from the tile that opened it.
+  static const page = Duration(milliseconds: 420);
+
+  /// A page closing, a little quicker than [page].
+  static const pageBack = Duration(milliseconds: 340);
+
+  /// Curve of pages and tabs: fast start, long soft landing.
+  static const Curve pageCurve = Curves.easeInOutCubicEmphasized;
+
+  /// Moving from one tab to another.
+  static const tab = Duration(milliseconds: 300);
+
+  /// Grid to viewer: the photo flying from its thumbnail.
+  static const viewer = Duration(milliseconds: 380);
+
+  /// Curve of [viewer].
+  static const Curve viewerCurve = Curves.fastEaseInToSlowEaseOut;
+
   /// Grid to viewer, tiles, sheets.
   static const spring = SpringDescription(mass: 1, stiffness: 380, damping: 30);
 

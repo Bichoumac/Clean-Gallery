@@ -9,7 +9,6 @@ import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/core/router/compact_nav_bar.dart';
 import 'package:clean_gallery/features/memories/memory_providers.dart';
 import 'package:clean_gallery/features/memories/reminder_planner.dart';
-import 'package:clean_gallery/features/monetization/monetization_controller.dart';
 import 'package:clean_gallery/features/slideshow/slideshow_builder.dart';
 import 'package:clean_gallery/features/trash/trash_purge.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
@@ -51,9 +50,6 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _onForeground();
       unawaited(_openLaunchReminder());
-      // After onboarding, since this shell only shows then: the consent form
-      // never comes before the permission pages.
-      unawaited(ref.read(monetizationProvider.notifier).start());
     });
     _reminderTaps = ref
         .read(reminderServiceProvider)
@@ -130,24 +126,7 @@ class _HomeShellState extends ConsumerState<HomeShell> {
     final navigationShell = widget.navigationShell;
     final selecting = ref.watch(selectionModeProvider);
     // Keeps the memory and ritual notifications set while the app runs.
-    ref
-      ..watch(reminderSyncProvider)
-      ..listen(monetizationProvider.select((s) => s.message), (_, message) {
-        if (message == null) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(switch (message) {
-              PurchaseMessage.pending => l10n.purchasePending,
-              PurchaseMessage.purchased => l10n.purchaseDone,
-              PurchaseMessage.cancelled => l10n.purchaseCancelled,
-              PurchaseMessage.failed => l10n.purchaseFailed,
-              PurchaseMessage.restored => l10n.purchaseRestored,
-              PurchaseMessage.nothingToRestore => l10n.purchaseNothingToRestore,
-            }),
-          ),
-        );
-        ref.read(monetizationProvider.notifier).messageShown();
-      });
+    ref.watch(reminderSyncProvider);
     return Scaffold(
       extendBody: true,
       body: navigationShell,
