@@ -33,6 +33,7 @@ M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)).
 ### Fixed
 
 - **Photo landing high from the search**: with the search's keyboard open, the viewer was laid out above it, so the photo flew to the top then jumped down. The viewer ignores the keyboard, and opening a photo closes it.
+- **Hitch as a photo opened**: the previews of the neighboring photos, the library's duplicate groups and the viewer's theme were all loaded during the photo's flight. The neighbors now wait for the end of the flight, and the groups and theme are kept.
 - **Pages opened without any transition**: go_router did not recognize the app as a Material app and gave every route a page without transition. Routes now ask for a Material page themselves.
 - CI no longer uploads the debug APK and release bundle as artifacts: they filled the GitHub artifact storage quota. Both are still built.
 

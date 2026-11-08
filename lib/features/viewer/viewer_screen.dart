@@ -25,6 +25,10 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+/// The viewer is always dark. Built once: a theme is costly to build, and
+/// the viewer rebuilds during the photo's flight.
+final ThemeData _viewerTheme = AppTheme.dark();
+
 /// Full-screen viewer: swipe between the items of a selection.
 ///
 /// Opened from a grid with [ViewerArgs]; reads the same media list as the
@@ -33,6 +37,7 @@ import 'package:go_router/go_router.dart';
 ///
 /// When the item shown is in a duplicate group, a [GroupStrip] at the
 /// bottom shows the group and sorts it photo by photo (keep or trash).
+
 class ViewerScreen extends ConsumerStatefulWidget {
   /// Creates the viewer.
   const ViewerScreen({required this.args, super.key});
@@ -107,6 +112,26 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen>
     unawaited(SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge));
     unawaited(SystemChrome.setPreferredOrientations(const []));
     super.dispose();
+  }
+
+  /// Runs [action] once the viewer has finished opening. The previews of
+  /// the neighbors come through the platform channel: loaded during the
+  /// photo's flight, they made it stutter.
+  void _afterOpening(VoidCallback action) {
+    final animation = ModalRoute.of(context)?.animation;
+    if (animation == null || animation.isCompleted) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) action();
+      });
+      return;
+    }
+    late final AnimationStatusListener listener;
+    listener = (status) {
+      if (!status.isCompleted) return;
+      animation.removeStatusListener(listener);
+      if (mounted) action();
+    };
+    animation.addStatusListener(listener);
   }
 
   /// Starts loading the previews of the photos around [index], so swiping
@@ -295,13 +320,11 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen>
         shown != null && (group?.items.any((m) => m.id == shown.id) ?? false);
     if (!_precachedInitial && items.isNotEmpty) {
       _precachedInitial = true;
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) unawaited(_precacheNeighbors(items, index));
-      });
+      _afterOpening(() => unawaited(_precacheNeighbors(items, index)));
     }
 
     return Theme(
-      data: AppTheme.dark(),
+      data: _viewerTheme,
       child: AnnotatedRegion<SystemUiOverlayStyle>(
         value: SystemUiOverlayStyle.light,
         child: Scaffold(
