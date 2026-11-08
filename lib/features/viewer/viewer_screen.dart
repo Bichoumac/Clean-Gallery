@@ -307,6 +307,10 @@ class _ViewerScreenState extends ConsumerState<ViewerScreen>
         child: Scaffold(
           // The grid shows behind while a photo is pulled down.
           backgroundColor: Colors.transparent,
+          // The viewer has no text field. A keyboard left open by the search
+          // would lay the photo out above it, and the photo would land high
+          // then jump down as the keyboard closes.
+          resizeToAvoidBottomInset: false,
           body: items.isEmpty
               ? const ColoredBox(
                   color: Colors.black,

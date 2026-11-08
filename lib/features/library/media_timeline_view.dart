@@ -593,13 +593,20 @@ class _TimelineState extends ConsumerState<_Timeline> {
                 ? () => _toggle(cell)
                 : cell.folded
                 ? () => _toggleStack(stack!)
-                : () => context.push(
-                    AppRoutes.viewer,
-                    extra: ViewerArgs(
-                      selection: selection,
-                      initialIndex: cell.cover,
-                    ),
-                  ),
+                : () {
+                    // Close the search's keyboard: it has no use in the
+                    // viewer.
+                    FocusManager.instance.primaryFocus?.unfocus();
+                    unawaited(
+                      context.push(
+                        AppRoutes.viewer,
+                        extra: ViewerArgs(
+                          selection: selection,
+                          initialIndex: cell.cover,
+                        ),
+                      ),
+                    );
+                  },
           );
           return _Selectable(
             selected: selecting ? picked.containsAll(_idsOf(cell)) : null,

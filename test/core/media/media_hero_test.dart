@@ -28,4 +28,25 @@ void main() {
     expect(last.height / last.width, closeTo(0.75, 0.05));
     await tester.pumpAndSettle();
   });
+
+  // With the search's keyboard open, the viewer was laid out above it and
+  // the photo landed high, then jumped (2026-11-08).
+  testApp('the keyboard does not move the photo up', (tester) async {
+    await pumpTestApp(tester, media: FakeMediaSource(items: [testItem(1)]));
+    await tester.pumpAndSettle();
+    tester.view.viewInsets = const FakeViewPadding(bottom: 900);
+    addTearDown(tester.view.resetViewInsets);
+    await tester.pump();
+    await tester.tap(find.byType(MediaThumbnail).first);
+    await tester.pump();
+
+    Rect? last;
+    for (var i = 0; i < 11; i++) {
+      await tester.pump(const Duration(milliseconds: 30));
+      final flying = find.byType(Image);
+      if (flying.evaluate().length == 1) last = tester.getRect(flying);
+    }
+    expect(last!.center.dy, closeTo(400, 6));
+    await tester.pumpAndSettle();
+  });
 }

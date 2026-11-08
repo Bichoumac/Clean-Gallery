@@ -143,7 +143,7 @@ First run on 2026-11-08 on the Galaxy A54: 1 and 7 OK; pages had no transition (
 3. Stats: tap *Anciennes captures d'écran*, *Photos similaires* and *Mode tri*: same growth from the tile.
 4. Settings → *Rituels*, a search, the editor: the page slides in from the right; the page below shrinks a little and darkens; back plays it in reverse.
 5. Back gesture from the screen's edge on an album page, slowly: the page follows the finger. Let go early: it comes back. Swipe further: it leaves.
-6. Tap a portrait photo, then a landscape one, in a grid: the thumbnail opens into the whole photo with a slight spring, without the picture jumping at the start or the end. Pull it down: it lands back in its square.
+6. Tap a portrait photo, then a landscape one, in a grid and in search results with the keyboard open: the thumbnail opens into the whole photo with a slight spring, without the picture jumping at the start or the end. Pull it down: it lands back in its square.
 7. During a transition, tap fast on the bar or the back button: no freeze, no blank page, no double page.
 8. Turn *Supprimer les animations* on: tabs and pages change at once.
 9. Light and dark themes: the darkening of the page below looks right in both.
