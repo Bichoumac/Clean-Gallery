@@ -54,7 +54,7 @@ Started on 2026-11-08 on branch `m12-release`.
 ### Waiting for the product owner
 
 - Upload key: created by the product owner on 2026-11-09 and in use; signed release APKs checked (arm64 26.4 MB, armeabi-v7a 24.3 MB, x86_64 28.0 MB), certificate in [release.md](release.md#checking-a-builds-signature).
-- Choose the channels: GitHub releases, IzzyOnDroid, F-Droid, Play later.
+- Channels: **GitHub releases and IzzyOnDroid**, chosen on 2026-11-09.
 - Make the repository public (the privacy link and F-Droid need it).
 - Screenshots for the store listing, taken on their phone with photos they are fine to show.
 - [M12 checks](testing.md#m12--release-preparation-to-verify-on-a-device): confirmed on the phone on 2026-11-09, as a whole.

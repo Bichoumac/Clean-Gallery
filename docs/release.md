@@ -4,7 +4,7 @@ How to build, sign and publish Clean Gallery: the upload key, the release checkl
 
 Last updated: 2026-11-08 — Milestone M12
 
-Clean Gallery is free software under the GNU GPL v3, with no ads, purchase or tracking ([ADR 0032](decisions/0032-open-source-without-ads.md)). The way to publish is not chosen yet: Play needs 12 testers for 14 days on a personal account, which the product owner cannot gather ([progress.md](progress.md)). GitHub releases and F-Droid need no tester.
+Clean Gallery is free software under the GNU GPL v3, with no ads, purchase or tracking ([ADR 0032](decisions/0032-open-source-without-ads.md)). **Channels chosen by the product owner on 2026-11-09: GitHub releases and IzzyOnDroid.** The main F-Droid repository and Play may come later (Play needs 12 testers for 14 days on a personal account, which the product owner cannot gather).
 
 ## Versions
 
