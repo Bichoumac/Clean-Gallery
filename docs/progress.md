@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-11-04 — Visual refresh
+Last updated: 2026-11-05 — Milestone M11
 
 ## Milestones
 
@@ -18,10 +18,10 @@ Last updated: 2026-11-04 — Visual refresh
 | M7 | Exploration: map, search | Merged into `main` (PR #9, 2026-10-30); map built in M6 |
 | M8 | User albums | Merged into `main` (PR #10, 2026-11-01) |
 | M9 | Slideshows, saved slideshows, memories, rituals | Merged into `main` (PR #11, 2026-11-04) |
-| M10 | People (on-device face recognition, merging) | Specified and approved 2026-11-01 |
-| M11 | Monetization (was M8) | Not started |
+| M10 | People (on-device face recognition, merging) | Postponed by the product owner on 2026-11-05, to come after M11; no code, model study in [ADR 0029](decisions/0029-face-model.md) |
+| M11 | Monetization (was M8) | Built on branch `m11-monetization` on 2026-11-05, not tried on a phone |
 | M12 | Polish and release preparation (was M9) | Not started |
-| — | Visual refresh: Éclat Soleil identity, logo and icon | Built on branch `visual-refresh`, tried on the phone 2026-11-05; pull request to open |
+| — | Visual refresh: Éclat Soleil identity, logo and icon | Merged into `main` (PR #13), tried on the phone 2026-11-05 |
 
 M8 to M10 were added at the product owner's request on 2026-11-01; monetization and polish moved from M8 and M9.
 
@@ -34,6 +34,38 @@ The product owner chose a warm identity and a logo on 2026-11-04 ([ADR 0028](dec
 - **Accent**: changed to golden citron at the product owner's request; "beaucoup mieux" (2026-11-05).
 - **Map**: slow loading and missing marker thumbnails reported, then "carte ok" after the duplicate scan was paused on the map and failures retried (2026-11-05).
 - **Thumbnails missing in runs** (reported 2026-11-05, several runs of consecutive cells): failed loads stayed in Flutter's image cache, reproduced by a test and fixed ([library.md](features/library.md#thumbnails-that-fail)). Confirmed on the phone by the product owner ("ça marche", 2026-11-05).
+
+## M11 — Monetization
+
+### Done
+
+- **Ads**: AdMob banner in the Albums tab and native card in the Stats tab, UMP consent after onboarding, *Privacy & ad choices* ([monetization.md](monetization.md), [ADR 0030](decisions/0030-ads-and-purchase.md)).
+- **Ad before a manual slideshow** (product owner, 2026-11-05, reversing the brief's ban on interstitials for this case): at most every 5 minutes, never before a memory, ritual or saved slideshow; the slideshow never waits for it.
+- **Remove ads**: non-consumable `remove_ads`, acknowledged, checked at each launch, restored, cached so no ad flashes; the SDK never starts for an ad-free user. Offered in Settings, next to the banner, and once after more than 500 MB deleted for good.
+- Five architecture tests guard the placements and the requests. No schema change. 472 tests; a profile APK builds.
+
+### Decisions
+
+- **People moved after M11** (product owner, 2026-11-05), see [ADR 0029](decisions/0029-face-model.md).
+- **Android backup stays on** (product owner, 2026-11-05), so the app's data can follow the user to a new phone; the privacy policy says so ([platform-android.md](platform-android.md#android-backup)).
+- **Privacy policy**: published by the product owner at <https://sites.google.com/view/clean-gallery-privacy> (2026-11-05); to link from the app in M12; publisher and contact checked on the public page.
+- **Application ID**: `com.bichoumac.clean_gallery` confirmed by the product owner as final (2026-11-05).
+- **Play Console account**: personal, so the closed test of 12 testers for 14 days applies, and the product owner cannot gather 12 testers (2026-11-05). The way to publish is open.
+- **Banner**: standard 320 × 50 dp, the link moved to the end of the list, after the product owner found the large adaptive banner, then the strip, too big (2026-11-05).
+- **`ACCESS_ADSERVICES_TOPICS` removed** at the product owner's request (2026-11-05).
+- **The offer** follows a deletion for good from the Trash screen; moving to the trash frees nothing yet.
+- **Native template** rather than a Kotlin factory; to review once seen on the phone.
+
+### Known issues
+
+- **On the phone, 2026-11-05**: items 1 to 9 reported as OK as a whole ("tests sur téléphone ok"), not one by one, on the build before the last banner change. The purchase itself (items 10 to 15) has not run. Checklist: [testing.md](testing.md#m11--monetization-to-verify-on-a-device).
+- The purchase cannot be tried until the product owner has set up the Play Console; ads need AdMob before release ([outside setup](monetization.md#set-up-outside-the-code)).
+- With Google's test app ID, whether the consent form appears is unknown; if it fails on a first launch, no ad is requested.
+- Release APK size with the SDKs not measured (26.6 MB before them).
+
+### Next steps
+
+The full list is in [working-notes.md](working-notes.md#to-do-next-written-2026-11-05-resume-here).
 
 ## New features — decisions (2026-11-01)
 

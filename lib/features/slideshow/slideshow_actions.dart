@@ -8,6 +8,7 @@ import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/domain/slideshow.dart';
 import 'package:clean_gallery/features/library/sort_filter_sheet.dart';
+import 'package:clean_gallery/features/monetization/monetization_controller.dart';
 import 'package:clean_gallery/features/slideshow/slideshow_builder.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -33,6 +34,8 @@ Future<void> startSlideshow(
 ) async {
   final chosen = await showSlideshowOptions(context, ref);
   if (chosen == null || !context.mounted) return;
+  await ref.read(monetizationProvider.notifier).showSlideshowAd();
+  if (!context.mounted) return;
   await playSlideshow(context, source, options: chosen.options);
 }
 
@@ -54,6 +57,8 @@ Future<void> startPeriodSlideshow(BuildContext context, WidgetRef ref) async {
       : dateFilterLabel(context, dates, now);
   // "Holidays · Last 30 days", or the period alone for the whole library.
   final title = album == null ? period : '${album.name} · $period';
+  await ref.read(monetizationProvider.notifier).showSlideshowAd();
+  if (!context.mounted) return;
   await playSlideshow(
     context,
     SelectionSlideshow(

@@ -2,7 +2,7 @@
 
 Full-screen slideshows of an album, a selection, a period or a memory, with a crossfade or a slow zoom, muted videos and music; saved on the user's tap to play again.
 
-Last updated: 2026-11-04 — Visual refresh
+Last updated: 2026-11-05 — Milestone M11
 
 ## Purpose
 
@@ -49,6 +49,10 @@ The music loops, pauses with the slideshow and fades out at the end. A track tha
 - with *Skip duplicates and blurry photos*: photos of the blurry and dark cleanup list (`MediaSelection.goodOnly`, the same rule as [cleanup.md](cleanup.md)) and, in each duplicate group, every item but the best one ([duplicates.md](duplicates.md)). Unmeasured photos are kept.
 
 *Shuffled* shuffles that list once. A saved slideshow plays its saved list as it is, skipping items trashed or no longer on the device.
+
+## Ad before a manual slideshow
+
+Starting from the options sheet may show one ad first, at most every 5 minutes, never for an ad-free user ([monetization.md](../monetization.md#ad-before-a-manual-slideshow)). Memories, rituals and saved slideshows play without an ad.
 
 ## Look
 

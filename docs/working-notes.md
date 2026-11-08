@@ -2,7 +2,7 @@
 
 How the product owner and the AI assistant work together on Clean Gallery, the constraints of the development machine, and where to pick up. Read it at the start of every session, after [AGENTS.md](../AGENTS.md).
 
-Last updated: 2026-11-04 — Visual refresh
+Last updated: 2026-11-05 — Milestone M11
 
 ## Where to pick up
 
@@ -12,13 +12,60 @@ Quick resume (keep this short; history is in [progress.md](progress.md) and git)
 - **Everything built in M6 is confirmed on the Galaxy A54** (items 1 to 64 of [testing.md](testing.md#m6--viewer-and-editing-to-verify-on-a-device)): info panel with mini map, stacks of duplicates in the timelines, map (brought forward from M7), viewer group strip (Keep / Trash), sorts by number of duplicates, viewer actions at the bottom, editor ([editor.md](features/editor.md)), document scanner ([scan.md](features/scan.md)).
 - **Left from M6**: nothing. Not wanted for now: batch editing; scanner camera capture.
 - **M8 user albums is merged** (PR #10, 2026-11-01).
-- **M9 slideshows and memories is merged** (PR #11, 2026-11-04). Next by the plan: **M10 People** from `main` (spec in [prompt.md](../prompt.md); an ADR on the face model comes first).
-- **Visual refresh**: built on branch `visual-refresh` on 2026-11-04, pushed on 2026-11-05; first impression good on the phone, citron accent approved, map ok, thumbnails missing in runs fixed and confirmed; the 22 checks of the list were not reported one by one. The product owner opens the pull request. First ask whether it was merged; if merged, start **M10 People** from `main` ([visual-refresh.md](visual-refresh.md), checks in [testing.md](testing.md#visual-refresh--to-verify-on-a-device)). Open point: the product owner picks 2 or 3 CC0 tracks for the bundled music ([slideshow.md](features/slideshow.md#music)).
-- **Next milestones**: M10 People, M11 monetization, M12 polish ([progress.md](progress.md)).
+- **M9 slideshows and memories is merged** (PR #11, 2026-11-04). 
+- **Visual refresh is merged** (PR #13); the 22 checks of [testing.md](testing.md#visual-refresh--to-verify-on-a-device) were not reported one by one.
+- **M10 People is postponed** (product owner, 2026-11-05): licensing risk on every face model found, see [ADR 0029](decisions/0029-face-model.md). **M11 monetization** is built on branch `m11-monetization`, committed locally, items 1 to 9 OK on the phone, purchase not tried: [monetization.md](monetization.md), checks in [testing.md](testing.md#m11--monetization-to-verify-on-a-device).
+- **Publishing is blocked**: personal Play account, closed test of 12 testers for 14 days needed, and the product owner cannot gather 12; way forward not chosen yet.
+- **Next milestones**: M11 monetization, then M12 polish and M10 People, order to confirm ([progress.md](progress.md)).
 - **Phone over USB**: the laptop's webcam is a Xiaomi USB device too; run `p.sh` only once the phone shows in `lsusb` (Samsung, MTP mode), or it may pick the webcam.
 - **Key design points to keep**: one paint function (`paintEdit`, `paintPage`) for preview and saving; the native side only writes JPEG + EXIF (`PhotoSaver.kt`); every delete through the app trash; pure Dart in `lib/analysis/` and `lib/domain/`; on the phone (Impeller), avoid blend-mode masks in layers, use clips (blur bug of 2026-10-29).
 - **Checking a look without the phone**: a temporary widget test can load the real fonts with `FontLoader` and write PNG files with `matchesGoldenFile` and `--update-goldens`; delete it afterwards. Without the fonts, text renders as blocks, which also shows a style that forgot its font family.
 - **Commands that save tokens**: run tests to a file and read only the summary (`flutter test --timeout 60s > <scratchpad>/t.log 2>&1; tail -1 …`; piping into `grep` hides progress until the end); widget tests that decode images need `tester.runAsync` (see `waitUntil` in [scan_test.dart](../test/features/scan/scan_test.dart)); never `pkill -f` a pattern that appears in your own command line; `gh` is installed but not logged in: give the `pull/new/<branch>` link.
+
+## To do next (written 2026-11-05, resume here)
+
+State: branch `m11-monetization`, pushed on 2026-11-05, pull request not opened. 480 tests pass, analyzer clean. The profile APK in `build/` matches the code but is **not installed**.
+
+**First, on the phone**
+
+1. The product owner plugs the phone in and types `sudo sh /home/claude/p.sh`. If `adb` still says no permissions, run `adb kill-server` and retry; accept the USB debugging prompt with the phone unlocked.
+2. `adb install -r build/app/outputs/flutter-apk/app-profile.apk` (rebuild it if `build/` was cleaned).
+3. The product owner checks the banner strip: 320 × 50 dp, the smallest standard AdMob size, with *Remove ads* at the end of the Albums list. Do not scale the ad down. If it is still too big, the only option left is to remove the banner, which is the product owner's choice.
+
+**Decisions waiting for the product owner**
+
+4. **How to publish**, the main blocker. Personal Play account, so 12 testers for 14 days are required, and the product owner cannot gather 12. Options: developer exchange communities (recommended), organization account (legal entity and D-U-N-S number), Samsung Galaxy Store as a fallback (the purchase would have to be rebuilt without Google Play billing). Paid testers are advised against; fake accounts are out.
+5. **Start M12?** Asked, not answered. Needed by every option above.
+6. **Ad revenue**: the product owner should find out how to declare it, and whether a micro-entreprise fits.
+
+**M12, for the assistant, once approved**
+
+7. Upload key and release signing: release builds still use the debug key, which Google refuses. Passwords and the key stay out of the repository; the product owner keeps a safe copy.
+8. *About* screen, with the app's promise, credits and licenses, and the link to <https://sites.google.com/view/clean-gallery-privacy> in About and Settings.
+9. `docs/release.md`: every Play Console form with the answers to prepare, including the *Data safety* answers for ads, advertising ID, map and Android backup.
+10. Clean up: `pubspec.yaml` still says "A new Flutter project." and version `0.1.0+1`; agree on the first version. Measure the release APK with the SDKs (26.6 MB before them). Accessibility and performance pass of the brief.
+11. Push later commits of `m11-monetization` when asked; the product owner opens the pull request after trying the banner.
+
+**Outside setup, by the product owner**
+
+12. Play Console: finish identity checks, create the app with `com.bichoumac.clean_gallery` (final), payments profile, product `remove_ads` at €4.99, license testers, internal test.
+13. AdMob: the app, **three** ad units (banner, native, interstitial, without video if offered), the GDPR message. Then give the IDs to the assistant, which never commits them.
+14. Store listing and forms: description, screenshots, content rating, contains ads, advertising ID, photo and video permissions declaration.
+
+**Then, on the phone**
+
+15. Items 10 to 15 of [testing.md](testing.md#m11--monetization-to-verify-on-a-device): the purchase, which has never run for real. Items 1 to 9 were reported OK as a whole, before the last banner change.
+16. To review when seen with real ads: the 5-minute limit on the slideshow ad (the assistant's choice), and the native card's system font.
+
+**Privacy policy**
+
+17. Published and public, with the publisher's name and contact, checked on 2026-11-05. Small leftover: the page title is still "Accueil". Update its date and text with any change to data, ads, backup or People.
+
+**Still open from before**
+
+18. 2 or 3 CC0 tracks for the bundled music, picked by the product owner.
+19. The 22 checks of the visual refresh, never reported one by one.
+20. M10 People, postponed: first look for a commercially licensed on-device model ([ADR 0029](decisions/0029-face-model.md)).
 
 ## Working with the product owner
 

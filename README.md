@@ -2,7 +2,7 @@
 
 A photo and video gallery for Android, built with Flutter, with cleanup tools: a virtual folder of likely duplicates, a swipe-to-sort mode and a trash with a configurable retention period. **Your photos never leave your device.**
 
-Last updated: 2026-11-04 — Visual refresh
+Last updated: 2026-11-05 — Milestone M11
 
 The app is free with two small, unobtrusive ad placements, and a single "Remove ads" in-app purchase. Every feature is available to everyone.
 
@@ -27,7 +27,7 @@ Milestones **M0** to **M9** are merged (the map came with M6). People, with on-d
 | Slideshows and memories | Slideshows from an album, a selection or a period, with music; saved slideshows; automatic memories ("1 year ago"); rituals with a notification, no background work | M9 |
 | Visual refresh | Warm Éclat Soleil identity, logo and app icon, mosaics, motion | Built, on branch `visual-refresh` |
 | People | On-device face recognition, merge two persons | Planned |
-| Monetization | Banner (Albums), native card (Stats), consent, "Remove ads" purchase | Planned |
+| Monetization | Banner (Albums), native card (Stats), consent, "Remove ads" purchase | Built, purchase to verify |
 
 ## Requirements
 

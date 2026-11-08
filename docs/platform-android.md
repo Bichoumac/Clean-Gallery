@@ -2,7 +2,7 @@
 
 Android-specific configuration: SDK levels, permissions and the native Kotlin MethodChannel. Everything here is reached from Dart through interfaces in `lib/platform/`, so the rest of the app stays platform-agnostic.
 
-Last updated: 2026-11-03 — Milestone M9
+Last updated: 2026-11-05 — Milestone M11
 
 ## SDK levels
 
@@ -133,6 +133,10 @@ Measured on the first device test as slow, especially after scrolling far. For e
 | `androidx.exifinterface:exifinterface` | 1.4.2 | Clearing GPS tags of shared copies |
 | `androidx.core:core-ktx` | 1.19.1 | `FileProvider`, `NotificationCompat` |
 
+## Android backup
+
+Android's Auto Backup stays on (`android:allowBackup` is not set), by the product owner's choice on 2026-11-05. If the user has Google backup on, Android may copy the app's internal data to their Google account or a new device, including its settings and database with file names, dates and locations. Photos and videos are not part of it. Albums, saved slideshows and settings can then follow the user to a new phone. The privacy policy says so; any change here must change the policy too.
+
 ## Build configuration
 
 | Value | Source | Default |
@@ -140,5 +144,6 @@ Measured on the first device test as slow, especially after scrolling far. For e
 | AdMob application ID | Gradle property `admobAppId` → manifest placeholder | Google's public test ID |
 | Banner ad unit ID | `--dart-define=ADMOB_BANNER_UNIT_ID` | Test ID in debug; empty in release |
 | Native ad unit ID | `--dart-define=ADMOB_NATIVE_UNIT_ID` | Test ID in debug; empty in release |
+| Interstitial ad unit ID | `--dart-define=ADMOB_INTERSTITIAL_UNIT_ID` | Test ID in debug; empty in release: no ad before a slideshow |
 
-See [app_config.dart](../lib/core/config/app_config.dart). A release build without an ad unit ID keeps ads disabled.
+See [app_config.dart](../lib/core/config/app_config.dart). A release build without an ad unit ID keeps ads disabled. The permissions the ads and billing SDKs add are listed in [monetization.md](monetization.md#permissions-added-by-the-sdks).

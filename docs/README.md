@@ -2,7 +2,7 @@
 
 Every documentation file in the repository, with a one-line description. Start with [progress.md](progress.md) to see where the project stands.
 
-Last updated: 2026-11-04 — Visual refresh
+Last updated: 2026-11-05 — Milestone M11
 
 ## Project
 
@@ -27,7 +27,9 @@ Last updated: 2026-11-04 — Visual refresh
 | [analysis-engine.md](analysis-engine.md) | Analysis algorithms (capture dates, exact duplicates, bursts, similar photos, best pick), thresholds, rationale and performance. |
 | [testing.md](testing.md) | Test strategy, commands and fixtures. |
 
-Planned files: `features/people.md` (M10), `monetization.md` (M11), `release.md` (M12).
+[monetization.md](monetization.md): ads, consent, the *Remove ads* purchase and what to set up outside the code.
+
+Planned files: `features/people.md` (M10), `release.md` (M12).
 
 ## Features
 
@@ -86,3 +88,5 @@ One file per feature is added as each feature is built.
 | [0026](decisions/0026-saved-slideshows-without-video.md) | Slideshows played live, saved as lists |
 | [0027](decisions/0027-notifications-without-background-work.md) | Memory and ritual notifications without background work |
 | [0028](decisions/0028-warm-eclat-identity.md) | Warm Éclat Soleil visual identity |
+| [0029](decisions/0029-face-model.md) | Face detection and recognition models (postponed) |
+| [0030](decisions/0030-ads-and-purchase.md) | Ads and purchase behind two interfaces |

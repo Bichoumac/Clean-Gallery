@@ -2,7 +2,7 @@
 
 Clean Gallery uses a layered architecture organized by feature. Platform-specific code sits behind interfaces, so the UI and the analysis engine never depend on Android directly. This file describes the layers, where code lives, how data flows and which dependencies are allowed.
 
-Last updated: 2026-10-27 — Milestone M4
+Last updated: 2026-11-05 — Milestone M11
 
 ## Layers
 
@@ -51,6 +51,7 @@ The brief lists `core/`, `analysis/`, `platform/` and `features/` under `lib/`. 
 | [lib/app.dart](../lib/app.dart) | Root widget: theme, localization, router. |
 | [lib/core/providers.dart](../lib/core/providers.dart) | App-wide providers: database, settings, platform services. |
 | [lib/core/config/app_config.dart](../lib/core/config/app_config.dart) | Build-time configuration (ad unit IDs). |
+| [lib/features/monetization/](../lib/features/monetization/) | Launch order of store, consent and ads; the two ad slots; the offer ([monetization.md](monetization.md)). |
 | [lib/core/database/](../lib/core/database/) | Tables, database class, repositories (settings, trash, media index). See [database.md](database.md). |
 | [lib/core/router/](../lib/core/router/) | Routes (`AppRoutes`, `AlbumRoutes`, `ViewerArgs`), redirect rules, five-tab shell, `CompactNavBar`, `TabPage`. |
 | [lib/core/media/](../lib/core/media/) | Media layer shared by library, viewer and trash: `MediaIndex` (keeps the `assets` table in sync with the device, [ADR 0015](decisions/0015-persistent-media-index.md)), `mediaListProvider` and related providers reading it, `MediaThumbnail`, formatting, `MediaActions` (trash, restore, favorite, delete for good, share), `SelectionBar` and `SelectionMode`. |

@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 /// flutter build appbundle --release \
 ///   --dart-define=ADMOB_BANNER_UNIT_ID=ca-app-pub-xxx/yyy \
 ///   --dart-define=ADMOB_NATIVE_UNIT_ID=ca-app-pub-xxx/zzz \
+///   --dart-define=ADMOB_INTERSTITIAL_UNIT_ID=ca-app-pub-xxx/vvv \
 ///   -PadmobAppId=ca-app-pub-xxx~www
 /// ```
 ///
@@ -21,6 +22,14 @@ abstract final class AppConfig {
 
   /// Google's public test native ad unit for Android.
   static const _testNativeAdUnitId = 'ca-app-pub-3940256099942544/2247696110';
+
+  /// Google's public test interstitial ad unit for Android.
+  static const _testInterstitialAdUnitId =
+      'ca-app-pub-3940256099942544/1033173712';
+
+  static const _releaseInterstitialAdUnitId = String.fromEnvironment(
+    'ADMOB_INTERSTITIAL_UNIT_ID',
+  );
 
   static const _releaseBannerAdUnitId = String.fromEnvironment(
     'ADMOB_BANNER_UNIT_ID',
@@ -36,6 +45,11 @@ abstract final class AppConfig {
   /// Banner ad unit ID for the current build mode.
   static String get bannerAdUnitId =>
       isReleaseBuild ? _releaseBannerAdUnitId : _testBannerAdUnitId;
+
+  /// Interstitial ad unit ID for the current build mode. Empty: no ad before
+  /// a manual slideshow.
+  static String get interstitialAdUnitId =>
+      isReleaseBuild ? _releaseInterstitialAdUnitId : _testInterstitialAdUnitId;
 
   /// Native ad unit ID for the current build mode.
   static String get nativeAdUnitId =>
