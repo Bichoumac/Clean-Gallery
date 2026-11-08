@@ -26,6 +26,7 @@ M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)).
 - **Albums → Slideshows** is now a page opened by a tile of the mosaic, no longer a section of the tab.
 - Empty trash: *Nothing to throw away*, with the retention set in Settings.
 - Feature documents say "accent" instead of naming a color.
+- CI no longer uploads the debug APK and release bundle as artifacts: they filled the GitHub artifact storage quota. Both are still built.
 
 ### Fixed
 
