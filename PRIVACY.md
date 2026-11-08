@@ -8,7 +8,7 @@ Last updated: 2026-11-08 — Open source
 
 Dernière mise à jour : 8 novembre 2026
 
-Clean Gallery est une galerie de photos et de vidéos pour Android, avec des outils de nettoyage. C'est un logiciel libre, publié sous licence GNU GPL v3 : son code source est public et chacun peut vérifier ce qu'il fait. Elle est éditée par Thierry CHEAR. Contact : bichoumac.dev@gmail.com.
+Clean Gallery est une galerie de photos et de vidéos pour Android, avec des outils de nettoyage. C'est un logiciel libre, publié sous licence GNU GPL v3 : son code source est public et chacun peut vérifier ce qu'il fait. Elle est éditée par Thierry CHEAR. Contact : <bichoumac.dev@gmail.com>.
 
 ### En bref
 
@@ -46,7 +46,7 @@ Les données enregistrées sur votre téléphone y restent jusqu'à ce que vous 
 
 ### Vos droits
 
-Selon le RGPD, vous pouvez demander l'accès à vos données, leur rectification ou leur effacement, et vous opposer à certains traitements. L'éditeur ne collecte et ne détient aucune donnée vous concernant : tout reste sur votre téléphone, où vous pouvez l'effacer à tout moment. Le seul échange avec un tiers, la demande des images de la carte, repose sur l'intérêt légitime de faire fonctionner la carte ; pour les données reçues par OpenStreetMap, adressez-vous à lui. Pour toute question, écrivez à bichoumac.dev@gmail.com. Vous pouvez aussi saisir la CNIL ([cnil.fr](https://www.cnil.fr/)).
+Selon le RGPD, vous pouvez demander l'accès à vos données, leur rectification ou leur effacement, et vous opposer à certains traitements. L'éditeur ne collecte et ne détient aucune donnée vous concernant : tout reste sur votre téléphone, où vous pouvez l'effacer à tout moment. Le seul échange avec un tiers, la demande des images de la carte, repose sur l'intérêt légitime de faire fonctionner la carte ; pour les données reçues par OpenStreetMap, adressez-vous à lui. Pour toute question, écrivez à <bichoumac.dev@gmail.com>. Vous pouvez aussi saisir la CNIL ([cnil.fr](https://www.cnil.fr/)).
 
 ### Modifications
 
@@ -56,7 +56,7 @@ Cette page peut évoluer, notamment si l'application change. La date en haut de 
 
 Last updated: November 8, 2026
 
-Clean Gallery is a photo and video gallery for Android, with cleanup tools. It is free software, released under the GNU GPL v3: its source code is public, so anyone can check what it does. It is published by Thierry CHEAR. Contact: bichoumac.dev@gmail.com.
+Clean Gallery is a photo and video gallery for Android, with cleanup tools. It is free software, released under the GNU GPL v3: its source code is public, so anyone can check what it does. It is published by Thierry CHEAR. Contact: <bichoumac.dev@gmail.com>.
 
 ### In short
 
@@ -94,7 +94,7 @@ Data stored on your phone stays there until you erase it. Clearing the app's dat
 
 ### Your rights
 
-Under the GDPR, you can ask to access, correct or erase your data, and object to some processing. The publisher collects and holds no data about you: everything stays on your phone, where you can erase it at any time. The only exchange with a third party, requesting map images, relies on the legitimate interest of making the map work; for data received by OpenStreetMap, contact it. For any question, write to bichoumac.dev@gmail.com. You can also contact your data protection authority, in France the CNIL ([cnil.fr](https://www.cnil.fr/)).
+Under the GDPR, you can ask to access, correct or erase your data, and object to some processing. The publisher collects and holds no data about you: everything stays on your phone, where you can erase it at any time. The only exchange with a third party, requesting map images, relies on the legitimate interest of making the map work; for data received by OpenStreetMap, contact it. For any question, write to <bichoumac.dev@gmail.com>. You can also contact your data protection authority, in France the CNIL ([cnil.fr](https://www.cnil.fr/)).
 
 ### Changes
 

@@ -12,13 +12,6 @@ M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)). The app
 
 - `LICENSE`: the app is free software under the GNU GPL v3.
 - [PRIVACY.md](PRIVACY.md): the privacy policy in French and English, without ads or purchase.
-
-### Removed
-
-- **Ads and the *Remove ads* purchase**, built in M11 and never released: the Albums banner, the Stats card, the ad before a manual slideshow, Google's consent form, the purchase, its offer and the *Ads* section of Settings. The `google_mobile_ads` and `in_app_purchase` packages and the AdMob application ID are gone; a test keeps any ads, purchase or tracking package out.
-
-### Added
-
 - **Video gestures** ([viewer.md](docs/features/viewer.md)): slide on the left for brightness, on the right for volume, in the top band for speed (0.25× to 2×); double tap on the right or left to jump 10 s forward or back. `PlatformBridge` gains window brightness and media volume.
 - **Page transitions** ([docs/design.md](docs/design.md#motion), [ADR 0031](docs/decisions/0031-page-transitions.md)): tabs slide like a carousel; pages slide in over the previous one, which recedes and darkens; a page opened from a tile grows out of it and shrinks back into it; Android's back gesture moves the page with the finger. All instant under reduced motion.
 - **Éclat Soleil identity** ([docs/design.md](docs/design.md), [ADR 0028](docs/decisions/0028-warm-eclat-identity.md)): golden citron accent `#E8E24C` on warm surfaces, neutral photo grids, Bricolage Grotesque titles over Manrope (bundled, nothing downloaded).
@@ -38,6 +31,10 @@ M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)). The app
 - Feature documents say "accent" instead of naming a color.
 - Grid to viewer: the cropped thumbnail now flies to the photo's own frame in the middle of the screen, instead of a full-screen box, so the picture no longer jumps when it opens.
 - **Theme change**: the new theme is revealed by a circle growing from the finger, instead of a blend that stuttered.
+
+### Removed
+
+- **Ads and the *Remove ads* purchase**, built in M11 and never released: the Albums banner, the Stats card, the ad before a manual slideshow, Google's consent form, the purchase, its offer and the *Ads* section of Settings. The `google_mobile_ads` and `in_app_purchase` packages and the AdMob application ID are gone; a test keeps any ads, purchase or tracking package out.
 
 ### Fixed
 
