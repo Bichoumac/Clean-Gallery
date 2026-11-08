@@ -1,6 +1,7 @@
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/features/viewer/video_gestures.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -47,6 +48,14 @@ _pump(WidgetTester tester, {VoidCallback? onTap}) async {
       child: MaterialApp(
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         supportedLocales: AppLocalizations.supportedLocales,
+        // A phone's slop, smaller than the test default: with the default
+        // one, the page swipe took the speed slide on the device.
+        builder: (context, child) => MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            gestureSettings: const DeviceGestureSettings(touchSlop: 8),
+          ),
+          child: child!,
+        ),
         home: PageView(
           controller: pages,
           children: [
@@ -72,18 +81,24 @@ Future<void> _doubleTapAt(WidgetTester tester, Offset at) async {
 }
 
 void main() {
-  testWidgets('a double tap on the right jumps forward, again adds up', (
-    tester,
-  ) async {
-    final (:player, bridge: _, pages: _) = await _pump(tester);
+  testWidgets('a double tap on the right jumps forward, a third tap adds up, '
+      'the controls stay as they were', (tester) async {
+    var taps = 0;
+    final (:player, bridge: _, pages: _) = await _pump(
+      tester,
+      onTap: () => taps++,
+    );
     await _doubleTapAt(tester, const Offset(700, 300));
     expect(player.value.position, const Duration(seconds: 40));
     expect(find.text('+10 s'), findsOneWidget);
+    expect(taps.isEven, isTrue, reason: 'toggled, then given back');
 
-    await tester.pump(const Duration(milliseconds: 200));
-    await _doubleTapAt(tester, const Offset(700, 300));
+    await tester.pump(const Duration(milliseconds: 150));
+    await tester.tapAt(const Offset(650, 350));
+    await tester.pump();
     expect(player.value.position, const Duration(seconds: 50));
     expect(find.text('+20 s'), findsOneWidget);
+    expect(taps.isEven, isTrue);
     await tester.pumpAndSettle(const Duration(seconds: 1));
   });
 
@@ -98,12 +113,17 @@ void main() {
     await tester.pumpAndSettle(const Duration(seconds: 1));
   });
 
-  testWidgets('a single tap still toggles the controls', (tester) async {
+  testWidgets('a single tap toggles the controls at once', (tester) async {
     var taps = 0;
     await _pump(tester, onTap: () => taps++);
     await tester.tapAt(const Offset(400, 400));
-    await tester.pumpAndSettle(const Duration(milliseconds: 400));
-    expect(taps, 1);
+    expect(taps, 1, reason: 'no wait for a second tap');
+
+    // Taps far enough apart in time each toggle.
+    await tester.pump(const Duration(milliseconds: 400));
+    await tester.tapAt(const Offset(400, 400));
+    expect(taps, 2);
+    await tester.pumpAndSettle(const Duration(seconds: 1));
   });
 
   testWidgets('sliding up on the left brightens; leaving gives it back', (
@@ -134,7 +154,14 @@ void main() {
     tester,
   ) async {
     final (:player, bridge: _, :pages) = await _pump(tester);
-    await tester.dragFrom(const Offset(300, 60), const Offset(100, 0));
+    // Small steps, as a finger moves: the first recognizer past its slop
+    // takes the slide.
+    final finger = await tester.startGesture(const Offset(300, 60));
+    for (var i = 0; i < 25; i++) {
+      await finger.moveBy(const Offset(4, 0));
+      await tester.pump(const Duration(milliseconds: 16));
+    }
+    await finger.up();
     await tester.pumpAndSettle();
     expect(player.speed, 1.5);
     expect(pages.page, 0, reason: 'the band keeps the slide');

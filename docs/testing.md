@@ -140,10 +140,10 @@ Not run yet. Open a video in the viewer.
 
 1. Slide up then down on the left half: a pill shows *Luminosité* and its level; the screen follows. Leave the video: the brightness goes back to the system's.
 2. Slide up then down on the right half: *Volume* follows, the phone's volume changes, no Samsung volume panel.
-3. Double tap on the right: *+10 s*, the video jumps; double tap again quickly: *+20 s*. Same on the left with *−10 s*, never before the start.
+3. Double tap on the right: *+10 s*, the video jumps; tap once more quickly: *+20 s*. Same on the left with *−10 s*, never before the start.
 4. In the top quarter of the video, slide right then left: *Vitesse 1,25×*, *1,5×*… up to *2×* and down to *0,25×*; the video plays at that speed.
 5. Lower on the video, slide left or right: moves to the next or previous item as before.
-6. A single tap still shows and hides the controls (slightly delayed).
+6. A single tap shows and hides the controls at once, without delay.
 7. The progress bar can be dragged without touching the buttons below it.
 
 ### Page transitions — to verify on a device

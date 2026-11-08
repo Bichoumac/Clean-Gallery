@@ -18,9 +18,9 @@ Show one item at a time, full screen, with swiping between the items of the grid
 6. **Video gestures** (product owner, 2026-11-08, [video_gestures.dart](../../lib/features/viewer/video_gestures.dart)), each showing its value in a pill while it lasts:
    - sliding up or down on the left half sets the brightness of the app's window only; it goes back to the system's when the video is left;
    - sliding up or down on the right half sets the device's media volume, without the system's volume panel;
-   - a double tap on the right half jumps 10 s forward, on the left half 10 s back; double taps in a row add up (+20 s, +30 s…);
+   - a double tap on the right half jumps 10 s forward, on the left half 10 s back; each further tap in a row on the same side adds 10 s (+20 s, +30 s…);
    - sliding left or right in the top quarter of the video sets the speed, from 0.25× to 2× in steps of 0.25 every 40 dp. There a horizontal slide does not move to the next item; lower down it does;
-   - a single tap still shows or hides the controls, after the 300 ms that tell it from a double tap.
+   - a single tap shows or hides the controls at once (product owner: no delay). A second tap within 300 ms makes a double tap, which jumps and puts the controls back as they were.
 6. The top bar shows the back button, date and file name, and for photos **Scan a document** ([scan.md](scan.md)); after saving, the viewer shows the page. The **actions** are at the bottom, within reach of the thumb (product owner, 2026-10-28): **share**, **favorite**, **edit** (photos only, the [editor](editor.md); after saving, the viewer shows the new photo), **add to album** ([user-albums.md](user-albums.md)), **details** (the [info panel](#info-panel)), **move to trash** (with *Undo*); after trashing, the next item is shown, and the viewer closes when nothing is left.
 7. Back returns to the grid.
 8. **A photo in a duplicate group** (identical copies, burst or similar photos): the [group strip](#group-strip) at the bottom.

@@ -13,12 +13,13 @@ import 'package:video_player/video_player.dart';
 /// The gestures of the video player, as in common video apps
 /// ([docs/features/viewer.md]):
 ///
-/// - a tap shows or hides the controls;
+/// - a tap shows or hides the controls, at once: double taps are told
+///   apart by hand rather than by waiting for a possible second tap;
 /// - sliding up or down on the left half sets the brightness of the app's
 ///   window (given back to the system when the video is left), on the right
 ///   half the media volume;
 /// - a double tap on the right half jumps 10 s forward, on the left half
-///   10 s back; double taps in a row add up;
+///   10 s back; each further tap in a row adds 10 s more;
 /// - sliding left or right in the top band of the video sets the playback
 ///   speed. There, a horizontal slide no longer moves to the next item;
 ///   anywhere else it does.
@@ -95,9 +96,15 @@ class _VideoGesturesState extends ConsumerState<VideoGestures> {
   int _speedAtStart = 0;
   double _speedDrag = 0;
 
-  Offset _doubleTapAt = Offset.zero;
+  /// Where the last tap was, while the next one may still make a double
+  /// tap: [_tapWindow] runs.
+  Offset _lastTapAt = Offset.zero;
+  Timer? _tapWindow;
 
-  /// Seconds jumped by the double taps in a row.
+  /// Whether the taps in a row already jump (after a double tap).
+  bool _seeking = false;
+
+  /// Seconds jumped by the taps in a row.
   int _seekSeconds = 0;
 
   @override
@@ -109,6 +116,7 @@ class _VideoGesturesState extends ConsumerState<VideoGestures> {
   @override
   void dispose() {
     _hide?.cancel();
+    _tapWindow?.cancel();
     // The brightness was for this video only.
     if (_brightnessChanged) unawaited(_bridge.setScreenBrightness(null));
     super.dispose();
@@ -211,14 +219,38 @@ class _VideoGesturesState extends ConsumerState<VideoGestures> {
 
   void _onSpeedEnd(DragEndDetails details) => _hideSoon();
 
-  // Double tap.
+  // Taps.
 
-  void _onDoubleTap() {
-    final controller = widget.controller;
-    if (controller == null) return;
-    final forward = _doubleTapAt.dx >= _size.width / 2;
+  /// A tap toggles the controls straight away. A second tap close in time
+  /// and place makes a double tap: it jumps, and gives the controls back
+  /// as they were; further taps in a row on the same side jump again.
+  void _onTapUp(TapUpDetails details) {
+    final at = details.localPosition;
+    final forward = at.dx >= _size.width / 2;
+    final follows =
+        widget.controller != null &&
+        (_tapWindow?.isActive ?? false) &&
+        (_lastTapAt.dx >= _size.width / 2) == forward &&
+        (_seeking || (at - _lastTapAt).distance <= kDoubleTapSlop);
+    _lastTapAt = at;
+    _tapWindow?.cancel();
+    _tapWindow = Timer(kDoubleTapTimeout, () => _seeking = false);
+    if (!follows) {
+      _seeking = false;
+      widget.onTap();
+      return;
+    }
+    if (!_seeking) {
+      _seeking = true;
+      // The first tap of the pair was not meant for the controls.
+      widget.onTap();
+    }
+    _seek(forward: forward);
+  }
+
+  void _seek({required bool forward}) {
+    final controller = widget.controller!;
     final kind = forward ? _Feedback.seekForward : _Feedback.seekBackward;
-    // Double taps in a row on the same side add up.
     if (_shown != kind) _seekSeconds = 0;
     _seekSeconds += VideoGestures.seekStep.inSeconds;
     final value = controller.value;
@@ -241,6 +273,8 @@ class _VideoGesturesState extends ConsumerState<VideoGestures> {
   @override
   Widget build(BuildContext context) {
     final ready = widget.controller?.value.isInitialized ?? false;
+    // The device's slop, as the viewer's page swipe and vertical pull use.
+    final settings = MediaQuery.maybeGestureSettingsOf(context);
     return LayoutBuilder(
       builder: (context, constraints) {
         _size = constraints.biggest;
@@ -250,26 +284,18 @@ class _VideoGesturesState extends ConsumerState<VideoGestures> {
             TapGestureRecognizer:
                 GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
                   TapGestureRecognizer.new,
-                  (recognizer) => recognizer.onTap = widget.onTap,
+                  (recognizer) => recognizer
+                    ..gestureSettings = settings
+                    ..onTapUp = _onTapUp,
                 ),
             if (ready) ...{
-              DoubleTapGestureRecognizer:
-                  GestureRecognizerFactoryWithHandlers<
-                    DoubleTapGestureRecognizer
-                  >(
-                    DoubleTapGestureRecognizer.new,
-                    (recognizer) => recognizer
-                      ..onDoubleTapDown = (details) {
-                        _doubleTapAt = details.localPosition;
-                      }
-                      ..onDoubleTap = _onDoubleTap,
-                  ),
               VerticalDragGestureRecognizer:
                   GestureRecognizerFactoryWithHandlers<
                     VerticalDragGestureRecognizer
                   >(
                     VerticalDragGestureRecognizer.new,
                     (recognizer) => recognizer
+                      ..gestureSettings = settings
                       ..onStart = _onLevelStart
                       ..onUpdate = _onLevelUpdate
                       ..onEnd = _onLevelEnd
@@ -278,7 +304,14 @@ class _VideoGesturesState extends ConsumerState<VideoGestures> {
               _BandDragRecognizer:
                   GestureRecognizerFactoryWithHandlers<_BandDragRecognizer>(
                     () => _BandDragRecognizer(inBand: _inSpeedBand),
+                    // Half the device's slop: the page swipe uses the full
+                    // one, so the band always claims the slide first. (With
+                    // the default slop, larger than the device's, the page
+                    // swipe won on the phone and the speed never changed.)
                     (recognizer) => recognizer
+                      ..gestureSettings = DeviceGestureSettings(
+                        touchSlop: (settings?.touchSlop ?? kTouchSlop) / 2,
+                      )
                       ..onStart = _onSpeedStart
                       ..onUpdate = _onSpeedUpdate
                       ..onEnd = _onSpeedEnd
