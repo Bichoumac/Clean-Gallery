@@ -151,6 +151,27 @@ class FakePlatformBridge implements PlatformBridge {
 
   @override
   Future<void> setKeepScreenOn({required bool on}) async => keepScreenOn = on;
+
+  /// The window's own brightness, or `null` when it follows the system.
+  double? brightness;
+
+  /// Brightness reported while the window follows the system.
+  double systemBrightness = 0.5;
+
+  /// Media volume, from 0 to 1.
+  double volume = 0.5;
+
+  @override
+  Future<double> screenBrightness() async => brightness ?? systemBrightness;
+
+  @override
+  Future<void> setScreenBrightness(double? value) async => brightness = value;
+
+  @override
+  Future<double> mediaVolume() async => volume;
+
+  @override
+  Future<void> setMediaVolume(double value) async => volume = value;
 }
 
 /// [MusicPlayer] that records what it is asked to play.

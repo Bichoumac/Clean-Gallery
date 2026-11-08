@@ -59,4 +59,19 @@ abstract interface class PlatformBridge {
 
   /// Keeps the screen on while [on], e.g. during a slideshow.
   Future<void> setKeepScreenOn({required bool on});
+
+  /// Brightness of the app's window, from 0 to 1: the app's own if set with
+  /// [setScreenBrightness], otherwise about the system's.
+  Future<double> screenBrightness();
+
+  /// Sets the brightness of the app's window only, from 0 to 1, or gives it
+  /// back to the system with `null`. The system setting is not changed.
+  Future<void> setScreenBrightness(double? value);
+
+  /// Media volume of the device, from 0 to 1.
+  Future<double> mediaVolume();
+
+  /// Sets the device's media volume, from 0 to 1, without the system's
+  /// volume panel.
+  Future<void> setMediaVolume(double value);
 }

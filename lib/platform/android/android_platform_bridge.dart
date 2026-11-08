@@ -243,6 +243,22 @@ final class AndroidPlatformBridge implements PlatformBridge {
   @override
   Future<void> setKeepScreenOn({required bool on}) =>
       _channel.invokeMethod<void>('setKeepScreenOn', {'on': on});
+
+  @override
+  Future<double> screenBrightness() async =>
+      await _channel.invokeMethod<double>('screenBrightness') ?? 0.5;
+
+  @override
+  Future<void> setScreenBrightness(double? value) =>
+      _channel.invokeMethod<void>('setScreenBrightness', {'value': value});
+
+  @override
+  Future<double> mediaVolume() async =>
+      await _channel.invokeMethod<double>('mediaVolume') ?? 0.5;
+
+  @override
+  Future<void> setMediaVolume(double value) =>
+      _channel.invokeMethod<void>('setMediaVolume', {'value': value});
 }
 
 /// Uncompressed RGBA 8888 image returned by the native side.

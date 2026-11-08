@@ -151,6 +151,11 @@
   "videoUnmute": "Activer le son",
   "videoRotate": "Pivoter",
   "videoReplay": "Revoir",
+  "videoBrightnessLevel": "Luminosité {percent} %",
+  "videoVolumeLevel": "Volume {percent} %",
+  "videoSpeedLevel": "Vitesse {speed}×",
+  "videoSeekForward": "+{seconds} s",
+  "videoSeekBackward": "−{seconds} s",
 
   "settingsDisplay": "Affichage",
   "settingsTheme": "Thème",
