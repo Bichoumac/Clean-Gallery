@@ -138,7 +138,7 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 
 ### M12 — release preparation, to verify on a device
 
-Built on branch `m12-release` on 2026-11-08. Not yet tried on the phone.
+Built on branch `m12-release` on 2026-11-08. **Confirmed on the phone by the product owner on 2026-11-09** as a whole ("ça marche bien"), not item by item.
 
 | # | Do | Expected |
 | --- | --- | --- |

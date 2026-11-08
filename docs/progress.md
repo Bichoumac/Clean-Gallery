@@ -53,11 +53,11 @@ Started on 2026-11-08 on branch `m12-release`.
 
 ### Waiting for the product owner
 
-- Create the upload key ([release.md](release.md#upload-key)).
+- Upload key: created by the product owner on 2026-11-09; `android/key.properties` to write ([release.md](release.md#upload-key)).
 - Choose the channels: GitHub releases, IzzyOnDroid, F-Droid, Play later.
 - Make the repository public (the privacy link and F-Droid need it).
 - Screenshots for the store listing, taken on their phone with photos they are fine to show.
-- Try the [M12 checks](testing.md#m12--release-preparation-to-verify-on-a-device) on the phone.
+- [M12 checks](testing.md#m12--release-preparation-to-verify-on-a-device): confirmed on the phone on 2026-11-09, as a whole.
 
 ## Open source without ads
 
