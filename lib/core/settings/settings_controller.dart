@@ -22,18 +22,6 @@ class AppSettingsController extends _$AppSettingsController {
 
   SettingsRepository get _repository => ref.read(settingsRepositoryProvider);
 
-  /// Caches whether *Remove ads* was bought.
-  Future<void> setAdFree({required bool value}) async {
-    state = state.copyWith(adFree: value);
-    await _repository.writeBool(SettingKeys.adFree, value: value);
-  }
-
-  /// Records that the offer after a large cleanup was shown.
-  Future<void> setRemoveAdsOfferShown() async {
-    state = state.copyWith(removeAdsOfferShown: true);
-    await _repository.writeBool(SettingKeys.removeAdsOfferShown, value: true);
-  }
-
   /// Sets the trash retention, clamped to 1–90 days.
   Future<void> setTrashRetentionDays(int days) async {
     final value = days.clamp(

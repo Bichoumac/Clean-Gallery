@@ -11,7 +11,6 @@ import 'package:clean_gallery/core/settings/app_settings.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
 import 'package:clean_gallery/core/theme/theme_reveal.dart';
 import 'package:clean_gallery/features/memories/memories_settings.dart';
-import 'package:clean_gallery/features/monetization/monetization_controller.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
 import 'package:flutter/material.dart';
@@ -231,57 +230,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           children: const [MemoriesSettings()],
         ),
         const _AnalysisSection(),
-        const _AdsSection(),
         const _PermissionsSection(),
-      ],
-    );
-  }
-}
-
-/// *Remove ads*, *Restore purchase* and *Privacy & ad choices*. Hidden in a
-/// build without ads, where there is nothing to remove.
-class _AdsSection extends ConsumerWidget {
-  const _AdsSection();
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    if (!ref.watch(adsServiceProvider).configured) {
-      return const SizedBox.shrink();
-    }
-    final l10n = AppLocalizations.of(context);
-    final state = ref.watch(monetizationProvider);
-    final controller = ref.read(monetizationProvider.notifier);
-    final price = state.price;
-    return _Section(
-      title: l10n.settingsAds,
-      children: [
-        if (state.adFree)
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(l10n.settingsAdFree),
-          )
-        else
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(
-              price == null
-                  ? l10n.removeAdsLink
-                  : l10n.settingsRemoveAdsPrice(price),
-            ),
-            subtitle: Text(l10n.settingsRemoveAdsHelp),
-            onTap: () => unawaited(controller.buy()),
-          ),
-        ListTile(
-          contentPadding: EdgeInsets.zero,
-          title: Text(l10n.settingsRestorePurchase),
-          onTap: () => unawaited(controller.restore()),
-        ),
-        if (state.privacyOptionsRequired && !state.adFree)
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            title: Text(l10n.settingsPrivacyChoices),
-            onTap: () => unawaited(controller.showPrivacyOptions()),
-          ),
       ],
     );
   }

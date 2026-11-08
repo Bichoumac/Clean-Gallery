@@ -208,7 +208,7 @@ class SwipeHistory extends Table {
   TextColumn get action => textEnum<SwipeAction>()();
 }
 
-/// Application key/value settings, including cached purchase state.
+/// Application key/value settings.
 @DataClassName('SettingRow')
 class Settings extends Table {
   /// Setting name, e.g. `trash_retention_days`.

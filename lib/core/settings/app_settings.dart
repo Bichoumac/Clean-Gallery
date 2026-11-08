@@ -49,13 +49,6 @@ enum MemoriesFrequency {
 abstract class AppSettings with _$AppSettings {
   /// Creates settings; defaults are the values of a fresh install.
   const factory AppSettings({
-    /// Whether *Remove ads* was bought, as last confirmed by the store. Read
-    /// before the first frame, so no ad flashes.
-    @Default(false) bool adFree,
-
-    /// Whether the offer after a large cleanup was shown; it comes only once.
-    @Default(false) bool removeAdsOfferShown,
-
     /// Days an item stays in the app trash before it can be purged (1–90).
     @Default(30) int trashRetentionDays,
 

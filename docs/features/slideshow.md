@@ -50,10 +50,6 @@ The music loops, pauses with the slideshow and fades out at the end. A track tha
 
 *Shuffled* shuffles that list once. A saved slideshow plays its saved list as it is, skipping items trashed or no longer on the device.
 
-## Ad before a manual slideshow
-
-Starting from the options sheet may show one ad first, at most every 5 minutes, never for an ad-free user ([monetization.md](../monetization.md#ad-before-a-manual-slideshow)). Memories, rituals and saved slideshows play without an ad.
-
 ## Look
 
 Controls with a thin position bar, a large title and round glass buttons ([mockup](../design-assets/mockups/screens/06-memory-player.png)). The end screen shows the first photo fading into the surface, then *Replay*, *Save* and *Close* ([mockup](../design-assets/mockups/screens/18-slideshow-end.png)). A memory shows its title on screen.

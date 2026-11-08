@@ -37,76 +37,20 @@ void main() {
     expect(violations('lib/features', forbidden), isEmpty);
   });
 
-  group('ads (rules 3 and 4 of AGENTS.md)', () {
-    List<String> using(RegExp pattern) => [
-      for (final file in dartFiles('lib'))
-        if (!file.path.endsWith('.g.dart') &&
-            pattern.hasMatch(file.readAsStringSync()))
-          file.path.replaceAll(r'\', '/'),
-    ];
-
-    test('the SDKs are used only behind the platform interfaces', () {
-      expect(using(RegExp('package:google_mobile_ads/')), [
-        'lib/platform/android/android_ads_service.dart',
-      ]);
-      expect(using(RegExp('package:in_app_purchase')), [
-        'lib/platform/android/android_purchase_service.dart',
-      ]);
-    });
-
-    test('only a banner in Albums and a native card in Stats', () {
-      expect(using(RegExp('monetization/ad_banner_slot.dart')), [
-        'lib/features/library/albums_screen.dart',
-      ]);
-      expect(using(RegExp('monetization/native_ad_card.dart')), [
-        'lib/features/stats/stats_screen.dart',
-      ]);
-    });
-
-    test('no rewarded or app-open ad', () {
+  test('no ads, purchase or tracking SDK: the app is open source and '
+      'free (ADR 0032)', () {
+    final banned = RegExp(
+      'google_mobile_ads|in_app_purchase|firebase|play_services_ads|'
+      'facebook_audience|applovin|unity_ads',
+    );
+    expect(banned.hasMatch(File('pubspec.yaml').readAsStringSync()), isFalse);
+    for (final file in dartFiles('lib')) {
       expect(
-        using(RegExp('RewardedAd|RewardedInterstitial|AppOpenAd')),
-        isEmpty,
-      );
-    });
-
-    test('a full-screen ad only before a manual slideshow', () {
-      expect(using(RegExp(r'\bInterstitialAd\b')), [
-        'lib/platform/android/android_ads_service.dart',
-      ]);
-      expect(using(RegExp(r'\.showInterstitial\(')), [
-        'lib/features/monetization/monetization_controller.dart',
-      ]);
-      expect(using(RegExp(r'\.showSlideshowAd\(')), [
-        'lib/features/slideshow/slideshow_actions.dart',
-      ]);
-      final source = File('lib/features/slideshow/slideshow_actions.dart')
-          .readAsStringSync();
-      // Only the two manual launches, not memories, rituals or saved ones.
-      expect(RegExp(r'\.showSlideshowAd\(').allMatches(source), hasLength(2));
-    });
-
-    test('the ads Topics permission stays removed', () {
-      final manifest = File('android/app/src/main/AndroidManifest.xml')
-          .readAsStringSync();
-      expect(
-        RegExp(
-          r'android\.permission\.ACCESS_ADSERVICES_TOPICS"\s+tools:node="remove"',
-        ).hasMatch(manifest),
-        isTrue,
-      );
-    });
-
-    test('requests carry nothing about the user or their media', () {
-      final source = File('lib/platform/android/android_ads_service.dart')
-          .readAsStringSync();
-      expect(source, contains('AdRequest()'));
-      expect(
-        RegExp('keywords|contentUrl|neighboringContentUrls|extras|MediaItem')
-            .hasMatch(source),
+        banned.hasMatch(file.readAsStringSync()),
         isFalse,
+        reason: file.path,
       );
-    });
+    }
   });
 
   test('MANAGE_EXTERNAL_STORAGE is never declared', () {
