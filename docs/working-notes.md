@@ -28,7 +28,7 @@ State (2026-11-08): branch `page-transitions` (transitions, viewer and video ges
 
 **Decisions waiting for the product owner**
 
-3. **License** for the open-source release (ADR 0032), then make the repository public. Check first that nothing private is in its history.
+3. **License chosen: GNU GPL v3** (2026-11-08), in `LICENSE`. Make the repository public when the product owner wants; the history was checked on 2026-11-08: only Google's public test ad IDs, no key or password.
 4. **How to publish**. Play needs 12 testers for 14 days on a personal account, which the product owner cannot gather. Without ads or billing, GitHub releases (signed APK) and F-Droid need no tester; Play stays possible later through developer exchange communities or an organization account. Paid testers are advised against; fake accounts are out.
 5. **Start M12?** Yes, after the page transitions (product owner, 2026-11-08). Needed by every option above.
 
@@ -52,7 +52,7 @@ State (2026-11-08): branch `page-transitions` (transitions, viewer and video ges
 
 **Privacy policy**
 
-17. Published and public, with the publisher's name and contact, checked on 2026-11-05. Small leftover: the page title is still "Accueil". **Its ads section must go** (ads removed on 2026-11-08). Update its date and text with any change to data, backup or People.
+17. Published and public, with the publisher's name and contact, checked on 2026-11-05. Small leftover: the page title is still "Accueil". **To replace by [PRIVACY.md](../PRIVACY.md)**, rewritten on 2026-11-08 without ads or purchase; the product owner updates the Google Sites page. Update its date and text with any change to data, backup or People.
 
 **Still open from before**
 

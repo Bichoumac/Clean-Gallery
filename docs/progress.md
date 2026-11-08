@@ -20,7 +20,7 @@ Last updated: 2026-11-08 — Open source
 | M9 | Slideshows, saved slideshows, memories, rituals | Merged into `main` (PR #11, 2026-11-04) |
 | M10 | People (on-device face recognition, merging) | Postponed by the product owner on 2026-11-05, to come after M11; no code, model study in [ADR 0029](decisions/0029-face-model.md) |
 | M11 | Monetization (was M8) | Merged into `main` (PR #14, 2026-11-08), then removed: open source without ads ([ADR 0032](decisions/0032-open-source-without-ads.md)) |
-| — | Open source: ads and purchase removed | Built on branch `remove-ads` on 2026-11-08, on top of `page-transitions`; license to choose |
+| — | Open source: ads and purchase removed, GPL v3, new privacy policy | Built on branch `remove-ads` on 2026-11-08, on top of `page-transitions` |
 | — | Page transitions: tabs, pages, tiles, back gesture, viewer | Built on branch `page-transitions` on 2026-11-08, before M12; not tried on a phone ([checks](testing.md#page-transitions--to-verify-on-a-device)) |
 | M12 | Polish and release preparation (was M9) | Not started |
 | — | Visual refresh: Éclat Soleil identity, logo and icon | Merged into `main` (PR #13), tried on the phone 2026-11-05 |
@@ -43,7 +43,8 @@ The product owner asked on 2026-11-08 to remove the ads and release the app as o
 
 - **Removed**: the banner, the native card, the slideshow ad, consent, the *Remove ads* purchase and its offer, the *Ads* section of Settings, the two platform interfaces, the three packages, the AdMob ID in the manifest, the cached settings and their strings.
 - An architecture test now fails if an ads, purchase or tracking package comes back. 466 tests pass (the ads tests are gone).
-- **Left to the product owner**: the license, then making the repository public; updating the privacy policy's ads section.
+- **License**: GNU GPL v3 (product owner, 2026-11-08). **Privacy policy** rewritten in [PRIVACY.md](../PRIVACY.md).
+- **Left to the product owner**: making the repository public; replacing the published privacy policy with `PRIVACY.md`.
 
 ## M11 — Monetization (removed on 2026-11-08)
 

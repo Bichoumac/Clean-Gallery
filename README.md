@@ -4,7 +4,7 @@ A photo and video gallery for Android, built with Flutter, with cleanup tools: a
 
 Last updated: 2026-11-08 — Open source
 
-The app is free and open source: no ads, no in-app purchase, no tracking.
+The app is free software under the [GNU GPL v3](LICENSE): no ads, no in-app purchase, no tracking. Its [privacy policy](PRIVACY.md) fits on one page.
 
 ## Status
 
@@ -85,3 +85,7 @@ Release signing is not configured yet (planned for M12).
 - [docs/README.md](docs/README.md): index of all documentation.
 - [AGENTS.md](AGENTS.md): guide for AI assistants working on this repository.
 - [CHANGELOG.md](CHANGELOG.md): changes per milestone.
+
+## License
+
+Clean Gallery is free software: you can redistribute it and modify it under the terms of the [GNU General Public License, version 3](LICENSE), as published by the Free Software Foundation. It comes with no warranty. Fonts in `assets/fonts/` keep their own license (SIL Open Font License, next to each font).

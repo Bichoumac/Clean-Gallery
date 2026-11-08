@@ -9,6 +9,8 @@ Last updated: 2026-11-05 — Milestone M11
 | File | Description |
 | --- | --- |
 | [../README.md](../README.md) | Overview, setup, build, run and test commands. |
+| [../PRIVACY.md](../PRIVACY.md) | Privacy policy, French and English; the published page must match it. |
+| [../LICENSE](../LICENSE) | GNU GPL v3. |
 | [../AGENTS.md](../AGENTS.md) | Entry point for AI assistants: commands, architecture map, rules. |
 | [../CHANGELOG.md](../CHANGELOG.md) | Changes per milestone. |
 | [progress.md](progress.md) | Milestone status, known issues, next steps. |

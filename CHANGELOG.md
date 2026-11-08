@@ -8,6 +8,11 @@ Last updated: 2026-11-08 — Open source
 
 M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)). The app becomes open source, without ads ([ADR 0032](docs/decisions/0032-open-source-without-ads.md)).
 
+### Added
+
+- `LICENSE`: the app is free software under the GNU GPL v3.
+- [PRIVACY.md](PRIVACY.md): the privacy policy in French and English, without ads or purchase.
+
 ### Removed
 
 - **Ads and the *Remove ads* purchase**, built in M11 and never released: the Albums banner, the Stats card, the ad before a manual slideshow, Google's consent form, the purchase, its offer and the *Ads* section of Settings. The `google_mobile_ads` and `in_app_purchase` packages and the AdMob application ID are gone; a test keeps any ads, purchase or tracking package out.
