@@ -1,8 +1,8 @@
 # Settings
 
-The Settings tab: display, trash, cleanup, sharing, slideshows and memories, analysis and permissions. The rest of the brief's settings arrive with the features they control.
+The Settings tab: display, trash, cleanup, sharing, slideshows and memories, analysis, permissions, and About. The rest of the brief's settings arrive with the features they control.
 
-Last updated: 2026-11-05 — Milestone M11
+Last updated: 2026-11-08 — Milestone M12
 
 ## Purpose
 
@@ -13,6 +13,7 @@ Let the user choose how the app looks and behaves, and see and change its permis
 1. **Settings tab** (last icon of the bar).
 2. Change a setting: it applies immediately and is saved.
 3. **Permissions**: each row shows the current status; *Change* opens the system prompt or settings; the status refreshes when the user comes back to the app.
+4. **About** (last section): *Privacy policy* opens it in the browser, *About Clean Gallery* opens the About page ([about.md](about.md)).
 
 ## Settings
 

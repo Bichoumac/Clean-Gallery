@@ -81,6 +81,8 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [trash_flow_test.dart](../test/features/trash/trash_flow_test.dart) | Trash from the viewer with undo, Trash page, restore, delete for good, declined prompt, expiry offer, silent purge, Trash album count. |
 | [selection_test.dart](../test/features/library/selection_test.dart) | Long press, tap, drag range, trash with undo, favorite, share, back. |
 | [settings_screen_test.dart](../test/features/settings/settings_screen_test.dart) | Theme, language, default columns, corrected dates switch, sensitivity and advanced mode, permission statuses, sort saved and restored. |
+| [about_screen_test.dart](../test/features/about/about_screen_test.dart) | Privacy policy link in Settings, About page (version, promise, links), licenses page, font licenses registered. |
+| [accessibility_test.dart](../test/accessibility/accessibility_test.dart) | Flutter's accessibility guidelines (48 dp tap targets, labels on everything tappable, text contrast) on the five tabs, Trash, Search, Rituals, About, the photo and video viewer and the onboarding, in light and dark themes. |
 
 App-level widget tests use `pumpTestApp` ([pump_app.dart](../test/helpers/pump_app.dart)): the whole app on a phone-sized screen (1080 × 2400 px at 3×) with all fakes, so tests see what a user would. They are declared with `testApp` instead of `testWidgets`: it unmounts the app at the end, even after a failure, and lets Drift close its stream queries (Drift closes them on a zero-length timer; without this step Flutter reports a pending timer and the run hangs).
 
@@ -133,6 +135,23 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 12 | Kill the app mid-onboarding, relaunch | any | Onboarding restarts from the first page. |
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
+
+### M12 — release preparation, to verify on a device
+
+Built on branch `m12-release` on 2026-11-08. Not yet tried on the phone.
+
+| # | Do | Expected |
+| --- | --- | --- |
+| 1 | Settings, scroll to the end | An *À propos* section with *Politique de confidentialité* and *À propos de Clean Gallery*. |
+| 2 | Tap *Politique de confidentialité* | The browser opens the policy on GitHub (a 404 page while the repository is private). |
+| 3 | Tap *À propos de Clean Gallery* | The rosace, *Clean Gallery*, *Version 1.0.0*, the promise and the GPL line; the page slides in like the others. |
+| 4 | Tap *Code source*, *Signaler un problème*, *Licence*, the OpenStreetMap credit | Each opens the right page in the browser. |
+| 5 | *Bibliothèques open source* | Flutter's licenses page with the app's name, version and rosace; *Manrope* and *Bricolage Grotesque* are in the list. |
+| 6 | Onboarding (clear the app's storage first, or skip) | The first page says *Clean Gallery trie et nettoie vos photos sur votre téléphone…* instead of *fonctionne entièrement hors ligne*. |
+| 7 | With TalkBack on, in the Camera grid: double-tap and hold a thumbnail | The photo is selected and the selection bar appears; TalkBack says *sélectionner* as the long-press action. |
+| 8 | With TalkBack on, open a photo and a video | TalkBack reads *Photo, <date>* or *Vidéo, <durée>, <date>* and offers to show or hide the controls; double-tap toggles them. The video's play and seek controls stay reachable. |
+
+Release signing was checked on the development machine with a throwaway key: the release APK is signed with it, `apksigner` shows its certificate; without a key, Gradle warns and signs with the debug key.
 
 ### Video gestures — to verify on a device
 

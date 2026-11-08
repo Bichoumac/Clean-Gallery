@@ -1,0 +1,35 @@
+<p><b>Your photos never leave your device.</b> Clean Gallery is a photo and video gallery that also helps you sort and clean your library, on your phone, with no account, no ads and no tracking.</p>
+
+<p><b>Browse</b></p>
+<ul>
+<li>Camera and video timelines, sorted by date, size, duration, name or number of duplicates, with a date filter</li>
+<li>Folders, favorites and your own albums (no file is ever moved or copied)</li>
+<li>Full-screen viewer with zoom; video player with gestures for brightness, volume, speed and 10-second jumps</li>
+<li>Map of your located photos and a search that combines name, type, folder, area and dates</li>
+</ul>
+
+<p><b>Clean</b></p>
+<ul>
+<li>Exact duplicates, bursts and similar photos grouped together, with the best shot suggested</li>
+<li>Swipe sorting: left to the trash, right to keep, with undo</li>
+<li>Lists of blurry photos, old screenshots and large videos</li>
+<li>Storage dashboard showing what you can free</li>
+<li>Everything goes to the app's trash first, kept for the number of days you choose</li>
+</ul>
+
+<p><b>Create</b></p>
+<ul>
+<li>Photo editor: crop, straighten, light and color, filters, vignette, pencil, blur, pixelate and text</li>
+<li>Document scanner from an existing photo</li>
+<li>Slideshows with music, saved slideshows, and memories from past years, with notifications planned without any background work</li>
+</ul>
+
+<p><b>Private by design</b></p>
+<ul>
+<li>Photos, videos and their analysis stay on the phone</li>
+<li>Sharing can remove the GPS location from the copies</li>
+<li>Only the map uses the internet, to load OpenStreetMap tiles</li>
+<li>Free software under the GNU GPL v3</li>
+</ul>
+
+<p>Android 11 or later. In English and French.</p>

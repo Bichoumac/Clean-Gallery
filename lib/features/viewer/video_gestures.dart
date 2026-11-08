@@ -31,6 +31,7 @@ class VideoGestures extends ConsumerStatefulWidget {
     required this.controller,
     required this.onTap,
     required this.child,
+    this.label,
     super.key,
   });
 
@@ -59,6 +60,9 @@ class VideoGestures extends ConsumerStatefulWidget {
   /// Vertical distance from 0 to 100 % of brightness or volume, as a
   /// fraction of the video's height.
   static const levelDistance = 0.6;
+
+  /// What a screen reader says about the video.
+  final String? label;
 
   @override
   ConsumerState<VideoGestures> createState() => _VideoGesturesState();
@@ -278,8 +282,10 @@ class _VideoGesturesState extends ConsumerState<VideoGestures> {
     return LayoutBuilder(
       builder: (context, constraints) {
         _size = constraints.biggest;
-        return RawGestureDetector(
+        final gestures = RawGestureDetector(
           behavior: HitTestBehavior.opaque,
+          // The node below gives screen readers the tap.
+          excludeFromSemantics: true,
           gestures: {
             TapGestureRecognizer:
                 GestureRecognizerFactoryWithHandlers<TapGestureRecognizer>(
@@ -332,6 +338,15 @@ class _VideoGesturesState extends ConsumerState<VideoGestures> {
               ),
             ],
           ),
+        );
+        // One node for screen readers: the video, whose tap shows or hides
+        // the controls.
+        return Semantics(
+          container: true,
+          label: widget.label,
+          onTap: widget.onTap,
+          onTapHint: AppLocalizations.of(context).viewerControlsHint,
+          child: gestures,
         );
       },
     );

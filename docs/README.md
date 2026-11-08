@@ -2,7 +2,7 @@
 
 Every documentation file in the repository, with a one-line description. Start with [progress.md](progress.md) to see where the project stands.
 
-Last updated: 2026-11-05 — Milestone M11
+Last updated: 2026-11-08 — Milestone M12
 
 ## Project
 
@@ -28,8 +28,10 @@ Last updated: 2026-11-05 — Milestone M11
 | [platform-android.md](platform-android.md) | Permissions and the native Kotlin channel API. |
 | [analysis-engine.md](analysis-engine.md) | Analysis algorithms (capture dates, exact duplicates, bursts, similar photos, best pick), thresholds, rationale and performance. |
 | [testing.md](testing.md) | Test strategy, commands and fixtures. |
+| [release.md](release.md) | Versions, upload key and signing, release checklist, GitHub releases, F-Droid, Play Console forms. |
+| [../fastlane/metadata/android/](../fastlane/metadata/android/) | Store titles, descriptions and icon in English and French, read by F-Droid. |
 
-Planned files: `features/people.md` (M10), `release.md` (M12).
+Planned file: `features/people.md` (M10, postponed).
 
 ## Features
 
@@ -42,6 +44,7 @@ Planned files: `features/people.md` (M10), `release.md` (M12).
 | [features/sharing.md](features/sharing.md) | Share sheet and location removal. |
 | [features/trash.md](features/trash.md) | App trash, retention and purge. |
 | [features/settings.md](features/settings.md) | Settings tab. |
+| [features/about.md](features/about.md) | About page, privacy policy link, licenses and credits. |
 | [features/duplicates.md](features/duplicates.md) | Duplicates tile and screen: certain and similar groups, Best badge, Not duplicates, cleaning. |
 | [features/stats.md](features/stats.md) | Stats tab: storage dashboard. |
 | [features/cleanup.md](features/cleanup.md) | Cleanup lists: old screenshots, large videos, blurry photos. |
@@ -92,3 +95,4 @@ One file per feature is added as each feature is built.
 | [0030](decisions/0030-ads-and-purchase.md) | Ads and purchase behind two interfaces (superseded by 0032) |
 | [0031](decisions/0031-page-transitions.md) | Page transitions of our own |
 | [0032](decisions/0032-open-source-without-ads.md) | Open source, without ads |
+| [0033](decisions/0033-release-signing.md) | Release signing from a key outside the repository |

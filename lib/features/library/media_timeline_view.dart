@@ -589,6 +589,7 @@ class _TimelineState extends ConsumerState<_Timeline> {
             pixelSize: pixelSize,
             hero: !selecting,
             stackSize: cell.folded ? cell.length : null,
+            onSelect: () => _toggle(cell),
             onTap: selecting
                 ? () => _toggle(cell)
                 : cell.folded
@@ -624,6 +625,8 @@ class _TimelineState extends ConsumerState<_Timeline> {
     }
 
     final grid = GestureDetector(
+      // Screen readers select with each thumbnail's long press instead.
+      excludeFromSemantics: true,
       onLongPressStart: _onLongPressStart,
       onLongPressMoveUpdate: _onLongPressMove,
       onLongPressEnd: _onLongPressEnd,

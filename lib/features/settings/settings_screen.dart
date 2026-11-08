@@ -1,20 +1,24 @@
 import 'dart:async';
 
 import 'package:clean_gallery/analysis/similarity.dart';
+import 'package:clean_gallery/core/app_links.dart';
 import 'package:clean_gallery/core/media/analysis_progress.dart';
 import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/media_index.dart';
 import 'package:clean_gallery/core/media/media_providers.dart';
 import 'package:clean_gallery/core/providers.dart';
+import 'package:clean_gallery/core/router/app_router.dart';
 import 'package:clean_gallery/core/router/home_shell.dart';
 import 'package:clean_gallery/core/settings/app_settings.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
 import 'package:clean_gallery/core/theme/theme_reveal.dart';
+import 'package:clean_gallery/features/about/about_screen.dart';
 import 'package:clean_gallery/features/memories/memories_settings.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 
 part 'settings_screen.g.dart';
@@ -39,8 +43,8 @@ Future<PermissionStatus> permissionStatus(Ref ref) async {
   );
 }
 
-/// Settings tab: display, trash, cleanup, sharing, analysis and
-/// permissions.
+/// Settings tab: display, trash, cleanup, sharing, analysis,
+/// permissions, and the privacy policy and About.
 class SettingsScreen extends ConsumerStatefulWidget {
   /// Creates the Settings tab.
   const SettingsScreen({super.key});
@@ -231,6 +235,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
         ),
         const _AnalysisSection(),
         const _PermissionsSection(),
+        _Section(
+          title: l10n.settingsAbout,
+          children: [
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.shield_outlined),
+              title: Text(l10n.settingsPrivacyPolicy),
+              subtitle: Text(l10n.settingsPrivacyPolicyHelp),
+              trailing: const Icon(Icons.open_in_new_rounded, size: 20),
+              onTap: () =>
+                  unawaited(openAppLink(context, ref, AppLinks.privacyPolicy)),
+            ),
+            ListTile(
+              contentPadding: EdgeInsets.zero,
+              leading: const Icon(Icons.info_outline_rounded),
+              title: Text(l10n.settingsAboutApp),
+              subtitle: Text(l10n.settingsAboutAppHelp),
+              trailing: const Icon(Icons.chevron_right_rounded),
+              onTap: () => unawaited(context.push(AppRoutes.about)),
+            ),
+          ],
+        ),
       ],
     );
   }

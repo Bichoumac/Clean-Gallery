@@ -101,8 +101,8 @@ void main() {
       200,
       scrollable: find.byType(Scrollable).last,
     );
-    // Clear of the floating navigation bar.
-    await tester.drag(find.byType(Scrollable).last, const Offset(0, -300));
+    // At the top of the page, clear of the floating navigation bar.
+    await tester.ensureVisible(find.text('Analyze the library again'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Analyze the library again'));
     await tester.pumpAndSettle();

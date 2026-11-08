@@ -1,0 +1,1 @@
+First public release: a private photo and video gallery with duplicates, swipe sorting, trash, editor, map, search, albums, slideshows and memories. Free software, no ads, no tracking.

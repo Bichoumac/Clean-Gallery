@@ -6,6 +6,7 @@ import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/domain/geo.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/domain/slideshow.dart';
+import 'package:clean_gallery/features/about/about_screen.dart';
 import 'package:clean_gallery/features/cleanup/cleanup_list_screen.dart';
 import 'package:clean_gallery/features/cleanup/cleanup_lists.dart';
 import 'package:clean_gallery/features/duplicates/duplicates_screen.dart';
@@ -98,6 +99,9 @@ abstract final class AppRoutes {
 
   /// The rituals, under Settings.
   static const rituals = '/settings/rituals';
+
+  /// About Clean Gallery, under Settings.
+  static const about = '/settings/about';
 }
 
 /// Album pages under the Albums tab: `/albums/<key>?name=<title>`.
@@ -429,6 +433,10 @@ GoRouter appRouter(Ref ref) {
                   _route(
                     path: 'rituals',
                     builder: (context, state) => const RitualsScreen(),
+                  ),
+                  _route(
+                    path: 'about',
+                    builder: (context, state) => const AboutScreen(),
                   ),
                 ],
               ),

@@ -3,6 +3,7 @@ import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/core/database/settings_repository.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
+import 'package:clean_gallery/core/theme/font_licenses.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,6 +14,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// immediately, without a loading state.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  registerFontLicenses();
   // Room for the thumbnails of several screens of grid (about 260 KB each
   // decoded), so scrolling back does not reload them.
   PaintingBinding.instance.imageCache

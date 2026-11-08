@@ -37,6 +37,7 @@ Code: `buildCells` in [timeline.dart](../../lib/domain/timeline.dart) (pure Dart
 
 - **Long press** a thumbnail to start selecting; **drag** without lifting to select every item between the first one and the finger (if the first item was already selected, the drag deselects). Near the top or bottom edge the grid scrolls by itself.
 - **Tap** adds or removes an item; **back** or the close button leaves selection mode.
+- **Screen readers** (TalkBack): the grid's sliding long press needs the finger's position, so it is hidden from them; each thumbnail offers its own long press instead (*select*), which selects that item and starts selection mode (M12).
 - The selection bar offers **share** ([sharing.md](sharing.md)), **favorite** ([favorites.md](favorites.md)) and **move to trash** with *Undo* ([trash.md](trash.md)); its **More** menu (⋮) holds **add to album** ([user-albums.md](user-albums.md)), **select all** and the page's own actions (a user album's *Remove from album*, *Use as cover*). The bar has room for four buttons next to the count on a phone, so beyond four actions the first three stay buttons.
 - Trashed items disappear from every list at once.
 

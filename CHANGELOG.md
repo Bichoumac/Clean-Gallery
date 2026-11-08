@@ -6,10 +6,13 @@ Last updated: 2026-11-08 — Open source
 
 ## [Unreleased]
 
-M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)). The app becomes open source, without ads ([ADR 0032](docs/decisions/0032-open-source-without-ads.md)).
+M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)). The app becomes open source, without ads ([ADR 0032](docs/decisions/0032-open-source-without-ads.md)). M12 prepares the first release (version 1.0.0).
 
 ### Added
 
+- **About** ([about.md](docs/features/about.md)), from a new last section of Settings that also links the privacy policy: version, promise, source code, issues, license, the licenses of the libraries and bundled fonts, OpenStreetMap credit. `PlatformBridge` gains `openLink` and `appVersion`.
+- **Release signing** from a key kept out of the repository ([ADR 0033](docs/decisions/0033-release-signing.md)) and [docs/release.md](docs/release.md): versions, key, checklist, GitHub releases, F-Droid, Play Console forms. Store texts in English and French in `fastlane/metadata/android/`.
+- **Accessibility test** of the main screens in both themes (tap targets, labels, contrast).
 - `LICENSE`: the app is free software under the GNU GPL v3.
 - [PRIVACY.md](PRIVACY.md): the privacy policy in French and English, without ads or purchase.
 - **Video gestures** ([viewer.md](docs/features/viewer.md)): slide on the left for brightness, on the right for volume, in the top band for speed (0.25× to 2×); double tap on the right or left to jump 10 s forward or back. `PlatformBridge` gains window brightness and media volume.
@@ -22,6 +25,9 @@ M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)). The app
 - Motion tokens; every animation becomes instant when the system asks for reduced motion.
 
 ### Changed
+
+- Version 1.0.0; `pubspec.yaml` describes the app.
+- Onboarding no longer says the app works entirely offline (the map loads its tiles); it says the photos are sorted and cleaned on the phone.
 
 - Translucent floating bars with a thin line; white play button and slider over videos; round glass buttons in the slideshow player.
 - Sort session: the card fills the screen, floating buttons, stamps *Keep* and *Trash* in sentence case; always dark.
@@ -37,6 +43,8 @@ M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)). The app
 - **Ads and the *Remove ads* purchase**, built in M11 and never released: the Albums banner, the Stats card, the ad before a manual slideshow, Google's consent form, the purchase, its offer and the *Ads* section of Settings. The `google_mobile_ads` and `in_app_purchase` packages and the AdMob application ID are gone; a test keeps any ads, purchase or tracking package out.
 
 ### Fixed
+
+- Screen readers: thumbnails can be selected with their long press (the grid's sliding long press was an unlabelled node over the whole grid); the photo and video of the viewer have a label and a tap hint.
 
 - **Viewer controls stuttering as they hid**: hiding them also hides the system bars, which Android removes in steps; the controls, laid out above the bars, moved down with them, stopping and starting. The viewer keeps the bars' room while they are hidden.
 - **Video speed slide did nothing on the phone**: the page swipe, which uses the device's smaller slop, always took the slide first. The speed band now uses half that slop. A single tap on a video also toggles the controls at once instead of waiting 300 ms for a possible double tap.

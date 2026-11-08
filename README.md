@@ -8,7 +8,7 @@ The app is free software under the [GNU GPL v3](LICENSE): no ads, no in-app purc
 
 ## Status
 
-Milestones **M0** to **M9** are merged (the map came with M6). People, with on-device face recognition (M10), is specified. A [visual refresh](docs/visual-refresh.md) with a new identity and logo is built, on branch `visual-refresh`. See [docs/progress.md](docs/progress.md) for details and the device checklist.
+Milestones **M0** to **M9**, the [visual refresh](docs/visual-refresh.md) and the page transitions are merged; the ads of M11 were removed when the app went open source. People, with on-device face recognition (M10), is postponed. **M12**, the preparation of the first release (1.0.0), is in progress. See [docs/progress.md](docs/progress.md) for details and the device checklist.
 
 ## Features
 
@@ -24,9 +24,10 @@ Milestones **M0** to **M9** are merged (the map came with M6). People, with on-d
 | Editing | Info panel, editor (crop, straighten, adjustments, Enhance, vignette, pencil, blur, pixelate, texts), document scanner, filters | M6 ✓ |
 | Exploration | Map with clusters and mini map, search with combinable criteria (name, type, favorites, folder, area on the map, dates) | Map M6 ✓, search M7 ✓ |
 | User albums | Create albums, add photos to a new or existing album; no file is moved | M8 ✓ |
-| Slideshows and memories | Slideshows from an album, a selection or a period, with music; saved slideshows; automatic memories ("1 year ago"); rituals with a notification, no background work | M9 |
-| Visual refresh | Warm Éclat Soleil identity, logo and app icon, mosaics, motion | Built, on branch `visual-refresh` |
-| People | On-device face recognition, merge two persons | Planned |
+| Slideshows and memories | Slideshows from an album, a selection or a period, with music; saved slideshows; automatic memories ("1 year ago"); rituals with a notification, no background work | M9 ✓ |
+| Visual refresh | Warm Éclat Soleil identity, logo and app icon, mosaics, motion, page transitions | ✓ |
+| About and release | About page, privacy policy link, release signing, store texts | M12 |
+| People | On-device face recognition, merge two persons | Postponed |
 
 ## Requirements
 
@@ -75,10 +76,11 @@ See [docs/testing.md](docs/testing.md) for the test strategy.
 
 ```sh
 flutter build apk --debug
+flutter build apk --release --split-per-abi   # one APK per architecture
 flutter build appbundle --release
 ```
 
-Release signing is not configured yet (planned for M12).
+Release builds are signed with the key named in `android/key.properties`, which is never committed; without it they fall back to the debug key, fine for trying a release build. Creating the key, the release checklist and the publishing channels: [docs/release.md](docs/release.md).
 
 ## Documentation
 

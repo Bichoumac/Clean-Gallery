@@ -1,0 +1,1 @@
+A private photo gallery that finds duplicates and helps you free up space

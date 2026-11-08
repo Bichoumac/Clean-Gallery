@@ -1,0 +1,35 @@
+<p><b>Vos photos ne quittent jamais votre appareil.</b> Clean Gallery est une galerie de photos et de vidéos qui vous aide aussi à trier et nettoyer votre bibliothèque, sur votre téléphone, sans compte, sans pub et sans pistage.</p>
+
+<p><b>Parcourir</b></p>
+<ul>
+<li>Chronologies de l'appareil photo et des vidéos, triées par date, taille, durée, nom ou nombre de doublons, avec un filtre de dates</li>
+<li>Dossiers, favoris et vos propres albums (aucun fichier n'est jamais déplacé ni copié)</li>
+<li>Visionneuse plein écran avec zoom ; lecteur vidéo avec gestes pour la luminosité, le volume, la vitesse et les sauts de 10 secondes</li>
+<li>Carte de vos photos localisées et recherche qui combine nom, type, dossier, zone et dates</li>
+</ul>
+
+<p><b>Nettoyer</b></p>
+<ul>
+<li>Doublons exacts, rafales et photos similaires regroupés, avec la meilleure photo suggérée</li>
+<li>Tri par glissement : à gauche vers la corbeille, à droite pour garder, avec annulation</li>
+<li>Listes des photos floues, des vieilles captures d'écran et des grosses vidéos</li>
+<li>Tableau de bord du stockage qui montre ce que vous pouvez libérer</li>
+<li>Tout passe d'abord par la corbeille de l'appli, gardée le nombre de jours que vous choisissez</li>
+</ul>
+
+<p><b>Créer</b></p>
+<ul>
+<li>Éditeur photo : recadrage, redressement, lumière et couleurs, filtres, vignette, crayon, flou, pixellisation et texte</li>
+<li>Scanner de documents à partir d'une photo existante</li>
+<li>Diaporamas en musique, diaporamas enregistrés et souvenirs des années passées, avec des notifications planifiées sans aucune tâche en arrière-plan</li>
+</ul>
+
+<p><b>Privée par conception</b></p>
+<ul>
+<li>Les photos, les vidéos et leur analyse restent sur le téléphone</li>
+<li>Le partage peut retirer la position GPS des copies</li>
+<li>Seule la carte utilise internet, pour charger les tuiles d'OpenStreetMap</li>
+<li>Logiciel libre sous licence GNU GPL v3</li>
+</ul>
+
+<p>Android 11 ou plus récent. En français et en anglais.</p>
