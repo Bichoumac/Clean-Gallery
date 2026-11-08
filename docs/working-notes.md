@@ -24,7 +24,7 @@ Quick resume (keep this short; history is in [progress.md](progress.md) and git)
 
 ## To do next (written 2026-11-05, resume here)
 
-State (2026-11-08): branch `page-transitions` (transitions, viewer and video gestures fixes), then branch `remove-ads` on top of it, both committed locally and not pushed. CI no longer uploads builds as artifacts (storage quota). 466 tests pass, analyzer clean.
+State (2026-11-08): branch `page-transitions` (transitions, viewer and video gestures fixes), then branch `remove-ads` on top of it, both confirmed on the phone and pushed on 2026-11-08; the product owner opens the two pull requests (`remove-ads` after `page-transitions`). CI no longer uploads builds as artifacts (storage quota). 466 tests pass, analyzer clean.
 
 **Decisions waiting for the product owner**
 
@@ -34,7 +34,7 @@ State (2026-11-08): branch `page-transitions` (transitions, viewer and video ges
 
 **Page transitions (branch `page-transitions`, 2026-11-08)**
 
-- Built: tabs slide like a carousel, pages slide over a receding page, tiles grow into their page, predictive back follows the finger, the viewer's photo flies to its own frame ([ADR 0031](decisions/0031-page-transitions.md)). Not tried on the phone: checks in [testing.md](testing.md#page-transitions--to-verify-on-a-device).
+- Built: tabs slide like a carousel, pages slide over a receding page, tiles grow into their page, predictive back follows the finger, the viewer's photo flies to its own frame ([ADR 0031](decisions/0031-page-transitions.md)). Confirmed on the phone on 2026-11-08.
 - Not done: sheets and menus rising with a spring (Material's default kept).
 
 **M12, for the assistant, once approved**
@@ -43,7 +43,7 @@ State (2026-11-08): branch `page-transitions` (transitions, viewer and video ges
 8. *About* screen, with the app's promise, credits and licenses, and the link to <https://sites.google.com/view/clean-gallery-privacy> in About and Settings.
 9. `docs/release.md`: every Play Console form with the answers to prepare, including *No ads*, the *Data safety* answers (no advertising ID; map and Android backup), and the open-source release (license, GitHub releases or F-Droid).
 10. Clean up: `pubspec.yaml` still says "A new Flutter project." and version `0.1.0+1`; agree on the first version. Measure the release APK (26.6 MB before the ads SDKs, which are gone). Accessibility and performance pass of the brief.
-11. Push `page-transitions` and `remove-ads` when asked; `remove-ads` is built on top of `page-transitions`, so its pull request goes after.
+11. Merge the `page-transitions` pull request, then `remove-ads` (retarget it to `main` if it was opened against `page-transitions`).
 
 **Outside setup, by the product owner**
 

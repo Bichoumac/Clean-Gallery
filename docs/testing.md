@@ -136,7 +136,7 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 
 ### Video gestures — to verify on a device
 
-Not run yet. Open a video in the viewer.
+All items confirmed by the product owner on 2026-11-08 on the Galaxy A54, after two fixes (speed slide, instant tap). Open a video in the viewer.
 
 1. Slide up then down on the left half: a pill shows *Luminosité* and its level; the screen follows. Leave the video: the brightness goes back to the system's.
 2. Slide up then down on the right half: *Volume* follows, the phone's volume changes, no Samsung volume panel.
@@ -148,7 +148,7 @@ Not run yet. Open a video in the viewer.
 
 ### Page transitions — to verify on a device
 
-First run on 2026-11-08 on the Galaxy A54: 1 and 7 OK; pages had no transition (2, 3, 4), the photo landed off-center (6), the theme change stuttered (8); all three fixed after, to check again. Install a profile or release build: debug builds are too slow to judge motion. First check that *Paramètres → Accessibilité → Améliorations de la visibilité → Supprimer les animations* is off, or every transition is instant on purpose.
+First run on 2026-11-08 on the Galaxy A54: 1 and 7 OK; pages had no transition (2, 3, 4), the photo landed off-center (6), the theme change stuttered (8); all three fixed after, to check again. Install a profile or release build: debug builds are too slow to judge motion. First check that *Paramètres → Accessibilité → Améliorations de la visibilité → Supprimer les animations* is off, or every transition is instant on purpose. **All items confirmed on the phone by the product owner on 2026-11-08** after the fixes.
 
 1. Tap each tab of the bar in turn, then back: the new tab slides in from the side of its button, the old one leaves on the other side, smoothly; each tab keeps its scroll position.
 2. Albums: tap *Favoris*, *Carte*, *Diaporamas*, *Corbeille*, *Tous les médias* and an album cover: each page grows out of the tile, its corners rounding into the screen's; back shrinks it into the same tile.
@@ -163,7 +163,7 @@ First run on 2026-11-08 on the Galaxy A54: 1 and 7 OK; pages had no transition (
 
 ### Open source without ads — to verify on a device
 
-Ads and the purchase were removed on 2026-11-08 ([ADR 0032](decisions/0032-open-source-without-ads.md)).
+Ads and the purchase were removed on 2026-11-08 ([ADR 0032](decisions/0032-open-source-without-ads.md)). All items confirmed on the phone by the product owner on 2026-11-08.
 
 1. Install over the previous build (no uninstall): the app opens on the tabs, albums, settings and slideshows as before.
 2. Albums: no banner and no *Remove ads* link; the last album scrolls fully into view above the bar.

@@ -20,8 +20,8 @@ Last updated: 2026-11-08 — Open source
 | M9 | Slideshows, saved slideshows, memories, rituals | Merged into `main` (PR #11, 2026-11-04) |
 | M10 | People (on-device face recognition, merging) | Postponed by the product owner on 2026-11-05, to come after M11; no code, model study in [ADR 0029](decisions/0029-face-model.md) |
 | M11 | Monetization (was M8) | Merged into `main` (PR #14, 2026-11-08), then removed: open source without ads ([ADR 0032](decisions/0032-open-source-without-ads.md)) |
-| — | Open source: ads and purchase removed, GPL v3, new privacy policy | Built on branch `remove-ads` on 2026-11-08, on top of `page-transitions` |
-| — | Page transitions: tabs, pages, tiles, back gesture, viewer | Built on branch `page-transitions` on 2026-11-08, before M12; not tried on a phone ([checks](testing.md#page-transitions--to-verify-on-a-device)) |
+| — | Open source: ads and purchase removed, GPL v3, new privacy policy | Built on branch `remove-ads` on 2026-11-08, on top of `page-transitions`; confirmed on the phone, pushed for review |
+| — | Page transitions: tabs, pages, tiles, back gesture, viewer | Built on branch `page-transitions` on 2026-11-08, before M12; confirmed on the phone with the video gestures, pushed for review ([checks](testing.md#page-transitions--to-verify-on-a-device)) |
 | M12 | Polish and release preparation (was M9) | Not started |
 | — | Visual refresh: Éclat Soleil identity, logo and icon | Merged into `main` (PR #13), tried on the phone 2026-11-05 |
 
