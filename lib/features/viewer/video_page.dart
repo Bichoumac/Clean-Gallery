@@ -5,6 +5,7 @@ import 'package:clean_gallery/core/media/media_formatting.dart';
 import 'package:clean_gallery/core/media/media_thumbnail.dart';
 import 'package:clean_gallery/core/providers.dart';
 import 'package:clean_gallery/domain/media_item.dart';
+import 'package:clean_gallery/features/viewer/video_gestures.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -96,8 +97,8 @@ class _VideoPageState extends ConsumerState<VideoPage> {
     final controller = _controller;
     final source = ref.watch(mediaSourceProvider);
 
-    return GestureDetector(
-      behavior: HitTestBehavior.opaque,
+    return VideoGestures(
+      controller: controller,
       onTap: widget.onTap,
       child: Stack(
         fit: StackFit.expand,

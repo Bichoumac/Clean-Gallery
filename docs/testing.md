@@ -134,6 +134,18 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
 
+### Video gestures — to verify on a device
+
+Not run yet. Open a video in the viewer.
+
+1. Slide up then down on the left half: a pill shows *Luminosité* and its level; the screen follows. Leave the video: the brightness goes back to the system's.
+2. Slide up then down on the right half: *Volume* follows, the phone's volume changes, no Samsung volume panel.
+3. Double tap on the right: *+10 s*, the video jumps; double tap again quickly: *+20 s*. Same on the left with *−10 s*, never before the start.
+4. In the top quarter of the video, slide right then left: *Vitesse 1,25×*, *1,5×*… up to *2×* and down to *0,25×*; the video plays at that speed.
+5. Lower on the video, slide left or right: moves to the next or previous item as before.
+6. A single tap still shows and hides the controls (slightly delayed).
+7. The progress bar can be dragged without touching the buttons below it.
+
 ### Page transitions — to verify on a device
 
 First run on 2026-11-08 on the Galaxy A54: 1 and 7 OK; pages had no transition (2, 3, 4), the photo landed off-center (6), the theme change stuttered (8); all three fixed after, to check again. Install a profile or release build: debug builds are too slow to judge motion. First check that *Paramètres → Accessibilité → Améliorations de la visibilité → Supprimer les animations* is off, or every transition is instant on purpose.

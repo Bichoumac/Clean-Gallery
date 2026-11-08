@@ -95,6 +95,10 @@ Methods run on a worker thread (`mediaSnapshot`, `mediaDetails`, `mediaMetadata`
 | `deleteMedia` | `items`: `List<{id, video, mimeType}>` | `bool`: deleted (`false` if declined) | `busy`, `request_failed` | `MediaStore.createDeleteRequest` for the whole batch: one system confirmation, none with "Media management". Only the trash calls it. |
 | `share` | `items`: `List<{id, video, mimeType}>`, `removeLocation`: `bool` | `null` once the share sheet is open | `share_failed` | MediaStore URIs, or copies without GPS for photos when `removeLocation` ([sharing.md](features/sharing.md)). |
 | `setKeepScreenOn` | `on`: `bool` | `null` | none | `FLAG_KEEP_SCREEN_ON` on the window, during slideshows. |
+| `screenBrightness` | none | `double` | none | The window's own brightness if set, otherwise the system's setting / 255 (approximate). |
+| `setScreenBrightness` | `value`: `double?` | `null` | none | `screenBrightness` of the window's attributes, 0.01 to 1; `null` gives it back to the system. Video gestures. |
+| `mediaVolume` | none | `double` | none | `STREAM_MUSIC` volume over its maximum. |
+| `setMediaVolume` | `value`: `double` | `null` | none | `AudioManager.setStreamVolume` on `STREAM_MUSIC`, without the system panel (flag 0). No permission needed. Video gestures. |
 | `musicPlay` | `uri`: `String?` (a picked document) or `asset`: `String?` (a bundled track), `volume`: `double` | `bool`: playing | none | A `MediaPlayer` in a loop, replacing any track; `false` when the file cannot be read (moved, deleted, access lost). [SlideshowMusic.kt](../android/app/src/main/kotlin/com/bichoumac/clean_gallery/SlideshowMusic.kt). |
 | `musicPause`, `musicResume`, `musicStop` | none | `null` | none | |
 | `musicVolume` | `volume`: `double` 0–1 | `null` | none | The fade-out at the end. |
