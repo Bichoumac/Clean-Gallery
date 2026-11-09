@@ -2,7 +2,7 @@
 
 How the product owner and the AI assistant work together on Clean Gallery, the constraints of the development machine, and where to pick up. Read it at the start of every session, after [AGENTS.md](../AGENTS.md).
 
-Last updated: 2026-11-08 — Milestone M12
+Last updated: 2026-11-09 — Release 1.0.0
 
 ## Where to pick up
 
@@ -17,7 +17,8 @@ Quick resume (keep this short; history is in [progress.md](progress.md) and git)
 - **M10 People is postponed** (product owner, 2026-11-05): licensing risk on every face model found, see [ADR 0029](decisions/0029-face-model.md).
 - **Publishing**: GitHub releases and IzzyOnDroid (product owner, 2026-11-09). Play stays blocked (personal account, 12 testers for 14 days).
 - **M11 monetization was merged** (PR #14, 2026-11-08), **then removed the same day**: the app goes open source without ads ([ADR 0032](decisions/0032-open-source-without-ads.md)). Page transitions (PR #15) and the removal (PR #16) are merged into `main`.
-- **M12 is in progress** on branch `m12-release` (2026-11-08): signing, About, release.md, store texts, accessibility. What is left and what waits for the product owner: [progress.md](progress.md#m12--polish-and-release-preparation).
+- **M12 is merged** (PR #17, 2026-11-09) and the repository is public. **1.0.0** is prepared on branch `release-1.0.0`: the product owner merges it, the tag `v1.0.0` goes on that commit, then the GitHub release with the signed split APKs and `SHA256SUMS.txt`, then the IzzyOnDroid request. Next releases follow [release.md](release.md#release-checklist).
+- **Signing on this machine**: `android/key.properties` and the key belong to user `claude` (the product owner created them with `sudo`, then `chown`); never print or read them, Gradle reads them. Files the product owner copies as root (screenshots…) need `sudo chown -R claude:claude` before the assistant can rename them.
 - **Phone over USB**: the laptop's webcam is a Xiaomi USB device too; run `p.sh` only once the phone shows in `lsusb` (Samsung, MTP mode), or it may pick the webcam.
 - **Key design points to keep**: one paint function (`paintEdit`, `paintPage`) for preview and saving; the native side only writes JPEG + EXIF (`PhotoSaver.kt`); every delete through the app trash; pure Dart in `lib/analysis/` and `lib/domain/`; on the phone (Impeller), avoid blend-mode masks in layers, use clips (blur bug of 2026-10-29).
 - **Checking a look without the phone**: a temporary widget test can load the real fonts with `FontLoader` and write PNG files with `matchesGoldenFile` and `--update-goldens`; delete it afterwards. Without the fonts, text renders as blocks, which also shows a style that forgot its font family.
