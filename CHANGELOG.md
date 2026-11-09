@@ -1,12 +1,14 @@
 # Changelog
 
-All notable changes to this project are documented here, one section per milestone. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+All notable changes to this project are documented here: one section per milestone until 1.0.0, then one per release. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-11-08 — Open source
+Last updated: 2026-11-09 — Release 1.0.0
 
 ## [Unreleased]
 
-M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)). The app becomes open source, without ads ([ADR 0032](docs/decisions/0032-open-source-without-ads.md)). M12 prepares the first release (version 1.0.0).
+## [1.0.0] — 2026-11-09 — First public release
+
+The first public release, on GitHub releases and IzzyOnDroid ([docs/release.md](docs/release.md)), with M12 and everything since M9. M10 People is postponed ([ADR 0029](docs/decisions/0029-face-model.md)). The app becomes open source, without ads ([ADR 0032](docs/decisions/0032-open-source-without-ads.md)).
 
 ### Added
 

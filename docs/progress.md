@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-11-08 — Milestone M12
+Last updated: 2026-11-09 — Release 1.0.0
 
 ## Milestones
 
@@ -22,7 +22,7 @@ Last updated: 2026-11-08 — Milestone M12
 | M11 | Monetization (was M8) | Merged into `main` (PR #14, 2026-11-08), then removed: open source without ads ([ADR 0032](decisions/0032-open-source-without-ads.md)) |
 | — | Open source: ads and purchase removed, GPL v3, new privacy policy | Merged into `main` (PR #16, 2026-11-08), confirmed on the phone |
 | — | Page transitions: tabs, pages, tiles, back gesture, viewer | Merged into `main` (PR #15, 2026-11-08), confirmed on the phone with the video gestures ([checks](testing.md#page-transitions--to-verify-on-a-device)) |
-| M12 | Polish and release preparation (was M9) | In progress on branch `m12-release` (2026-11-08), see [below](#m12--polish-and-release-preparation) |
+| M12 | Polish and release preparation (was M9) | Merged into `main` (PR #17, 2026-11-09); **1.0.0 released** on 2026-11-09, see [below](#m12--polish-and-release-preparation) |
 | — | Visual refresh: Éclat Soleil identity, logo and icon | Merged into `main` (PR #13), tried on the phone 2026-11-05 |
 
 M8 to M10 were added at the product owner's request on 2026-11-01; monetization and polish moved from M8 and M9.
@@ -39,7 +39,7 @@ The product owner chose a warm identity and a logo on 2026-11-04 ([ADR 0028](dec
 
 ## M12 — Polish and release preparation
 
-Started on 2026-11-08 on branch `m12-release`.
+Started on 2026-11-08 on branch `m12-release`, merged on 2026-11-09 (PR #17). The repository is public since 2026-11-09. Version **1.0.0** is the first release (GitHub releases, then IzzyOnDroid).
 
 ### Done
 
@@ -55,8 +55,8 @@ Started on 2026-11-08 on branch `m12-release`.
 
 - Upload key: created by the product owner on 2026-11-09 and in use; signed release APKs checked (arm64 26.4 MB, armeabi-v7a 24.3 MB, x86_64 28.0 MB), certificate in [release.md](release.md#checking-a-builds-signature).
 - Channels: **GitHub releases and IzzyOnDroid**, chosen on 2026-11-09.
-- Make the repository public (the privacy link and F-Droid need it).
-- Screenshots for the store listing, taken on their phone with photos they are fine to show.
+- Repository made public on 2026-11-09.
+- Store screenshots: five, in place on 2026-11-09.
 - [M12 checks](testing.md#m12--release-preparation-to-verify-on-a-device): confirmed on the phone on 2026-11-09, as a whole.
 
 ## Open source without ads
