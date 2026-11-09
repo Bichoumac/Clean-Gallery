@@ -45,6 +45,13 @@ abstract interface class PlatformBridge {
   /// app can show a location.
   Future<bool> openMap(double latitude, double longitude);
 
+  /// Opens the web page at [url] in the user's browser. Returns `false`
+  /// when no app can open it.
+  Future<bool> openLink(Uri url);
+
+  /// The installed app's version name, e.g. `1.0.0`.
+  Future<String> appVersion();
+
   /// Saves an edited copy of [photo] as a new JPEG photo in the same
   /// folder, with the same capture date and the original's metadata (EXIF)
   /// except its orientation and size. [rgba] holds [width] × [height]

@@ -73,7 +73,6 @@ Markers with a 3 dp white ring and a citron count. The map tiles do not change. 
 
 ## Known limitations / future work
 
-- Slow loading and missing thumbnails were reported on the phone on 2026-11-04 (see [progress.md](../progress.md#visual-refresh)). Marker thumbnails were changed for this; whether it is enough is not confirmed. Tiles depend on OpenStreetMap and the network, and their loading time has not been measured.
+- Slow loading and missing thumbnails were reported on the phone on 2026-11-04 (see [progress.md](../progress.md#visual-refresh)). Marker thumbnails were changed for this and the duplicate scan paused on the map; the product owner then reported "carte ok" (2026-11-05). Tiles depend on OpenStreetMap and the network, and their loading time has not been measured.
 - The first reading of 20,000 locations has not been timed on the phone (file headers only, expected to be a few minutes).
-- No search by area yet (the brief's search, M7, will pick an area on this map).
 - Clusters follow a fixed grid, not the items' own layout: a group of photos on a cell edge splits until zoomed out.

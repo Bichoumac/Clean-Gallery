@@ -1,0 +1,1 @@
+Première version publique : une galerie privée de photos et vidéos avec doublons, tri par glissement, corbeille, éditeur, carte, recherche, albums, diaporamas et souvenirs. Logiciel libre, sans pub ni pistage.

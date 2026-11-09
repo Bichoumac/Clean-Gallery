@@ -78,4 +78,3 @@ Trashed items are hidden in two ways:
 
 - **No background purge**: the brief asks for a daily WorkManager task, but Android only lets an app delete other apps' media through a system request launched from a visible screen, even with "Media management". The product owner accepted the purge at launch and resume ([ADR 0013](../decisions/0013-trash-purge-without-background-job.md)).
 - **Trashed items stay visible in other galleries** until deleted for good, since the file is untouched. Using Android's own trash (`createTrashRequest`) was considered: it would hide them everywhere, but asks for a confirmation on every trash without Media management and has a fixed 30-day retention. The product owner chose to keep the app trash (2026-10-25), useful if Clean Gallery becomes the main gallery.
-- Cleanup tools (M5) and the duplicates screen (M3) will also trash through `MediaActions`.

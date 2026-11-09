@@ -144,6 +144,18 @@ class FakePlatformBridge implements PlatformBridge {
     return true;
   }
 
+  /// Pages passed to [openLink].
+  final openedLinks = <Uri>[];
+
+  @override
+  Future<bool> openLink(Uri url) async {
+    openedLinks.add(url);
+    return true;
+  }
+
+  @override
+  Future<String> appVersion() async => '1.0.0';
+
   /// Whether the screen is kept on.
   bool keepScreenOn = false;
 

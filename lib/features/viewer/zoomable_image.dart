@@ -199,7 +199,9 @@ class _ZoomableImageState extends ConsumerState<ZoomableImage>
     return LayoutBuilder(
       builder: (context, constraints) {
         _viewport = constraints.biggest;
-        return RawGestureDetector(
+        // One node for screen readers: the photo, whose tap shows or hides
+        // the controls. Zooming stays a touch gesture.
+        final gestures = RawGestureDetector(
           gestures: {
             _ZoomGestureRecognizer:
                 GestureRecognizerFactoryWithHandlers<_ZoomGestureRecognizer>(
@@ -255,6 +257,15 @@ class _ZoomableImageState extends ConsumerState<ZoomableImage>
               ),
             ),
           ),
+        );
+        return Semantics(
+          container: true,
+          image: true,
+          label: mediaLabel(context, item),
+          onTap: widget.onTap,
+          onTapHint: AppLocalizations.of(context).viewerControlsHint,
+          excludeSemantics: true,
+          child: gestures,
         );
       },
     );

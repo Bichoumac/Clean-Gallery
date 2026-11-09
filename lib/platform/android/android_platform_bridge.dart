@@ -210,6 +210,18 @@ final class AndroidPlatformBridge implements PlatformBridge {
   }
 
   @override
+  Future<bool> openLink(Uri url) async {
+    final opened = await _channel.invokeMethod<bool>('openLink', {
+      'url': url.toString(),
+    });
+    return opened ?? false;
+  }
+
+  @override
+  Future<String> appVersion() async =>
+      await _channel.invokeMethod<String>('appVersion') ?? '';
+
+  @override
   Future<String> saveEditedPhoto(
     MediaItem photo, {
     required int width,

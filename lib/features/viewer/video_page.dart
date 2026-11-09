@@ -98,6 +98,7 @@ class _VideoPageState extends ConsumerState<VideoPage> {
     final source = ref.watch(mediaSourceProvider);
 
     return VideoGestures(
+      label: mediaLabel(context, widget.item),
       controller: controller,
       onTap: widget.onTap,
       child: Stack(

@@ -165,6 +165,17 @@ class MainActivity : FlutterActivity() {
                     result.success(openMap(latitude, longitude))
                 }
             }
+            "openLink" -> {
+                val url = call.argument<String>("url")
+                if (url == null || !url.startsWith("https://")) {
+                    result.error("bad_arguments", "an https url is required", null)
+                } else {
+                    result.success(openLink(url))
+                }
+            }
+            "appVersion" -> result.success(
+                packageManager.getPackageInfo(packageName, 0).versionName,
+            )
             "setKeepScreenOn" -> {
                 if (call.argument<Boolean>("on") == true) {
                     window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
@@ -275,6 +286,18 @@ class MainActivity : FlutterActivity() {
     private fun openMap(latitude: Double, longitude: Double): Boolean {
         val point = "$latitude,$longitude"
         val intent = Intent(Intent.ACTION_VIEW, Uri.parse("geo:$point?q=$point"))
+        return try {
+            startActivity(intent)
+            true
+        } catch (e: ActivityNotFoundException) {
+            false
+        }
+    }
+
+    /** Opens the https page [url] in the user's browser; `false` when no app can. */
+    private fun openLink(url: String): Boolean {
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url))
+            .addCategory(Intent.CATEGORY_BROWSABLE)
         return try {
             startActivity(intent)
             true

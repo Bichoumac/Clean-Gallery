@@ -1,7 +1,7 @@
 name: clean_gallery
-description: "A new Flutter project."
+description: "Clean Gallery: a private, open-source photo and video gallery for Android with cleanup tools."
 publish_to: 'none'
-version: 0.1.0+1
+version: 1.0.0+1
 
 environment:
   sdk: ^3.13.7
@@ -38,6 +38,10 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   generate: true
+  assets:
+    # Shown on the licenses page (About → Open source libraries).
+    - assets/fonts/manrope/OFL.txt
+    - assets/fonts/bricolage_grotesque/OFL.txt
   fonts:
     # Variable font (wght 200–800), bundled so nothing is fetched at runtime.
     # License: assets/fonts/manrope/OFL.txt

@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-11-08 — Open source
+Last updated: 2026-11-08 — Milestone M12
 
 ## Milestones
 
@@ -20,9 +20,9 @@ Last updated: 2026-11-08 — Open source
 | M9 | Slideshows, saved slideshows, memories, rituals | Merged into `main` (PR #11, 2026-11-04) |
 | M10 | People (on-device face recognition, merging) | Postponed by the product owner on 2026-11-05, to come after M11; no code, model study in [ADR 0029](decisions/0029-face-model.md) |
 | M11 | Monetization (was M8) | Merged into `main` (PR #14, 2026-11-08), then removed: open source without ads ([ADR 0032](decisions/0032-open-source-without-ads.md)) |
-| — | Open source: ads and purchase removed, GPL v3, new privacy policy | Built on branch `remove-ads` on 2026-11-08, on top of `page-transitions`; confirmed on the phone, pushed for review |
-| — | Page transitions: tabs, pages, tiles, back gesture, viewer | Built on branch `page-transitions` on 2026-11-08, before M12; confirmed on the phone with the video gestures, pushed for review ([checks](testing.md#page-transitions--to-verify-on-a-device)) |
-| M12 | Polish and release preparation (was M9) | Not started |
+| — | Open source: ads and purchase removed, GPL v3, new privacy policy | Merged into `main` (PR #16, 2026-11-08), confirmed on the phone |
+| — | Page transitions: tabs, pages, tiles, back gesture, viewer | Merged into `main` (PR #15, 2026-11-08), confirmed on the phone with the video gestures ([checks](testing.md#page-transitions--to-verify-on-a-device)) |
+| M12 | Polish and release preparation (was M9) | In progress on branch `m12-release` (2026-11-08), see [below](#m12--polish-and-release-preparation) |
 | — | Visual refresh: Éclat Soleil identity, logo and icon | Merged into `main` (PR #13), tried on the phone 2026-11-05 |
 
 M8 to M10 were added at the product owner's request on 2026-11-01; monetization and polish moved from M8 and M9.
@@ -37,6 +37,28 @@ The product owner chose a warm identity and a logo on 2026-11-04 ([ADR 0028](dec
 - **Map**: slow loading and missing marker thumbnails reported, then "carte ok" after the duplicate scan was paused on the map and failures retried (2026-11-05).
 - **Thumbnails missing in runs** (reported 2026-11-05, several runs of consecutive cells): failed loads stayed in Flutter's image cache, reproduced by a test and fixed ([library.md](features/library.md#thumbnails-that-fail)). Confirmed on the phone by the product owner ("ça marche", 2026-11-05).
 
+## M12 — Polish and release preparation
+
+Started on 2026-11-08 on branch `m12-release`.
+
+### Done
+
+- **Release signing** from `android/key.properties` or environment variables, debug key with a warning otherwise ([ADR 0033](decisions/0033-release-signing.md)); checked with a throwaway key. The release APK holding the three architectures is 73 MB; split per architecture, the arm64 one is about 25 MB.
+- **About** page and the privacy policy link in Settings ([features/about.md](features/about.md)): version, promise, source, issues, license, licenses of the packages and fonts, OpenStreetMap credit.
+- **[release.md](release.md)**: versions, key creation, release checklist, GitHub releases, IzzyOnDroid and F-Droid, every Play Console form with its answers. Store texts in English and French in `fastlane/metadata/android/`.
+- **Version** 1.0.0+1, and a real description in `pubspec.yaml`.
+- **Translations**: English and French have the same keys; strings that are the same in both are words like *Photos* or *Date*. The onboarding no longer says the app works entirely offline.
+- **Accessibility**: Flutter's guidelines (48 dp targets, labels, contrast) pass on the main screens in both themes. Fixed on the way: thumbnails could not be selected with a screen reader, and the viewer's photo or video was an unlabelled tap target.
+- **F-Droid readiness**: only free dependencies (Dart packages and the Gradle release classpath checked); no anti-feature expected.
+
+### Waiting for the product owner
+
+- Upload key: created by the product owner on 2026-11-09 and in use; signed release APKs checked (arm64 26.4 MB, armeabi-v7a 24.3 MB, x86_64 28.0 MB), certificate in [release.md](release.md#checking-a-builds-signature).
+- Channels: **GitHub releases and IzzyOnDroid**, chosen on 2026-11-09.
+- Make the repository public (the privacy link and F-Droid need it).
+- Screenshots for the store listing, taken on their phone with photos they are fine to show.
+- [M12 checks](testing.md#m12--release-preparation-to-verify-on-a-device): confirmed on the phone on 2026-11-09, as a whole.
+
 ## Open source without ads
 
 The product owner asked on 2026-11-08 to remove the ads and release the app as open source ([ADR 0032](decisions/0032-open-source-without-ads.md)).
@@ -44,7 +66,7 @@ The product owner asked on 2026-11-08 to remove the ads and release the app as o
 - **Removed**: the banner, the native card, the slideshow ad, consent, the *Remove ads* purchase and its offer, the *Ads* section of Settings, the two platform interfaces, the three packages, the AdMob ID in the manifest, the cached settings and their strings.
 - An architecture test now fails if an ads, purchase or tracking package comes back. 466 tests pass (the ads tests are gone).
 - **License**: GNU GPL v3 (product owner, 2026-11-08). **Privacy policy** rewritten in [PRIVACY.md](../PRIVACY.md).
-- **Left to the product owner**: making the repository public; replacing the published privacy policy with `PRIVACY.md`.
+- **Left to the product owner**: making the repository public; replacing the published privacy policy with `PRIVACY.md`. The app now links `PRIVACY.md` on GitHub (M12).
 
 ## M11 — Monetization (removed on 2026-11-08)
 
@@ -61,7 +83,7 @@ Kept as history; none of this is in the app any more. The removed `monetization.
 
 - **People moved after M11** (product owner, 2026-11-05), see [ADR 0029](decisions/0029-face-model.md).
 - **Android backup stays on** (product owner, 2026-11-05), so the app's data can follow the user to a new phone; the privacy policy says so ([platform-android.md](platform-android.md#android-backup)).
-- **Privacy policy**: published by the product owner at <https://sites.google.com/view/clean-gallery-privacy> (2026-11-05); to link from the app in M12; publisher and contact checked on the public page.
+- **Privacy policy**: published by the product owner at <https://sites.google.com/view/clean-gallery-privacy> (2026-11-05); publisher and contact checked on the public page. Replaced on 2026-11-08 by [PRIVACY.md](../PRIVACY.md), which the app links (M12).
 - **Application ID**: `com.bichoumac.clean_gallery` confirmed by the product owner as final (2026-11-05).
 - **Play Console account**: personal, so the closed test of 12 testers for 14 days applies, and the product owner cannot gather 12 testers (2026-11-05). The way to publish is open.
 - **Banner**: standard 320 × 50 dp, the link moved to the end of the list, after the product owner found the large adaptive banner, then the strip, too big (2026-11-05).
@@ -442,7 +464,7 @@ Merged into `main`. Summary:
 
 - The splash screen and launcher icon were Flutter's defaults (done in the [visual refresh](visual-refresh.md)).
 - Onboarding illustrations were Material icons (done in the [visual refresh](visual-refresh.md)).
-- Release builds are signed with the debug key (planned for M12).
+- Release builds are signed with the debug key until the product owner creates the upload key (M12, [release.md](release.md#upload-key)).
 - The debug APK is about 200 MB (every CPU architecture and debug symbols); Google Play delivers split release bundles.
 
 ## Open questions

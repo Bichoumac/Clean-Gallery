@@ -63,6 +63,7 @@ Route: `/viewer`, above the tabs, with `ViewerArgs(selection, initialIndex)` as 
 - Videos: `MediaSource.videoUri` (a `content://` URI) played by `video_player` ([ADR 0011](../decisions/0011-video-playback.md)).
 - Zoom: own gesture handling ([ADR 0010](../decisions/0010-photo-zoom.md)): one finger swipes between pages at fit scale and pans once zoomed; two fingers zoom. The zoom claims the gesture as soon as the second finger lands: otherwise a pinch whose first finger slid a little first went to the page view and did not zoom (seen on the device on 2026-10-27).
 - The top bar is pinned to the top with its own height: an earlier full-screen overlay swallowed swipes and the video controls.
+- **Screen readers**: the photo or video is one node labelled *Photo, date* or *Video, duration, date*, whose tap (hint *show or hide the controls*) toggles the controls; the video controls stay separate nodes. Before M12, the tap sat on an unlabelled node.
 
 ## Info panel
 
@@ -97,5 +98,4 @@ The brief: "a bottom sheet that slides up with a translucent blurred background 
 
 ## Known limitations / future work
 
-- Edit comes later in M6.
 - Zoom is limited to 5× and to the 4,096 px decoded image.

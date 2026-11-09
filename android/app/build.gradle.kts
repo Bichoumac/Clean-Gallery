@@ -1,8 +1,24 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
 }
+
+// Release signing: the upload key stays out of the repository (AGENTS.md rule 7).
+// Either android/key.properties (git-ignored, see docs/release.md) or the
+// CLEAN_GALLERY_* environment variables, for CI. Without either, release
+// builds fall back to the debug key so `flutter run --release` still works.
+val keyProperties = Properties().apply {
+    val file = rootProject.file("key.properties")
+    if (file.exists()) file.inputStream().use { load(it) }
+}
+
+fun signingValue(property: String, variable: String): String? =
+    keyProperties.getProperty(property) ?: System.getenv(variable)
+
+val releaseStoreFile = signingValue("storeFile", "CLEAN_GALLERY_STORE_FILE")
 
 android {
     namespace = "com.bichoumac.clean_gallery"
@@ -16,10 +32,8 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
+        // Final, confirmed by the product owner on 2026-11-05.
         applicationId = "com.bichoumac.clean_gallery"
-        // You can update the following values to match your application needs.
-        // For more information, see: https://flutter.dev/to/review-gradle-config.
         // Android 11: needed for scoped-storage MediaStore APIs, see docs/decisions/0006-permissions.md.
         minSdk = 30
         // Must match the latest API level required by Google Play, see docs/release.md.
@@ -32,11 +46,25 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (releaseStoreFile != null) {
+            create("release") {
+                storeFile = rootProject.file(releaseStoreFile)
+                storePassword = signingValue("storePassword", "CLEAN_GALLERY_STORE_PASSWORD")
+                keyAlias = signingValue("keyAlias", "CLEAN_GALLERY_KEY_ALIAS")
+                keyPassword = signingValue("keyPassword", "CLEAN_GALLERY_KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (releaseStoreFile != null) {
+                signingConfigs.getByName("release")
+            } else {
+                logger.warn("Clean Gallery: no release key found, signing with the debug key (docs/release.md).")
+                signingConfigs.getByName("debug")
+            }
         }
     }
 }

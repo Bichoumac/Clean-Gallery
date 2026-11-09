@@ -150,7 +150,7 @@ A floating pill, 56 dp high, 12 dp above the system navigation area, centered, w
 
 - Background: `surfaceContainer` at 72 % opacity with a 20 px blur, and a 1 dp inner line (white at 12 % in dark, black at 8 % in light), so content scrolls visibly underneath.
 - Selected tab: citron pill (48 × 38 dp) behind the filled icon, animated in 220 ms.
-- Accessibility: every icon has a tooltip and a screen reader label, and a 56 × 48 dp touch target (checked by a test).
+- Accessibility: every icon has a tooltip and a screen reader label, and a 56 × 48 dp touch target (checked by a test). Since M12, [accessibility_test.dart](../test/accessibility/accessibility_test.dart) runs Flutter's guidelines (48 dp targets, labels, text contrast) on the main screens in both themes.
 - Pages add `CompactNavBar.contentInset(context)` as bottom padding so the last item is never hidden.
 
 ## Page layout

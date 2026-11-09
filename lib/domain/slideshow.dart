@@ -94,7 +94,7 @@ final class BundledTrack {
 }
 
 /// Free tracks bundled with the app. Empty until tracks whose license allows
-/// redistribution in an app with ads (CC0 preferred) are chosen by the
+/// redistribution in an open-source app (CC0 preferred) are chosen by the
 /// product owner; the options then offer them (see
 /// `docs/features/slideshow.md#music`).
 const bundledTracks = <BundledTrack>[];

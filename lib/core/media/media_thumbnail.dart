@@ -79,6 +79,16 @@ Rect _fitted(Rect box, double aspectRatio) {
   return Alignment.center.inscribe(size, box);
 }
 
+/// What a screen reader says about [item]: *Photo, date* or
+/// *Video, duration, date*.
+String mediaLabel(BuildContext context, MediaItem item) {
+  final l10n = AppLocalizations.of(context);
+  final date = formatMediaDate(context, item.takenAt);
+  return item.isVideo
+      ? l10n.mediaVideoLabel(formatDuration(item.duration), date)
+      : l10n.mediaPhotoLabel(date);
+}
+
 /// Square thumbnail of a photo or video, with a duration badge on videos,
 /// a heart on favorites and, on the cover of a folded stack of duplicates,
 /// the number of items in it.
@@ -88,6 +98,7 @@ class MediaThumbnail extends ConsumerWidget {
     required this.item,
     required this.pixelSize,
     this.onTap,
+    this.onSelect,
     this.hero = true,
     this.stackSize,
     super.key,
@@ -111,16 +122,18 @@ class MediaThumbnail extends ConsumerWidget {
   /// Called when the thumbnail is tapped.
   final VoidCallback? onTap;
 
+  /// Selects the item, for screen readers, as their long press. The grid's
+  /// own long press, which selects by sliding, needs the finger's position
+  /// and is hidden from them.
+  final VoidCallback? onSelect;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final colors = Theme.of(context).colorScheme;
     final source = ref.watch(mediaSourceProvider);
-    final date = formatMediaDate(context, item.takenAt);
     final stackSize = this.stackSize;
-    final itemLabel = item.isVideo
-        ? l10n.mediaVideoLabel(formatDuration(item.duration), date)
-        : l10n.mediaPhotoLabel(date);
+    final itemLabel = mediaLabel(context, item);
     final label = stackSize == null
         ? itemLabel
         : '$itemLabel, ${l10n.mediaStackLabel(stackSize)}';
@@ -129,6 +142,8 @@ class MediaThumbnail extends ConsumerWidget {
       label: item.isFavorite ? '$label, ${l10n.mediaFavoriteLabel}' : label,
       button: onTap != null,
       image: true,
+      onLongPress: onSelect,
+      onLongPressHint: onSelect == null ? null : l10n.mediaSelectHint,
       excludeSemantics: true,
       child: GestureDetector(
         onTap: onTap,

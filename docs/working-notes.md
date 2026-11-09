@@ -2,7 +2,7 @@
 
 How the product owner and the AI assistant work together on Clean Gallery, the constraints of the development machine, and where to pick up. Read it at the start of every session, after [AGENTS.md](../AGENTS.md).
 
-Last updated: 2026-11-08 — Open source
+Last updated: 2026-11-08 — Milestone M12
 
 ## Where to pick up
 
@@ -15,8 +15,9 @@ Quick resume (keep this short; history is in [progress.md](progress.md) and git)
 - **M9 slideshows and memories is merged** (PR #11, 2026-11-04). 
 - **Visual refresh is merged** (PR #13); the 22 checks of [testing.md](testing.md#visual-refresh--to-verify-on-a-device) were not reported one by one.
 - **M10 People is postponed** (product owner, 2026-11-05): licensing risk on every face model found, see [ADR 0029](decisions/0029-face-model.md).
-- **Publishing on Play is blocked**: personal Play account, closed test of 12 testers for 14 days needed, and the product owner cannot gather 12. Open source opens other ways (GitHub releases, F-Droid), not chosen yet.
-- **M11 monetization was merged** (PR #14, 2026-11-08), **then removed the same day**: the app goes open source without ads ([ADR 0032](decisions/0032-open-source-without-ads.md)), branch `remove-ads`, built on `page-transitions`. **Page transitions** are on branch `page-transitions` (product owner, 2026-11-08: before M12), tried on the phone. Then M12 polish; M10 People postponed ([progress.md](progress.md)).
+- **Publishing**: GitHub releases and IzzyOnDroid (product owner, 2026-11-09). Play stays blocked (personal account, 12 testers for 14 days).
+- **M11 monetization was merged** (PR #14, 2026-11-08), **then removed the same day**: the app goes open source without ads ([ADR 0032](decisions/0032-open-source-without-ads.md)). Page transitions (PR #15) and the removal (PR #16) are merged into `main`.
+- **M12 is in progress** on branch `m12-release` (2026-11-08): signing, About, release.md, store texts, accessibility. What is left and what waits for the product owner: [progress.md](progress.md#m12--polish-and-release-preparation).
 - **Phone over USB**: the laptop's webcam is a Xiaomi USB device too; run `p.sh` only once the phone shows in `lsusb` (Samsung, MTP mode), or it may pick the webcam.
 - **Key design points to keep**: one paint function (`paintEdit`, `paintPage`) for preview and saving; the native side only writes JPEG + EXIF (`PhotoSaver.kt`); every delete through the app trash; pure Dart in `lib/analysis/` and `lib/domain/`; on the phone (Impeller), avoid blend-mode masks in layers, use clips (blur bug of 2026-10-29).
 - **Checking a look without the phone**: a temporary widget test can load the real fonts with `FontLoader` and write PNG files with `matchesGoldenFile` and `--update-goldens`; delete it afterwards. Without the fonts, text renders as blocks, which also shows a style that forgot its font family.
@@ -24,7 +25,7 @@ Quick resume (keep this short; history is in [progress.md](progress.md) and git)
 
 ## To do next (written 2026-11-05, resume here)
 
-State (2026-11-08): branch `page-transitions` (transitions, viewer and video gestures fixes), then branch `remove-ads` on top of it, both confirmed on the phone and pushed on 2026-11-08; the product owner opens the two pull requests (`remove-ads` after `page-transitions`). CI no longer uploads builds as artifacts (storage quota). 466 tests pass, analyzer clean.
+State (2026-11-08): `page-transitions` and `remove-ads` merged into `main` (PRs #15 and #16). M12 on branch `m12-release`. CI no longer uploads builds as artifacts (storage quota). Analyzer clean, all tests pass.
 
 **Decisions waiting for the product owner**
 
@@ -39,11 +40,8 @@ State (2026-11-08): branch `page-transitions` (transitions, viewer and video ges
 
 **M12, for the assistant, once approved**
 
-7. Upload key and release signing: release builds still use the debug key, which Google refuses. Passwords and the key stay out of the repository; the product owner keeps a safe copy.
-8. *About* screen, with the app's promise, credits and licenses, and the link to <https://sites.google.com/view/clean-gallery-privacy> in About and Settings.
-9. `docs/release.md`: every Play Console form with the answers to prepare, including *No ads*, the *Data safety* answers (no advertising ID; map and Android backup), and the open-source release (license, GitHub releases or F-Droid).
-10. Clean up: `pubspec.yaml` still says "A new Flutter project." and version `0.1.0+1`; agree on the first version. Measure the release APK (26.6 MB before the ads SDKs, which are gone). Accessibility and performance pass of the brief.
-11. Merge the `page-transitions` pull request, then `remove-ads` (retarget it to `main` if it was opened against `page-transitions`).
+7. Done on `m12-release`: release signing (the product owner creates the key, [release.md](release.md#upload-key)), About and the privacy link (now `PRIVACY.md` on GitHub), `release.md`, store texts, version 1.0.0, accessibility guidelines test.
+8. Left: performance pass of the brief (profile build on the phone), final documentation review and link check, the M12 device checks, then the first release on the channels the product owner picks.
 
 **Outside setup, by the product owner**
 
