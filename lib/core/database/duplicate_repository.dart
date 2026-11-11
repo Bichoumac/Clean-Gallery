@@ -4,6 +4,7 @@ import 'package:clean_gallery/analysis/photo_analysis.dart';
 import 'package:clean_gallery/analysis/similarity.dart';
 import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/core/database/media_index_repository.dart';
+import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:drift/drift.dart';
@@ -25,39 +26,75 @@ final class DuplicateRepository {
 
   final AppDatabase _db;
 
-  /// Condition on `assets` (aliased `a`) selecting items that may have an
-  /// exact duplicate but no hash yet: their size is shared by another item.
-  static const _candidate =
-      'a.content_hash IS NULL AND a.size_bytes > 0 '
-      'AND a.id NOT IN (SELECT asset_id FROM trash_entries) '
-      'AND a.size_bytes IN (SELECT size_bytes FROM assets '
-      'WHERE size_bytes > 0 GROUP BY size_bytes HAVING COUNT(*) > 1)';
-
   /// Condition on `assets` (aliased `a`) selecting photos whose perceptual
   /// hashes were not computed by the current [analysisVersion].
   static const _perceptualCandidate =
       "a.kind = 'photo' AND a.analysis_version < $analysisVersion "
       'AND a.id NOT IN (SELECT asset_id FROM trash_entries)';
 
+  /// SQL condition on the capture date of `assets` aliased [alias] for
+  /// [period] (always true without one), and its variables.
+  static (String, List<Variable>) _inPeriod(
+    DateFilter? period, {
+    String alias = 'a',
+  }) {
+    final date = 'COALESCE($alias.capture_at, $alias.taken_at)';
+    final start = period?.start;
+    final end = period?.end;
+    return (
+      [
+        if (start != null) '$date >= ?',
+        if (end != null) '$date < ?',
+        if (start == null && end == null) '1',
+      ].join(' AND '),
+      [
+        if (start != null) Variable.withDateTime(start),
+        if (end != null) Variable.withDateTime(end),
+      ],
+    );
+  }
+
+  /// Condition selecting items to hash within [period]: their size is
+  /// shared by another item of the period.
+  static (String, List<Variable>) _candidateIn(DateFilter? period) {
+    final (inA, varsA) = _inPeriod(period);
+    final (inB, varsB) = _inPeriod(period, alias: 'b');
+    return (
+      'a.content_hash IS NULL AND a.size_bytes > 0 AND $inA '
+          'AND a.id NOT IN (SELECT asset_id FROM trash_entries) '
+          'AND a.size_bytes IN (SELECT b.size_bytes FROM assets b '
+          'WHERE b.size_bytes > 0 AND $inB '
+          'GROUP BY b.size_bytes HAVING COUNT(*) > 1)',
+      [...varsA, ...varsB],
+    );
+  }
+
   /// Up to [limit] items to hash, smallest files first so progress shows
-  /// early. Trashed items are skipped.
-  Future<List<MediaItem>> hashCandidates({required int limit}) async {
+  /// early. Only items of [period] that share their size with another item
+  /// of it; trashed items are skipped.
+  Future<List<MediaItem>> hashCandidates({
+    required int limit,
+    DateFilter? period,
+  }) async {
+    final (candidate, variables) = _candidateIn(period);
     final rows = await _db
         .customSelect(
-          'SELECT a.* FROM assets a WHERE $_candidate '
+          'SELECT a.* FROM assets a WHERE $candidate '
           'ORDER BY a.size_bytes, a.id LIMIT ?',
-          variables: [Variable.withInt(limit)],
+          variables: [...variables, Variable.withInt(limit)],
           readsFrom: {_db.assets, _db.trashEntries},
         )
         .get();
     return [for (final row in rows) _db.assets.map(row.data).toMediaItem()];
   }
 
-  /// Number of items still to hash.
-  Future<int> pendingHashCount() async {
+  /// Number of items of [period] still to hash.
+  Future<int> pendingHashCount({DateFilter? period}) async {
+    final (candidate, variables) = _candidateIn(period);
     final row = await _db
         .customSelect(
-          'SELECT COUNT(*) AS n FROM assets a WHERE $_candidate',
+          'SELECT COUNT(*) AS n FROM assets a WHERE $candidate',
+          variables: variables,
           readsFrom: {_db.assets, _db.trashEntries},
         )
         .getSingle();
@@ -79,15 +116,22 @@ final class DuplicateRepository {
         }
       });
 
-  /// Up to [limit] photos whose perceptual hashes are to compute, newest
-  /// first so recent photos are compared first. Trashed items are skipped.
-  Future<List<MediaItem>> perceptualCandidates({required int limit}) async {
+  /// Up to [limit] photos whose perceptual hashes are to compute: those of
+  /// [period] first, since only they are grouped, then the others, whose
+  /// sharpness the blurry photo list still needs; newest first within each.
+  /// Trashed items are skipped.
+  Future<List<MediaItem>> perceptualCandidates({
+    required int limit,
+    DateFilter? period,
+  }) async {
+    final (inPeriod, variables) = _inPeriod(period);
     final rows = await _db
         .customSelect(
           'SELECT a.* FROM assets a WHERE $_perceptualCandidate '
-          'ORDER BY COALESCE(a.capture_at, a.taken_at) DESC, a.id DESC '
+          'ORDER BY ($inPeriod) DESC, '
+          'COALESCE(a.capture_at, a.taken_at) DESC, a.id DESC '
           'LIMIT ?',
-          variables: [Variable.withInt(limit)],
+          variables: [...variables, Variable.withInt(limit)],
           readsFrom: {_db.assets, _db.trashEntries},
         )
         .get();
@@ -131,9 +175,9 @@ final class DuplicateRepository {
     }
   });
 
-  /// Every photo with perceptual hashes, trashed ones included, dated by
-  /// its resolved capture date when known.
-  Future<List<HashedPhoto>> hashedPhotos() async {
+  /// Every photo of [period] with perceptual hashes, trashed ones
+  /// included, dated by its resolved capture date when known.
+  Future<List<HashedPhoto>> hashedPhotos({DateFilter? period}) async {
     final a = _db.assets;
     final query = _db.selectOnly(a)
       ..addColumns([
@@ -149,6 +193,11 @@ final class DuplicateRepository {
         a.longitude,
       ])
       ..where(a.kind.equalsValue(MediaKind.photo) & a.pHash.isNotNull());
+    final date = coalesce([a.captureAt, a.takenAt]);
+    if (period?.start case final start?) {
+      query.where(date.isBiggerOrEqualValue(start));
+    }
+    if (period?.end case final end?) query.where(date.isSmallerThanValue(end));
     return [
       for (final row in await query.get())
         HashedPhoto(
@@ -238,48 +287,59 @@ final class DuplicateRepository {
   /// - `burst`: items with the same burst id, unless they are all already
   ///   in one exact group.
   ///
-  /// Trashed items stay in their groups; screens leave them out, so undoing
-  /// a trash brings the group back.
-  Future<void> rebuildGroups({DateTime? now}) => _db.transaction(() async {
-    final computedAt = now ?? DateTime.now();
-    await (_db.delete(_db.duplicateGroups)..where(
-          (g) =>
-              g.kind.equalsValue(DuplicateKind.exact) |
-              g.kind.equalsValue(DuplicateKind.burst),
-        ))
-        .go();
-    final exact = await _itemsSharing('content_hash', excluded: "''");
-    for (final items in exact) {
-      await _insertGroup(DuplicateKind.exact, items, computedAt);
-    }
-    final exactSets = {for (final items in exact) _key(items)};
-    for (final items in await _itemsSharing('burst_id')) {
-      // A burst saved twice is already an exact group.
-      if (exactSets.contains(_key(items))) {
-        continue;
-      }
-      await _insertGroup(DuplicateKind.burst, items, computedAt);
-    }
-  });
+  /// Only items of [period] are grouped. Trashed items stay in their
+  /// groups; screens leave them out, so undoing a trash brings the group
+  /// back.
+  Future<void> rebuildGroups({DateTime? now, DateFilter? period}) =>
+      _db.transaction(() async {
+        final computedAt = now ?? DateTime.now();
+        await (_db.delete(_db.duplicateGroups)..where(
+              (g) =>
+                  g.kind.equalsValue(DuplicateKind.exact) |
+                  g.kind.equalsValue(DuplicateKind.burst),
+            ))
+            .go();
+        final exact = await _itemsSharing(
+          'content_hash',
+          excluded: "''",
+          period: period,
+        );
+        for (final items in exact) {
+          await _insertGroup(DuplicateKind.exact, items, computedAt);
+        }
+        final exactSets = {for (final items in exact) _key(items)};
+        for (final items in await _itemsSharing('burst_id', period: period)) {
+          // A burst saved twice is already an exact group.
+          if (exactSets.contains(_key(items))) {
+            continue;
+          }
+          await _insertGroup(DuplicateKind.burst, items, computedAt);
+        }
+      });
 
   /// The ids of [items], in order, as one string.
   static String _key(List<MediaItem> items) =>
       [for (final item in items) item.id].join(',');
 
-  /// Items grouped by the value of [column], for every value held by two
-  /// items or more; `NULL` and [excluded] (an SQL literal) are skipped.
+  /// Items of [period] grouped by the value of [column], for every value
+  /// held by two items or more of it; `NULL` and [excluded] (an SQL
+  /// literal) are skipped.
   Future<List<List<MediaItem>>> _itemsSharing(
     String column, {
     String? excluded,
+    DateFilter? period,
   }) async {
-    final skip = excluded == null ? '' : 'AND $column != $excluded ';
+    final skip = excluded == null ? '' : 'AND b.$column != $excluded ';
+    final (inA, varsA) = _inPeriod(period);
+    final (inB, varsB) = _inPeriod(period, alias: 'b');
     final rows = await _db
         .customSelect(
-          'SELECT * FROM assets WHERE $column IN ( '
-          'SELECT $column FROM assets '
-          'WHERE $column IS NOT NULL $skip'
-          'GROUP BY $column HAVING COUNT(*) > 1) '
-          'ORDER BY $column, id',
+          'SELECT a.* FROM assets a WHERE $inA AND a.$column IN ( '
+          'SELECT b.$column FROM assets b '
+          'WHERE b.$column IS NOT NULL $skip AND $inB '
+          'GROUP BY b.$column HAVING COUNT(*) > 1) '
+          'ORDER BY a.$column, a.id',
+          variables: [...varsA, ...varsB],
           readsFrom: {_db.assets},
         )
         .get();

@@ -4,6 +4,7 @@ import 'package:clean_gallery/core/brand/glass.dart';
 import 'package:clean_gallery/core/media/media_formatting.dart';
 import 'package:clean_gallery/core/media/media_thumbnail.dart';
 import 'package:clean_gallery/core/providers.dart';
+import 'package:clean_gallery/core/widgets/steady_slider.dart';
 import 'package:clean_gallery/domain/media_item.dart';
 import 'package:clean_gallery/features/viewer/video_gestures.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
@@ -275,7 +276,7 @@ class _VideoControlsState extends State<VideoControls> {
                               thumbColor: Colors.white,
                               overlayColor: Colors.white12,
                             ),
-                            child: Slider(
+                            child: SteadySlider(
                               value: sliderMs,
                               max: maxMs,
                               onChangeStart: (ms) =>

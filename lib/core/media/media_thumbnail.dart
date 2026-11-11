@@ -89,14 +89,30 @@ String mediaLabel(BuildContext context, MediaItem item) {
       : l10n.mediaPhotoLabel(date);
 }
 
+/// Sizes a thumbnail may be asked for, in physical pixels: a few steps, so
+/// the image cache keeps reusing them.
+const thumbnailSteps = [192, 256, 320, 384, 512, 640, 768, 1024, 1280];
+
+/// Smallest of [thumbnailSteps] covering [logicalSide] at
+/// [devicePixelRatio], the largest one beyond: what a thumbnail
+/// [logicalSide] wide asks for to stay sharp.
+int thumbnailPixels(double logicalSide, double devicePixelRatio) {
+  final needed = logicalSide * devicePixelRatio;
+  for (final step in thumbnailSteps) {
+    if (step >= needed) return step;
+  }
+  return thumbnailSteps.last;
+}
+
 /// Square thumbnail of a photo or video, with a duration badge on videos,
 /// a heart on favorites and, on the cover of a folded stack of duplicates,
 /// the number of items in it.
 class MediaThumbnail extends ConsumerWidget {
-  /// Creates a thumbnail of [item], decoded at about [pixelSize] pixels.
+  /// Creates a thumbnail of [item], decoded at about [pixelSize] pixels,
+  /// or at the size it is laid out at when [pixelSize] is `null`.
   const MediaThumbnail({
     required this.item,
-    required this.pixelSize,
+    this.pixelSize,
     this.onTap,
     this.onSelect,
     this.hero = true,
@@ -116,8 +132,10 @@ class MediaThumbnail extends ConsumerWidget {
   /// Item to show.
   final MediaItem item;
 
-  /// Thumbnail size requested from the platform, in physical pixels.
-  final int pixelSize;
+  /// Thumbnail size requested from the platform, in physical pixels (the
+  /// image's short side); `null` to follow the laid out size, see
+  /// [thumbnailPixels].
+  final int? pixelSize;
 
   /// Called when the thumbnail is tapped.
   final VoidCallback? onTap;
@@ -126,6 +144,19 @@ class MediaThumbnail extends ConsumerWidget {
   /// own long press, which selects by sliding, needs the finger's position
   /// and is hidden from them.
   final VoidCallback? onSelect;
+
+  /// Size to ask for in [box]: its longest side, since the image is
+  /// cropped to cover the whole box.
+  static int _fitted(BuildContext context, BoxConstraints box) {
+    final side = [
+      box.maxWidth,
+      box.maxHeight,
+    ].where((v) => v.isFinite).fold<double>(0, (a, b) => a > b ? a : b);
+    return thumbnailPixels(
+      side == 0 ? 128 : side,
+      MediaQuery.devicePixelRatioOf(context),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -158,14 +189,29 @@ class MediaThumbnail extends ConsumerWidget {
                 createRectTween: mediaHeroRectTween(item),
                 flightShuttleBuilder: mediaHeroShuttle,
                 curve: mediaHeroCurve,
-                child: RetryingImage(
-                  image: source.thumbnail(item, size: pixelSize),
-                  failure: Icon(
-                    item.isVideo
-                        ? Icons.movie_outlined
-                        : Icons.broken_image_outlined,
-                    color: colors.onSurfaceVariant,
-                  ),
+                child: LayoutBuilder(
+                  builder: (context, box) {
+                    final size = pixelSize ?? _fitted(context, box);
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        RetryingImage(
+                          image: source.thumbnail(item, size: size),
+                          failure: Icon(
+                            item.isVideo
+                                ? Icons.movie_outlined
+                                : Icons.broken_image_outlined,
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                        SharpUpgrade(
+                          cached: source.thumbnail(item, size: size),
+                          sharp: source.sharpThumbnail(item, size: size),
+                          size: size,
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -244,6 +290,106 @@ class _Badge extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Shows [sharp] over a [cached] thumbnail once the cached image turns out
+/// visibly smaller than [size] (its short side under 80 % of it), fading
+/// it in when it arrives.
+///
+/// The cached thumbnail always shows first, at once: MediaStore's cache
+/// stops at 512 pixels on Samsung phones, so large cells (two columns,
+/// album covers, memory cards) need the photo decoded from its file, about
+/// half a second each, which the native loader does in a lane of its own.
+class SharpUpgrade extends StatefulWidget {
+  /// Creates the layer.
+  const SharpUpgrade({
+    required this.cached,
+    required this.sharp,
+    required this.size,
+    super.key,
+  });
+
+  /// The thumbnail shown underneath, whose size decides.
+  final ImageProvider cached;
+
+  /// The sharp version, or `null` when there is none (videos).
+  final ImageProvider? sharp;
+
+  /// Short side asked for, in pixels.
+  final int size;
+
+  /// Share of [size] a cached thumbnail must reach to be kept alone.
+  static const minShare = 0.8;
+
+  @override
+  State<SharpUpgrade> createState() => _SharpUpgradeState();
+}
+
+class _SharpUpgradeState extends State<SharpUpgrade> {
+  ImageStream? _stream;
+  bool _needed = false;
+
+  late final _listener = ImageStreamListener((info, _) {
+    final image = info.image;
+    final needed =
+        (image.width < image.height ? image.width : image.height) <
+        SharpUpgrade.minShare * widget.size;
+    info.dispose();
+    if (mounted && needed != _needed) setState(() => _needed = needed);
+  }, onError: (_, _) {});
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _resolve();
+  }
+
+  @override
+  void didUpdateWidget(SharpUpgrade oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.cached != widget.cached || oldWidget.size != widget.size) {
+      _needed = false;
+      _resolve();
+    }
+  }
+
+  void _resolve() {
+    if (widget.sharp == null) return;
+    final stream = widget.cached.resolve(
+      createLocalImageConfiguration(context),
+    );
+    if (stream.key == _stream?.key) return;
+    _stream?.removeListener(_listener);
+    _stream = stream..addListener(_listener);
+  }
+
+  @override
+  void dispose() {
+    _stream?.removeListener(_listener);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sharp = widget.sharp;
+    if (!_needed || sharp == null) return const SizedBox.shrink();
+    return Image(
+      image: sharp,
+      fit: BoxFit.cover,
+      gaplessPlayback: true,
+      frameBuilder: (context, child, frame, synchronous) {
+        if (synchronous) return child;
+        return AnimatedOpacity(
+          opacity: frame == null ? 0 : 1,
+          duration: AppMotion.of(context, AppMotion.standard),
+          curve: AppMotion.curve,
+          child: child,
+        );
+      },
+      // The cached thumbnail stays: a sharp one that fails changes nothing.
+      errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
     );
   }
 }

@@ -138,7 +138,8 @@ final class AndroidPlatformBridge implements PlatformBridge {
 
   /// Raw RGBA pixels of MediaStore item [id], fitting in [width] × [height],
   /// read from MediaStore's thumbnail cache, or decoded from the file with
-  /// [fromFile].
+  /// [fromFile]. With [sharp], the request waits in the native lane of
+  /// sharp grid thumbnails, so it never holds up cached ones.
   ///
   /// Android-only helper used by the thumbnail and preview providers.
   /// Throws a [PlatformException] with code `not_found` or `dropped` (the
@@ -149,6 +150,7 @@ final class AndroidPlatformBridge implements PlatformBridge {
     required int width,
     required int height,
     bool fromFile = false,
+    bool sharp = false,
   }) async {
     final reply = await _channel.invokeMapMethod<String, Object>('thumbnail', {
       'id': id,
@@ -156,6 +158,7 @@ final class AndroidPlatformBridge implements PlatformBridge {
       'width': width,
       'height': height,
       'fromFile': fromFile,
+      'sharp': sharp,
     });
     if (reply == null) throw StateError('No thumbnail for $id');
     return RawImageData(

@@ -2,7 +2,7 @@
 
 How Clean Gallery is tested: test layers, commands, fakes and fixtures. Every milestone adds tests for what it builds; a milestone is not done until the suite passes.
 
-Last updated: 2026-11-05 — Milestone M11
+Last updated: 2026-11-11 — Issue #19
 
 ## Commands
 
@@ -64,7 +64,11 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [duplicates_test.dart](../test/core/media/duplicates_test.dart) | Only size collisions hashed, exact groups, no re-read, filter by folder, trash and undo, changed file, favorite kept, burst groups, a burst saved twice. |
 | [duplicates_flow_test.dart](../test/features/duplicates/duplicates_flow_test.dart) | Duplicates tile and count, screen, clean all with summary, keep every copy, open a photo full screen. |
 | [perceptual_hash_test.dart](../test/analysis/perceptual_hash_test.dart) | Hamming distance, area resize; the same photo recompressed, resized, brightened, cropped stays close; 40 unrelated scenes stay apart (false positive regression). |
-| [similarity_test.dart](../test/analysis/similarity_test.dart) | Multi-index search against brute force, union-find, strict and loose rules, aspect ratio, chains, ignored pairs, certain groups, presets, confidence, a mixed photo set. |
+| [similarity_test.dart](../test/analysis/similarity_test.dart) | Multi-index search against brute force, union-find, strict and loose rules, aspect ratio, chains, ignored pairs, certain groups, presets, High groups a scene reframed minutes later (issue #19), confidence, a mixed photo set. |
+| [duplicates_test.dart](../test/core/media/duplicates_test.dart) (period) and [similar_photos_test.dart](../test/core/media/similar_photos_test.dart) (period) | Items outside the duplicate period are neither hashed nor grouped; similar photos of the period only, every photo still measured, the period's first. |
+| [steady_slider_test.dart](../test/core/widgets/steady_slider_test.dart) | The app's slider rounds to its steps within its range and is never a discrete (animated) Material slider. |
+| [media_thumbnail_test.dart](../test/core/media/media_thumbnail_test.dart) | Thumbnail size steps; a thumbnail without a size asks for the size of its box; the sharp version only over a cached thumbnail too small. |
+| [color_picker_test.dart](../test/features/editor/color_picker_test.dart) | Hex codes of the editor's color picker. |
 | [similar_photos_test.dart](../test/core/media/similar_photos_test.dart) | Similar scan through the media source: groups, photos only, hashes kept, Not duplicates, changed file, new thresholds without re-reading, exact copies stay certain, folder filter. |
 | [similar_flow_test.dart](../test/features/duplicates/similar_flow_test.dart) | Similar photos section, Not duplicates, Stats values and link to the duplicates screen. |
 | [storage_summary_test.dart](../test/features/stats/storage_summary_test.dart) | Dashboard values by category, an item counted once (also across screenshots and large videos), the trash, an empty library. |
@@ -135,6 +139,30 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 12 | Kill the app mid-onboarding, relaunch | any | Onboarding restarts from the first page. |
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
+
+### Issue #19 and blurry thumbnails — to verify on a device
+
+Built on branch `fix-issue-19` on 2026-11-11. **Confirmed on the phone by the product owner on 2026-11-11** ("tout est ok"), except item 7: thumbnails loaded more slowly than before. Measured and fixed the same day (sharp versions in a lane of their own, [library.md](features/library.md#thumbnail-size)); items 14 to 17 check the fix and the color picker, **confirmed on the phone the same day** ("tout est bon").
+
+| # | Do | Expected |
+| --- | --- | --- |
+| 1 | Editor → Ajuster → Luminosité at 0: drag the thumb right, then from 0 to the left | The thumb follows the finger from the first movement, both ways, without tapping first. |
+| 2 | Same slider, and Redresser, Intensité of a filter: drag fast back and forth | The thumb stays under the finger, without lagging then catching up. |
+| 3 | Settings → Corbeille retention, and the three sliders of *Mode avancé*; the video slider | Same: immediate and steady. |
+| 4 | Settings → Analyse | *Photos similaires : seuil de tolérance*; the text under Faible / Moyenne / Élevée changes with the one picked and says what it groups. |
+| 5 | Pick *Élevée*, open Doublons → Photos similaires | Shots of one scene taken a few minutes apart, slightly reframed, are grouped. Note any group of unrelated photos. |
+| 6 | *Mode avancé* | Starts at 10 / 64, 18 / 64 and *10 minutes*; the last slider goes from 5 secondes to 30 minutes. |
+| 7 | Camera grid at 4 columns, then pinch to 3 and 2 | Thumbnails sharp at every size; at 2 columns they may appear a moment later than before. |
+| 8 | Albums tab (covers of the mosaic), a memory card | Covers sharp, no longer soft or pixelated. |
+| 9 | Scroll the grid fast | As smooth as before; no run of missing thumbnails. |
+| 10 | Settings → Analyse → *Période analysée*: *Du* a date a few months ago | The date shows in the accent with a cross; *Toute la bibliothèque* appears; the analysis runs again. |
+| 11 | Stats, the Duplicates tile of Camera, Doublons | Only groups of photos taken since that date; counts match. Doublons shows *Période : <date> – aujourd'hui* at the top. |
+| 12 | Open a photo of an old duplicate pair | No group strip in the viewer for it. |
+| 13 | The chip's cross in Doublons (or *Toute la bibliothèque*) | Every group is back, without reading the whole library again. |
+| 14 | Camera grid at 4 columns, scroll fast | Thumbnails as quick as in 1.0.0. |
+| 15 | Pinch to 2 columns, Albums covers, a memory card | A thumbnail shows at once, then turns sharp a moment later with a short fade. |
+| 16 | Editor → Dessiner: scroll the color row, tap the rainbow swatch | The picker opens; the square, the hue bar and a typed code (e.g. `#12AB9F`) change the new color; *Choisir* applies it and the rainbow swatch shows it framed. |
+| 17 | Texte: the same for the text color and its background | Same picker; *Aucun* still removes the background. |
 
 ### M12 — release preparation, to verify on a device
 

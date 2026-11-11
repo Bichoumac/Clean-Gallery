@@ -327,11 +327,7 @@ class _AllMediaTile extends ConsumerWidget {
                 ColoredBox(color: theme.colorScheme.surfaceContainerHigh),
                 if (cover != null)
                   IgnorePointer(
-                    child: MediaThumbnail(
-                      item: cover,
-                      pixelSize: 768,
-                      hero: false,
-                    ),
+                    child: MediaThumbnail(item: cover, hero: false),
                   ),
                 // Keeps the white text readable on any photo.
                 const DecoratedBox(
@@ -729,11 +725,7 @@ class _AlbumTile extends ConsumerWidget {
                           color: theme.colorScheme.surfaceContainerHigh,
                         ),
                         if (cover != null)
-                          MediaThumbnail(
-                            item: cover,
-                            pixelSize: 512,
-                            hero: false,
-                          ),
+                          MediaThumbnail(item: cover, hero: false),
                         if (icon != null)
                           Positioned(
                             top: 10,

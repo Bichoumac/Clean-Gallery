@@ -140,21 +140,71 @@ void main() {
     await tester.pumpAndSettle();
     expect(await repository.read(SettingKeys.similaritySensitivity), 'high');
     expect(find.text('Any date: difference up to'), findsNothing);
+    // Issue #19: the presets read as tolerance thresholds.
+    expect(find.text('Similar photos: tolerance threshold'), findsOneWidget);
+    expect(find.textContaining('High tolerance:'), findsOneWidget);
 
     await reveal('Advanced mode');
     await tester.tap(find.text('Advanced mode'));
     await tester.pumpAndSettle();
     expect(await repository.read(SettingKeys.similaritySensitivity), 'custom');
     // The advanced mode starts from the preset in use.
-    expect(await repository.read(SettingKeys.similarityStrict), '8');
+    expect(await repository.read(SettingKeys.similarityStrict), '10');
     expect(find.text('Any date: difference up to'), findsOneWidget);
-    expect(find.text('8 / 64'), findsOneWidget);
-    expect(find.text('30 seconds'), findsOneWidget);
+    expect(find.text('10 / 64'), findsOneWidget);
+    expect(find.text('10 minutes'), findsOneWidget);
+    expect(await repository.read(SettingKeys.similarityWindow), '600');
 
     await reveal('Advanced mode');
     await tester.tap(find.text('Advanced mode'));
     await tester.pumpAndSettle();
     expect(await repository.read(SettingKeys.similaritySensitivity), 'medium');
+  });
+
+  testApp('the duplicate period is picked, saved and reset', (tester) async {
+    final db = inMemoryDatabase();
+    addTearDown(db.close);
+    await pumpTestApp(tester, database: db);
+    await openSettings(tester);
+    final repository = SettingsRepository(db);
+
+    await tester.scrollUntilVisible(
+      find.text('To'),
+      100,
+      scrollable: find.byType(Scrollable).last,
+    );
+    // In the middle of the page, clear of the floating navigation bar.
+    await Scrollable.ensureVisible(
+      tester.element(find.text('From')),
+      alignment: 0.4,
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Period analyzed'), findsOneWidget);
+    expect(find.text('the beginning'), findsOneWidget);
+    expect(find.text('Whole library'), findsNothing);
+
+    // From: today, as the calendar opens on it.
+    await tester.tap(find.text('From'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('OK'));
+    await tester.pumpAndSettle();
+    final now = DateTime.now();
+    expect(
+      await repository.read(SettingKeys.duplicatePeriodStart),
+      isoDay(now),
+    );
+    expect(await repository.read(SettingKeys.duplicatePeriodEnd), '');
+    expect(find.text('the beginning'), findsNothing);
+
+    await Scrollable.ensureVisible(
+      tester.element(find.text('Whole library')),
+      alignment: 0.4,
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Whole library'));
+    await tester.pumpAndSettle();
+    expect(await repository.read(SettingKeys.duplicatePeriodStart), '');
+    expect(find.text('the beginning'), findsOneWidget);
   });
 
   testApp('permission statuses are shown', (tester) async {

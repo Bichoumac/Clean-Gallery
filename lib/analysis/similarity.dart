@@ -7,15 +7,17 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'similarity.freezed.dart';
 
-/// How eager the similar photo search is, chosen in Settings.
+/// Tolerance of the similar photo search, chosen in Settings: how much two
+/// photos may differ and still be grouped.
 enum SimilaritySensitivity {
-  /// Only near-identical photos.
+  /// Low tolerance: only near-identical photos.
   low,
 
-  /// The brief's defaults.
+  /// Medium tolerance, the default.
   medium,
 
-  /// Also photos with small differences (framing, a moved subject).
+  /// High tolerance: also photos with notable differences (framing, a
+  /// moved subject).
   high,
 
   /// Thresholds set by hand in the advanced mode.
@@ -48,25 +50,31 @@ abstract class SimilarityThresholds with _$SimilarityThresholds {
         SimilaritySensitivity.high => high,
       };
 
-  /// Fewer, safer matches.
+  // Measured on public test photos (ADR 0034): the same scene panned by
+  // 4 % or zoomed by 10 % is about 16 bits apart (up to 22-28); unrelated
+  // photos are 32 apart (never under 22). The time window does most of the
+  // work: shots of one scene are taken minutes apart, not seconds.
+
+  /// Low tolerance: near-identical photos only.
   static const low = SimilarityThresholds(
     strict: 4,
     loose: 10,
-    window: Duration(seconds: 5),
-  );
-
-  /// The brief's defaults.
-  static const medium = SimilarityThresholds(
-    strict: 6,
-    loose: 12,
     window: Duration(seconds: 10),
   );
 
-  /// More matches, more to review.
-  static const high = SimilarityThresholds(
-    strict: 8,
+  /// Medium tolerance: close photos with a few differences.
+  static const medium = SimilarityThresholds(
+    strict: 6,
     loose: 14,
-    window: Duration(seconds: 30),
+    window: Duration(minutes: 1),
+  );
+
+  /// High tolerance: the same scene, even reframed or with a moved
+  /// subject. More to review.
+  static const high = SimilarityThresholds(
+    strict: 10,
+    loose: 18,
+    window: Duration(minutes: 10),
   );
 
   /// Largest strict distance offered in the advanced mode. Beyond it,
@@ -76,10 +84,23 @@ abstract class SimilarityThresholds with _$SimilarityThresholds {
 
   /// Largest loose distance offered in the advanced mode. Cheap: only
   /// photos taken within the window are compared.
-  static const maxLoose = 20;
+  static const maxLoose = 24;
 
   /// Longest window offered in the advanced mode.
-  static const maxWindow = Duration(seconds: 60);
+  static const maxWindow = Duration(minutes: 30);
+
+  /// Windows offered by the advanced mode's slider, shortest first.
+  static const windowStops = [
+    Duration(seconds: 5),
+    Duration(seconds: 10),
+    Duration(seconds: 30),
+    Duration(minutes: 1),
+    Duration(minutes: 2),
+    Duration(minutes: 5),
+    Duration(minutes: 10),
+    Duration(minutes: 15),
+    Duration(minutes: 30),
+  ];
 
   /// Largest relative difference of aspect ratio for the strict rule.
   static const aspectTolerance = 0.02;

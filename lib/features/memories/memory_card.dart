@@ -74,8 +74,7 @@ class MemoryCard extends ConsumerWidget {
             child: Stack(
               fit: StackFit.expand,
               children: [
-                if (cover != null)
-                  MediaThumbnail(item: cover, pixelSize: 512, hero: false),
+                if (cover != null) MediaThumbnail(item: cover, hero: false),
                 // Keeps the white text readable on any photo.
                 const DecoratedBox(
                   decoration: BoxDecoration(

@@ -26,6 +26,13 @@ import kotlin.math.roundToInt
  * Videos without a MediaStore thumbnail fall back to the cover picture
  * embedded in the file, then to the frame at 10 % of the video.
  *
+ * Sharp thumbnails (photos decoded from their files at a grid cell's size,
+ * when MediaStore's cached thumbnail is too small for it) wait in a lane of
+ * their own, [SHARP_THREADS] wide: each takes about half a second, and in
+ * the main lane they held up every cached thumbnail behind them (measured
+ * on the phone on 2026-11-11: 1.4 s median wait, 4.4 s at the 90th
+ * percentile, for 17 ms of decoding).
+ *
  * Requests are served **last in, first out**: when the user scrolls far,
  * the thumbnails now on screen are loaded before the ones scrolled past.
  * Beyond [MAX_PENDING] waiting requests, the oldest are dropped and answered
@@ -39,17 +46,16 @@ class ThumbnailLoader(
 ) {
     private val resolver = context.contentResolver
 
-    private val queue = LinkedBlockingDeque<Runnable>()
+    private val main = Lane(THREADS)
 
-    private val pool = ThreadPoolExecutor(
-        THREADS, THREADS, 30, TimeUnit.SECONDS, queue,
-    )
+    private val sharp = Lane(SHARP_THREADS)
 
     /**
      * Loads the image of MediaStore item [id] fitting in [width] × [height]
      * pixels and replies with `{width, height, rowBytes, pixels}`, where
      * `pixels` is RGBA 8888. With [fromFile], a photo is decoded from its
      * file instead of MediaStore's cache: slower, but sharp at any size.
+     * With [sharpLane], the request waits in the lane of sharp thumbnails.
      *
      * Errors: `not_found` if the item or its thumbnail cannot be read,
      * `dropped` if the request was dropped from the queue.
@@ -60,23 +66,17 @@ class ThumbnailLoader(
         width: Int,
         height: Int,
         fromFile: Boolean,
+        sharpLane: Boolean,
         result: MethodChannel.Result,
     ) {
         val job = Job(result) { decode(id, isVideo, width, height, fromFile) }
-        synchronized(queue) {
-            // Newest first: put the job at the head of the queue.
-            queue.offerFirst(job)
-            while (queue.size > MAX_PENDING) {
-                (queue.pollLast() as? Job)?.drop()
-            }
-        }
-        // Wake a worker; the executor takes jobs from the head of the queue.
-        pool.prestartAllCoreThreads()
+        (if (sharpLane) sharp else main).add(job)
     }
 
     /** Stops the worker threads. */
     fun shutdown() {
-        pool.shutdownNow()
+        main.shutdown()
+        sharp.shutdown()
     }
 
     private fun decode(
@@ -185,6 +185,35 @@ class ThumbnailLoader(
         return BitmapFactory.decodeByteArray(bytes, 0, bytes.size, options)
     }
 
+    /**
+     * Worker threads serving their own queue, newest request first; beyond
+     * [MAX_PENDING] waiting requests, the oldest are dropped.
+     */
+    private class Lane(threads: Int) {
+        private val queue = LinkedBlockingDeque<Runnable>()
+
+        private val pool = ThreadPoolExecutor(
+            threads, threads, 30, TimeUnit.SECONDS, queue,
+        )
+
+        fun add(job: Job) {
+            synchronized(queue) {
+                // Newest first: put the job at the head of the queue.
+                queue.offerFirst(job)
+                while (queue.size > MAX_PENDING) {
+                    (queue.pollLast() as? Job)?.drop()
+                }
+            }
+            // Wake a worker; the executor takes jobs from the head of the
+            // queue.
+            pool.prestartAllCoreThreads()
+        }
+
+        fun shutdown() {
+            pool.shutdownNow()
+        }
+    }
+
     /** One request: runs [work] and replies once on the main thread. */
     private inner class Job(
         private val result: MethodChannel.Result,
@@ -210,5 +239,8 @@ class ThumbnailLoader(
 
         /** Waiting requests kept; older ones are dropped. */
         const val MAX_PENDING = 200
+
+        /** Parallel decodes of sharp thumbnails from photo files. */
+        const val SHARP_THREADS = 2
     }
 }

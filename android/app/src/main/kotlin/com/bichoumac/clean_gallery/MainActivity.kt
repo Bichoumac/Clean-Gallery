@@ -128,7 +128,8 @@ class MainActivity : FlutterActivity() {
                 } else {
                     val isVideo = call.argument<Boolean>("video") == true
                     val fromFile = call.argument<Boolean>("fromFile") == true
-                    thumbnails.load(id, isVideo, width, height, fromFile, result)
+                    val sharp = call.argument<Boolean>("sharp") == true
+                    thumbnails.load(id, isVideo, width, height, fromFile, sharp, result)
                 }
             }
             "setFavorite" -> actions.setFavorite(

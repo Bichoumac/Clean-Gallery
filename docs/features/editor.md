@@ -2,7 +2,7 @@
 
 Editing a photo and saving the result as a new photo: crop, straighten, rotate, flip; filters; enhance, color adjustments, vignette; pencil, blur, pixelate; texts.
 
-Last updated: 2026-11-04 — Visual refresh
+Last updated: 2026-11-11 — Issue #19
 
 ## Purpose
 
@@ -20,8 +20,9 @@ The brief's "Editing and filters". Built in M6 part 2 (2026-10-28), then extende
 4. **Adjust** (third icon): the cropped result. **Enhance** chip, then chips for Brightness, Contrast, Saturation, Exposure, Warmth, **Vignette** (a dot marks those in use) and one slider (-100 to 100) for the chip picked.
    - **Enhance** = automatic levels from the luminance histogram of the photo, no machine learning: the darkest 0.5 % of pixels become black and the lightest 0.5 % white (contrast capped at × 2, the slider's maximum), plus +10 saturation. The result is written into the Brightness, Contrast and Saturation sliders, so it can be refined.
    - **Vignette**: positive darkens the edges around the crop, negative lightens them.
-5. **Draw** (fourth icon): brush **Pen** (six colors), **Blur** or **Pixels** (to hide a face or a plate); three widths each (areas are wider); **Undo** removes the last line. Lines turn, mirror and crop with the photo; color adjustments do not change pen lines, but blurred and pixelated areas keep them.
+5. **Draw** (fourth icon): brush **Pen** (any color, see *Colors* below), **Blur** or **Pixels** (to hide a face or a plate); three widths each (areas are wider); **Undo** removes the last line. Lines turn, mirror and crop with the photo; color adjustments do not change pen lines, but blurred and pixelated areas keep them.
 6. **Text** (fifth icon): **Add text** asks for the words (several lines allowed) and places them at the center. Tap a text to select it (accent frame), drag it to move it, double-tap it to change its words. For the selected text: **Edit text**, four fonts (Modern = Manrope, Classic = serif, Typewriter = monospace, Handwritten = cursive), **Bold**, **Delete**, a size slider, a text color row and a background row (None or a color: a rounded box behind the text).
+7. **Colors** (pen, text, text background; product owner, 2026-11-11): a row that scrolls sideways with 16 swatches, after a rainbow swatch that opens the **precise picker**: a saturation and brightness square, a hue bar, the old and new colors side by side, and the hex code (`#12AB9F`) to type an exact color; *Use* applies it. A color from the picker shows inside the rainbow swatch, framed as selected. With TalkBack, the square and the bar are adjustable (brightness and hue by steps of 10).
 7. **Save** asks how: **Save as a copy** (a new photo next to the original) or **Replace the original** (the new photo, and the original moved to the app trash, from where it can be restored). The editor closes, says so, and the viewer shows the new photo. On failure: *The photo couldn't be saved.*, the editor stays open.
 8. **✕** or Back with changes asks *Discard your changes?*; without changes it closes at once.
 
@@ -38,6 +39,7 @@ The brief's "Editing and filters". Built in M6 part 2 (2026-10-28), then extende
 | Tool panels | [editor_tools.dart](../../lib/features/editor/editor_tools.dart) | `CropTools`, `FilterTools`, `AdjustTools`, `DrawTools`, `TextTools`, `ColorRow`. |
 
 - **Preview**: the viewer's screen-sized preview, decoded once into an `EditSource`, painted by `paintEdit` in a `CustomPainter`. A slider only repaints. The first version stacked widgets (`RotatedBox`, `ColorFiltered`…): sliders were slow to start and to follow on the phone (product owner, 2026-10-28).
+- **Sliders** are `SteadySlider` ([steady_slider.dart](../../lib/core/widgets/steady_slider.dart)), like every slider of the app. Until issue #19 (2026-11-11), a slider at zero only moved a step: its theme was added once the value left zero, which rebuilt the slider and ended the drag. And a Material slider with `divisions` eases its thumb towards each value, so a fast drag lagged then caught up. The theme is now always there with changing colors, and the slider is continuous, rounding its values itself.
 - **Saving**: the original is decoded at full size (at most 40 MP and 8192 px a side; a 50 MP photo is saved at about 40 MP), `renderEdit` paints the edit with the same `paintEdit` as the preview, and the RGBA pixels go to `PlatformBridge.saveEditedPhoto`. The native side ([PhotoSaver.kt](../../android/app/src/main/kotlin/com/bichoumac/clean_gallery/PhotoSaver.kt)) only encodes JPEG (quality 95), inserts it next to the original with its capture date (`<name>_edited_<time>.jpg`) and copies its EXIF tags (camera, settings, dates, GPS; orientation normal, new size). Then the index syncs and, for *Replace the original*, the original goes to the app trash ([ADR 0023](../decisions/0023-editor-color-matrix-preview.md)).
 - **Filter thumbnails**: the same `paintEdit` on the preview, small, with the crop, turns and adjustments but without lines and texts.
 - Flutter's decoder applies the EXIF orientation, so the saved photo is upright and its orientation tag is set to normal.
@@ -56,7 +58,8 @@ The brief's "Editing and filters". Built in M6 part 2 (2026-10-28), then extende
 - [photo_edit_test.dart](../../test/domain/photo_edit_test.dart): crop turning and mirroring, moves, shapes, corner drags, identity, oriented ratio, adjustments, strokes and texts following the photo, straighten scale covering the frame.
 - [color_matrix_test.dart](../../test/analysis/color_matrix_test.dart), [enhance_test.dart](../../test/analysis/enhance_test.dart): each adjustment, composition, clamping; filters (no color left by B&W and Noir, sepia tones, warm and cool, fade and soft, strength blend, filter before adjustments); auto levels (stretch, × 2 cap, clipping of extremes, other adjustments kept), histogram.
 - [edit_painter_test.dart](../../test/features/editor/edit_painter_test.dart): the line's area (overlaps, round ends), and a checkerboard rendered with blur and pixelate changed only under the line.
-- [editor_test.dart](../../test/features/editor/editor_test.dart): no Edit on videos, rotate and reset, sliders, closing with and without changes, 1:1, corner drag, pencil and undo, straighten, Enhance and Vignette, Before/After, blur brush, filters (pick, strength, None), texts (add, font, bold, move, delete), Save as a copy, Replace the original.
+- [color_picker_test.dart](../../test/features/editor/color_picker_test.dart): hex codes read and written.
+- [editor_test.dart](../../test/features/editor/editor_test.dart): no Edit on videos, rotate and reset, sliders, a slider following the finger from zero, the pencil taking a color from the precise picker, closing with and without changes, 1:1, corner drag, pencil and undo, straighten, Enhance and Vignette, Before/After, blur brush, filters (pick, strength, None), texts (add, font, bold, move, delete), Save as a copy, Replace the original.
 - Rendering and the native save are checked on the device ([testing.md](../testing.md#m6--viewer-and-editing-to-verify-on-a-device)).
 
 ## Look

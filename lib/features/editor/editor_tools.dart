@@ -1,8 +1,11 @@
+import 'package:clean_gallery/core/widgets/steady_slider.dart';
 import 'package:clean_gallery/domain/photo_edit.dart';
+import 'package:clean_gallery/features/editor/color_picker.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
-/// Pencil and text colors, as 0xAARRGGBB.
+/// Pencil and text colors offered as swatches, as 0xAARRGGBB; any other
+/// comes from the precise picker ([showEditorColorPicker]).
 const editorColors = [
   0xFFFFFFFF,
   0xFF000000,
@@ -10,6 +13,16 @@ const editorColors = [
   0xFFFF453A,
   0xFFFFD60A,
   0xFF0A84FF,
+  0xFFFF9F0A, // Orange.
+  0xFFFF375F, // Pink.
+  0xFFBF5AF2, // Purple.
+  0xFF5E5CE6, // Indigo.
+  0xFF64D2FF, // Cyan.
+  0xFF30D158, // Green.
+  0xFF63E6BE, // Mint.
+  0xFFA2845E, // Brown.
+  0xFF8E8E93, // Gray.
+  0xFFD1D1D6, // Light gray.
 ];
 
 /// Pencil widths, as fractions of the photo's shorter side.
@@ -21,22 +34,27 @@ const areaWidths = [0.04, 0.08, 0.14];
 
 /// A slider of the editor: neutral, in the accent only when it [active]ly
 /// changes the photo, so the accent always says what is being edited.
+///
+/// The [SliderTheme] is always there, only its colors change: adding it
+/// when the value leaves zero would rebuild the slider and end the drag.
 class _ToolSlider extends StatelessWidget {
   const _ToolSlider({required this.active, required this.child});
 
   final bool active;
-  final Slider child;
+  final SteadySlider child;
 
   @override
   Widget build(BuildContext context) {
-    if (active) return child;
+    final theme = SliderTheme.of(context);
     return SliderTheme(
-      data: const SliderThemeData(
-        activeTrackColor: Colors.white,
-        inactiveTrackColor: Colors.white24,
-        thumbColor: Colors.white,
-        overlayColor: Colors.white12,
-      ),
+      data: active
+          ? theme
+          : theme.copyWith(
+              activeTrackColor: Colors.white,
+              inactiveTrackColor: Colors.white24,
+              thumbColor: Colors.white,
+              overlayColor: Colors.white12,
+            ),
       child: child,
     );
   }
@@ -62,7 +80,8 @@ class _ChipRow extends StatelessWidget {
   );
 }
 
-/// A row of round color swatches, with an optional "none" first.
+/// A row of round color swatches that scrolls sideways: an optional "none",
+/// the precise picker, then [editorColors].
 class ColorRow extends StatelessWidget {
   /// Creates the row; [selected] `null` is "none" when [allowNone].
   const ColorRow({
@@ -96,6 +115,8 @@ class ColorRow extends StatelessWidget {
         selected: picked,
         label: '$label, $name',
         excludeSemantics: true,
+        // excludeSemantics also drops the detector's tap: give it back.
+        onTap: () => onSelected(color),
         child: GestureDetector(
           onTap: () => onSelected(color),
           child: Container(
@@ -121,13 +142,80 @@ class ColorRow extends StatelessWidget {
       );
     }
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        if (allowNone) swatch(null, l10n.editorNoBackground),
-        for (final (i, color) in editorColors.indexed)
-          swatch(color, l10n.editorPenColor(i + 1)),
-      ],
+    final current = selected;
+    // A color from the picker shows on the picker's swatch.
+    final custom = current != null && !editorColors.contains(current)
+        ? current
+        : null;
+    Future<void> pick() async {
+      final picked = await showEditorColorPicker(
+        context,
+        current ?? editorColors.first,
+      );
+      if (picked != null) onSelected(picked);
+    }
+
+    final pickerSwatch = Semantics(
+      button: true,
+      selected: custom != null,
+      label: '$label, ${l10n.editorColorPicker}',
+      excludeSemantics: true,
+      onTap: pick,
+      child: GestureDetector(
+        onTap: pick,
+        child: Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const SweepGradient(
+              colors: [
+                Color(0xFFFF453A),
+                Color(0xFFFFD60A),
+                Color(0xFF30D158),
+                Color(0xFF64D2FF),
+                Color(0xFF0A84FF),
+                Color(0xFFBF5AF2),
+                Color(0xFFFF453A),
+              ],
+            ),
+            border: Border.all(
+              color: custom != null ? accent : Colors.white38,
+              width: custom != null ? 3 : 1,
+            ),
+          ),
+          padding: const EdgeInsets.all(6),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: custom == null ? Colors.black45 : Color(custom),
+            ),
+            child: custom == null
+                ? const Icon(Icons.add_rounded, size: 14, color: Colors.white)
+                : null,
+          ),
+        ),
+      ),
+    );
+
+    return SizedBox(
+      height: 44,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        children: [
+          for (final child in [
+            if (allowNone) swatch(null, l10n.editorNoBackground),
+            pickerSwatch,
+            for (final (i, color) in editorColors.indexed)
+              swatch(color, l10n.editorPenColor(i + 1)),
+          ])
+            Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: Center(child: child),
+            ),
+        ],
+      ),
     );
   }
 }
@@ -196,11 +284,11 @@ class CropTools extends StatelessWidget {
               Expanded(
                 child: _ToolSlider(
                   active: angle != 0,
-                  child: Slider(
+                  child: SteadySlider(
                     value: angle,
                     min: -45,
                     max: 45,
-                    divisions: 180,
+                    steps: 180,
                     label: '${angle.toStringAsFixed(1)}°',
                     semanticFormatterCallback: (v) =>
                         '${l10n.editorStraighten} ${v.toStringAsFixed(1)}°',
@@ -286,10 +374,10 @@ class AdjustTools extends StatelessWidget {
               Expanded(
                 child: _ToolSlider(
                   active: value != 0,
-                  child: Slider(
+                  child: SteadySlider(
                     value: value,
                     min: -1,
-                    divisions: 200,
+                    steps: 200,
                     label: '${(value * 100).round()}',
                     semanticFormatterCallback: (v) =>
                         '${label(selected)} ${(v * 100).round()}',
@@ -401,9 +489,9 @@ class FilterTools extends StatelessWidget {
                 Expanded(
                   child: _ToolSlider(
                     active: true,
-                    child: Slider(
+                    child: SteadySlider(
                       value: strength,
-                      divisions: 100,
+                      steps: 100,
                       label: '$percent',
                       semanticFormatterCallback: (v) =>
                           '${l10n.editorFilterStrength} ${(v * 100).round()}',
@@ -679,7 +767,7 @@ class TextTools extends StatelessWidget {
               Expanded(
                 child: _ToolSlider(
                   active: false,
-                  child: Slider(
+                  child: SteadySlider(
                     value: text.size,
                     min: 0.02,
                     max: 0.2,

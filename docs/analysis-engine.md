@@ -2,7 +2,7 @@
 
 Algorithms that work out facts about photos and videos on the device: capture dates, exact duplicates, bursts, similar photos, screenshots, and blurry or dark photos. This file lists each algorithm, its thresholds and their rationale, and performance notes.
 
-Last updated: 2026-10-27 — Milestone M5
+Last updated: 2026-11-11 — Issue #19
 
 ## Overview
 
@@ -148,16 +148,16 @@ Similar pairs are joined into groups transitively (union-find). Pairs are never 
 
 ### Sensitivity
 
-Chosen in Settings ([settings.md](features/settings.md)); changing it regroups from the stored hashes, without reading any thumbnail.
+Chosen in Settings as a **tolerance threshold** ([settings.md](features/settings.md)); changing it regroups from the stored hashes, without reading any thumbnail.
 
 | Preset | Strict | Loose | Time window |
 | --- | --- | --- | --- |
-| Low | 4 | 10 | 5 s |
-| **Medium** (default, the brief's values) | 6 | 12 | 10 s |
-| High | 8 | 14 | 30 s |
-| Advanced mode | 0–10 | 0–20 | 0–60 s |
+| Low | 4 | 10 | 10 s |
+| **Medium** (default) | 6 | 14 | 1 min |
+| High | 10 | 18 | 10 min |
+| Advanced mode | 0–10 | 0–24 | 5 s – 30 min |
 
-**Why these bounds**: at a strict distance of 12, unrelated photos start to match (random hashes gave 90 false groups among 30,000), so the advanced mode stops at 10. The loose rule is protected by the time window, so it goes further.
+**Why these values** ([ADR 0034](decisions/0034-wider-similarity-tolerance.md)): the same scene panned by 4 % or zoomed by 10 % is about 16 bits apart, unrelated photos about 32. Until issue #19 (2026-11-11), High stopped at 14 within 30 s and found nothing on the phone. At a strict distance of 12, unrelated photos start to match (random hashes gave 90 false groups among 30,000), so the strict distance stops at 10. The loose rule is protected by the time window, so it goes further.
 
 ### Confidence
 
@@ -180,6 +180,15 @@ Measured on the development laptop (Intel i5-7200U, AOT-compiled, CPU sometimes 
 On the phone, rendering the thumbnail (MediaStore) costs more than hashing it; the first analysis of a large library takes minutes, in the background, saved every 16 photos (about a second of work), and paused while the viewer is open so the photo being opened is not delayed. Four native threads render thumbnails at once. Measured on the Galaxy A54 on 2026-10-27, release build: about 760 photos a minute with two threads, 860 with four (so about 25 minutes for the first analysis of 20,000 photos), the grid staying fluid; MediaStore's thumbnail rendering is the limit, not the app. Reading the thumbnail embedded in camera JPEGs would be much faster but may hash differently from MediaStore's rendering (and WhatsApp copies have none); not done. Similar photos are regrouped every 60 batches (960 photos), newest first, so the first groups show long before the end; the screens show "Analyzing: N of M items". A photo that fails to render is left without hashes; a batch that fails as a whole (an unexpected native error) is saved without hashes too, so the scan goes on instead of stopping on it at every launch. Later scans hash only new or changed photos.
 
 **Search**: strict pairs are found by multi-index hashing (four 16-bit blocks of the pHash; two hashes within *r* bits share a block within ⌊r / 4⌋ bits), loose pairs by walking the photos in date order. The brief asked for a BK-tree; on pHashes it was slower than comparing every pair, see [ADR 0019](decisions/0019-similar-photo-search.md).
+
+## Duplicate period
+
+Chosen in Settings ([duplicates.md](features/duplicates.md#user-flows), issue #19): a first and a last day, each optional, stored as `duplicate_period_start` and `duplicate_period_end` ([database.md](database.md)). Dates are the resolved capture dates, `COALESCE(capture_at, taken_at)`, the same ones the similar photo search compares.
+
+- **Exact duplicates and bursts**: only items of the period are hashed (a size shared by another item *of the period*) and grouped (`DuplicateRepository.hashCandidates`, `rebuildGroups`). This is the costly read, as every file is read in full.
+- **Similar photos**: only photos of the period are grouped (`hashedPhotos`). Every photo still gets its thumbnail read, since the same pass measures sharpness for the blurry photo list; photos of the period come first (`perceptualCandidates`).
+- **Groups are stored for the period only**, so every screen that reads them follows without knowing about the period.
+- Changing the period runs the scan again: it hashes what the period adds and rebuilds every group. Hashes outside the period are kept, so going back to the whole library only reads what was never read.
 
 ## Blurry and dark photos
 

@@ -2,7 +2,7 @@
 
 How the product owner and the AI assistant work together on Clean Gallery, the constraints of the development machine, and where to pick up. Read it at the start of every session, after [AGENTS.md](../AGENTS.md).
 
-Last updated: 2026-11-09 — Release 1.0.0
+Last updated: 2026-11-11 — Issue #19
 
 ## Where to pick up
 
@@ -18,7 +18,9 @@ Quick resume (keep this short; history is in [progress.md](progress.md) and git)
 - **Publishing**: GitHub releases and IzzyOnDroid (product owner, 2026-11-09). Play stays blocked (personal account, 12 testers for 14 days).
 - **M11 monetization was merged** (PR #14, 2026-11-08), **then removed the same day**: the app goes open source without ads ([ADR 0032](decisions/0032-open-source-without-ads.md)). Page transitions (PR #15) and the removal (PR #16) are merged into `main`.
 - **M12 is merged** (PR #17, 2026-11-09) and the repository is public. **1.0.0** is prepared on branch `release-1.0.0`: the product owner merges it, the tag `v1.0.0` goes on that commit, then the GitHub release with the signed split APKs and `SHA256SUMS.txt`, then the IzzyOnDroid request. Next releases follow [release.md](release.md#release-checklist).
+- **After 1.0.0** (2026-11-11): branch `fix-issue-19` fixes the sliders, widens the similar photo presets, adds the duplicate period and sharpens thumbnails: all of issue #19 ([progress.md](progress.md#issue-19-and-blurry-thumbnails)), waiting for the phone checks and a PR. Issue #20 (network shares) is open, not started.
 - **Signing on this machine**: `android/key.properties` and the key belong to user `claude` (the product owner created them with `sudo`, then `chown`); never print or read them, Gradle reads them. Files the product owner copies as root (screenshots…) need `sudo chown -R claude:claude` before the assistant can rename them.
+- **App on the phone** (2026-11-11): a release build signed with the upload key, so `adb install -r` of a release build keeps its data. A debug build no longer installs over it (different signature): it would need an uninstall, which erases the app's data (settings, albums, trash list, analysis; never the photos).
 - **Phone over USB**: the laptop's webcam is a Xiaomi USB device too; run `p.sh` only once the phone shows in `lsusb` (Samsung, MTP mode), or it may pick the webcam.
 - **Key design points to keep**: one paint function (`paintEdit`, `paintPage`) for preview and saving; the native side only writes JPEG + EXIF (`PhotoSaver.kt`); every delete through the app trash; pure Dart in `lib/analysis/` and `lib/domain/`; on the phone (Impeller), avoid blend-mode masks in layers, use clips (blur bug of 2026-10-29).
 - **Checking a look without the phone**: a temporary widget test can load the real fonts with `FontLoader` and write PNG files with `matchesGoldenFile` and `--update-goldens`; delete it afterwards. Without the fonts, text renders as blocks, which also shows a style that forgot its font family.

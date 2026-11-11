@@ -134,13 +134,24 @@ final class AndroidMediaSource implements MediaSource {
 
   @override
   ImageProvider thumbnail(MediaItem item, {required int size}) {
-    // Grid cells crop to a square: make the short side [size] so the
-    // cropped image is never upscaled.
+    final (width, height) = _cropped(item, size);
+    return _native(item, width, height);
+  }
+
+  @override
+  ImageProvider? sharpThumbnail(MediaItem item, {required int size}) {
+    if (item.isVideo) return null;
+    final (width, height) = _cropped(item, size);
+    return _native(item, width, height, fromFile: true, sharp: true);
+  }
+
+  /// Grid cells crop to a square: the short side is [size], so the cropped
+  /// image is never upscaled.
+  static (int, int) _cropped(MediaItem item, int size) {
     final ratio = item.aspectRatio;
-    final (width, height) = ratio >= 1
+    return ratio >= 1
         ? ((size * ratio).round(), size)
         : (size, (size / ratio).round());
-    return _native(item, width, height);
   }
 
   @override
@@ -158,6 +169,7 @@ final class AndroidMediaSource implements MediaSource {
     int width,
     int height, {
     bool fromFile = false,
+    bool sharp = false,
   }) => NativeThumbnailProvider(
     _bridge,
     id: item.id,
@@ -166,6 +178,7 @@ final class AndroidMediaSource implements MediaSource {
     width: width,
     height: height,
     fromFile: fromFile,
+    sharp: sharp,
   );
 
   @override

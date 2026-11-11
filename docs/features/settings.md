@@ -2,7 +2,7 @@
 
 The Settings tab: display, trash, cleanup, sharing, slideshows and memories, analysis, permissions, and About. The rest of the brief's settings arrive with the features they control.
 
-Last updated: 2026-11-08 — Milestone M12
+Last updated: 2026-11-11 — Issue #19
 
 ## Purpose
 
@@ -31,8 +31,9 @@ Let the user choose how the app looks and behaves, and see and change its permis
 | Slideshows and memories | Notification | On / Off, then day and time | Off; Sunday (or the 1st) at 19:00 | Turning it on asks for the notification permission (Android 13+); refused, it stays off |
 | Slideshows and memories | Rituals | Page | — | Recurring slideshows with their notifications ([memories.md](memories.md#user-flows)) |
 | Slideshows and memories | Slideshow defaults | Options sheet | 5 s, slow zoom, by date, videos, skip duplicates and blurry, no music | The options proposed before each slideshow; also saved by every *Start* ([slideshow.md](slideshow.md)) |
-| Analysis | Similar photos | Low / Medium / High | Medium | How eager the similar photo search is; changing it regroups at once from the stored hashes ([analysis-engine.md](../analysis-engine.md#sensitivity)) |
-| Analysis | Advanced mode | On / Off, then three sliders | Off | On: no preset selected; *Any date: difference up to* (strict, 0–10 of 64), *Taken close in time: difference up to* (loose, 0–20 of 64), *Close in time means within* (0–60 seconds). Starts from the preset in use; off returns to Medium. Saved when the finger is lifted |
+| Analysis | Similar photos: tolerance threshold | Low / Medium / High | Medium | How much two photos may differ and still be grouped; the text under the buttons explains the preset picked. Changing it regroups at once from the stored hashes ([analysis-engine.md](../analysis-engine.md#sensitivity)) |
+| Analysis | Advanced mode | On / Off, then three sliders | Off | On: no preset selected; *Any date: difference up to* (strict, 0–10 of 64), *Taken close in time: difference up to* (loose, 0–24 of 64), *Close in time means within* (5 s, 10 s, 30 s, 1, 2, 5, 10, 15 or 30 min). Starts from the preset in use; off returns to Medium. Saved when the finger is lifted |
+| Analysis | Period analyzed | *From* and *To*, each a date picker with a cross; *Whole library* | Whole library | Duplicates and similar photos only among items taken in the period, everywhere in the app ([duplicates.md](duplicates.md#user-flows)); changing it runs the scan again |
 | Analysis | Analyze the library again | Button | — | Forgets dates, burst ids, content and perceptual hashes and duplicate groups, then syncs and scans again; a spinner and "Analyzing: N of M items" show while it runs. Media, trash, settings and pairs marked "Not duplicates" are kept |
 | Permissions | Photos and videos | Allowed / Some items only / Not allowed | — | Read-only status + *Change* |
 | Permissions | Location in photos | Allowed / Not allowed | — | Read-only status + *Change* |

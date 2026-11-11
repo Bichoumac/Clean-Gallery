@@ -553,8 +553,12 @@ class _TimelineState extends ConsumerState<_Timeline> {
     final rows = _rows;
     final extents = _extents;
     final cell = _cell;
-    // Two size buckets keep cache keys stable while pinching.
-    final pixelSize = columns <= 3 ? 512 : 256;
+    // From the column count, not the animated cell, so the size (and the
+    // image cache key) only changes with the columns.
+    final pixelSize = thumbnailPixels(
+      cell,
+      MediaQuery.devicePixelRatioOf(context),
+    );
 
     String? labelAt(double scrollOffset) {
       if (rows.isEmpty) return null;

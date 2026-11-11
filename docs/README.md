@@ -2,7 +2,7 @@
 
 Every documentation file in the repository, with a one-line description. Start with [progress.md](progress.md) to see where the project stands.
 
-Last updated: 2026-11-08 — Milestone M12
+Last updated: 2026-11-11 — Issue #19
 
 ## Project
 
@@ -96,3 +96,4 @@ One file per feature is added as each feature is built.
 | [0031](decisions/0031-page-transitions.md) | Page transitions of our own |
 | [0032](decisions/0032-open-source-without-ads.md) | Open source, without ads |
 | [0033](decisions/0033-release-signing.md) | Release signing from a key outside the repository |
+| [0034](decisions/0034-wider-similarity-tolerance.md) | Wider similarity tolerance, through the time window |

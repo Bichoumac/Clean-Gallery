@@ -9,10 +9,12 @@ import 'package:clean_gallery/core/media/media_actions.dart';
 import 'package:clean_gallery/core/media/media_formatting.dart';
 import 'package:clean_gallery/core/media/media_thumbnail.dart';
 import 'package:clean_gallery/core/router/app_router.dart';
+import 'package:clean_gallery/core/settings/settings_controller.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/duplicate_group.dart';
 import 'package:clean_gallery/domain/enums.dart';
 import 'package:clean_gallery/domain/media_item.dart';
+import 'package:clean_gallery/features/duplicates/duplicate_period.dart';
 import 'package:clean_gallery/features/duplicates/duplicate_selection.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -92,6 +94,9 @@ class _DuplicatesScreenState extends ConsumerState<DuplicatesScreen> {
     // Chips only help when there is more than one kind to choose from, or
     // to go back to all of them.
     final filters = kinds > 1 || (_kind != null && kinds > 0);
+    final period = ref.watch(
+      appSettingsControllerProvider.select((s) => s.duplicatePeriod),
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -126,38 +131,65 @@ class _DuplicatesScreenState extends ConsumerState<DuplicatesScreen> {
               )
             : null,
       ),
-      body: switch (groups) {
-        AsyncData() when all.isEmpty => _Empty(scanning: scanning),
-        AsyncData() => ListView(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-          children: [
-            if (filters) ...[
-              _KindChips(
-                selected: _kind,
-                counts: counts,
-                onSelected: (kind) => setState(() => _kind = kind),
+      body: Column(
+        children: [
+          // Says why photos of other dates are missing (issue #19).
+          if (period != null)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+              child: Align(
+                alignment: Alignment.centerLeft,
+                child: InputChip(
+                  avatar: const Icon(Icons.date_range_rounded, size: 18),
+                  label: Text(
+                    l10n.duplicatesPeriodChip(formatPeriod(context, period)),
+                  ),
+                  deleteButtonTooltipMessage: l10n.periodReset,
+                  onDeleted: () => unawaited(
+                    ref
+                        .read(appSettingsControllerProvider.notifier)
+                        .setDuplicatePeriod(null),
+                  ),
+                ),
               ),
-              const SizedBox(height: 8),
-            ],
-            if (shown.isEmpty)
-              _Empty(scanning: scanning)
-            else
-              for (final kind in DuplicateKind.values)
-                if (shown.where((g) => g.kind == kind).toList()
-                    case final section when section.isNotEmpty) ...[
-                  // A single kind is named by its chip.
-                  if (_kind == null) _SectionTitle(_kindTitle(l10n, kind)),
-                  for (final group in section)
-                    _GroupCard(
-                      key: ValueKey(group.id),
-                      scope: scope,
-                      group: group,
+            ),
+          Expanded(
+            child: switch (groups) {
+              AsyncData() when all.isEmpty => _Empty(scanning: scanning),
+              AsyncData() => ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                children: [
+                  if (filters) ...[
+                    _KindChips(
+                      selected: _kind,
+                      counts: counts,
+                      onSelected: (kind) => setState(() => _kind = kind),
                     ),
+                    const SizedBox(height: 8),
+                  ],
+                  if (shown.isEmpty)
+                    _Empty(scanning: scanning)
+                  else
+                    for (final kind in DuplicateKind.values)
+                      if (shown.where((g) => g.kind == kind).toList()
+                          case final section when section.isNotEmpty) ...[
+                        // A single kind is named by its chip.
+                        if (_kind == null)
+                          _SectionTitle(_kindTitle(l10n, kind)),
+                        for (final group in section)
+                          _GroupCard(
+                            key: ValueKey(group.id),
+                            scope: scope,
+                            group: group,
+                          ),
+                      ],
                 ],
-          ],
-        ),
-        _ => const Center(child: CircularProgressIndicator()),
-      },
+              ),
+              _ => const Center(child: CircularProgressIndicator()),
+            },
+          ),
+        ],
+      ),
       bottomNavigationBar: picked.isEmpty
           ? null
           : SafeArea(

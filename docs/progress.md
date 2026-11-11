@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-11-09 — Release 1.0.0
+Last updated: 2026-11-11 — Issue #19
 
 ## Milestones
 
@@ -23,6 +23,7 @@ Last updated: 2026-11-09 — Release 1.0.0
 | — | Open source: ads and purchase removed, GPL v3, new privacy policy | Merged into `main` (PR #16, 2026-11-08), confirmed on the phone |
 | — | Page transitions: tabs, pages, tiles, back gesture, viewer | Merged into `main` (PR #15, 2026-11-08), confirmed on the phone with the video gestures ([checks](testing.md#page-transitions--to-verify-on-a-device)) |
 | M12 | Polish and release preparation (was M9) | Merged into `main` (PR #17, 2026-11-09); **1.0.0 released** on 2026-11-09, see [below](#m12--polish-and-release-preparation) |
+| — | Issue #19 (sliders, similar photo tolerance, duplicate period) and blurry thumbnails | Branch `fix-issue-19`, started 2026-11-11, see [below](#issue-19-and-blurry-thumbnails) |
 | — | Visual refresh: Éclat Soleil identity, logo and icon | Merged into `main` (PR #13), tried on the phone 2026-11-05 |
 
 M8 to M10 were added at the product owner's request on 2026-11-01; monetization and polish moved from M8 and M9.
@@ -36,6 +37,16 @@ The product owner chose a warm identity and a logo on 2026-11-04 ([ADR 0028](dec
 - **Accent**: changed to golden citron at the product owner's request; "beaucoup mieux" (2026-11-05).
 - **Map**: slow loading and missing marker thumbnails reported, then "carte ok" after the duplicate scan was paused on the map and failures retried (2026-11-05).
 - **Thumbnails missing in runs** (reported 2026-11-05, several runs of consecutive cells): failed loads stayed in Flutter's image cache, reproduced by a test and fixed ([library.md](features/library.md#thumbnails-that-fail)). Confirmed on the phone by the product owner ("ça marche", 2026-11-05).
+
+## Issue #19 and blurry thumbnails
+
+Reported by the product owner after 1.0.0 ([issue #19](https://github.com/Bichoumac/Clean-Gallery/issues/19), and blurry thumbnails on 2026-11-11). Branch `fix-issue-19`.
+
+- **Done**: sliders that stuck at zero and lagged on fast drags (`SteadySlider` everywhere); wider similar photo presets measured on public test photos ([ADR 0034](decisions/0034-wider-similarity-tolerance.md)) and their *tolerance threshold* wording; thumbnails sized from what they show, decoded from the file when MediaStore's cache is too small ([library.md](features/library.md#thumbnail-size)).
+- **Done (part 3)**: the duplicate period in Settings, applied to every duplicate and similar group of the app ([analysis-engine.md](analysis-engine.md#duplicate-period)); a chip on the duplicates screen resets it.
+- **Left**: nothing in the issue.
+- **On the phone** (2026-11-11): all checks confirmed, except slower thumbnails, measured and fixed (sharp versions in their own lane); the fix and the new color picker confirmed the same day ([checks](testing.md#issue-19-and-blurry-thumbnails--to-verify-on-a-device), items 14 to 17).
+- **Also asked on 2026-11-11**: more colors in the editor, with a precise picker ([editor.md](features/editor.md)).
 
 ## M12 — Polish and release preparation
 
