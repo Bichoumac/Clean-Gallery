@@ -12,6 +12,7 @@ import 'package:clean_gallery/core/router/home_shell.dart';
 import 'package:clean_gallery/core/settings/app_settings.dart';
 import 'package:clean_gallery/core/settings/settings_controller.dart';
 import 'package:clean_gallery/core/theme/theme_reveal.dart';
+import 'package:clean_gallery/core/widgets/steady_slider.dart';
 import 'package:clean_gallery/features/about/about_screen.dart';
 import 'package:clean_gallery/features/memories/memories_settings.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
@@ -353,7 +354,12 @@ class _SimilaritySettings extends ConsumerWidget {
           ),
         ),
         Text(
-          l10n.settingsSimilarityHelp,
+          switch (sensitivity) {
+            SimilaritySensitivity.low => l10n.toleranceLowHelp,
+            SimilaritySensitivity.medium => l10n.toleranceMediumHelp,
+            SimilaritySensitivity.high => l10n.toleranceHighHelp,
+            SimilaritySensitivity.custom => l10n.settingsSimilarityHelp,
+          },
           style: theme.textTheme.bodySmall?.copyWith(
             color: theme.colorScheme.onSurfaceVariant,
           ),
@@ -386,11 +392,12 @@ class _SimilaritySettings extends ConsumerWidget {
           ),
           _ValueSlider(
             label: l10n.settingsWindow,
-            value: custom.window.inSeconds,
-            max: SimilarityThresholds.maxWindow.inSeconds,
-            format: l10n.thresholdSeconds,
-            onChanged: (value) => controller.setCustomThresholds(
-              custom.copyWith(window: Duration(seconds: value)),
+            value: _nearestStop(custom.window),
+            max: SimilarityThresholds.windowStops.length - 1,
+            format: (i) =>
+                _formatWindow(l10n, SimilarityThresholds.windowStops[i]),
+            onChanged: (i) => controller.setCustomThresholds(
+              custom.copyWith(window: SimilarityThresholds.windowStops[i]),
             ),
           ),
         ],
@@ -398,6 +405,22 @@ class _SimilaritySettings extends ConsumerWidget {
     );
   }
 }
+
+/// Index of the window stop closest to [window].
+int _nearestStop(Duration window) {
+  const stops = SimilarityThresholds.windowStops;
+  var best = 0;
+  for (var i = 1; i < stops.length; i++) {
+    if ((stops[i] - window).abs() < (stops[best] - window).abs()) best = i;
+  }
+  return best;
+}
+
+/// [window] in seconds under a minute, in minutes from one minute.
+String _formatWindow(AppLocalizations l10n, Duration window) =>
+    window.inSeconds < 60
+    ? l10n.thresholdSeconds(window.inSeconds)
+    : l10n.thresholdMinutes(window.inMinutes);
 
 /// A labelled whole-number slider from 0 to [max]; saved when the finger
 /// is lifted, since each change regroups the similar photos.
@@ -440,10 +463,10 @@ class _ValueSliderState extends State<_ValueSlider> {
         ),
         SizedBox(
           height: 48,
-          child: Slider(
+          child: SteadySlider(
             value: value.toDouble(),
             max: widget.max.toDouble(),
-            divisions: widget.max,
+            steps: widget.max,
             label: widget.format(value),
             onChanged: (value) => setState(() => _dragging = value),
             onChangeEnd: (value) {
@@ -554,12 +577,11 @@ class _RetentionSliderState extends State<_RetentionSlider> {
         ),
         SizedBox(
           height: 48,
-          child: Slider(
+          child: SteadySlider(
             value: days.toDouble(),
             min: AppSettings.minRetentionDays.toDouble(),
             max: AppSettings.maxRetentionDays.toDouble(),
-            divisions:
-                AppSettings.maxRetentionDays - AppSettings.minRetentionDays,
+            steps: AppSettings.maxRetentionDays - AppSettings.minRetentionDays,
             label: l10n.retentionDays(days),
             onChanged: (value) => setState(() => _dragging = value),
             onChangeEnd: (value) {

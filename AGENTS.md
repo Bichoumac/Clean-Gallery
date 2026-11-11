@@ -2,7 +2,7 @@
 
 Entry point for AI assistants working on Clean Gallery. Read this first, then follow the links to `docs/` for depth.
 
-Last updated: 2026-11-08 — Open source
+Last updated: 2026-11-11 — Issue #19
 
 ## Project summary
 
@@ -39,6 +39,7 @@ Generated files are not committed. After editing a class annotated with `@DriftD
 | `lib/core/` | Theme, database, router, providers, config | adding app-wide infrastructure. |
 | `lib/core/brand/` | The mark and gauge, glass bars, mosaic tiles, empty state, *Best* pill | adding something that carries the identity. |
 | `lib/core/media/` | `MediaIndex` (syncs the `assets` table with the device), `DuplicateScan` (certain duplicates, perceptual hashes, similar groups), media list providers reading it, the duplicates tile, thumbnail widget, formatting, `MediaActions`, selection bar | adding media code shared by several features. |
+| `lib/core/widgets/` | Plain widgets shared by several features (`SteadySlider`, the app's slider) | adding a generic control. Use `SteadySlider`, never `Slider` with `divisions`. |
 | `lib/core/settings/` | `AppSettings` and its controller | adding a user setting (also add a key in `SettingKeys`). |
 | `lib/platform/` | Interfaces (`MediaSource`, `PlatformBridge`, `PermissionService`, `MusicPlayer`, `ReminderService`, …) | adding a platform capability: interface here, implementation in `platform/android/`. |
 | `lib/platform/android/` | Android implementations | implementing an interface for Android. |

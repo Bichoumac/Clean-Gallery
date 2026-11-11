@@ -2,7 +2,7 @@
 
 Editing a photo and saving the result as a new photo: crop, straighten, rotate, flip; filters; enhance, color adjustments, vignette; pencil, blur, pixelate; texts.
 
-Last updated: 2026-11-04 — Visual refresh
+Last updated: 2026-11-11 — Issue #19
 
 ## Purpose
 
@@ -38,6 +38,7 @@ The brief's "Editing and filters". Built in M6 part 2 (2026-10-28), then extende
 | Tool panels | [editor_tools.dart](../../lib/features/editor/editor_tools.dart) | `CropTools`, `FilterTools`, `AdjustTools`, `DrawTools`, `TextTools`, `ColorRow`. |
 
 - **Preview**: the viewer's screen-sized preview, decoded once into an `EditSource`, painted by `paintEdit` in a `CustomPainter`. A slider only repaints. The first version stacked widgets (`RotatedBox`, `ColorFiltered`…): sliders were slow to start and to follow on the phone (product owner, 2026-10-28).
+- **Sliders** are `SteadySlider` ([steady_slider.dart](../../lib/core/widgets/steady_slider.dart)), like every slider of the app. Until issue #19 (2026-11-11), a slider at zero only moved a step: its theme was added once the value left zero, which rebuilt the slider and ended the drag. And a Material slider with `divisions` eases its thumb towards each value, so a fast drag lagged then caught up. The theme is now always there with changing colors, and the slider is continuous, rounding its values itself.
 - **Saving**: the original is decoded at full size (at most 40 MP and 8192 px a side; a 50 MP photo is saved at about 40 MP), `renderEdit` paints the edit with the same `paintEdit` as the preview, and the RGBA pixels go to `PlatformBridge.saveEditedPhoto`. The native side ([PhotoSaver.kt](../../android/app/src/main/kotlin/com/bichoumac/clean_gallery/PhotoSaver.kt)) only encodes JPEG (quality 95), inserts it next to the original with its capture date (`<name>_edited_<time>.jpg`) and copies its EXIF tags (camera, settings, dates, GPS; orientation normal, new size). Then the index syncs and, for *Replace the original*, the original goes to the app trash ([ADR 0023](../decisions/0023-editor-color-matrix-preview.md)).
 - **Filter thumbnails**: the same `paintEdit` on the preview, small, with the crop, turns and adjustments but without lines and texts.
 - Flutter's decoder applies the EXIF orientation, so the saved photo is upright and its orientation tag is set to normal.

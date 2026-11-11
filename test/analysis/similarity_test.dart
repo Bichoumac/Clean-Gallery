@@ -134,17 +134,21 @@ void main() {
     test('loose rule: farther hashes within the time window', () {
       final groups = findSimilarGroups([
         photo(1, base, takenAt: noon),
-        photo(2, flip(base, 12), takenAt: noon.add(const Duration(seconds: 9))),
+        photo(
+          2,
+          flip(base, thresholds.loose),
+          takenAt: noon.add(const Duration(seconds: 9)),
+        ),
         // Same distance, but outside the window.
         photo(
           3,
-          flip(base, 12, from: 40),
+          flip(base, thresholds.loose, from: 40),
           takenAt: noon.add(const Duration(hours: 1)),
         ),
         // Inside the window, but too far apart.
         photo(
           4,
-          flip(base, 13, from: 20),
+          flip(base, thresholds.loose + 1, from: 20),
           takenAt: noon.add(const Duration(seconds: 2)),
         ),
       ], thresholds);
@@ -219,6 +223,25 @@ void main() {
       expect(low.window, lessThan(thresholds.window));
       expect(thresholds.window, lessThan(high.window));
       expect(SimilarityThresholds.of(SimilaritySensitivity.medium), thresholds);
+    });
+
+    test('high tolerance groups the same scene reframed minutes later', () {
+      // Issue #19. A 4 % pan or a 10 % zoom moves the pHash by about 16
+      // bits (ADR 0034); unrelated photos are about 32 apart.
+      final photos = [
+        photo(1, base, takenAt: noon),
+        photo(2, flip(base, 16), takenAt: noon.add(const Duration(minutes: 3))),
+        photo(
+          3,
+          flip(base, 32, from: 16),
+          takenAt: noon.add(const Duration(minutes: 4)),
+        ),
+      ];
+      expect(ids(findSimilarGroups(photos, SimilarityThresholds.high)), [
+        [1, 2],
+      ]);
+      expect(findSimilarGroups(photos, SimilarityThresholds.medium), isEmpty);
+      expect(findSimilarGroups(photos, SimilarityThresholds.low), isEmpty);
     });
   });
 

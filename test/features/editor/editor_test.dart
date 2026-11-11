@@ -126,6 +126,50 @@ void main() {
     expect(find.byType(ViewerScreen), findsOneWidget);
   });
 
+  testApp('a slider follows the finger from zero in both directions', (
+    tester,
+  ) async {
+    // Issue #19: once the value left zero, the slider was rebuilt and the
+    // drag stopped after its first step.
+    await openEditor(tester);
+    await tester.tap(find.byTooltip('Adjust'));
+    await tester.pumpAndSettle();
+    final slider = find.byType(Slider);
+    final center = tester.getCenter(slider);
+    final width = tester.getSize(slider).width;
+    double brightness() => editorState(tester).edit.adjustments.brightness;
+
+    for (final direction in [1, -1]) {
+      final gesture = await tester.startGesture(center);
+      final values = <double>[];
+      for (var i = 1; i <= 8; i++) {
+        await gesture.moveTo(center + Offset(direction * i * width / 40, 0));
+        await tester.pump();
+        values.add(brightness());
+      }
+      await gesture.up();
+      await tester.pumpAndSettle();
+      // Each move changes the value, all the way: the drag never stops.
+      for (var i = 1; i < values.length; i++) {
+        expect(
+          direction * (values[i] - values[i - 1]),
+          greaterThan(0),
+          reason: 'move $i of ${values.length}',
+        );
+      }
+      expect(direction * brightness(), greaterThan(0.25));
+      // Back to zero for the other direction.
+      ProviderScope.containerOf(tester.element(find.byType(EditorScreen)))
+          .read(
+            photoEditorProvider(
+              tester.widget<EditorScreen>(find.byType(EditorScreen)).photo,
+            ).notifier,
+          )
+          .adjust(Adjustment.brightness, 0);
+      await tester.pumpAndSettle();
+    }
+  });
+
   testApp('a slider adjusts; closing with changes asks first', (tester) async {
     await openEditor(tester);
     await tester.tap(find.byTooltip('Adjust'));

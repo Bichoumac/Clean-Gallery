@@ -69,10 +69,10 @@ void main() {
     final settings = await repository.loadAppSettings();
     expect(
       settings.similarityThresholds,
-      const SimilarityThresholds(
+      // The loose distance is out of range: the default is kept.
+      SimilarityThresholds.medium.copyWith(
         strict: 3,
-        loose: 12,
-        window: Duration(seconds: 20),
+        window: const Duration(seconds: 20),
       ),
     );
     await repository.write(SettingKeys.similaritySensitivity, 'high');

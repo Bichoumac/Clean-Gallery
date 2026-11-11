@@ -2,7 +2,7 @@
 
 Algorithms that work out facts about photos and videos on the device: capture dates, exact duplicates, bursts, similar photos, screenshots, and blurry or dark photos. This file lists each algorithm, its thresholds and their rationale, and performance notes.
 
-Last updated: 2026-10-27 — Milestone M5
+Last updated: 2026-11-11 — Issue #19
 
 ## Overview
 
@@ -148,16 +148,16 @@ Similar pairs are joined into groups transitively (union-find). Pairs are never 
 
 ### Sensitivity
 
-Chosen in Settings ([settings.md](features/settings.md)); changing it regroups from the stored hashes, without reading any thumbnail.
+Chosen in Settings as a **tolerance threshold** ([settings.md](features/settings.md)); changing it regroups from the stored hashes, without reading any thumbnail.
 
 | Preset | Strict | Loose | Time window |
 | --- | --- | --- | --- |
-| Low | 4 | 10 | 5 s |
-| **Medium** (default, the brief's values) | 6 | 12 | 10 s |
-| High | 8 | 14 | 30 s |
-| Advanced mode | 0–10 | 0–20 | 0–60 s |
+| Low | 4 | 10 | 10 s |
+| **Medium** (default) | 6 | 14 | 1 min |
+| High | 10 | 18 | 10 min |
+| Advanced mode | 0–10 | 0–24 | 5 s – 30 min |
 
-**Why these bounds**: at a strict distance of 12, unrelated photos start to match (random hashes gave 90 false groups among 30,000), so the advanced mode stops at 10. The loose rule is protected by the time window, so it goes further.
+**Why these values** ([ADR 0034](decisions/0034-wider-similarity-tolerance.md)): the same scene panned by 4 % or zoomed by 10 % is about 16 bits apart, unrelated photos about 32. Until issue #19 (2026-11-11), High stopped at 14 within 30 s and found nothing on the phone. At a strict distance of 12, unrelated photos start to match (random hashes gave 90 false groups among 30,000), so the strict distance stops at 10. The loose rule is protected by the time window, so it goes further.
 
 ### Confidence
 

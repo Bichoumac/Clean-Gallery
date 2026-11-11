@@ -1,3 +1,4 @@
+import 'package:clean_gallery/core/widgets/steady_slider.dart';
 import 'package:clean_gallery/domain/photo_edit.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
@@ -21,22 +22,27 @@ const areaWidths = [0.04, 0.08, 0.14];
 
 /// A slider of the editor: neutral, in the accent only when it [active]ly
 /// changes the photo, so the accent always says what is being edited.
+///
+/// The [SliderTheme] is always there, only its colors change: adding it
+/// when the value leaves zero would rebuild the slider and end the drag.
 class _ToolSlider extends StatelessWidget {
   const _ToolSlider({required this.active, required this.child});
 
   final bool active;
-  final Slider child;
+  final SteadySlider child;
 
   @override
   Widget build(BuildContext context) {
-    if (active) return child;
+    final theme = SliderTheme.of(context);
     return SliderTheme(
-      data: const SliderThemeData(
-        activeTrackColor: Colors.white,
-        inactiveTrackColor: Colors.white24,
-        thumbColor: Colors.white,
-        overlayColor: Colors.white12,
-      ),
+      data: active
+          ? theme
+          : theme.copyWith(
+              activeTrackColor: Colors.white,
+              inactiveTrackColor: Colors.white24,
+              thumbColor: Colors.white,
+              overlayColor: Colors.white12,
+            ),
       child: child,
     );
   }
@@ -196,11 +202,11 @@ class CropTools extends StatelessWidget {
               Expanded(
                 child: _ToolSlider(
                   active: angle != 0,
-                  child: Slider(
+                  child: SteadySlider(
                     value: angle,
                     min: -45,
                     max: 45,
-                    divisions: 180,
+                    steps: 180,
                     label: '${angle.toStringAsFixed(1)}°',
                     semanticFormatterCallback: (v) =>
                         '${l10n.editorStraighten} ${v.toStringAsFixed(1)}°',
@@ -286,10 +292,10 @@ class AdjustTools extends StatelessWidget {
               Expanded(
                 child: _ToolSlider(
                   active: value != 0,
-                  child: Slider(
+                  child: SteadySlider(
                     value: value,
                     min: -1,
-                    divisions: 200,
+                    steps: 200,
                     label: '${(value * 100).round()}',
                     semanticFormatterCallback: (v) =>
                         '${label(selected)} ${(v * 100).round()}',
@@ -401,9 +407,9 @@ class FilterTools extends StatelessWidget {
                 Expanded(
                   child: _ToolSlider(
                     active: true,
-                    child: Slider(
+                    child: SteadySlider(
                       value: strength,
-                      divisions: 100,
+                      steps: 100,
                       label: '$percent',
                       semanticFormatterCallback: (v) =>
                           '${l10n.editorFilterStrength} ${(v * 100).round()}',
@@ -679,7 +685,7 @@ class TextTools extends StatelessWidget {
               Expanded(
                 child: _ToolSlider(
                   active: false,
-                  child: Slider(
+                  child: SteadySlider(
                     value: text.size,
                     min: 0.02,
                     max: 0.2,

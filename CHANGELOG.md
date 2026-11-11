@@ -2,9 +2,20 @@
 
 All notable changes to this project are documented here: one section per milestone until 1.0.0, then one per release. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-11-09 — Release 1.0.0
+Last updated: 2026-11-11 — Issue #19
 
 ## [Unreleased]
+
+### Changed
+
+- **Similar photos: wider tolerance** ([issue #19](https://github.com/Bichoumac/Clean-Gallery/issues/19), [ADR 0034](docs/decisions/0034-wider-similarity-tolerance.md)): High now groups the same scene reframed or with a moved subject, taken up to 10 minutes apart (loose distance 18, strict 10); Medium accepts 14 within a minute, Low 10 within 10 s. The advanced mode goes up to 24 and 30 minutes.
+- Settings call the presets a **tolerance threshold**, with a description of the one picked.
+
+### Fixed
+
+- **Sliders stuck at zero** (issue #19): in the editor, a slider at zero only moved a step, then had to be tapped first; its theme changed once the value left zero, which rebuilt the slider and ended the drag.
+- **Sliders lagging on a fast drag** (issue #19): Material sliders with steps ease their thumb towards each value. Every slider is now `SteadySlider`, continuous, rounding its values itself.
+- **Blurry thumbnails**: thumbnails asked for a fixed size (256 pixels at four columns, 512 on memory cards, 768 on album covers) and MediaStore's cache stops at 512 on Samsung phones. They now ask for the size they are shown at, and a photo whose cached thumbnail is too small is decoded from its file.
 
 ## [1.0.0] — 2026-11-09 — First public release
 

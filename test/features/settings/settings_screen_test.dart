@@ -140,16 +140,20 @@ void main() {
     await tester.pumpAndSettle();
     expect(await repository.read(SettingKeys.similaritySensitivity), 'high');
     expect(find.text('Any date: difference up to'), findsNothing);
+    // Issue #19: the presets read as tolerance thresholds.
+    expect(find.text('Similar photos: tolerance threshold'), findsOneWidget);
+    expect(find.textContaining('High tolerance:'), findsOneWidget);
 
     await reveal('Advanced mode');
     await tester.tap(find.text('Advanced mode'));
     await tester.pumpAndSettle();
     expect(await repository.read(SettingKeys.similaritySensitivity), 'custom');
     // The advanced mode starts from the preset in use.
-    expect(await repository.read(SettingKeys.similarityStrict), '8');
+    expect(await repository.read(SettingKeys.similarityStrict), '10');
     expect(find.text('Any date: difference up to'), findsOneWidget);
-    expect(find.text('8 / 64'), findsOneWidget);
-    expect(find.text('30 seconds'), findsOneWidget);
+    expect(find.text('10 / 64'), findsOneWidget);
+    expect(find.text('10 minutes'), findsOneWidget);
+    expect(await repository.read(SettingKeys.similarityWindow), '600');
 
     await reveal('Advanced mode');
     await tester.tap(find.text('Advanced mode'));

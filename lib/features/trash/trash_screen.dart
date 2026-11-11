@@ -246,7 +246,6 @@ class _TrashTile extends StatelessWidget {
               borderRadius: BorderRadius.circular(selected ? 16 : 0),
               child: MediaThumbnail(
                 item: entry.item,
-                pixelSize: 256,
                 hero: false,
                 onTap: onTap,
               ),

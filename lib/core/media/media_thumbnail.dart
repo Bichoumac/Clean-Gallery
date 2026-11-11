@@ -89,14 +89,30 @@ String mediaLabel(BuildContext context, MediaItem item) {
       : l10n.mediaPhotoLabel(date);
 }
 
+/// Sizes a thumbnail may be asked for, in physical pixels: a few steps, so
+/// the image cache keeps reusing them.
+const thumbnailSteps = [192, 256, 320, 384, 512, 640, 768, 1024, 1280];
+
+/// Smallest of [thumbnailSteps] covering [logicalSide] at
+/// [devicePixelRatio], the largest one beyond: what a thumbnail
+/// [logicalSide] wide asks for to stay sharp.
+int thumbnailPixels(double logicalSide, double devicePixelRatio) {
+  final needed = logicalSide * devicePixelRatio;
+  for (final step in thumbnailSteps) {
+    if (step >= needed) return step;
+  }
+  return thumbnailSteps.last;
+}
+
 /// Square thumbnail of a photo or video, with a duration badge on videos,
 /// a heart on favorites and, on the cover of a folded stack of duplicates,
 /// the number of items in it.
 class MediaThumbnail extends ConsumerWidget {
-  /// Creates a thumbnail of [item], decoded at about [pixelSize] pixels.
+  /// Creates a thumbnail of [item], decoded at about [pixelSize] pixels,
+  /// or at the size it is laid out at when [pixelSize] is `null`.
   const MediaThumbnail({
     required this.item,
-    required this.pixelSize,
+    this.pixelSize,
     this.onTap,
     this.onSelect,
     this.hero = true,
@@ -116,8 +132,10 @@ class MediaThumbnail extends ConsumerWidget {
   /// Item to show.
   final MediaItem item;
 
-  /// Thumbnail size requested from the platform, in physical pixels.
-  final int pixelSize;
+  /// Thumbnail size requested from the platform, in physical pixels (the
+  /// image's short side); `null` to follow the laid out size, see
+  /// [thumbnailPixels].
+  final int? pixelSize;
 
   /// Called when the thumbnail is tapped.
   final VoidCallback? onTap;
@@ -126,6 +144,19 @@ class MediaThumbnail extends ConsumerWidget {
   /// own long press, which selects by sliding, needs the finger's position
   /// and is hidden from them.
   final VoidCallback? onSelect;
+
+  /// Size to ask for in [box]: its longest side, since the image is
+  /// cropped to cover the whole box.
+  static int _fitted(BuildContext context, BoxConstraints box) {
+    final side = [
+      box.maxWidth,
+      box.maxHeight,
+    ].where((v) => v.isFinite).fold<double>(0, (a, b) => a > b ? a : b);
+    return thumbnailPixels(
+      side == 0 ? 128 : side,
+      MediaQuery.devicePixelRatioOf(context),
+    );
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -158,13 +189,18 @@ class MediaThumbnail extends ConsumerWidget {
                 createRectTween: mediaHeroRectTween(item),
                 flightShuttleBuilder: mediaHeroShuttle,
                 curve: mediaHeroCurve,
-                child: RetryingImage(
-                  image: source.thumbnail(item, size: pixelSize),
-                  failure: Icon(
-                    item.isVideo
-                        ? Icons.movie_outlined
-                        : Icons.broken_image_outlined,
-                    color: colors.onSurfaceVariant,
+                child: LayoutBuilder(
+                  builder: (context, box) => RetryingImage(
+                    image: source.thumbnail(
+                      item,
+                      size: pixelSize ?? _fitted(context, box),
+                    ),
+                    failure: Icon(
+                      item.isVideo
+                          ? Icons.movie_outlined
+                          : Icons.broken_image_outlined,
+                      color: colors.onSurfaceVariant,
+                    ),
                   ),
                 ),
               ),

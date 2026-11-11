@@ -2,7 +2,7 @@
 
 The app stores its index, analysis results, trash, albums, saved slideshows, memories, rituals and settings in a local SQLite database managed by Drift. It runs on a background isolate so queries never block the UI. This file lists the schema, indexes and migration history.
 
-Last updated: 2026-11-03 — Milestone M9
+Last updated: 2026-11-11 — Issue #19
 
 Source: [tables.dart](../lib/core/database/tables.dart), [app_database.dart](../lib/core/database/app_database.dart).
 
@@ -201,8 +201,8 @@ Known keys are constants in `SettingKeys` ([settings_repository.dart](../lib/cor
 | `index_rules` | int | `indexRulesVersion` the index was built with (capture dates, burst ids, screenshots); an older value makes the next sync apply the rules to every item again. Was `capture_date_rules` (version 1) before bursts |
 | `similarity_sensitivity` | `low` / `medium` / `high` / `custom` | Similar photo preset (default `medium`); `custom` uses the three keys below |
 | `similarity_strict` | int, 0–10 | Advanced mode: strict pHash distance (default 6) |
-| `similarity_loose` | int, 0–20 | Advanced mode: loose pHash distance (default 12) |
-| `similarity_window` | int, 0–60 | Advanced mode: time window in seconds (default 10) |
+| `similarity_loose` | int, 0–24 | Advanced mode: loose pHash distance (default 14) |
+| `similarity_window` | int, 0–1800 | Advanced mode: time window in seconds (default 60) |
 | `screenshot_age_days` | int, 1–3650 | Age from which screenshots are offered for cleaning (default 30) |
 | `large_video_megabytes` | int, 1–100000 | Size from which videos are offered for cleaning (default 100) |
 | `slideshow_options` | JSON | Default slideshow options, as in `slideshows.options` |

@@ -2,7 +2,7 @@
 
 How Clean Gallery is tested: test layers, commands, fakes and fixtures. Every milestone adds tests for what it builds; a milestone is not done until the suite passes.
 
-Last updated: 2026-11-05 — Milestone M11
+Last updated: 2026-11-11 — Issue #19
 
 ## Commands
 
@@ -64,7 +64,9 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [duplicates_test.dart](../test/core/media/duplicates_test.dart) | Only size collisions hashed, exact groups, no re-read, filter by folder, trash and undo, changed file, favorite kept, burst groups, a burst saved twice. |
 | [duplicates_flow_test.dart](../test/features/duplicates/duplicates_flow_test.dart) | Duplicates tile and count, screen, clean all with summary, keep every copy, open a photo full screen. |
 | [perceptual_hash_test.dart](../test/analysis/perceptual_hash_test.dart) | Hamming distance, area resize; the same photo recompressed, resized, brightened, cropped stays close; 40 unrelated scenes stay apart (false positive regression). |
-| [similarity_test.dart](../test/analysis/similarity_test.dart) | Multi-index search against brute force, union-find, strict and loose rules, aspect ratio, chains, ignored pairs, certain groups, presets, confidence, a mixed photo set. |
+| [similarity_test.dart](../test/analysis/similarity_test.dart) | Multi-index search against brute force, union-find, strict and loose rules, aspect ratio, chains, ignored pairs, certain groups, presets, High groups a scene reframed minutes later (issue #19), confidence, a mixed photo set. |
+| [steady_slider_test.dart](../test/core/widgets/steady_slider_test.dart) | The app's slider rounds to its steps within its range and is never a discrete (animated) Material slider. |
+| [media_thumbnail_test.dart](../test/core/media/media_thumbnail_test.dart) | Thumbnail size steps; a thumbnail without a size asks for the size of its box. |
 | [similar_photos_test.dart](../test/core/media/similar_photos_test.dart) | Similar scan through the media source: groups, photos only, hashes kept, Not duplicates, changed file, new thresholds without re-reading, exact copies stay certain, folder filter. |
 | [similar_flow_test.dart](../test/features/duplicates/similar_flow_test.dart) | Similar photos section, Not duplicates, Stats values and link to the duplicates screen. |
 | [storage_summary_test.dart](../test/features/stats/storage_summary_test.dart) | Dashboard values by category, an item counted once (also across screenshots and large videos), the trash, an empty library. |
@@ -135,6 +137,22 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 | 12 | Kill the app mid-onboarding, relaunch | any | Onboarding restarts from the first page. |
 | 13 | Rotate the screen, change font size to the largest | any | No overflow or clipped text on onboarding pages. |
 | 14 | TalkBack on onboarding | any | Buttons and texts are read; the illustration is skipped. |
+
+### Issue #19 and blurry thumbnails — to verify on a device
+
+Built on branch `fix-issue-19` on 2026-11-11. Not checked on the phone yet.
+
+| # | Do | Expected |
+| --- | --- | --- |
+| 1 | Editor → Ajuster → Luminosité at 0: drag the thumb right, then from 0 to the left | The thumb follows the finger from the first movement, both ways, without tapping first. |
+| 2 | Same slider, and Redresser, Intensité of a filter: drag fast back and forth | The thumb stays under the finger, without lagging then catching up. |
+| 3 | Settings → Corbeille retention, and the three sliders of *Mode avancé*; the video slider | Same: immediate and steady. |
+| 4 | Settings → Analyse | *Photos similaires : seuil de tolérance*; the text under Faible / Moyenne / Élevée changes with the one picked and says what it groups. |
+| 5 | Pick *Élevée*, open Doublons → Photos similaires | Shots of one scene taken a few minutes apart, slightly reframed, are grouped. Note any group of unrelated photos. |
+| 6 | *Mode avancé* | Starts at 10 / 64, 18 / 64 and *10 minutes*; the last slider goes from 5 secondes to 30 minutes. |
+| 7 | Camera grid at 4 columns, then pinch to 3 and 2 | Thumbnails sharp at every size; at 2 columns they may appear a moment later than before. |
+| 8 | Albums tab (covers of the mosaic), a memory card | Covers sharp, no longer soft or pixelated. |
+| 9 | Scroll the grid fast | As smooth as before; no run of missing thumbnails. |
 
 ### M12 — release preparation, to verify on a device
 

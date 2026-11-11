@@ -96,7 +96,15 @@ class ThumbnailLoader(
             if (fromFile && !isVideo) {
                 decodeScaled(uri, width, height)
             } else {
-                resolver.loadThumbnail(uri, Size(width, height), null)
+                val cached = resolver.loadThumbnail(uri, Size(width, height), null)
+                if (!isVideo && isTooSmall(cached, width, height)) {
+                    // Large cells (two columns, memory cards, album covers)
+                    // need more than MediaStore's cache holds.
+                    cached.recycle()
+                    decodeScaled(uri, width, height)
+                } else {
+                    cached
+                }
             }
         } catch (e: Exception) {
             if (!isVideo) throw e
@@ -119,6 +127,16 @@ class ThumbnailLoader(
         bitmap.recycle()
         return reply
     }
+
+    /**
+     * Whether [bitmap] from MediaStore's cache is visibly smaller than the
+     * [width] × [height] asked for: its short side under [MIN_CACHE_SHARE]
+     * of the requested short side. MediaStore's thumbnails stop at
+     * 512 pixels on Samsung phones, and `loadThumbnail` may also sample them
+     * below the request.
+     */
+    private fun isTooSmall(bitmap: Bitmap, width: Int, height: Int): Boolean =
+        minOf(bitmap.width, bitmap.height) < MIN_CACHE_SHARE * minOf(width, height)
 
     /**
      * Photo [uri] decoded from its file so that its longest side matches the
@@ -210,5 +228,12 @@ class ThumbnailLoader(
 
         /** Waiting requests kept; older ones are dropped. */
         const val MAX_PENDING = 200
+
+        /**
+         * Share of the requested size a cached thumbnail must reach; below,
+         * the photo is decoded from its file. The Flutter side asks for the
+         * step at or above the cell's size, so a little less is still sharp.
+         */
+        const val MIN_CACHE_SHARE = 0.8
     }
 }
