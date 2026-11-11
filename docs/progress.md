@@ -23,7 +23,7 @@ Last updated: 2026-11-11 — Issue #19
 | — | Open source: ads and purchase removed, GPL v3, new privacy policy | Merged into `main` (PR #16, 2026-11-08), confirmed on the phone |
 | — | Page transitions: tabs, pages, tiles, back gesture, viewer | Merged into `main` (PR #15, 2026-11-08), confirmed on the phone with the video gestures ([checks](testing.md#page-transitions--to-verify-on-a-device)) |
 | M12 | Polish and release preparation (was M9) | Merged into `main` (PR #17, 2026-11-09); **1.0.0 released** on 2026-11-09, see [below](#m12--polish-and-release-preparation) |
-| — | Issue #19 (sliders, similar photo tolerance; period filter to come) and blurry thumbnails | Branch `fix-issue-19`, started 2026-11-11, see [below](#issue-19-and-blurry-thumbnails) |
+| — | Issue #19 (sliders, similar photo tolerance, duplicate period) and blurry thumbnails | Branch `fix-issue-19`, started 2026-11-11, see [below](#issue-19-and-blurry-thumbnails) |
 | — | Visual refresh: Éclat Soleil identity, logo and icon | Merged into `main` (PR #13), tried on the phone 2026-11-05 |
 
 M8 to M10 were added at the product owner's request on 2026-11-01; monetization and polish moved from M8 and M9.
@@ -43,7 +43,8 @@ The product owner chose a warm identity and a logo on 2026-11-04 ([ADR 0028](dec
 Reported by the product owner after 1.0.0 ([issue #19](https://github.com/Bichoumac/Clean-Gallery/issues/19), and blurry thumbnails on 2026-11-11). Branch `fix-issue-19`.
 
 - **Done**: sliders that stuck at zero and lagged on fast drags (`SteadySlider` everywhere); wider similar photo presets measured on public test photos ([ADR 0034](decisions/0034-wider-similarity-tolerance.md)) and their *tolerance threshold* wording; thumbnails sized from what they show, decoded from the file when MediaStore's cache is too small ([library.md](features/library.md#thumbnail-size)).
-- **Left**: part 3 of the issue, a period filter for the duplicate analysis.
+- **Done (part 3)**: the duplicate period in Settings, applied to every duplicate and similar group of the app ([analysis-engine.md](analysis-engine.md#duplicate-period)); a chip on the duplicates screen resets it.
+- **Left**: nothing in the issue.
 - **On the phone**: not checked yet ([checks](testing.md#issue-19-and-blurry-thumbnails--to-verify-on-a-device)).
 
 ## M12 — Polish and release preparation

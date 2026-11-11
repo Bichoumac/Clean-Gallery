@@ -119,11 +119,17 @@ class DuplicateScan extends _$DuplicateScan {
 
   @override
   DuplicateScanState build() {
-    // New thresholds only regroup: hashes are kept.
-    ref.listen(
-      appSettingsControllerProvider.select((s) => s.similarityThresholds),
-      (_, _) => run(),
-    );
+    // New thresholds only regroup: hashes are kept. A new period also
+    // hashes what it adds and rebuilds every group.
+    ref
+      ..listen(
+        appSettingsControllerProvider.select((s) => s.similarityThresholds),
+        (_, _) => run(),
+      )
+      ..listen(
+        appSettingsControllerProvider.select((s) => s.duplicatePeriod),
+        (_, _) => run(),
+      );
     return const DuplicateScanState();
   }
 
@@ -181,22 +187,26 @@ class DuplicateScan extends _$DuplicateScan {
     final repository = ref.read(duplicateRepositoryProvider);
     final source = ref.read(mediaSourceProvider);
     final runner = ref.read(analysisRunnerProvider);
+    final period = ref.read(appSettingsControllerProvider).duplicatePeriod;
 
     final toHash =
-        await repository.pendingHashCount() +
+        await repository.pendingHashCount(period: period) +
         await repository.pendingPerceptualCount();
     if (!ref.mounted) return;
     state = state.copyWith(running: true, hashed: 0, toHash: toHash);
     while (true) {
       await _unlessPaused();
-      final batch = await repository.hashCandidates(limit: hashBatchSize);
+      final batch = await repository.hashCandidates(
+        limit: hashBatchSize,
+        period: period,
+      );
       if (batch.isEmpty || !ref.mounted) break;
       final hashes = await source.contentHashes(batch);
       if (!ref.mounted) return;
       await repository.saveHashes(batch, hashes);
       state = state.copyWith(hashed: state.hashed + batch.length);
     }
-    await repository.rebuildGroups();
+    await repository.rebuildGroups(period: period);
     // Certain duplicates show while similar photos are worked out.
     if (!ref.mounted) return;
     state = state.copyWith(revision: state.revision + 1);
@@ -206,6 +216,7 @@ class DuplicateScan extends _$DuplicateScan {
       await _unlessPaused();
       final batch = await repository.perceptualCandidates(
         limit: perceptualBatchSize,
+        period: period,
       );
       if (batch.isEmpty || !ref.mounted) break;
       Map<String, GrayImage> images;
@@ -232,17 +243,15 @@ class DuplicateScan extends _$DuplicateScan {
     await _regroup(runner);
   }
 
-  /// Groups the photos hashed so far into similar photos, with the
-  /// thresholds chosen in Settings.
+  /// Groups the photos of the period hashed so far into similar photos,
+  /// with the thresholds chosen in Settings.
   Future<void> _regroup(AnalysisRunner runner) async {
     final repository = ref.read(duplicateRepositoryProvider);
-    final thresholds = ref
-        .read(appSettingsControllerProvider)
-        .similarityThresholds;
+    final settings = ref.read(appSettingsControllerProvider);
     final groups = await _group(
       runner,
-      await repository.hashedPhotos(),
-      thresholds,
+      await repository.hashedPhotos(period: settings.duplicatePeriod),
+      settings.similarityThresholds,
       ignored: await repository.ignoredPairs(),
       certainGroup: await repository.certainGroups(),
     );

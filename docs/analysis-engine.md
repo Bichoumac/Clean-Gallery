@@ -181,6 +181,15 @@ On the phone, rendering the thumbnail (MediaStore) costs more than hashing it; t
 
 **Search**: strict pairs are found by multi-index hashing (four 16-bit blocks of the pHash; two hashes within *r* bits share a block within ⌊r / 4⌋ bits), loose pairs by walking the photos in date order. The brief asked for a BK-tree; on pHashes it was slower than comparing every pair, see [ADR 0019](decisions/0019-similar-photo-search.md).
 
+## Duplicate period
+
+Chosen in Settings ([duplicates.md](features/duplicates.md#user-flows), issue #19): a first and a last day, each optional, stored as `duplicate_period_start` and `duplicate_period_end` ([database.md](database.md)). Dates are the resolved capture dates, `COALESCE(capture_at, taken_at)`, the same ones the similar photo search compares.
+
+- **Exact duplicates and bursts**: only items of the period are hashed (a size shared by another item *of the period*) and grouped (`DuplicateRepository.hashCandidates`, `rebuildGroups`). This is the costly read, as every file is read in full.
+- **Similar photos**: only photos of the period are grouped (`hashedPhotos`). Every photo still gets its thumbnail read, since the same pass measures sharpness for the blurry photo list; photos of the period come first (`perceptualCandidates`).
+- **Groups are stored for the period only**, so every screen that reads them follows without knowing about the period.
+- Changing the period runs the scan again: it hashes what the period adds and rebuilds every group. Hashes outside the period are kept, so going back to the whole library only reads what was never read.
+
 ## Blurry and dark photos
 
 Photos out of focus, shaken, or too dark to show anything (a pocket shot, a covered lens), offered in the *Blurry photos* list ([features/cleanup.md](features/cleanup.md), [ADR 0020](decisions/0020-blur-and-brightness-with-the-hashes.md)).

@@ -14,6 +14,7 @@ import 'package:clean_gallery/core/settings/settings_controller.dart';
 import 'package:clean_gallery/core/theme/theme_reveal.dart';
 import 'package:clean_gallery/core/widgets/steady_slider.dart';
 import 'package:clean_gallery/features/about/about_screen.dart';
+import 'package:clean_gallery/features/duplicates/duplicate_period.dart';
 import 'package:clean_gallery/features/memories/memories_settings.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:clean_gallery/platform/permission_service.dart';
@@ -278,6 +279,7 @@ class _AnalysisSection extends ConsumerWidget {
       title: l10n.settingsAnalysis,
       children: [
         const _SimilaritySettings(),
+        const DuplicatePeriodSettings(),
         ListTile(
           contentPadding: EdgeInsets.zero,
           title: Text(l10n.settingsReanalyze),

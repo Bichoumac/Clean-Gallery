@@ -104,6 +104,25 @@ class AppSettingsController extends _$AppSettingsController {
     await _repository.write(SettingKeys.largeVideoMegabytes, '$megabytes');
   }
 
+  /// Limits duplicates and similar photos to [period] (capture dates), or
+  /// to none with `null`. The duplicate scan runs again.
+  Future<void> setDuplicatePeriod(DateFilter? period) async {
+    final empty =
+        period == null || (period.start == null && period.end == null);
+    final value = empty ? null : period;
+    state = state.copyWith(duplicatePeriod: value);
+    final end = value?.end;
+    await _repository.write(
+      SettingKeys.duplicatePeriodStart,
+      value?.start == null ? '' : isoDay(value!.start!),
+    );
+    await _repository.write(
+      SettingKeys.duplicatePeriodEnd,
+      // Stored as the last day, included.
+      end == null ? '' : isoDay(end.subtract(const Duration(hours: 12))),
+    );
+  }
+
   /// Sets the similar photo sensitivity. Choosing
   /// [SimilaritySensitivity.custom] starts from the thresholds in use.
   Future<void> setSimilaritySensitivity(

@@ -2,7 +2,7 @@
 
 The "Duplicates" virtual folder at the top of grids and the duplicates screen, where the user reviews groups of identical items, burst shots and similar photos, and moves the extra ones to the trash.
 
-Last updated: 2026-11-04 — Visual refresh
+Last updated: 2026-11-11 — Issue #19
 
 ## Purpose
 
@@ -19,6 +19,7 @@ Find copies of the same photo or video (saved twice, received twice, copied to a
 7. **Not duplicates** under a similar group: the group disappears with "These photos won't be grouped again." Its photos are never grouped together again, even after *Analyze the library again* ([analysis-engine.md](../analysis-engine.md#not-duplicates)). Certain duplicates have no such button: they are identical by definition.
 8. **Clean all groups** at the bottom shows a summary ("Move 128 items (1.4 GB) to the trash?"), then trashes every picked item, with *Undo*.
 9. A group disappears once fewer than two of its items remain outside the trash; restoring one brings it back.
+10. **Period analyzed** (Settings → Analyse, [issue #19](https://github.com/Bichoumac/Clean-Gallery/issues/19)): *From* and *To*, each optional, limit duplicates and similar photos to the items taken in that period, everywhere: this screen, the tiles, the Stats rows, the stacks of the timelines, the *Duplicates* sort, the viewer's group strip, the folder counts. *Whole library* (or the cross of a bound) resets it. While a period is set, this screen shows a **Period: 12 Jan 2024 – today** chip at the top; its cross goes back to the whole library. See [analysis-engine.md](../analysis-engine.md#duplicate-period).
 
 ```mermaid
 flowchart TD
@@ -72,10 +73,11 @@ Detection rules and the "Best" choice are in [analysis-engine.md](../analysis-en
 - **An item in a certain and a similar group** (a copy that also looks like a third photo): shown in both; *Clean all groups* and the counts take it once.
 - **Not duplicates during the first analysis**: the group goes at once; the regrouping waits for the scan in progress.
 - **Large text**: the group's buttons stack when they do not fit side by side.
+- **A period that leaves a copy out**: the copy inside the period has no group, since its twin is outside; widening the period brings the group back.
 
 ## Tests
 
-- [duplicates_flow_test.dart](../../test/features/duplicates/duplicates_flow_test.dart): tile and its count, no tile without duplicates, clean all keeps the best, keeping every copy, opening a photo full screen.
+- [duplicates_flow_test.dart](../../test/features/duplicates/duplicates_flow_test.dart): tile and its count, the period applied to the tile and the screen and reset from its chip, no tile without duplicates, clean all keeps the best, keeping every copy, opening a photo full screen.
 - [duplicate_sort_flow_test.dart](../../test/features/duplicates/duplicate_sort_flow_test.dart): the screen sorted by most duplicates (opened from All media, which also guards the hero fix below), a timeline sorted by duplicates, Albums folders sorted by duplicates.
 - [duplicate_sort_test.dart](../../test/core/media/duplicate_sort_test.dart): the duplicates order of the index (largest groups first, a group together, ascending, chunks, a trashed copy), duplicates per folder.
 - [similar_flow_test.dart](../../test/features/duplicates/similar_flow_test.dart): similar photos section, Not duplicates, the Stats tab opening the screen.

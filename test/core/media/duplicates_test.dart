@@ -2,6 +2,7 @@ import 'package:clean_gallery/core/database/app_database.dart';
 import 'package:clean_gallery/core/media/duplicates.dart';
 import 'package:clean_gallery/core/media/media_index.dart';
 import 'package:clean_gallery/core/providers.dart';
+import 'package:clean_gallery/core/settings/settings_controller.dart';
 import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/domain/enums.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -68,6 +69,46 @@ void main() {
             .duplicateGroups(base))
       [for (final item in group.items) item.id],
   ];
+
+  group('duplicate period (issue #19)', () {
+    Future<void> setPeriod(DateFilter? period) => container
+        .read(appSettingsControllerProvider.notifier)
+        .setDuplicatePeriod(period);
+
+    test('items outside the period are neither hashed nor grouped', () async {
+      // Only April: the photo of the same size (3) is alone in it.
+      await setPeriod(
+        DateFilter.days(DateTime(2026, 4), DateTime(2026, 4, 30)),
+      );
+      await syncAndScan();
+      expect(source.hashCalls.expand((ids) => ids), isEmpty);
+      expect(await groups(MediaSelection.all), isEmpty);
+    });
+
+    test('a period with both copies groups them', () async {
+      await setPeriod(DateFilter(start: DateTime(2026, 5)));
+      await syncAndScan();
+      expect(
+        source.hashCalls.expand((ids) => ids),
+        unorderedEquals(['1', '2']),
+      );
+      expect(await groups(MediaSelection.all), [
+        ['1', '2'],
+      ]);
+    });
+
+    test('back to the whole library, the groups come back', () async {
+      await setPeriod(DateFilter(end: DateTime(2026, 4, 2)));
+      await syncAndScan();
+      expect(await groups(MediaSelection.all), isEmpty);
+      // The scan runs again by itself when the period changes.
+      await setPeriod(null);
+      await container.read(duplicateScanProvider.notifier).run();
+      expect(await groups(MediaSelection.all), [
+        ['1', '2'],
+      ]);
+    });
+  });
 
   test('hashes only items sharing their size, then groups them', () async {
     await syncAndScan();

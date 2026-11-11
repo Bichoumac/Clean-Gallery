@@ -65,6 +65,7 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [duplicates_flow_test.dart](../test/features/duplicates/duplicates_flow_test.dart) | Duplicates tile and count, screen, clean all with summary, keep every copy, open a photo full screen. |
 | [perceptual_hash_test.dart](../test/analysis/perceptual_hash_test.dart) | Hamming distance, area resize; the same photo recompressed, resized, brightened, cropped stays close; 40 unrelated scenes stay apart (false positive regression). |
 | [similarity_test.dart](../test/analysis/similarity_test.dart) | Multi-index search against brute force, union-find, strict and loose rules, aspect ratio, chains, ignored pairs, certain groups, presets, High groups a scene reframed minutes later (issue #19), confidence, a mixed photo set. |
+| [duplicates_test.dart](../test/core/media/duplicates_test.dart) (period) and [similar_photos_test.dart](../test/core/media/similar_photos_test.dart) (period) | Items outside the duplicate period are neither hashed nor grouped; similar photos of the period only, every photo still measured, the period's first. |
 | [steady_slider_test.dart](../test/core/widgets/steady_slider_test.dart) | The app's slider rounds to its steps within its range and is never a discrete (animated) Material slider. |
 | [media_thumbnail_test.dart](../test/core/media/media_thumbnail_test.dart) | Thumbnail size steps; a thumbnail without a size asks for the size of its box. |
 | [similar_photos_test.dart](../test/core/media/similar_photos_test.dart) | Similar scan through the media source: groups, photos only, hashes kept, Not duplicates, changed file, new thresholds without re-reading, exact copies stay certain, folder filter. |
@@ -153,6 +154,10 @@ Built on branch `fix-issue-19` on 2026-11-11. Not checked on the phone yet.
 | 7 | Camera grid at 4 columns, then pinch to 3 and 2 | Thumbnails sharp at every size; at 2 columns they may appear a moment later than before. |
 | 8 | Albums tab (covers of the mosaic), a memory card | Covers sharp, no longer soft or pixelated. |
 | 9 | Scroll the grid fast | As smooth as before; no run of missing thumbnails. |
+| 10 | Settings → Analyse → *Période analysée*: *Du* a date a few months ago | The date shows in the accent with a cross; *Toute la bibliothèque* appears; the analysis runs again. |
+| 11 | Stats, the Duplicates tile of Camera, Doublons | Only groups of photos taken since that date; counts match. Doublons shows *Période : <date> – aujourd'hui* at the top. |
+| 12 | Open a photo of an old duplicate pair | No group strip in the viewer for it. |
+| 13 | The chip's cross in Doublons (or *Toute la bibliothèque*) | Every group is back, without reading the whole library again. |
 
 ### M12 — release preparation, to verify on a device
 

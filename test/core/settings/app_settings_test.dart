@@ -117,4 +117,29 @@ void main() {
     expect(viewKey(MediaSelection.photos), 'photos:');
     expect(viewKey(const MediaSelection(albumId: '42')), 'all:42');
   });
+
+  test('the duplicate period is read back as days, a wrong one not', () async {
+    final db = inMemoryDatabase();
+    addTearDown(db.close);
+    final repository = SettingsRepository(db);
+    expect((await repository.loadAppSettings()).duplicatePeriod, isNull);
+
+    await repository.write(SettingKeys.duplicatePeriodStart, '2024-01-15');
+    await repository.write(SettingKeys.duplicatePeriodEnd, '2024-03-31');
+    expect(
+      (await repository.loadAppSettings()).duplicatePeriod,
+      DateFilter.days(DateTime(2024, 1, 15), DateTime(2024, 3, 31)),
+    );
+
+    // Either end may be missing.
+    await repository.write(SettingKeys.duplicatePeriodStart, '');
+    expect(
+      (await repository.loadAppSettings()).duplicatePeriod,
+      DateFilter(end: DateTime(2024, 4)),
+    );
+
+    // The wrong way round: ignored.
+    await repository.write(SettingKeys.duplicatePeriodStart, '2024-05-01');
+    expect((await repository.loadAppSettings()).duplicatePeriod, isNull);
+  });
 }

@@ -199,6 +199,23 @@ void main() {
     expect(await groups(), hasLength(1));
   });
 
+  test('only photos of the period are grouped, all are measured', () async {
+    // Issue #19. May only: the brighter copy (June) is left out.
+    await container
+        .read(appSettingsControllerProvider.notifier)
+        .setDuplicatePeriod(
+          DateFilter.days(DateTime(2026, 5), DateTime(2026, 5, 31)),
+        );
+    await syncAndScan();
+    expect(await groups(), isEmpty);
+    // Every photo is still read, for the blurry photo list; May first.
+    expect(source.grayCalls.first.first, '1');
+    expect(
+      source.grayCalls.expand((ids) => ids),
+      unorderedEquals(['1', '2', '3', '4']),
+    );
+  });
+
   test('exact copies stay certain duplicates, not similar photos', () async {
     final copy = testItem(6, sizeBytes: 900, takenAt: DateTime(2026, 5));
     source

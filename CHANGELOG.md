@@ -6,6 +6,10 @@ Last updated: 2026-11-11 — Issue #19
 
 ## [Unreleased]
 
+### Added
+
+- **Period analyzed** for duplicates ([issue #19](https://github.com/Bichoumac/Clean-Gallery/issues/19)): in Settings → Analysis, a first and a last day, each optional, limit duplicates and similar photos to the items taken in that period, everywhere in the app. The duplicates screen shows the period in a chip that resets it.
+
 ### Changed
 
 - **Similar photos: wider tolerance** ([issue #19](https://github.com/Bichoumac/Clean-Gallery/issues/19), [ADR 0034](docs/decisions/0034-wider-similarity-tolerance.md)): High now groups the same scene reframed or with a moved subject, taken up to 10 minutes apart (loose distance 18, strict 10); Medium accepts 14 within a minute, Low 10 within 10 s. The advanced mode goes up to 24 and 30 minutes.

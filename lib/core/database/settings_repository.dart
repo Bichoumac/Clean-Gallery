@@ -51,6 +51,14 @@ abstract final class SettingKeys {
   /// Prefix of one [AppSettings.viewSorts] entry: `view_sort:<viewKey>`.
   static const viewSortPrefix = 'view_sort:';
 
+  /// First day of [AppSettings.duplicatePeriod], as an ISO 8601 date, or
+  /// empty for none.
+  static const duplicatePeriodStart = 'duplicate_period_start';
+
+  /// Last day of [AppSettings.duplicatePeriod] (included), as an ISO 8601
+  /// date, or empty for none.
+  static const duplicatePeriodEnd = 'duplicate_period_end';
+
   /// [AppSettings.screenshotAgeDays].
   static const screenshotAgeDays = 'screenshot_age_days';
 
@@ -191,6 +199,10 @@ final class SettingsRepository {
           ),
         ),
       ),
+      duplicatePeriod: decodePeriod(
+        values[SettingKeys.duplicatePeriodStart],
+        values[SettingKeys.duplicatePeriodEnd],
+      ),
       screenshotAgeDays: intIn(
         SettingKeys.screenshotAgeDays,
         defaults.screenshotAgeDays,
@@ -233,3 +245,28 @@ final class SettingsRepository {
     );
   }
 }
+
+/// The duplicate period stored as its first and last days ([start] and
+/// [end], ISO 8601 dates, either missing or empty), or `null` when neither
+/// is set or they are in the wrong order.
+DateFilter? decodePeriod(String? start, String? end) {
+  DateTime? day(String? value) {
+    final date = DateTime.tryParse(value ?? '');
+    return date == null ? null : DateTime(date.year, date.month, date.day);
+  }
+
+  final first = day(start);
+  final last = day(end);
+  if (first == null && last == null) return null;
+  if (first != null && last != null && last.isBefore(first)) return null;
+  return DateFilter(
+    start: first,
+    end: last == null ? null : DateTime(last.year, last.month, last.day + 1),
+  );
+}
+
+/// [date] as the ISO 8601 day `yyyy-mm-dd`.
+String isoDay(DateTime date) =>
+    '${date.year.toString().padLeft(4, '0')}-'
+    '${date.month.toString().padLeft(2, '0')}-'
+    '${date.day.toString().padLeft(2, '0')}';

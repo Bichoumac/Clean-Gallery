@@ -1,5 +1,7 @@
 import 'package:clean_gallery/core/media/duplicates_tile.dart';
 import 'package:clean_gallery/core/providers.dart';
+import 'package:clean_gallery/core/settings/settings_controller.dart';
+import 'package:clean_gallery/domain/album.dart';
 import 'package:clean_gallery/features/duplicates/duplicates_screen.dart';
 import 'package:clean_gallery/features/viewer/viewer_screen.dart';
 import 'package:flutter/material.dart';
@@ -47,6 +49,44 @@ void main() {
     // Each copy shows where it is.
     expect(find.text('DCIM/Camera/IMG_1.jpg'), findsOneWidget);
     expect(find.text('DCIM/Camera/IMG_2.jpg'), findsOneWidget);
+  });
+
+  testApp('the duplicate period applies to the tile and the screen', (
+    tester,
+  ) async {
+    // Issue #19.
+    await pumpTestApp(tester, media: source());
+    final container = ProviderScope.containerOf(
+      tester.element(find.byType(DuplicatesTile)),
+    );
+    final settings = container.read(appSettingsControllerProvider.notifier);
+
+    // A period before the photos: nothing to review anywhere.
+    await settings.setDuplicatePeriod(DateFilter(end: DateTime(2001)));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('to review'), findsNothing);
+
+    // A period holding them: the copies are back, and the screen says why
+    // other dates are left out.
+    await settings.setDuplicatePeriod(
+      DateFilter(start: DateTime(now.year, now.month, now.day)),
+    );
+    await tester.pumpAndSettle();
+    expect(find.textContaining('1 item to review'), findsOneWidget);
+    await openDuplicates(tester);
+    expect(find.textContaining('Period: '), findsOneWidget);
+    expect(find.textContaining('– today'), findsOneWidget);
+    expect(find.text('Identical copies'), findsOneWidget);
+
+    // Its cross goes back to the whole library.
+    await tester.tap(find.byTooltip('Whole library'));
+    await tester.pumpAndSettle();
+    expect(find.textContaining('Period: '), findsNothing);
+    expect(
+      container.read(appSettingsControllerProvider).duplicatePeriod,
+      isNull,
+    );
+    expect(find.text('Identical copies'), findsOneWidget);
   });
 
   testApp('no tile without duplicates', (tester) async {

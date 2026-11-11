@@ -203,6 +203,8 @@ Known keys are constants in `SettingKeys` ([settings_repository.dart](../lib/cor
 | `similarity_strict` | int, 0–10 | Advanced mode: strict pHash distance (default 6) |
 | `similarity_loose` | int, 0–24 | Advanced mode: loose pHash distance (default 14) |
 | `similarity_window` | int, 0–1800 | Advanced mode: time window in seconds (default 60) |
+| `duplicate_period_start` | ISO 8601 date or empty | First day of the duplicate period; empty for none |
+| `duplicate_period_end` | ISO 8601 date or empty | Last day of the duplicate period, included; empty for none. A last day before the first one is ignored |
 | `screenshot_age_days` | int, 1–3650 | Age from which screenshots are offered for cleaning (default 30) |
 | `large_video_megabytes` | int, 1–100000 | Size from which videos are offered for cleaning (default 100) |
 | `slideshow_options` | JSON | Default slideshow options, as in `slideshows.options` |

@@ -92,6 +92,11 @@ abstract class AppSettings with _$AppSettings {
     /// is [SimilaritySensitivity.custom].
     @Default(SimilarityThresholds.medium) SimilarityThresholds customThresholds,
 
+    /// Capture dates duplicates and similar photos are looked for in, or
+    /// `null` for the whole library (issue #19). Start and end are each
+    /// optional; the end is exclusive (the day after the last day).
+    DateFilter? duplicatePeriod,
+
     /// Age from which screenshots are offered for cleaning, in days.
     @Default(30) int screenshotAgeDays,
 
