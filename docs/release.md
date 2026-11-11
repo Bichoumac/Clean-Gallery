@@ -4,7 +4,7 @@ How to build, sign and publish Clean Gallery: the upload key, the release checkl
 
 Last updated: 2026-11-08 — Milestone M12
 
-Clean Gallery is free software under the GNU GPL v3, with no ads, purchase or tracking ([ADR 0032](decisions/0032-open-source-without-ads.md)). **Channels chosen by the product owner on 2026-11-09: GitHub releases and IzzyOnDroid.** The main F-Droid repository and Play may come later (Play needs 12 testers for 14 days on a personal account, which the product owner cannot gather).
+Clean Gallery is free software under the GNU GPL v3, with no ads, purchase or tracking ([ADR 0032](decisions/0032-open-source-without-ads.md)). **Channel: GitHub releases only** (product owner, 2026-11-11). IzzyOnDroid, chosen on 2026-11-09, is dropped: its inclusion policy rejects apps whose code is written with generative AI tools, which is the case here and stated in the repository. No other store is planned (Play needs 12 testers for 14 days on a personal account).
 
 ## Versions
 
@@ -96,7 +96,7 @@ F-Droid builds the app itself from the source, so its requirements are about the
 
 Two ways in:
 
-- **[IzzyOnDroid](https://apt.izzysoft.de/fdroid/)**, a separate F-Droid repository: it takes the signed APKs of the GitHub releases as they are, so updates come from your own key. Ask by opening an issue on its GitLab with the repository link. Fast, usually days.
+- **[IzzyOnDroid](https://izzyondroid.org/)**, a separate F-Droid repository: **not possible**. Its [inclusion policy](https://izzyondroid.org/docs/general/AppInclusionPolicy/) (checked on 2026-11-11) rejects apps created fully or in part with generative AI tools; requests now go to its Codeberg tracker, the GitLab one is archived.
 - **The main F-Droid repository**: open a merge request on [fdroiddata](https://gitlab.com/fdroid/fdroiddata) with a `metadata/com.bichoumac.clean_gallery.yml` file (categories *Gallery* and *Multimedia*, license `GPL-3.0-only`, source, issues, the build recipe with the Flutter version, auto-update on tags). F-Droid then signs the app with its own key, so the F-Droid and GitHub APKs cannot update each other, unless the build is reproducible and F-Droid publishes the developer's signature. Reviews take weeks. F-Droid's maintainers help write the recipe for Flutter apps.
 
 ## Google Play

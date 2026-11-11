@@ -2,7 +2,7 @@
 
 Status of each milestone, what is done, known issues and next steps. Update this file at the end of every milestone.
 
-Last updated: 2026-11-11 — Issue #19
+Last updated: 2026-11-11 — Release 1.1.0
 
 ## Milestones
 
@@ -23,7 +23,7 @@ Last updated: 2026-11-11 — Issue #19
 | — | Open source: ads and purchase removed, GPL v3, new privacy policy | Merged into `main` (PR #16, 2026-11-08), confirmed on the phone |
 | — | Page transitions: tabs, pages, tiles, back gesture, viewer | Merged into `main` (PR #15, 2026-11-08), confirmed on the phone with the video gestures ([checks](testing.md#page-transitions--to-verify-on-a-device)) |
 | M12 | Polish and release preparation (was M9) | Merged into `main` (PR #17, 2026-11-09); **1.0.0 released** on 2026-11-09, see [below](#m12--polish-and-release-preparation) |
-| — | Issue #19 (sliders, similar photo tolerance, duplicate period) and blurry thumbnails | Branch `fix-issue-19`, started 2026-11-11, see [below](#issue-19-and-blurry-thumbnails) |
+| — | Issue #19 (sliders, similar photo tolerance, duplicate period) and blurry thumbnails | Merged into `main` (PR #21, 2026-11-11); **1.1.0 released** the same day, see [below](#issue-19-and-blurry-thumbnails) |
 | — | Visual refresh: Éclat Soleil identity, logo and icon | Merged into `main` (PR #13), tried on the phone 2026-11-05 |
 
 M8 to M10 were added at the product owner's request on 2026-11-01; monetization and polish moved from M8 and M9.
@@ -65,7 +65,7 @@ Started on 2026-11-08 on branch `m12-release`, merged on 2026-11-09 (PR #17). Th
 ### Waiting for the product owner
 
 - Upload key: created by the product owner on 2026-11-09 and in use; signed release APKs checked (arm64 26.4 MB, armeabi-v7a 24.3 MB, x86_64 28.0 MB), certificate in [release.md](release.md#checking-a-builds-signature).
-- Channels: **GitHub releases and IzzyOnDroid**, chosen on 2026-11-09.
+- Channels: **GitHub releases and IzzyOnDroid**, chosen on 2026-11-09; **GitHub releases only** since 2026-11-11 (IzzyOnDroid rejects apps written with generative AI).
 - Repository made public on 2026-11-09.
 - Store screenshots: five, in place on 2026-11-09.
 - [M12 checks](testing.md#m12--release-preparation-to-verify-on-a-device): confirmed on the phone on 2026-11-09, as a whole.
