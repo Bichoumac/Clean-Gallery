@@ -142,7 +142,7 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 
 ### Issue #19 and blurry thumbnails — to verify on a device
 
-Built on branch `fix-issue-19` on 2026-11-11. **Confirmed on the phone by the product owner on 2026-11-11** ("tout est ok"), except item 7: thumbnails loaded more slowly than before. Measured and fixed the same day (sharp versions in a lane of their own, [library.md](features/library.md#thumbnail-size)); items 14 to 17 check the fix and the color picker.
+Built on branch `fix-issue-19` on 2026-11-11. **Confirmed on the phone by the product owner on 2026-11-11** ("tout est ok"), except item 7: thumbnails loaded more slowly than before. Measured and fixed the same day (sharp versions in a lane of their own, [library.md](features/library.md#thumbnail-size)); items 14 to 17 check the fix and the color picker, **confirmed on the phone the same day** ("tout est bon").
 
 | # | Do | Expected |
 | --- | --- | --- |
