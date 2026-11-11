@@ -1,9 +1,11 @@
 import 'package:clean_gallery/core/widgets/steady_slider.dart';
 import 'package:clean_gallery/domain/photo_edit.dart';
+import 'package:clean_gallery/features/editor/color_picker.dart';
 import 'package:clean_gallery/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 
-/// Pencil and text colors, as 0xAARRGGBB.
+/// Pencil and text colors offered as swatches, as 0xAARRGGBB; any other
+/// comes from the precise picker ([showEditorColorPicker]).
 const editorColors = [
   0xFFFFFFFF,
   0xFF000000,
@@ -11,6 +13,16 @@ const editorColors = [
   0xFFFF453A,
   0xFFFFD60A,
   0xFF0A84FF,
+  0xFFFF9F0A, // Orange.
+  0xFFFF375F, // Pink.
+  0xFFBF5AF2, // Purple.
+  0xFF5E5CE6, // Indigo.
+  0xFF64D2FF, // Cyan.
+  0xFF30D158, // Green.
+  0xFF63E6BE, // Mint.
+  0xFFA2845E, // Brown.
+  0xFF8E8E93, // Gray.
+  0xFFD1D1D6, // Light gray.
 ];
 
 /// Pencil widths, as fractions of the photo's shorter side.
@@ -68,7 +80,8 @@ class _ChipRow extends StatelessWidget {
   );
 }
 
-/// A row of round color swatches, with an optional "none" first.
+/// A row of round color swatches that scrolls sideways: an optional "none",
+/// the precise picker, then [editorColors].
 class ColorRow extends StatelessWidget {
   /// Creates the row; [selected] `null` is "none" when [allowNone].
   const ColorRow({
@@ -102,6 +115,8 @@ class ColorRow extends StatelessWidget {
         selected: picked,
         label: '$label, $name',
         excludeSemantics: true,
+        // excludeSemantics also drops the detector's tap: give it back.
+        onTap: () => onSelected(color),
         child: GestureDetector(
           onTap: () => onSelected(color),
           child: Container(
@@ -127,13 +142,80 @@ class ColorRow extends StatelessWidget {
       );
     }
 
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        if (allowNone) swatch(null, l10n.editorNoBackground),
-        for (final (i, color) in editorColors.indexed)
-          swatch(color, l10n.editorPenColor(i + 1)),
-      ],
+    final current = selected;
+    // A color from the picker shows on the picker's swatch.
+    final custom = current != null && !editorColors.contains(current)
+        ? current
+        : null;
+    Future<void> pick() async {
+      final picked = await showEditorColorPicker(
+        context,
+        current ?? editorColors.first,
+      );
+      if (picked != null) onSelected(picked);
+    }
+
+    final pickerSwatch = Semantics(
+      button: true,
+      selected: custom != null,
+      label: '$label, ${l10n.editorColorPicker}',
+      excludeSemantics: true,
+      onTap: pick,
+      child: GestureDetector(
+        onTap: pick,
+        child: Container(
+          width: 34,
+          height: 34,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: const SweepGradient(
+              colors: [
+                Color(0xFFFF453A),
+                Color(0xFFFFD60A),
+                Color(0xFF30D158),
+                Color(0xFF64D2FF),
+                Color(0xFF0A84FF),
+                Color(0xFFBF5AF2),
+                Color(0xFFFF453A),
+              ],
+            ),
+            border: Border.all(
+              color: custom != null ? accent : Colors.white38,
+              width: custom != null ? 3 : 1,
+            ),
+          ),
+          padding: const EdgeInsets.all(6),
+          child: Container(
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: custom == null ? Colors.black45 : Color(custom),
+            ),
+            child: custom == null
+                ? const Icon(Icons.add_rounded, size: 14, color: Colors.white)
+                : null,
+          ),
+        ),
+      ),
+    );
+
+    return SizedBox(
+      height: 44,
+      child: ListView(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        children: [
+          for (final child in [
+            if (allowNone) swatch(null, l10n.editorNoBackground),
+            pickerSwatch,
+            for (final (i, color) in editorColors.indexed)
+              swatch(color, l10n.editorPenColor(i + 1)),
+          ])
+            Padding(
+              padding: const EdgeInsets.only(right: 10),
+              child: Center(child: child),
+            ),
+        ],
+      ),
     );
   }
 }

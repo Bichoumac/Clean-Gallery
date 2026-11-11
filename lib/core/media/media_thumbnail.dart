@@ -190,18 +190,28 @@ class MediaThumbnail extends ConsumerWidget {
                 flightShuttleBuilder: mediaHeroShuttle,
                 curve: mediaHeroCurve,
                 child: LayoutBuilder(
-                  builder: (context, box) => RetryingImage(
-                    image: source.thumbnail(
-                      item,
-                      size: pixelSize ?? _fitted(context, box),
-                    ),
-                    failure: Icon(
-                      item.isVideo
-                          ? Icons.movie_outlined
-                          : Icons.broken_image_outlined,
-                      color: colors.onSurfaceVariant,
-                    ),
-                  ),
+                  builder: (context, box) {
+                    final size = pixelSize ?? _fitted(context, box);
+                    return Stack(
+                      fit: StackFit.expand,
+                      children: [
+                        RetryingImage(
+                          image: source.thumbnail(item, size: size),
+                          failure: Icon(
+                            item.isVideo
+                                ? Icons.movie_outlined
+                                : Icons.broken_image_outlined,
+                            color: colors.onSurfaceVariant,
+                          ),
+                        ),
+                        SharpUpgrade(
+                          cached: source.thumbnail(item, size: size),
+                          sharp: source.sharpThumbnail(item, size: size),
+                          size: size,
+                        ),
+                      ],
+                    );
+                  },
                 ),
               ),
             ),
@@ -280,6 +290,106 @@ class _Badge extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+}
+
+/// Shows [sharp] over a [cached] thumbnail once the cached image turns out
+/// visibly smaller than [size] (its short side under 80 % of it), fading
+/// it in when it arrives.
+///
+/// The cached thumbnail always shows first, at once: MediaStore's cache
+/// stops at 512 pixels on Samsung phones, so large cells (two columns,
+/// album covers, memory cards) need the photo decoded from its file, about
+/// half a second each, which the native loader does in a lane of its own.
+class SharpUpgrade extends StatefulWidget {
+  /// Creates the layer.
+  const SharpUpgrade({
+    required this.cached,
+    required this.sharp,
+    required this.size,
+    super.key,
+  });
+
+  /// The thumbnail shown underneath, whose size decides.
+  final ImageProvider cached;
+
+  /// The sharp version, or `null` when there is none (videos).
+  final ImageProvider? sharp;
+
+  /// Short side asked for, in pixels.
+  final int size;
+
+  /// Share of [size] a cached thumbnail must reach to be kept alone.
+  static const minShare = 0.8;
+
+  @override
+  State<SharpUpgrade> createState() => _SharpUpgradeState();
+}
+
+class _SharpUpgradeState extends State<SharpUpgrade> {
+  ImageStream? _stream;
+  bool _needed = false;
+
+  late final _listener = ImageStreamListener((info, _) {
+    final image = info.image;
+    final needed =
+        (image.width < image.height ? image.width : image.height) <
+        SharpUpgrade.minShare * widget.size;
+    info.dispose();
+    if (mounted && needed != _needed) setState(() => _needed = needed);
+  }, onError: (_, _) {});
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _resolve();
+  }
+
+  @override
+  void didUpdateWidget(SharpUpgrade oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.cached != widget.cached || oldWidget.size != widget.size) {
+      _needed = false;
+      _resolve();
+    }
+  }
+
+  void _resolve() {
+    if (widget.sharp == null) return;
+    final stream = widget.cached.resolve(
+      createLocalImageConfiguration(context),
+    );
+    if (stream.key == _stream?.key) return;
+    _stream?.removeListener(_listener);
+    _stream = stream..addListener(_listener);
+  }
+
+  @override
+  void dispose() {
+    _stream?.removeListener(_listener);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final sharp = widget.sharp;
+    if (!_needed || sharp == null) return const SizedBox.shrink();
+    return Image(
+      image: sharp,
+      fit: BoxFit.cover,
+      gaplessPlayback: true,
+      frameBuilder: (context, child, frame, synchronous) {
+        if (synchronous) return child;
+        return AnimatedOpacity(
+          opacity: frame == null ? 0 : 1,
+          duration: AppMotion.of(context, AppMotion.standard),
+          curve: AppMotion.curve,
+          child: child,
+        );
+      },
+      // The cached thumbnail stays: a sharp one that fails changes nothing.
+      errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
     );
   }
 }

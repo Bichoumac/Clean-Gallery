@@ -235,6 +235,35 @@ void main() {
     expect(editorState(tester).edit.strokes, hasLength(1));
   });
 
+  testApp('the pencil takes any color from the precise picker', (tester) async {
+    await openEditor(tester);
+    await tester.tap(find.byTooltip('Draw'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.bySemanticsLabel(RegExp('Custom color')).first);
+    await tester.pumpAndSettle();
+    expect(find.text('Hue'), findsNothing); // Read by screen readers only.
+    await tester.enterText(find.byType(TextField), '#12AB9F');
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Use'));
+    await tester.pumpAndSettle();
+
+    final area = find.bySemanticsLabel(RegExp('Drawing area'));
+    await tester.drag(area, const Offset(80, 30));
+    await tester.pumpAndSettle();
+    expect(editorState(tester).edit.strokes.single.color, 0xFF12AB9F);
+    // The picker's swatch now shows the color, selected.
+    expect(
+      tester.getSemantics(find.bySemanticsLabel(RegExp('Custom color')).first),
+      matchesSemantics(
+        label: 'Color, Custom color',
+        isButton: true,
+        hasSelectedState: true,
+        isSelected: true,
+        hasTapAction: true,
+      ),
+    );
+  });
+
   testApp('the straighten slider turns the photo by degrees', (tester) async {
     await openEditor(tester);
     final slider = find.byWidgetPredicate((w) => w is Slider && w.min == -45);

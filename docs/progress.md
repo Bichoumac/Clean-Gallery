@@ -45,7 +45,8 @@ Reported by the product owner after 1.0.0 ([issue #19](https://github.com/Bichou
 - **Done**: sliders that stuck at zero and lagged on fast drags (`SteadySlider` everywhere); wider similar photo presets measured on public test photos ([ADR 0034](decisions/0034-wider-similarity-tolerance.md)) and their *tolerance threshold* wording; thumbnails sized from what they show, decoded from the file when MediaStore's cache is too small ([library.md](features/library.md#thumbnail-size)).
 - **Done (part 3)**: the duplicate period in Settings, applied to every duplicate and similar group of the app ([analysis-engine.md](analysis-engine.md#duplicate-period)); a chip on the duplicates screen resets it.
 - **Left**: nothing in the issue.
-- **On the phone**: not checked yet ([checks](testing.md#issue-19-and-blurry-thumbnails--to-verify-on-a-device)).
+- **On the phone** (2026-11-11): all checks confirmed, except slower thumbnails, measured and fixed (sharp versions in their own lane); the fix and the new color picker are waiting for a check ([checks](testing.md#issue-19-and-blurry-thumbnails--to-verify-on-a-device), items 14 to 17).
+- **Also asked on 2026-11-11**: more colors in the editor, with a precise picker ([editor.md](features/editor.md)).
 
 ## M12 — Polish and release preparation
 

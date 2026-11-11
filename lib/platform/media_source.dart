@@ -57,6 +57,12 @@ abstract interface class MediaSource {
   /// Small square thumbnail of [item], about [size] pixels wide.
   ImageProvider thumbnail(MediaItem item, {required int size});
 
+  /// The same as [thumbnail], decoded from the photo itself so it is sharp
+  /// at [size] even where the platform's cached thumbnails are smaller; or
+  /// `null` when there is no such thing (videos, platforms without a
+  /// cache). Slower: shown over [thumbnail] once it arrives.
+  ImageProvider? sharpThumbnail(MediaItem item, {required int size});
+
   /// Screen-sized image of [item], at most [longestSide] pixels on its
   /// longest side, keeping its proportions.
   ///

@@ -67,7 +67,8 @@ Fakes are injected by overriding providers in a `ProviderScope` or `ProviderCont
 | [similarity_test.dart](../test/analysis/similarity_test.dart) | Multi-index search against brute force, union-find, strict and loose rules, aspect ratio, chains, ignored pairs, certain groups, presets, High groups a scene reframed minutes later (issue #19), confidence, a mixed photo set. |
 | [duplicates_test.dart](../test/core/media/duplicates_test.dart) (period) and [similar_photos_test.dart](../test/core/media/similar_photos_test.dart) (period) | Items outside the duplicate period are neither hashed nor grouped; similar photos of the period only, every photo still measured, the period's first. |
 | [steady_slider_test.dart](../test/core/widgets/steady_slider_test.dart) | The app's slider rounds to its steps within its range and is never a discrete (animated) Material slider. |
-| [media_thumbnail_test.dart](../test/core/media/media_thumbnail_test.dart) | Thumbnail size steps; a thumbnail without a size asks for the size of its box. |
+| [media_thumbnail_test.dart](../test/core/media/media_thumbnail_test.dart) | Thumbnail size steps; a thumbnail without a size asks for the size of its box; the sharp version only over a cached thumbnail too small. |
+| [color_picker_test.dart](../test/features/editor/color_picker_test.dart) | Hex codes of the editor's color picker. |
 | [similar_photos_test.dart](../test/core/media/similar_photos_test.dart) | Similar scan through the media source: groups, photos only, hashes kept, Not duplicates, changed file, new thresholds without re-reading, exact copies stay certain, folder filter. |
 | [similar_flow_test.dart](../test/features/duplicates/similar_flow_test.dart) | Similar photos section, Not duplicates, Stats values and link to the duplicates screen. |
 | [storage_summary_test.dart](../test/features/stats/storage_summary_test.dart) | Dashboard values by category, an item counted once (also across screenshots and large videos), the trash, an empty library. |
@@ -141,7 +142,7 @@ To replay onboarding, clear the app data: `adb shell pm clear com.bichoumac.clea
 
 ### Issue #19 and blurry thumbnails — to verify on a device
 
-Built on branch `fix-issue-19` on 2026-11-11. Not checked on the phone yet.
+Built on branch `fix-issue-19` on 2026-11-11. **Confirmed on the phone by the product owner on 2026-11-11** ("tout est ok"), except item 7: thumbnails loaded more slowly than before. Measured and fixed the same day (sharp versions in a lane of their own, [library.md](features/library.md#thumbnail-size)); items 14 to 17 check the fix and the color picker.
 
 | # | Do | Expected |
 | --- | --- | --- |
@@ -158,6 +159,10 @@ Built on branch `fix-issue-19` on 2026-11-11. Not checked on the phone yet.
 | 11 | Stats, the Duplicates tile of Camera, Doublons | Only groups of photos taken since that date; counts match. Doublons shows *Période : <date> – aujourd'hui* at the top. |
 | 12 | Open a photo of an old duplicate pair | No group strip in the viewer for it. |
 | 13 | The chip's cross in Doublons (or *Toute la bibliothèque*) | Every group is back, without reading the whole library again. |
+| 14 | Camera grid at 4 columns, scroll fast | Thumbnails as quick as in 1.0.0. |
+| 15 | Pinch to 2 columns, Albums covers, a memory card | A thumbnail shows at once, then turns sharp a moment later with a short fade. |
+| 16 | Editor → Dessiner: scroll the color row, tap the rainbow swatch | The picker opens; the square, the hue bar and a typed code (e.g. `#12AB9F`) change the new color; *Choisir* applies it and the rainbow swatch shows it framed. |
+| 17 | Texte: the same for the text color and its background | Same picker; *Aucun* still removes the background. |
 
 ### M12 — release preparation, to verify on a device
 

@@ -8,6 +8,7 @@ Last updated: 2026-11-11 — Issue #19
 
 ### Added
 
+- **Any color in the editor**: 16 swatches for the pen, the text and its background, and a precise picker (shade square, hue bar, hex code).
 - **Period analyzed** for duplicates ([issue #19](https://github.com/Bichoumac/Clean-Gallery/issues/19)): in Settings → Analysis, a first and a last day, each optional, limit duplicates and similar photos to the items taken in that period, everywhere in the app. The duplicates screen shows the period in a chip that resets it.
 
 ### Changed
@@ -19,7 +20,8 @@ Last updated: 2026-11-11 — Issue #19
 
 - **Sliders stuck at zero** (issue #19): in the editor, a slider at zero only moved a step, then had to be tapped first; its theme changed once the value left zero, which rebuilt the slider and ended the drag.
 - **Sliders lagging on a fast drag** (issue #19): Material sliders with steps ease their thumb towards each value. Every slider is now `SteadySlider`, continuous, rounding its values itself.
-- **Blurry thumbnails**: thumbnails asked for a fixed size (256 pixels at four columns, 512 on memory cards, 768 on album covers) and MediaStore's cache stops at 512 on Samsung phones. They now ask for the size they are shown at, and a photo whose cached thumbnail is too small is decoded from its file.
+- Screen readers can pick the editor's color swatches again: their tap was hidden with the rest of their semantics.
+- **Blurry thumbnails**: thumbnails asked for a fixed size (256 pixels at four columns, 512 on memory cards, 768 on album covers) and MediaStore's cache stops at 512 on Samsung phones. They now ask for the size they are shown at. The cached thumbnail shows at once, and when it is too small, the photo decoded from its file fades in over it, in a lane of its own so the grid never waits for it.
 
 ## [1.0.0] — 2026-11-09 — First public release
 

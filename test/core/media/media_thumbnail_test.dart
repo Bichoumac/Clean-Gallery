@@ -46,4 +46,54 @@ void main() {
     // 380 dp × 2.625 = 998 pixels.
     expect(media.thumbnailSizes.last, 1024);
   });
+
+  group('sharp thumbnails', () {
+    Future<void> pump(
+      WidgetTester tester,
+      FakeMediaSource media, {
+      required int pixelSize,
+    }) async {
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [mediaSourceProvider.overrideWithValue(media)],
+          child: MaterialApp(
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
+            home: SizedBox.square(
+              dimension: 100,
+              child: MediaThumbnail(
+                item: testItem(1),
+                pixelSize: pixelSize,
+                hero: false,
+              ),
+            ),
+          ),
+        ),
+      );
+      // Images decode outside the fake clock.
+      for (var i = 0; i < 10; i++) {
+        await tester.runAsync(
+          () => Future<void>.delayed(const Duration(milliseconds: 20)),
+        );
+        await tester.pump();
+      }
+    }
+
+    testWidgets('a cached thumbnail too small gets its sharp version', (
+      tester,
+    ) async {
+      // The fake's cached thumbnail is 1 pixel: too small for 256.
+      final media = FakeMediaSource()
+        ..sharpImage = MemoryImage(kTransparentPng);
+      await pump(tester, media, pixelSize: 256);
+      expect(media.sharpSizes, [256]);
+      expect(find.byType(Image), findsNWidgets(2));
+    });
+
+    testWidgets('a cached thumbnail large enough stays alone', (tester) async {
+      final media = FakeMediaSource()
+        ..sharpImage = MemoryImage(kTransparentPng);
+      await pump(tester, media, pixelSize: 1);
+      expect(find.byType(Image), findsOneWidget);
+    });
+  });
 }

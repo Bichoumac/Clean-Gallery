@@ -131,7 +131,8 @@ Each thumbnail asks for the size it is shown at, so it stays sharp at any number
 
 - `thumbnailPixels` ([media_thumbnail.dart](../../lib/core/media/media_thumbnail.dart)) turns a side in dp into the step of `thumbnailSteps` (192 to 1280 pixels) at or above it on this screen. The grid computes it from its column count, so the image cache key only changes with the columns; `MediaThumbnail` without a `pixelSize` measures its own box.
 - Before, the grid asked for 256 pixels at four columns or more and 512 below, memory cards for 512 and album covers for 768, whatever their real size.
-- MediaStore's thumbnails stop at 512 pixels on Samsung phones (512 × 384 for a 4:3 photo). When the cached thumbnail's short side is under 80 % of the request, `ThumbnailLoader` decodes the photo from its file at the requested size instead, as the viewer does. In practice: two columns, memory cards and album covers. Videos keep MediaStore's thumbnail.
+- MediaStore's thumbnails stop at 512 pixels on Samsung phones (512 × 384 for a 4:3 photo, 267 × 578 for a tall screenshot). **Two steps**: the cached thumbnail always shows first; when its short side is under 80 % of the size asked for, `SharpUpgrade` lays the photo decoded from its file (`MediaSource.sharpThumbnail`) over it, fading in. In practice: two columns, album covers, memory cards and tall photos.
+- The sharp versions wait in a **lane of their own** in `ThumbnailLoader` (2 threads). The first version (2026-11-11) decoded them in the main lane instead of the cached thumbnail: each took about half a second, and the grid waited behind them. Measured on the phone (720 px wide screen, cells of 192 pixels at four columns): cached thumbnails decode in 17 ms but waited 390 ms (median) to 1 s; those decoded from files took 450–540 ms and waited 1.4 to 6.7 s at the 90th percentile.
 
 ## Thumbnails that fail
 

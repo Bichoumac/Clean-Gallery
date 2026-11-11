@@ -445,6 +445,18 @@ class FakeMediaSource implements MediaSource {
     return MemoryImage(kTransparentPng);
   }
 
+  /// Sizes asked of [sharpThumbnail], in order.
+  final sharpSizes = <int>[];
+
+  /// What [sharpThumbnail] returns; `null` for none.
+  ImageProvider? sharpImage;
+
+  @override
+  ImageProvider? sharpThumbnail(MediaItem item, {required int size}) {
+    if (sharpImage != null) sharpSizes.add(size);
+    return sharpImage;
+  }
+
   @override
   ImageProvider preview(MediaItem item, {required int longestSide}) =>
       MemoryImage(kTransparentPng);

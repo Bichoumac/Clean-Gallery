@@ -26,6 +26,7 @@ final class NativeThumbnailProvider
     required this.width,
     required this.height,
     this.fromFile = false,
+    this.sharp = false,
   });
 
   /// Channel to the native loader. Not part of equality.
@@ -51,6 +52,10 @@ final class NativeThumbnailProvider
   /// phones.
   final bool fromFile;
 
+  /// Whether this is the sharp version of a grid thumbnail, decoded from
+  /// the file in the native loader's slower lane.
+  final bool sharp;
+
   @override
   Future<NativeThumbnailProvider> obtainKey(ImageConfiguration configuration) =>
       SynchronousFuture(this);
@@ -71,6 +76,7 @@ final class NativeThumbnailProvider
         width: key.width,
         height: key.height,
         fromFile: key.fromFile,
+        sharp: key.sharp,
       );
       final buffer = await ui.ImmutableBuffer.fromUint8List(data.pixels);
       final descriptor = ui.ImageDescriptor.raw(
@@ -101,10 +107,12 @@ final class NativeThumbnailProvider
       other.modifiedSecond == modifiedSecond &&
       other.width == width &&
       other.height == height &&
-      other.fromFile == fromFile;
+      other.fromFile == fromFile &&
+      other.sharp == sharp;
 
   @override
-  int get hashCode => Object.hash(id, modifiedSecond, width, height, fromFile);
+  int get hashCode =>
+      Object.hash(id, modifiedSecond, width, height, fromFile, sharp);
 }
 
 /// Full-resolution image of a MediaStore asset, read from its file and
