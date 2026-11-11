@@ -1,0 +1,1 @@
+Similar photos: a wider tolerance that groups the same scene reframed minutes apart, explained in Settings. Period analyzed: look for duplicates only among photos of chosen dates. Editor: any color, with a precise picker. Smooth sliders. Sharp thumbnails at every size.

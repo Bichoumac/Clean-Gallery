@@ -2,9 +2,13 @@
 
 All notable changes to this project are documented here: one section per milestone until 1.0.0, then one per release. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
-Last updated: 2026-11-11 — Issue #19
+Last updated: 2026-11-11 — Release 1.1.0
 
 ## [Unreleased]
+
+## [1.1.0] — 2026-11-11
+
+Second release: issue #19, sharper thumbnails and more colors in the editor.
 
 ### Added
 
